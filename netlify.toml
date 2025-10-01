@@ -406,3 +406,9 @@
   to = "/pages/home/:splat"
   status = 200
   conditions = {Host = ["oslira.com", "www.oslira.com", "oslira.org", "www.oslira.org", "osliratest.netlify.app"]}
+
+  # Absolute fallback - NO conditions
+[[redirects]]
+  from = "/*"
+  to = "/pages/home/index.html"
+  status = 200
