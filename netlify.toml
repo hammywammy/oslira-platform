@@ -400,12 +400,6 @@
   to = "/assets/images/oslira-logo.png"
   status = 200
 
-# Root domain catch-all - MUST BE LAST
-[[redirects]]
-  from = "/*"
-  to = "/pages/home/:splat"
-  status = 200
-  conditions = {Host = ["oslira.com", "www.oslira.com", "oslira.org", "www.oslira.org", "osliratest.netlify.app"]}
 
   # Absolute fallback - NO conditions
 [[redirects]]
