@@ -1,0 +1,27 @@
+{
+  "name": "oslira-platform",
+  "version": "1.0.0",
+  "description": "Oslira Platform - Multi-subdomain frontend",
+  "type": "module",
+  "scripts": {
+    "build": "npm run build:tailwind",
+    "build:tailwind": "npx tailwindcss -i src/styles.css -o public/assets/css/tailwind.css --minify",
+    "build:tailwind:watch": "npx tailwindcss -i src/styles.css -o public/assets/css/tailwind.css --watch",
+    "dev": "netlify dev",
+    "deploy": "netlify deploy --prod",
+    "deploy:staging": "netlify deploy"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "netlify-cli": "^17.0.0"
+  },
+  "keywords": ["lead-generation", "ai", "supabase", "frontend"],
+  "author": "Hamza Williams",
+  "license": "MIT"
+}
