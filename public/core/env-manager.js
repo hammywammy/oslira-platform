@@ -46,13 +46,15 @@ class OsliraEnvManager {
     // ENVIRONMENT DETECTION (SYNCHRONOUS)
     // =============================================================================
     
-    initEnvironment() {
-        // Environment detection
-        this.isProduction = this.hostname === this.domains.production;
-        this.isStaging = this.hostname === this.domains.staging || 
-                        this.hostname === this.domains.netlifyStaging;
-        this.isDevelopment = this.hostname === 'localhost' || 
-                           this.hostname === '127.0.0.1';
+initEnvironment() {
+    // Environment detection - SUBDOMAIN AWARE
+    this.isProduction = this.hostname === this.domains.production || 
+                       this.hostname.endsWith('.oslira.com');
+    this.isStaging = this.hostname === this.domains.staging || 
+                    this.hostname === this.domains.netlifyStaging ||
+                    this.hostname.endsWith('.oslira.org');
+    this.isDevelopment = this.hostname === 'localhost' || 
+                       this.hostname === '127.0.0.1';
         
         // Environment string
         this.environment = this.isProduction ? 'production' : 
