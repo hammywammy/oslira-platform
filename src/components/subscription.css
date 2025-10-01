@@ -1,0 +1,1486 @@
+/* =============================================================================
+   SUBSCRIPTION PAGE CSS - TAILWIND V3 COMPLIANT
+   NO @apply with state variants, group modifiers, or pseudo-elements
+   Only plain utilities allowed in @apply
+   ============================================================================= */
+
+@layer components {
+  /* =============================================================================
+     SUBSCRIPTION PAGE LAYOUT - PLAIN UTILITIES ONLY
+     ============================================================================= */
+  
+  .subscription-page-body {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.5;
+    font-size: 1rem;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* =============================================================================
+     SIDEBAR INTEGRATION - NO GROUP MODIFIERS
+     ============================================================================= */
+
+  .sidebar-subscription-status {
+    background: linear-gradient(135deg, #14b8a6 0%, #a855f7 100%);
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    margin: 0 1rem 1.5rem 1rem;
+    color: white;
+  }
+
+  .sidebar-plan-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 0.25rem;
+  }
+
+  .sidebar-next-billing {
+    font-size: 0.75rem;
+    color: rgba(229, 231, 235, 0.9);
+  }
+
+  .sidebar-user-info {
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(229, 231, 235, 0.2);
+    margin: auto 1rem 1rem 1rem;
+  }
+
+  .sidebar-user-info p {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin-bottom: 0.5rem;
+  }
+
+  .sidebar-user-info a {
+    color: #c084fc;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .sidebar-user-info a:hover {
+    color: #d8b4fe;
+  }
+
+  /* =============================================================================
+     MAIN CONTENT AREA - DIRECT CSS
+     ============================================================================= */
+
+  .subscription-main-content {
+    margin-left: 16rem;
+    min-height: 100vh;
+    padding: 1.5rem;
+    transition: margin-left 0.3s ease;
+  }
+
+  .subscription-main-content.sidebar-collapsed {
+    margin-left: 4rem;
+  }
+
+  /* =============================================================================
+     PAGE HEADER - GLASS EFFECT WITHOUT @APPLY
+     ============================================================================= */
+
+  .subscription-page-header {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .subscription-page-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #2563eb 0%, #8b5cf6 50%, #14b8a6 100%);
+  }
+
+  .subscription-page-title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 1rem;
+  }
+
+  .subscription-page-subtitle {
+    font-size: 1.25rem;
+    color: #4b5563;
+    max-width: 42rem;
+    margin: 0 auto;
+  }
+
+  /* =============================================================================
+     CURRENT SUBSCRIPTION CARD - GRADIENT WITHOUT @APPLY
+     ============================================================================= */
+
+  .current-subscription-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .current-subscription-gradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #2563eb 0%, #8b5cf6 50%, #14b8a6 100%);
+    opacity: 0.9;
+  }
+
+  .current-subscription-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.2) 100%);
+  }
+
+  .current-subscription-content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    color: white;
+  }
+
+  .current-subscription-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+  }
+
+  .current-plan-name {
+    font-size: 2.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+  }
+
+  .current-plan-details {
+    font-size: 1.125rem;
+    opacity: 0.9;
+    margin-bottom: 1.5rem;
+  }
+
+  .current-subscription-info-card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(16px);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    display: inline-block;
+  }
+
+  .current-subscription-info {
+    font-size: 0.875rem;
+  }
+
+  /* =============================================================================
+     PRICING SECTION - NO STATE VARIANTS IN @APPLY
+     ============================================================================= */
+
+  .pricing-section-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .pricing-section-title {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 1rem;
+  }
+
+  .pricing-section-subtitle {
+    font-size: 1.125rem;
+    color: #4b5563;
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.5rem;
+    max-width: 80rem;
+    margin: 0 auto;
+  }
+
+  /* =============================================================================
+     PRICING CARDS - DIRECT CSS WITHOUT @APPLY VIOLATIONS
+     ============================================================================= */
+
+  .pricing-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    padding: 2rem;
+    position: relative;
+    transition: all 0.3s ease;
+    transform: scale(1);
+  }
+
+  .pricing-card:hover {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transform: scale(1.05);
+  }
+
+  .pricing-card.current-plan-card {
+    border: 2px solid #7dd3fc;
+    background: linear-gradient(135deg, #ecfeff 0%, #dbeafe 100%);
+    box-shadow: 0 10px 40px rgba(20, 184, 166, 0.2);
+  }
+
+  .pricing-card-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .pricing-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.75rem;
+  }
+
+  .pricing-card-price-container {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .pricing-card-currency {
+    color: #6b7280;
+    font-size: 1.125rem;
+  }
+
+  .pricing-card-price {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .pricing-card-period {
+    color: #4b5563;
+    font-size: 0.875rem;
+  }
+
+  .pricing-card-credits {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-top: 0.75rem;
+    display: inline-block;
+  }
+
+  .pricing-card-credits.starter {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .pricing-card-credits.professional {
+    background-color: #f3e8ff;
+    color: #7c3aed;
+  }
+
+  .pricing-card-credits.agency {
+    background: linear-gradient(90deg, #f3e8ff 0%, #dbeafe 100%);
+    color: #7c3aed;
+  }
+
+  .pricing-card-credits.enterprise {
+    background-color: #f9fafb;
+    color: #374151;
+  }
+
+  .pricing-card-savings {
+    background-color: #10b981;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+    display: inline-block;
+  }
+
+  /* =============================================================================
+     PRICING CARD FEATURES LIST - NO PSEUDO-ELEMENTS IN @APPLY
+     ============================================================================= */
+
+  .pricing-card-features {
+    margin-bottom: 2rem;
+    font-size: 0.875rem;
+  }
+
+  .pricing-card-features li {
+    display: flex;
+    align-items: center;
+    color: #374151;
+    margin-bottom: 0.75rem;
+  }
+
+  .pricing-card-feature-icon {
+    width: 1rem;
+    height: 1rem;
+    color: #14b8a6;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  /* =============================================================================
+     PRICING CARD BUTTONS - NO HOVER STATES IN @APPLY
+     ============================================================================= */
+
+  .pricing-card-button {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    transform: scale(1);
+    border: none;
+    cursor: pointer;
+  }
+
+  .pricing-card-button:hover {
+    transform: scale(1.05);
+  }
+
+  .pricing-card-button.primary {
+    background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+  }
+
+  .pricing-card-button.primary:hover {
+    background: linear-gradient(90deg, #1d4ed8 0%, #1e40af 100%);
+    box-shadow: 0 8px 15px rgba(37, 99, 235, 0.4);
+  }
+
+  .pricing-card-button.secondary {
+    background-color: white;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .pricing-card-button.secondary:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .pricing-card-button.agency-special {
+    background: linear-gradient(90deg, #8b5cf6 0%, #2563eb 100%);
+    color: white;
+    box-shadow: 0 4px 6px rgba(139, 92, 246, 0.3);
+  }
+
+  .pricing-card-button.agency-special:hover {
+    background: linear-gradient(90deg, #7c3aed 0%, #1d4ed8 100%);
+    box-shadow: 0 8px 15px rgba(139, 92, 246, 0.4);
+  }
+
+  .pricing-card-button.current {
+    background-color: #d1d5db;
+    color: #6b7280;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .pricing-card-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* =============================================================================
+     BADGES - ABSOLUTE POSITIONING WITHOUT @APPLY
+     ============================================================================= */
+
+  .popular-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, #8b5cf6 0%, #2563eb 100%);
+    color: white;
+    padding: 0.25rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+  }
+
+  .current-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(90deg, #14b8a6 0%, #2563eb 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+  }
+
+  /* =============================================================================
+     BILLING MANAGEMENT SECTION - DIRECT CSS
+     ============================================================================= */
+
+  .billing-section {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .billing-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #2563eb 0%, #8b5cf6 50%, #14b8a6 100%);
+  }
+
+  .billing-header {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .billing-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+  }
+
+  .billing-subtitle {
+    color: #4b5563;
+  }
+
+  .billing-manage-button {
+    background-color: transparent;
+    color: #2563eb;
+    border: 2px solid #2563eb;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+  }
+
+  .billing-manage-button:hover {
+    background-color: #dbeafe;
+    border-color: #1d4ed8;
+  }
+
+  .billing-info-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .billing-info-card {
+    background-color: #f9fafb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+  }
+
+  .billing-info-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+  }
+
+  .billing-info-value {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .billing-info-detail {
+    font-size: 0.875rem;
+    color: #4b5563;
+    margin-top: 0.25rem;
+  }
+
+  /* =============================================================================
+     USAGE HISTORY SECTION - NO @APPLY VIOLATIONS
+     ============================================================================= */
+
+  .usage-history-section {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+
+  .usage-history-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #2563eb 0%, #8b5cf6 50%, #14b8a6 100%);
+  }
+
+  .usage-history-header {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .usage-history-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+  }
+
+  .usage-history-subtitle {
+    color: #4b5563;
+  }
+
+  .usage-history-filters {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .usage-history-filter {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+  }
+
+  .usage-history-filter.active {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .usage-history-filter.inactive {
+    color: #4b5563;
+    background-color: transparent;
+  }
+
+  .usage-history-filter.inactive:hover {
+    background-color: #f9fafb;
+  }
+
+  /* =============================================================================
+     USAGE HISTORY TABLE - DIRECT CSS
+     ============================================================================= */
+
+  .usage-table {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .usage-table table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .usage-table th {
+    text-align: left;
+    padding: 1rem;
+    font-weight: 600;
+    color: #111827;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .usage-table td {
+    padding: 1rem;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .usage-table tr:hover {
+    background-color: #f9fafb;
+    transition: background-color 0.2s ease;
+  }
+
+  .usage-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .usage-status-badge.paid {
+    background-color: #d1fae5;
+    color: #065f46;
+  }
+
+  .usage-status-badge.free {
+    background-color: #f3f4f6;
+    color: #1f2937;
+  }
+
+  .usage-status-badge.pending {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+
+  /* =============================================================================
+     HELP & SUPPORT SECTION - NO GROUP MODIFIERS
+     ============================================================================= */
+
+  .help-section {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .help-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #2563eb 0%, #8b5cf6 50%, #14b8a6 100%);
+  }
+
+  .help-section-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .help-section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+  }
+
+  .help-section-subtitle {
+    color: #4b5563;
+  }
+
+  .help-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .help-card {
+    background-color: #f9fafb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .help-card:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .help-card.help-center:hover {
+    background-color: #dbeafe;
+  }
+
+  .help-card.email-support:hover {
+    background-color: #f3e8ff;
+  }
+
+  .help-card.live-chat:hover {
+    background-color: #f0fdfa;
+  }
+
+  .help-card-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem auto;
+    transition: background-color 0.2s ease;
+  }
+
+  .help-card-icon.help-center {
+    background-color: #dbeafe;
+  }
+
+  .help-card:hover .help-card-icon.help-center {
+    background-color: #bfdbfe;
+  }
+
+  .help-card-icon.email-support {
+    background-color: #f3e8ff;
+  }
+
+  .help-card:hover .help-card-icon.email-support {
+    background-color: #e9d5ff;
+  }
+
+  .help-card-icon.live-chat {
+    background-color: #ccfbf1;
+  }
+
+  .help-card:hover .help-card-icon.live-chat {
+    background-color: #99f6e4;
+  }
+
+  .help-card-icon svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .help-card-icon.help-center svg {
+    color: #2563eb;
+  }
+
+  .help-card-icon.email-support svg {
+    color: #8b5cf6;
+  }
+
+  .help-card-icon.live-chat svg {
+    color: #14b8a6;
+  }
+
+  .help-card-title {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.5rem;
+  }
+
+  .help-card-description {
+    font-size: 0.875rem;
+    color: #4b5563;
+  }
+
+  /* =============================================================================
+     MODALS - NO STATE VARIANTS
+     ============================================================================= */
+
+  .subscription-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+  }
+
+  .subscription-modal-content {
+    background-color: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    max-width: 28rem;
+    margin: 0 1rem;
+    text-align: center;
+  }
+
+  .subscription-modal-icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem auto;
+  }
+
+  .subscription-modal-icon.success {
+    background-color: #d1fae5;
+  }
+
+  .subscription-modal-icon.error {
+    background-color: #fee2e2;
+  }
+
+  .subscription-modal-icon svg {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .subscription-modal-icon.success svg {
+    color: #059669;
+  }
+
+  .subscription-modal-icon.error svg {
+    color: #dc2626;
+  }
+
+  .subscription-modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+  }
+
+  .subscription-modal-message {
+    color: #4b5563;
+    margin-bottom: 1.5rem;
+  }
+
+  .subscription-modal-button {
+    width: 100%;
+  }
+
+  /* =============================================================================
+     LOADING STATES - DIRECT CSS
+     ============================================================================= */
+
+  .subscription-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+  }
+
+  .subscription-loading-content {
+    background-color: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    max-width: 20rem;
+    margin: 0 1rem;
+    text-align: center;
+  }
+
+  .subscription-loading-spinner {
+    width: 2rem;
+    height: 2rem;
+    margin: 0 auto 1rem auto;
+    border: 2px solid #e5e7eb;
+    border-top: 2px solid #2563eb;
+    border-radius: 9999px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .subscription-loading-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.5rem;
+  }
+
+  .subscription-loading-message {
+    font-size: 0.875rem;
+    color: #4b5563;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN - MEDIA QUERIES ONLY
+   ============================================================================= */
+
+@media (min-width: 768px) {
+  .pricing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .billing-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .billing-header {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .billing-manage-button {
+    margin-top: 0;
+  }
+  
+  .usage-history-header {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .usage-history-filters {
+    margin-top: 0;
+  }
+  
+  .help-cards-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .pricing-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  
+  .billing-info-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  
+  .subscription-page-title {
+    font-size: 3.75rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .subscription-main-content {
+    margin-left: 4rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .subscription-main-content {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .subscription-page-header {
+    padding: 1.5rem;
+  }
+
+  .subscription-page-title {
+    font-size: 2.25rem;
+  }
+
+  .current-subscription-card {
+    padding: 1.5rem;
+  }
+
+  .current-plan-name {
+    font-size: 2.25rem;
+  }
+
+  .pricing-grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .pricing-card {
+    padding: 1.5rem;
+  }
+
+  .billing-section,
+  .usage-history-section,
+  .help-section {
+    padding: 1.5rem;
+  }
+
+  .billing-header,
+  .usage-history-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .billing-manage-button {
+    margin-top: 1rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .usage-history-filters {
+    margin-top: 1rem;
+    width: 100%;
+  }
+
+  .usage-history-filter {
+    flex: 1;
+    text-align: center;
+  }
+
+  .billing-info-grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  .help-cards-grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .subscription-main-content {
+    padding: 0.75rem;
+  }
+
+  .subscription-page-header {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .subscription-page-title {
+    font-size: 1.875rem;
+  }
+
+  .subscription-page-subtitle {
+    font-size: 1.125rem;
+  }
+
+  .current-subscription-card {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .current-plan-name {
+    font-size: 1.875rem;
+  }
+
+  .pricing-card {
+    padding: 1rem;
+  }
+
+  .pricing-card-price {
+    font-size: 2.25rem;
+  }
+
+  .billing-section,
+  .usage-history-section,
+  .help-section {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .subscription-modal-content {
+    padding: 1.5rem;
+    margin: 0 0.75rem;
+  }
+
+  .usage-table {
+    font-size: 0.75rem;
+  }
+
+  .usage-table th,
+  .usage-table td {
+    padding: 0.5rem;
+  }
+}
+
+/* =============================================================================
+   UTILITY CLASSES - NO @APPLY VIOLATIONS
+   ============================================================================= */
+
+.subscription-hidden {
+  display: none;
+}
+
+.subscription-visible {
+  display: block;
+}
+
+.subscription-loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.subscription-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.subscription-text-gradient {
+  background: linear-gradient(90deg, #2563eb 0%, #8b5cf6 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* =============================================================================
+   ANIMATIONS - KEYFRAMES ONLY
+   ============================================================================= */
+
+@keyframes subscription-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes subscription-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes subscription-gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes subscription-loading-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.subscription-animate-in {
+  animation: subscription-fade-in 0.6s ease-out;
+}
+
+.subscription-modal-content {
+  animation: subscription-scale-in 0.3s ease-out;
+}
+
+.subscription-border-gradient {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6, #14b8a6);
+  background-size: 400% 400%;
+  animation: subscription-gradient-shift 3s ease infinite;
+}
+
+.subscription-form-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.subscription-form-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.5) 50%, transparent 100%);
+  animation: subscription-loading-sweep 2s infinite;
+}
+
+/* =============================================================================
+   COMPONENT STATE MANAGEMENT - DIRECT CSS
+   ============================================================================= */
+
+.pricing-card.processing {
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.pricing-card.processing .pricing-card-button {
+  background-color: #9ca3af;
+  color: #6b7280;
+}
+
+.subscription-ready {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.subscription-initializing {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.subscription-page-body.show-content .subscription-main-content {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.3s ease;
+}
+
+.subscription-page-body:not(.show-content) .subscription-main-content {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* =============================================================================
+   ACCESSIBILITY ENHANCEMENTS - NO PSEUDO-SELECTORS IN @APPLY
+   ============================================================================= */
+
+.pricing-card:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 2px #2563eb, 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.help-card:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 2px #2563eb, 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.pricing-card-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #2563eb, 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.billing-manage-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #2563eb, 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+/* =============================================================================
+   REDUCED MOTION - DISABLE ANIMATIONS
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .pricing-card,
+  .help-card,
+  .billing-manage-button,
+  .pricing-card-button {
+    transition: none;
+    transform: none;
+  }
+
+  .pricing-card:hover,
+  .help-card:hover,
+  .pricing-card-button:hover {
+    transform: none;
+  }
+
+  .subscription-loading-spinner {
+    animation: none;
+  }
+
+  .subscription-border-gradient {
+    animation: none;
+  }
+
+  .subscription-form-loading::after {
+    animation: none;
+  }
+}
+
+/* =============================================================================
+   HIGH CONTRAST MODE
+   ============================================================================= */
+
+@media (prefers-contrast: high) {
+  .pricing-card,
+  .billing-section,
+  .usage-history-section,
+  .help-section {
+    border: 2px solid #1f2937;
+  }
+
+  .pricing-card-button,
+  .billing-manage-button {
+    border: 2px solid #000000;
+  }
+}
+
+/* =============================================================================
+   PRINT STYLES
+   ============================================================================= */
+
+@media print {
+  .sidebar,
+  .subscription-modal-overlay,
+  .subscription-loading-overlay,
+  .help-section {
+    display: none;
+  }
+
+  .subscription-main-content {
+    margin-left: 0;
+  }
+
+  .subscription-page-header,
+  .current-subscription-card,
+  .pricing-card,
+  .billing-section,
+  .usage-history-section {
+    background: white;
+    border: 1px solid #d1d5db;
+    box-shadow: none;
+  }
+
+  .current-subscription-gradient,
+  .current-subscription-overlay {
+    display: none;
+  }
+
+  .current-subscription-content {
+    color: black;
+  }
+
+  .pricing-card-button,
+  .billing-manage-button {
+    background: white;
+    color: black;
+    border: 1px solid #9ca3af;
+  }
+
+  .subscription-text-gradient {
+    color: black;
+    background: none;
+    -webkit-text-fill-color: initial;
+  }
+}
+
+/* =============================================================================
+   DARK MODE SUPPORT (if needed in future)
+   ============================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  .subscription-page-body {
+    background: #111827;
+  }
+
+  .subscription-page-header,
+  .current-subscription-card,
+  .pricing-card,
+  .billing-section,
+  .usage-history-section,
+  .help-section {
+    background: rgba(31, 41, 55, 0.8);
+    border: 1px solid rgba(75, 85, 99, 0.2);
+  }
+
+  .subscription-page-title,
+  .pricing-card-title,
+  .billing-title,
+  .usage-history-title,
+  .help-section-title {
+    color: #f9fafb;
+  }
+
+  .subscription-page-subtitle,
+  .billing-subtitle,
+  .usage-history-subtitle,
+  .help-section-subtitle {
+    color: #d1d5db;
+  }
+
+  .pricing-card-price {
+    color: #f9fafb;
+  }
+
+  .billing-info-card {
+    background-color: #374151;
+    border-color: #4b5563;
+  }
+
+  .billing-info-value {
+    color: #f9fafb;
+  }
+
+  .help-card {
+    background-color: #374151;
+  }
+
+  .help-card:hover {
+    background-color: #4b5563;
+  }
+}
+
+/* =============================================================================
+   CUSTOM SHADOWS FOR DEPTH - NO @APPLY
+   ============================================================================= */
+
+.subscription-shadow-soft {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.subscription-shadow-medium {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.subscription-shadow-strong {
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+}
+
+/* =============================================================================
+   MOBILE STICKY ELEMENTS (if needed)
+   ============================================================================= */
+
+.subscription-mobile-sticky {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  padding: 1rem;
+  z-index: 40;
+}
+
+@media (min-width: 768px) {
+  .subscription-mobile-sticky {
+    display: none;
+  }
+}

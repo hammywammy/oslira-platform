@@ -1,0 +1,890 @@
+@layer components {
+  /* =============================================================================
+     HOME PAGE BASE LAYOUT - CONVERSION OPTIMIZED
+     ============================================================================= */
+  
+  .home-page-body {
+    @apply leading-normal bg-white text-base;
+  }
+
+.home-main-content {
+  @apply pt-0 mt-0;
+}
+ 
+  /* =============================================================================
+     STICKY NAVIGATION WITH CONVERSION CTA
+     ============================================================================= */
+
+  .home-nav {
+    @apply fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-b border-gray-200 z-50 transition-all duration-200;
+  }
+
+  .home-nav-container {
+    @apply max-w-6xl mx-auto px-6 flex justify-between items-center h-16;
+  }
+
+  .home-logo {
+    @apply flex items-center gap-3 text-gray-900 text-2xl font-bold tracking-tight no-underline;
+  }
+
+  .home-logo-image {
+    @apply w-8 h-8 rounded-lg;
+  }
+
+  .home-nav-menu {
+    @apply flex items-center gap-8;
+  }
+
+  .home-nav-link {
+    @apply text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 py-2 relative no-underline;
+  }
+
+  .home-nav-link:hover::after {
+    content: '';
+    @apply absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full;
+  }
+
+  .home-nav-link.login-btn {
+  @apply px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 no-underline;
+}
+
+.home-nav-link.login-btn:hover::after {
+  display: none;
+}
+
+  /* =============================================================================
+     URGENCY BANNER
+     ============================================================================= */
+
+.urgency-banner {
+  @apply bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200 mt-16 py-2 mb-0 pb-0 opacity-0 transition-opacity duration-300;
+}
+
+.urgency-banner.show {
+  @apply opacity-100;
+}
+
+  .urgency-banner p {
+  @apply m-0;
+}
+
+  .urgency-close {
+    @apply text-blue-700 hover:text-blue-900 font-bold cursor-pointer;
+  }
+
+  /* =============================================================================
+     CONVERSION-OPTIMIZED CTAs
+     ============================================================================= */
+
+  .btn-primary-cta {
+    @apply px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-lg hover:shadow-xl;
+  }
+
+  .btn-primary-hero {
+    @apply px-8 py-4 text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-offset-2 animate-pulse hover:animate-none;
+  }
+
+  .btn-primary-final {
+    @apply px-10 py-5 text-xl font-bold bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-offset-2;
+  }
+
+  .btn-primary-modal {
+    @apply w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-200;
+  }
+
+  /* =============================================================================
+     HERO SECTION - EMOTIONAL HOOK & INSTANT GRATIFICATION
+     ============================================================================= */
+
+  .hero-section {
+    @apply bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-20 lg:py-32 relative overflow-hidden;
+  }
+
+  .hero-section::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/5 to-blue-600/10 pointer-events-none;
+  }
+
+  .hero-container {
+    @apply max-w-6xl mx-auto px-6 relative z-10;
+  }
+
+  .hero-title {
+    @apply text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight;
+  }
+
+  .hero-title-gradient {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+  }
+
+  .hero-subtitle {
+    @apply text-xl lg:text-2xl text-gray-600 mb-8 max-w-3xl leading-relaxed;
+  }
+
+  .hero-cta-container {
+    @apply flex flex-col sm:flex-row gap-4 justify-start items-start mb-12;
+  }
+
+  .cta-subtext {
+    @apply text-gray-500 text-sm mt-2;
+  }
+
+  .hero-stats {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mt-12;
+  }
+
+  .hero-stat {
+    @apply text-center md:text-left;
+  }
+
+  .hero-stat-number {
+    @apply text-3xl lg:text-4xl font-bold text-gray-900 mb-2;
+  }
+
+  .hero-stat-label {
+    @apply text-gray-600;
+  }
+
+  /* =============================================================================
+     INTERACTIVE DEMO SECTION - DOPAMINE TRIGGER
+     ============================================================================= */
+
+  .hero-demo-container {
+    @apply bg-white/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-200 shadow-lg mb-8;
+  }
+
+  .demo-intro-text {
+    @apply text-gray-700 font-medium mb-4 text-center;
+  }
+
+  .demo-input-container {
+    @apply flex gap-3 mb-4;
+  }
+
+  .demo-input {
+    @apply flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg;
+  }
+
+  .demo-analyze-btn {
+    @apply px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 min-w-[100px] flex items-center justify-center;
+  }
+
+  .demo-btn-loading {
+    @apply inline-flex items-center;
+  }
+
+  .demo-results {
+    @apply transition-all duration-500 ease-in-out;
+  }
+
+  .demo-result-card {
+    @apply bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-xl border border-green-200;
+  }
+
+  .demo-profile-info {
+    @apply flex items-center gap-3 mb-3;
+  }
+
+  .demo-avatar {
+    @apply w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-semibold;
+  }
+
+  .demo-name {
+    @apply font-semibold text-gray-900;
+  }
+
+  .demo-analysis {
+    @apply text-sm text-gray-600;
+  }
+
+  .demo-outreach-preview {
+    @apply bg-white/60 p-3 rounded-lg mb-3;
+  }
+
+  .demo-message {
+    @apply text-sm text-gray-700 italic;
+  }
+
+  .demo-upgrade-hint {
+    @apply text-center text-blue-600 font-medium text-sm;
+  }
+
+  /* =============================================================================
+     HERO VISUAL DEMO
+     ============================================================================= */
+
+  .hero-visual {
+    @apply relative;
+  }
+
+  .demo-browser-frame {
+    @apply bg-white rounded-2xl shadow-2xl overflow-hidden;
+  }
+
+  .demo-browser-header {
+    @apply bg-gray-100 px-4 py-3 flex items-center gap-4;
+  }
+
+  .demo-browser-dots {
+    @apply flex gap-2;
+  }
+
+  .demo-browser-dots span {
+    @apply w-3 h-3 rounded-full;
+  }
+
+  .demo-browser-dots span:nth-child(1) {
+    @apply bg-red-400;
+  }
+
+  .demo-browser-dots span:nth-child(2) {
+    @apply bg-yellow-400;
+  }
+
+  .demo-browser-dots span:nth-child(3) {
+    @apply bg-green-400;
+  }
+
+  .demo-browser-url {
+    @apply bg-white px-4 py-1 rounded-lg text-sm text-gray-600 flex-1;
+  }
+
+  .demo-browser-content {
+    @apply p-6;
+  }
+
+  .demo-dashboard-preview h3 {
+    @apply text-lg font-semibold text-gray-900 mb-4;
+  }
+
+  .demo-lead-card {
+    @apply bg-gray-50 p-4 rounded-lg;
+  }
+
+  .demo-lead-info {
+    @apply flex items-center gap-3 mb-3;
+  }
+
+  .demo-lead-avatar {
+    @apply w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold;
+  }
+
+  .demo-lead-info h4 {
+    @apply font-semibold text-gray-900 text-sm;
+  }
+
+  .demo-lead-info p {
+    @apply text-xs text-gray-600;
+  }
+
+  .demo-match-score {
+    @apply ml-auto bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .demo-insights {
+    @apply flex gap-2 mb-3 flex-wrap;
+  }
+
+  .demo-tag {
+    @apply bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs;
+  }
+
+  .demo-outreach {
+    @apply bg-white p-3 rounded-lg;
+  }
+
+  .demo-outreach p {
+    @apply text-sm text-gray-700 italic;
+  }
+
+  /* =============================================================================
+     BENEFITS SECTION - TIME, CLARITY, PERSONALIZATION
+     ============================================================================= */
+
+  .benefits-section {
+    @apply py-20 bg-white;
+  }
+
+  .benefits-container {
+    @apply max-w-6xl mx-auto px-6;
+  }
+
+  .benefits-header {
+    @apply text-center mb-16;
+  }
+
+  .benefits-title {
+    @apply text-3xl lg:text-4xl font-bold text-gray-900 mb-4;
+  }
+
+  .benefits-subtitle {
+    @apply text-xl text-gray-600 max-w-2xl mx-auto;
+  }
+
+  .benefits-grid {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-8;
+  }
+
+  .benefit-card {
+    @apply bg-white p-8 rounded-2xl border border-gray-200 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 text-center;
+  }
+
+  .benefit-icon {
+    @apply w-16 h-16 rounded-xl flex items-center justify-center text-white text-2xl mb-6 mx-auto;
+  }
+
+  .time-icon {
+    @apply bg-gradient-to-r from-green-500 to-emerald-600;
+  }
+
+  .clarity-icon {
+    @apply bg-gradient-to-r from-blue-500 to-indigo-600;
+  }
+
+  .personalization-icon {
+    @apply bg-gradient-to-r from-purple-500 to-pink-600;
+  }
+
+  .benefit-title {
+    @apply text-xl font-semibold text-gray-900 mb-4;
+  }
+
+  .benefit-description {
+    @apply text-gray-600 leading-relaxed mb-4;
+  }
+
+  .benefit-proof {
+    @apply mt-4;
+  }
+
+  .proof-stat {
+    @apply inline-block bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 px-4 py-2 rounded-full font-semibold text-sm;
+  }
+
+  /* =============================================================================
+     HOW IT WORKS SECTION - EFFORTLESS 1-2-3 PROCESS
+     ============================================================================= */
+
+  .how-it-works-section {
+    @apply py-20 bg-gray-50;
+  }
+
+  .how-it-works-container {
+    @apply max-w-6xl mx-auto px-6;
+  }
+
+  .how-it-works-header {
+    @apply text-center mb-16;
+  }
+
+  .how-it-works-title {
+    @apply text-3xl lg:text-4xl font-bold text-gray-900 mb-4;
+  }
+
+  .how-it-works-subtitle {
+    @apply text-xl text-gray-600 max-w-2xl mx-auto;
+  }
+
+  .how-it-works-steps {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-8;
+  }
+
+  .step-card {
+    @apply text-center relative bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+
+  .step-number {
+    @apply w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-6;
+  }
+
+  .step-title {
+    @apply text-xl font-semibold text-gray-900 mb-4;
+  }
+
+  .step-description {
+    @apply text-gray-600 leading-relaxed mb-6;
+  }
+
+  .step-visual {
+    @apply bg-gray-50 p-4 rounded-lg;
+  }
+
+  .step-demo-input {
+    @apply flex items-center justify-center gap-3 text-sm;
+  }
+
+  .demo-text {
+    @apply bg-blue-100 text-blue-800 px-3 py-1 rounded-lg font-mono;
+  }
+
+  .demo-arrow {
+    @apply text-blue-600 font-bold;
+  }
+
+  .demo-result {
+    @apply bg-green-100 text-green-800 px-3 py-1 rounded-lg;
+  }
+
+  .step-demo-grid {
+    @apply grid grid-cols-4 gap-2;
+  }
+
+  .demo-prospect {
+    @apply bg-blue-100 rounded-lg h-12 flex items-center justify-center text-xl;
+  }
+
+  .step-demo-message {
+    @apply bg-white p-3 rounded-lg border border-gray-200;
+  }
+
+  .step-demo-message p {
+    @apply text-sm text-gray-700 italic;
+  }
+
+  /* =============================================================================
+     SOCIAL PROOF & TRUST SIGNALS
+     ============================================================================= */
+
+  .social-proof-section {
+    @apply py-20 bg-blue-50;
+  }
+
+  .social-proof-container {
+    @apply max-w-6xl mx-auto px-6;
+  }
+
+  .social-proof-header {
+    @apply text-center mb-12;
+  }
+
+  .social-proof-title {
+    @apply text-3xl lg:text-4xl font-bold text-gray-900 mb-4;
+  }
+
+  .social-proof-subtitle {
+    @apply text-xl text-gray-600 max-w-2xl mx-auto;
+  }
+
+  .success-metrics {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-8 mb-16;
+  }
+
+  .metric-card {
+    @apply text-center bg-white p-8 rounded-2xl shadow-lg;
+  }
+
+  .metric-number {
+    @apply text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2;
+  }
+
+  .metric-label {
+    @apply text-gray-600 font-medium;
+  }
+
+  .testimonials-grid {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-8;
+  }
+
+  .testimonial-card {
+    @apply bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+
+  .testimonial-card.featured {
+    @apply border-2 border-blue-500 transform md:scale-105;
+  }
+
+  .testimonial-content {
+    @apply mb-6;
+  }
+
+  .testimonial-content p {
+    @apply text-gray-700 italic leading-relaxed;
+  }
+
+  .testimonial-author {
+    @apply flex items-center gap-3;
+  }
+
+  .author-avatar {
+    @apply w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full flex items-center justify-center font-semibold;
+  }
+
+  .author-name {
+    @apply font-semibold text-gray-900;
+  }
+
+  .author-title {
+    @apply text-sm text-gray-600;
+  }
+
+  /* =============================================================================
+     FINAL CTA SECTION - URGENCY & SCARCITY
+     ============================================================================= */
+
+  .final-cta-section {
+    @apply py-20 bg-gradient-to-r from-blue-600 to-purple-600 text-white;
+  }
+
+  .final-cta-container {
+    @apply max-w-4xl mx-auto px-6 text-center;
+  }
+
+  .final-cta-title {
+    @apply text-3xl lg:text-4xl font-bold mb-6;
+  }
+
+  .final-cta-subtitle {
+    @apply text-xl text-blue-100 mb-8 max-w-2xl mx-auto;
+  }
+
+  .urgency-element {
+    @apply bg-red-500/20 border border-red-300 rounded-lg p-4 mb-8;
+  }
+
+  .urgency-text {
+    @apply text-red-100 font-semibold;
+  }
+
+  .final-cta-button-container {
+    @apply mb-8;
+  }
+
+  .final-cta-subtext {
+    @apply text-blue-100 text-sm mt-4;
+  }
+
+.final-urgency {
+  @apply text-gray-900 font-medium;
+}
+
+  /* =============================================================================
+     MOBILE STICKY CTA
+     ============================================================================= */
+
+  .mobile-sticky-cta {
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40 md:hidden;
+  }
+
+  .mobile-cta-btn {
+    @apply w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 rounded-lg flex items-center justify-center gap-2 transition-all duration-200;
+  }
+
+  .mobile-cta-text {
+    @apply text-lg;
+  }
+
+  .mobile-cta-arrow {
+    @apply font-bold;
+  }
+
+  /* =============================================================================
+     SOCIAL PROOF NOTIFICATIONS
+     ============================================================================= */
+
+  .social-proof-notifications {
+    @apply fixed bottom-4 left-4 z-50;
+  }
+
+  .notification-popup {
+    @apply bg-white border border-gray-200 rounded-lg shadow-lg p-4 mb-3 min-w-[280px] transform transition-all duration-300 translate-x-[-100%] opacity-0;
+  }
+
+  .notification-popup.show {
+    @apply translate-x-0 opacity-100;
+  }
+
+  .notification-content {
+    @apply flex items-center gap-3;
+  }
+
+  .notification-avatar {
+    @apply w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold;
+  }
+
+  .notification-text {
+    @apply text-sm text-gray-700;
+  }
+
+  /* =============================================================================
+     DEMO MODAL
+     ============================================================================= */
+
+  .demo-modal {
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+  }
+
+  .demo-modal-overlay {
+    @apply absolute inset-0 bg-black/50 backdrop-blur-sm;
+  }
+
+  .demo-modal-content {
+    @apply relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6;
+  }
+
+  .demo-modal-header {
+    @apply flex justify-between items-center mb-4;
+  }
+
+  .demo-modal-header h3 {
+    @apply text-xl font-bold text-gray-900;
+  }
+
+  .demo-modal-close {
+    @apply text-gray-400 hover:text-gray-600 text-2xl font-bold cursor-pointer;
+  }
+
+  .demo-modal-body p {
+    @apply text-gray-700 mb-4;
+  }
+
+  .demo-modal-features {
+    @apply space-y-2 mb-6;
+  }
+
+  .demo-modal-features li {
+    @apply text-gray-700 text-sm;
+  }
+
+  /* =============================================================================
+     STEP VISUAL ENHANCEMENTS
+     ============================================================================= */
+
+  .step-connector {
+    @apply hidden md:block absolute top-6 left-full w-full h-0.5 bg-gradient-to-r from-blue-600 to-purple-600;
+  }
+
+  .step-card:last-child .step-connector {
+    @apply hidden;
+  }
+
+  .mobile-sticky-cta {
+  @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40 transform translate-y-full transition-transform duration-300 md:hidden;
+}
+
+.mobile-cta-btn {
+  @apply w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 rounded-lg flex items-center justify-center space-x-2 shadow-lg;
+}
+
+.mobile-cta-text {
+  @apply text-lg font-bold;
+}
+
+.mobile-cta-arrow {
+  @apply text-xl font-bold transform transition-transform group-hover:translate-x-1;
+}
+
+.social-proof-notifications {
+  @apply fixed top-20 right-4 z-30 space-y-2 pointer-events-none;
+}
+
+.notification-popup {
+  @apply bg-white border border-gray-200 rounded-lg shadow-lg p-3 transform translate-x-full transition-all duration-300 pointer-events-auto;
+}
+
+.notification-popup.show {
+  @apply translate-x-0;
+}
+
+.urgency-element {
+  @apply bg-red-50 border border-red-200 rounded-lg p-4 mb-6;
+}
+
+.urgency-text {
+  @apply text-red-800 text-center font-medium;
+}
+
+  /* =============================================================================
+     ANIMATIONS & MICRO-INTERACTIONS
+     ============================================================================= */
+
+  @keyframes pulse-cta {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  @keyframes slide-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(1deg); }
+    75% { transform: rotate(-1deg); }
+  }
+
+  .animate-slide-in-up {
+    animation: slide-in-up 0.6s ease-out;
+  }
+
+  .animate-wiggle {
+    animation: wiggle 0.5s ease-in-out;
+  }
+
+  /* CTA button attention grabber */
+  .btn-primary-hero {
+    animation: pulse-cta 2s ease-in-out infinite;
+  }
+
+  .btn-primary-hero:hover {
+    animation: none;
+  }
+
+  @keyframes animate-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(1deg) scale(1.02); }
+  75% { transform: rotate(-1deg) scale(1.02); }
+}
+
+.animate-wiggle {
+  animation: animate-wiggle 0.5s ease-in-out;
+}
+
+  /* =============================================================================
+     RESPONSIVE DESIGN - MOBILE FIRST
+     ============================================================================= */
+
+  @media (max-width: 768px) {
+    .home-nav-menu {
+      @apply hidden;
+    }
+
+    .hero-title {
+      @apply text-3xl text-center;
+    }
+
+    .hero-subtitle {
+      @apply text-lg text-center;
+    }
+
+    .hero-cta-container {
+      @apply items-center;
+    }
+
+    .hero-stats {
+      @apply grid-cols-1 gap-6 text-center;
+    }
+
+    .benefits-grid,
+    .how-it-works-steps,
+    .testimonials-grid,
+    .success-metrics {
+      @apply grid-cols-1;
+    }
+
+    .step-connector {
+      @apply hidden;
+    }
+
+    .demo-input-container {
+      @apply flex-col;
+    }
+
+    .demo-analyze-btn {
+      @apply w-full;
+    }
+
+    .mobile-sticky-cta {
+      @apply block;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .home-nav-container {
+      @apply px-4;
+    }
+
+    .hero-section {
+      @apply py-16;
+    }
+
+    .benefits-section,
+    .how-it-works-section,
+    .social-proof-section,
+    .final-cta-section {
+      @apply py-16;
+    }
+
+    .benefit-card,
+    .testimonial-card,
+    .step-card,
+    .metric-card {
+      @apply p-6;
+    }
+
+    .hero-demo-container {
+      @apply p-4;
+    }
+
+    .demo-modal-content {
+      @apply mx-4;
+    }
+  }
+
+  /* =============================================================================
+     ACCESSIBILITY ENHANCEMENTS
+     ============================================================================= */
+
+  .home-nav-link:focus-visible,
+  .btn-primary-cta:focus-visible,
+  .btn-primary-hero:focus-visible,
+  .btn-primary-final:focus-visible {
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .benefit-card,
+    .testimonial-card,
+    .step-card,
+    .metric-card,
+    .btn-primary-hero,
+    .btn-primary-cta,
+    .home-nav-link {
+      @apply transition-none transform-none;
+    }
+
+    .benefit-card:hover,
+    .testimonial-card:hover,
+    .step-card:hover,
+    .btn-primary-hero:hover,
+    .btn-primary-cta:hover {
+      @apply transform-none;
+    }
+
+    .animate-slide-in-up,
+    .animate-wiggle {
+      animation: none;
+    }
+  }
+
+  /* =============================================================================
+     PRINT STYLES
+     ============================================================================= */
+
+  @media print {
+    .home-nav,
+    .final-cta-section,
+    .mobile-sticky-cta,
+    .urgency-banner,
+    .social-proof-notifications,
+    .demo-modal {
+      @apply hidden;
+    }
+
+    .hero-section {
+      @apply bg-white text-black;
+    }
+
+    .hero-title-gradient {
+      @apply text-black;
+      background: none;
+      -webkit-text-fill-color: initial;
+    }
+  }
+}

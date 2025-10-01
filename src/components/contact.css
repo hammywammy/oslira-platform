@@ -1,0 +1,206 @@
+@layer components {
+  /* =============================================================================
+     CONTACT PAGE SHARED STYLES
+     ============================================================================= */
+  
+  /* Hero Section */
+  .contact-hero {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    padding: 4rem 1.5rem;
+    text-align: center;
+    color: white;
+  }
+
+  .contact-hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .contact-hero-subtitle {
+    font-size: 1.25rem;
+    opacity: 0.95;
+    max-width: 42rem;
+    margin: 0 auto;
+  }
+
+  /* Main Container */
+  .contact-container {
+    max-width: 75rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* Contact Cards Grid */
+  .contact-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 2rem;
+    padding: 4rem 0;
+  }
+
+  @media (min-width: 768px) {
+    .contact-cards-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .contact-cards-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* Contact Card */
+  .contact-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    border: 1px solid #e5e7eb;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .contact-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .contact-card:hover {
+    transform: translateY(-0.5rem);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: #3b82f6;
+  }
+
+  .contact-card:hover::before {
+    transform: scaleX(1);
+  }
+
+  /* Card Icon */
+  .contact-card-icon {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    display: block;
+  }
+
+  /* Card Title */
+  .contact-card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Card Description */
+  .contact-card-description {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+  }
+
+  /* Card Button */
+  .contact-card-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+    cursor: pointer;
+  }
+
+  .contact-card-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+  }
+
+  .contact-card-button-arrow {
+    transition: transform 0.2s ease;
+  }
+
+  .contact-card-button:hover .contact-card-button-arrow {
+    transform: translateX(4px);
+  }
+
+  /* Response Time Badge */
+  .contact-response-badge {
+    display: inline-block;
+    background: #dbeafe;
+    color: #1e40af;
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-top: 1rem;
+  }
+
+  /* Section Padding */
+  .contact-section {
+    padding: 3rem 0;
+  }
+
+  /* Responsive Hero */
+  @media (max-width: 768px) {
+    .contact-hero {
+      padding: 3rem 1.5rem;
+    }
+
+    .contact-hero-title {
+      font-size: 2rem;
+    }
+
+    .contact-hero-subtitle {
+      font-size: 1.125rem;
+    }
+  }
+
+  /* Animation Classes */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .contact-card {
+    animation: fadeInUp 0.6s ease forwards;
+  }
+
+  .contact-card:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  .contact-card:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .contact-card:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  .contact-card:nth-child(4) {
+    animation-delay: 0.4s;
+  }
+
+  .contact-card:nth-child(5) {
+    animation-delay: 0.5s;
+  }
+}

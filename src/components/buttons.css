@@ -1,0 +1,587 @@
+@layer components {
+  /* =============================================================================
+     CONVERSION-OPTIMIZED BUTTON SYSTEM
+     Enhanced with urgency, scarcity, and dopamine triggers
+     ============================================================================= */
+
+  /* =============================================================================
+     BASE BUTTON CLASSES
+     ============================================================================= */
+
+  .btn-base {
+    @apply inline-flex items-center justify-center font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* =============================================================================
+     PRIMARY CTA BUTTONS - CONVERSION FOCUSED
+     ============================================================================= */
+
+  .btn-primary {
+    @apply btn-base px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 focus:ring-blue-500;
+  }
+
+  .btn-primary-cta {
+    @apply btn-base px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 focus:ring-blue-500 relative overflow-hidden;
+  }
+
+  .btn-primary-cta::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full transition-transform duration-700;
+  }
+
+  .btn-primary-cta:hover::before {
+    @apply translate-x-full;
+  }
+
+  /* =============================================================================
+     HERO SECTION CTA - MAXIMUM IMPACT
+     ============================================================================= */
+
+  .btn-primary-hero {
+    @apply btn-base px-8 py-4 text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl shadow-2xl hover:shadow-3xl transform hover:scale-105 focus:ring-4 focus:ring-blue-500 relative overflow-hidden;
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite, pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { 
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(147, 51, 234, 0.3);
+    }
+    50% { 
+      box-shadow: 0 0 30px rgba(59, 130, 246, 0.8), 0 0 60px rgba(147, 51, 234, 0.5);
+    }
+  }
+
+  .btn-primary-hero:hover {
+    animation: none;
+    @apply shadow-3xl;
+  }
+
+  .btn-primary-hero::after {
+    content: '🚀';
+    @apply absolute top-1/2 right-4 transform -translate-y-1/2 text-lg opacity-0 transition-all duration-300;
+  }
+
+  .btn-primary-hero:hover::after {
+    @apply opacity-100 translate-x-1;
+  }
+
+  /* =============================================================================
+     FINAL CTA - URGENCY & SCARCITY
+     ============================================================================= */
+
+  .btn-primary-final {
+    @apply btn-base px-10 py-5 text-xl font-bold bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white rounded-xl shadow-2xl hover:shadow-3xl transform hover:scale-105 focus:ring-4 focus:ring-green-500 relative overflow-hidden;
+  }
+
+  .btn-primary-final::before {
+    content: '⚡';
+    @apply absolute top-2 right-2 text-yellow-300 text-sm animate-bounce;
+  }
+
+  .btn-primary-final::after {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full transition-transform duration-500;
+  }
+
+  .btn-primary-final:hover::after {
+    @apply translate-x-full;
+  }
+
+  /* =============================================================================
+     MODAL & POPUP CTAs
+     ============================================================================= */
+
+  .btn-primary-modal {
+    @apply btn-base w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 focus:ring-blue-500;
+  }
+
+  .btn-secondary-modal {
+    @apply btn-base w-full px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg border border-gray-300 hover:border-gray-400 focus:ring-gray-500;
+  }
+
+  /* =============================================================================
+     MOBILE STICKY CTA
+     ============================================================================= */
+
+  .mobile-cta-btn {
+    @apply btn-base w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 relative;
+  }
+
+  .mobile-cta-btn::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full transition-transform duration-600;
+  }
+
+  .mobile-cta-btn:active::before {
+    @apply translate-x-full;
+  }
+
+  /* =============================================================================
+     SECONDARY BUTTONS
+     ============================================================================= */
+
+  .btn-secondary {
+    @apply btn-base px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 hover:border-gray-400 rounded-lg shadow-sm hover:shadow-md focus:ring-gray-500;
+  }
+
+  .btn-secondary-outline {
+    @apply btn-base px-6 py-3 bg-transparent hover:bg-blue-50 text-blue-600 border-2 border-blue-600 hover:border-blue-700 rounded-lg focus:ring-blue-500;
+  }
+
+  /* =============================================================================
+     LINK-STYLE BUTTONS
+     ============================================================================= */
+
+  .btn-link {
+    @apply btn-base px-0 py-2 bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-700 underline hover:no-underline focus:ring-blue-500 focus:ring-offset-0;
+  }
+
+  .btn-link-muted {
+    @apply btn-base px-0 py-2 bg-transparent hover:bg-transparent text-gray-500 hover:text-gray-700 focus:ring-gray-500 focus:ring-offset-0;
+  }
+
+  /* =============================================================================
+     URGENCY & SCARCITY INDICATORS
+     ============================================================================= */
+
+  .btn-urgency {
+    @apply relative;
+  }
+
+  .btn-urgency::before {
+    content: '🔥';
+    @apply absolute -top-2 -right-2 text-red-500 text-sm animate-pulse;
+  }
+
+  .btn-scarcity {
+    @apply relative;
+  }
+
+  .btn-scarcity::after {
+    content: 'Limited time';
+    @apply absolute -top-6 left-1/2 transform -translate-x-1/2 bg-red-500 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap;
+  }
+
+  /* =============================================================================
+     LOADING STATES
+     ============================================================================= */
+
+  .btn-loading {
+    @apply relative text-transparent pointer-events-none;
+  }
+.btn-loading::after {
+    content: '';
+    @apply absolute inset-0 flex items-center justify-center;
+    background-image: url("data:image/svg+xml,%3csvg class='animate-spin' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3e%3ccircle class='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' stroke-width='4'%3e%3c/circle%3e%3cpath class='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'%3e%3c/path%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 1.5rem 1.5rem;
+  }
+
+  /* =============================================================================
+     SUCCESS STATES
+     ============================================================================= */
+
+  .btn-success {
+    @apply btn-base px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg shadow-lg hover:shadow-xl focus:ring-green-500;
+  }
+
+  .btn-success::before {
+    content: '✓';
+    @apply mr-2 text-green-200;
+  }
+
+  /* =============================================================================
+     WARNING & DANGER STATES
+     ============================================================================= */
+
+  .btn-warning {
+    @apply btn-base px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-lg shadow-lg hover:shadow-xl focus:ring-yellow-500;
+  }
+
+  .btn-danger {
+    @apply btn-base px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg shadow-lg hover:shadow-xl focus:ring-red-500;
+  }
+
+  /* =============================================================================
+     SIZE VARIATIONS
+     ============================================================================= */
+
+  .btn-xs {
+    @apply px-2 py-1 text-xs rounded;
+  }
+
+  .btn-sm {
+    @apply px-3 py-2 text-sm rounded-md;
+  }
+
+  .btn-lg {
+    @apply px-8 py-4 text-lg rounded-lg;
+  }
+
+  .btn-xl {
+    @apply px-10 py-5 text-xl rounded-xl;
+  }
+
+  /* =============================================================================
+     SPECIAL CONVERSION BUTTONS
+     ============================================================================= */
+
+  .btn-demo {
+    @apply btn-base px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 focus:ring-blue-500 relative overflow-hidden min-w-[100px];
+  }
+
+  .btn-demo::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 transform -skew-x-12 -translate-x-full transition-transform duration-500;
+  }
+
+  .btn-demo:hover::before {
+    @apply translate-x-full;
+  }
+
+  .btn-sticky-nav {
+    @apply btn-base px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 focus:ring-blue-500 text-sm;
+  }
+
+  /* =============================================================================
+     ANIMATED ATTENTION GRABBERS
+     ============================================================================= */
+
+  .btn-pulse {
+    animation: pulse-attention 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-attention {
+    0%, 100% { 
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    }
+    50% { 
+      transform: scale(1.05);
+      box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+  }
+
+  .btn-wiggle {
+    animation: wiggle-attention 0.5s ease-in-out;
+  }
+
+  @keyframes wiggle-attention {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(1deg) scale(1.02); }
+    75% { transform: rotate(-1deg) scale(1.02); }
+  }
+
+  .btn-bounce {
+    animation: bounce-attention 1s ease-in-out infinite;
+  }
+
+  @keyframes bounce-attention {
+    0%, 100% { 
+      transform: translateY(0);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+    50% { 
+      transform: translateY(-25%);
+      animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+  }
+
+  /* =============================================================================
+     CONVERSION PSYCHOLOGY ENHANCEMENTS
+     ============================================================================= */
+
+  .btn-social-proof {
+    @apply relative;
+  }
+
+  .btn-social-proof::after {
+    content: '1,200+ users';
+    @apply absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-500 whitespace-nowrap;
+  }
+
+  .btn-risk-free {
+    @apply relative;
+  }
+
+  .btn-risk-free::after {
+    content: 'No credit card required';
+    @apply absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-500 whitespace-nowrap;
+  }
+
+  .btn-guarantee {
+    @apply relative;
+  }
+
+  .btn-guarantee::before {
+    content: '💯';
+    @apply absolute -top-2 -right-2 text-sm;
+  }
+
+  /* =============================================================================
+     HOVER EFFECTS & MICRO-INTERACTIONS
+     ============================================================================= */
+
+  .btn-hover-lift {
+    @apply transform transition-transform duration-200 hover:-translate-y-1 hover:shadow-xl;
+  }
+
+  .btn-hover-glow {
+    @apply transition-all duration-300;
+  }
+
+  .btn-hover-glow:hover {
+    @apply shadow-lg;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-hover-slide {
+    @apply relative overflow-hidden;
+  }
+
+  .btn-hover-slide::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-white/20 to-white/20 transform -translate-x-full transition-transform duration-300;
+  }
+
+  .btn-hover-slide:hover::before {
+    @apply translate-x-0;
+  }
+
+  /* =============================================================================
+     BUTTON GROUPS
+     ============================================================================= */
+
+  .btn-group {
+    @apply inline-flex rounded-lg shadow-sm;
+  }
+
+  .btn-group .btn-base {
+    @apply rounded-none focus:z-10;
+  }
+
+  .btn-group .btn-base:first-child {
+    @apply rounded-l-lg;
+  }
+
+  .btn-group .btn-base:last-child {
+    @apply rounded-r-lg;
+  }
+
+  .btn-group .btn-base:not(:last-child) {
+    @apply -mr-px;
+  }
+
+  /* =============================================================================
+     ACCESSIBILITY ENHANCEMENTS
+     ============================================================================= */
+
+  .btn-base:focus-visible {
+    @apply ring-2 ring-offset-2 outline-none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-primary-hero,
+    .btn-pulse,
+    .btn-wiggle,
+    .btn-bounce {
+      animation: none;
+    }
+
+    .btn-base {
+      @apply transition-none transform-none;
+    }
+
+    .btn-base:hover {
+      @apply transform-none;
+    }
+  }
+
+  /* =============================================================================
+     HIGH CONTRAST MODE
+     ============================================================================= */
+
+  @media (prefers-contrast: high) {
+    .btn-primary,
+    .btn-primary-cta,
+    .btn-primary-hero,
+    .btn-primary-final {
+      @apply border-2 border-black;
+    }
+
+    .btn-secondary {
+      @apply border-2 border-gray-800;
+    }
+  }
+
+  /* =============================================================================
+     DARK MODE SUPPORT (if needed)
+     ============================================================================= */
+
+  @media (prefers-color-scheme: dark) {
+    .btn-secondary {
+      @apply bg-gray-800 hover:bg-gray-700 text-gray-100 border-gray-600 hover:border-gray-500;
+    }
+
+    .btn-link-muted {
+      @apply text-gray-400 hover:text-gray-200;
+    }
+  }
+
+  /* =============================================================================
+     MOBILE-SPECIFIC OPTIMIZATIONS
+     ============================================================================= */
+
+  @media (max-width: 768px) {
+    .btn-primary-hero {
+      @apply px-6 py-3 text-base;
+    }
+
+    .btn-primary-final {
+      @apply px-8 py-4 text-lg;
+    }
+
+    .btn-lg {
+      @apply px-6 py-3 text-base;
+    }
+
+    .btn-xl {
+      @apply px-8 py-4 text-lg;
+    }
+
+    /* Larger touch targets for mobile */
+    .btn-base {
+      @apply min-h-[44px] min-w-[44px];
+    }
+
+    /* Mobile sticky button specific styles */
+    .mobile-cta-btn {
+      @apply min-h-[60px] text-lg font-bold;
+    }
+  }
+
+  /* =============================================================================
+     PRINT STYLES
+     ============================================================================= */
+
+  @media print {
+    .btn-base {
+      @apply border border-gray-400 bg-white text-black shadow-none;
+    }
+
+    .btn-primary,
+    .btn-primary-cta,
+    .btn-primary-hero,
+    .btn-primary-final {
+      @apply bg-white text-black border-2 border-black;
+    }
+
+    .btn-base::before,
+    .btn-base::after {
+      display: none;
+    }
+  }
+
+  /* =============================================================================
+     UTILITY CLASSES FOR QUICK STYLING
+     ============================================================================= */
+
+  .btn-full-width {
+    @apply w-full;
+  }
+
+  .btn-auto-width {
+    @apply w-auto;
+  }
+
+  .btn-min-width {
+    @apply min-w-[120px];
+  }
+
+  .btn-no-shadow {
+    @apply shadow-none hover:shadow-none;
+  }
+
+  .btn-sharp {
+    @apply rounded-none;
+  }
+
+  .btn-pill {
+    @apply rounded-full;
+  }
+
+  .btn-square {
+    @apply aspect-square p-3;
+  }
+
+  /* =============================================================================
+     CONVERSION-SPECIFIC STATES
+     ============================================================================= */
+
+  .btn-converting {
+    @apply relative overflow-hidden;
+  }
+
+  .btn-converting::after {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-green-500/20 to-blue-500/20 animate-pulse;
+  }
+
+  .btn-high-value {
+    @apply relative;
+  }
+
+  .btn-high-value::before {
+    content: '⭐';
+    @apply absolute -top-1 -right-1 text-yellow-400 text-sm;
+  }
+
+  .btn-limited-time {
+    @apply relative;
+  }
+
+  .btn-limited-time::after {
+    content: '⏰ Limited';
+    @apply absolute -top-5 left-1/2 transform -translate-x-1/2 bg-red-500 text-white text-xs px-2 py-1 rounded animate-pulse;
+  }
+
+  /* =============================================================================
+     CUSTOM SHADOWS FOR DEPTH
+     ============================================================================= */
+
+  .shadow-3xl {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+
+  .shadow-4xl {
+    box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+
+  /* =============================================================================
+     BUTTON COMPONENT COMBINATIONS
+     ============================================================================= */
+
+  .btn-cta-combo {
+    @apply btn-primary-cta btn-hover-lift btn-pulse;
+  }
+
+  .btn-hero-combo {
+    @apply btn-primary-hero btn-hover-glow btn-social-proof;
+  }
+
+  .btn-final-combo {
+    @apply btn-primary-final btn-hover-slide btn-urgency;
+  }
+
+  .btn-demo-combo {
+    @apply btn-demo btn-hover-lift;
+  }
+}
