@@ -51,10 +51,9 @@ class OsliraEnvManager {
         this.environment = this.isProduction ? 'production' : 
                           (this.isStaging ? 'staging' : 'development');
         
-        // Worker URLs based on environment
-        this.workerUrl = this.isProduction 
-            ? 'https://api.oslira.com'
-            : 'https://api-staging.oslira.com';
+// Hardcoded worker URLs based on domain
+this.workerUrl = this.isProduction ? 'https://api.oslira.com' : 
+                 'https://api.oslira.org';
         
         // Auth callback URLs
         this.authCallbackUrl = `${this.origin}/auth/callback`;
