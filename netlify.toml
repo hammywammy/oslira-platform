@@ -1,0 +1,237 @@
+[build]
+  publish = "public"
+  command = "npm run build"
+  edge_functions = "netlify/edge-functions"
+
+[functions]
+  directory = "netlify/edge-functions"
+
+[[edge_functions]]
+  function = "auth"
+  path = "/api/*"
+
+# ===========================
+# 🔒 SECURITY HEADERS
+# ===========================
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = """
+      default-src 'self' https://*.supabase.co https://*.workers.dev https://*.stripe.com https://*.netlify.app https://*.oslira.com;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://*.workers.dev https://*.stripe.com https://js.stripe.com https://unpkg.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://*.jsdelivr.net https://js.sentry-cdn.com https://browser.sentry-cdn.com https://*.oslira.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://*.oslira.com;
+      font-src 'self' https://fonts.gstatic.com https://unpkg.com https://cdnjs.cloudflare.com https://*.oslira.com;
+      img-src 'self' data: https: blob: https://images.weserv.nl https://ui-avatars.com https://*.oslira.com;
+      connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.workers.dev https://*.stripe.com https://api.stripe.com https://browser.sentry-cdn.com https://sentry.io https://*.sentry.io https://api.oslira.com https://staging-api.oslira.com https://unpkg.com https://*.oslira.com https://api.uptimerobot.com;
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self' https://*.stripe.com https://*.oslira.com;
+    """
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+
+# ===========================
+# 🌍 SUBDOMAIN ROUTING
+# ===========================
+
+# Dashboard subdomain (app.oslira.com)
+[[redirects]]
+  from = "/*"
+  to = "/pages/dashboard/:splat"
+  status = 200
+  force = false
+  conditions = {Host = ["app.oslira.com", "staging-app.oslira.com"]}
+
+# Auth subdomain (auth.oslira.com)
+[[redirects]]
+  from = "/*"
+  to = "/pages/auth/:splat"
+  status = 200
+  force = false
+  conditions = {Host = ["auth.oslira.com", "staging-auth.oslira.com"]}
+
+# Admin subdomain (admin.oslira.com)
+[[redirects]]
+  from = "/*"
+  to = "/pages/admin/:splat"
+  status = 200
+  force = false
+  conditions = {Host = ["admin.oslira.com", "staging-admin.oslira.com"]}
+
+# Main site (oslira.com) - Marketing/Home
+[[redirects]]
+  from = "/*"
+  to = "/pages/home/:splat"
+  status = 200
+  force = false
+  conditions = {Host = ["oslira.com", "www.oslira.com", "staging.oslira.com"]}
+
+# ===========================
+# 🔁 PRETTY URL REDIRECTS (fallback for direct access)
+# ===========================
+
+[[redirects]]
+  from = "/favicon.ico"
+  to = "/assets/images/oslira-logo.png"
+  status = 200
+
+[[redirects]]
+  from = "/dashboard"
+  to = "/pages/dashboard/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/pages/admin/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/analytics"
+  to = "/pages/analytics/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/auth"
+  to = "/pages/auth/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/auth/callback"
+  to = "/pages/auth/callback.html"
+  status = 200
+
+[[redirects]]
+  from = "/campaigns"
+  to = "/pages/campaigns/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/"
+  to = "/pages/home/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/integrations"
+  to = "/pages/integrations/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/leads"
+  to = "/pages/leads/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/messages"
+  to = "/pages/messages/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/onboarding"
+  to = "/pages/onboarding/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/settings"
+  to = "/pages/settings/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/subscription"
+  to = "/pages/subscription/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/automations"
+  to = "/pages/automations/index.html"
+  status = 200
+
+# ===========================
+# 🔁 FOOTER PAGES
+# ===========================
+
+[[redirects]]
+  from = "/footer/about"
+  to = "/pages/footer/about/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/footer/api"
+  to = "/pages/footer/api/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/footer/case-studies"
+  to = "/pages/footer/case-studies/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/footer/pricing"
+  to = "/pages/footer/pricing/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/footer/security"
+  to = "/pages/footer/security/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/footer/status"
+  to = "/pages/footer/status/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/footer/contact"
+  to = "/pages/footer/contact/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/footer/contact/legal"
+  to = "/pages/footer/contact/legal/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/footer/contact/security"
+  to = "/pages/footer/contact/security/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/footer/contact/support"
+  to = "/pages/footer/contact/support/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/footer/contact/bug-report"
+  to = "/pages/footer/contact/bug-report/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/footer/contact/sales"
+  to = "/pages/footer/contact/sales/index.html"
+  status = 200
+
+# ===========================
+# 🔁 LEGAL PAGES
+# ===========================
+
+[[redirects]]
+  from = "/footer/privacy"
+  to = "/pages/footer/legal/privacy/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/footer/terms"
+  to = "/pages/footer/legal/terms/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/footer/refund"
+  to = "/pages/footer/legal/refund/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/footer/disclaimer"
+  to = "/pages/footer/legal/disclaimer/index.html"
+  status = 200
