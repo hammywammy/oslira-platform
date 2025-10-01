@@ -393,16 +393,3 @@
   to = "/pages/automations/index.html"
   status = 200
   conditions = {Host = ["oslira.com", "www.oslira.com", "oslira.org", "www.oslira.org", "osliratest.netlify.app"]}
-
-# Favicon
-[[redirects]]
-  from = "/favicon.ico"
-  to = "/assets/images/oslira-logo.png"
-  status = 200
-
-
-  # Absolute fallback - NO conditions
-[[redirects]]
-  from = "/*"
-  to = "/pages/home/index.html"
-  status = 200
