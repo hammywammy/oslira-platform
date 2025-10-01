@@ -16,28 +16,35 @@
 [[headers]]
   for = "/*"
   [headers.values]
-Content-Security-Policy = """
-  default-src 'self' https://*.supabase.co https://*.workers.dev https://*.stripe.com https://*.netlify.app https://*.oslira.com https://*.oslira.org;
-  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://*.workers.dev https://*.stripe.com https://js.stripe.com https://unpkg.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://*.jsdelivr.net https://js.sentry-cdn.com https://browser.sentry-cdn.com https://*.oslira.com https://*.oslira.org;
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://*.oslira.com https://*.oslira.org;
-  font-src 'self' https://fonts.gstatic.com https://unpkg.com https://cdnjs.cloudflare.com https://*.oslira.com https://*.oslira.org;
-  img-src 'self' data: https: blob: https://images.weserv.nl https://ui-avatars.com https://*.oslira.com https://*.oslira.org;
-  connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.workers.dev https://*.stripe.com https://api.stripe.com https://browser.sentry-cdn.com https://sentry.io https://*.sentry.io https://api.oslira.com https://api.oslira.org https://unpkg.com https://*.oslira.com https://*.oslira.org https://api.uptimerobot.com;
-  object-src 'none';
-  base-uri 'self';
-  form-action 'self' https://*.stripe.com https://*.oslira.com https://*.oslira.org;
-"""
+    Content-Security-Policy = """
+      default-src 'self' https://*.supabase.co https://*.workers.dev https://*.stripe.com https://*.netlify.app https://*.oslira.com https://*.oslira.org;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://*.workers.dev https://*.stripe.com https://js.stripe.com https://unpkg.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://*.jsdelivr.net https://js.sentry-cdn.com https://browser.sentry-cdn.com https://*.oslira.com https://*.oslira.org;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://*.oslira.com https://*.oslira.org;
+      font-src 'self' https://fonts.gstatic.com https://unpkg.com https://cdnjs.cloudflare.com https://*.oslira.com https://*.oslira.org;
+      img-src 'self' data: https: blob: https://images.weserv.nl https://ui-avatars.com https://*.oslira.com https://*.oslira.org;
+      connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.workers.dev https://*.stripe.com https://api.stripe.com https://browser.sentry-cdn.com https://sentry.io https://*.sentry.io https://api.oslira.com https://api.oslira.org https://unpkg.com https://*.oslira.com https://*.oslira.org https://api.uptimerobot.com;
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self' https://*.stripe.com https://*.oslira.com https://*.oslira.org;
+    """
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
 
 # ===========================
 # 🌍 APP SUBDOMAIN - app.oslira.{com|org}
 # ===========================
+[[redirects]]
+  from = "/"
+  to = "/pages/dashboard/index.html"
+  status = 200
+  conditions = {Host = ["app.oslira.com", "app.oslira.org"]}
 
-# Specific app routes
 [[redirects]]
   from = "/dashboard"
   to = "/pages/dashboard/index.html"
@@ -98,50 +105,51 @@ Content-Security-Policy = """
   status = 200
   conditions = {Host = ["app.oslira.com", "app.oslira.org"]}
 
-# App subdomain catch-all (LAST)
 [[redirects]]
   from = "/*"
   to = "/pages/dashboard/:splat"
   status = 200
-  force = false
   conditions = {Host = ["app.oslira.com", "app.oslira.org"]}
 
 # ===========================
 # 🔐 AUTH SUBDOMAIN - auth.oslira.{com|org}
 # ===========================
+[[redirects]]
+  from = "/"
+  to = "/pages/auth/index.html"
+  status = 200
+  conditions = {Host = ["auth.oslira.com", "auth.oslira.org"]}
 
-# Specific auth routes
 [[redirects]]
   from = "/callback"
   to = "/pages/auth/callback.html"
   status = 200
   conditions = {Host = ["auth.oslira.com", "auth.oslira.org"]}
 
-# Auth subdomain catch-all (LAST)
 [[redirects]]
   from = "/*"
   to = "/pages/auth/:splat"
   status = 200
-  force = false
   conditions = {Host = ["auth.oslira.com", "auth.oslira.org"]}
 
 # ===========================
 # 🛡️ ADMIN SUBDOMAIN - admin.oslira.{com|org}
 # ===========================
+[[redirects]]
+  from = "/"
+  to = "/pages/admin/index.html"
+  status = 200
+  conditions = {Host = ["admin.oslira.com", "admin.oslira.org"]}
 
-# Admin subdomain catch-all
 [[redirects]]
   from = "/*"
   to = "/pages/admin/:splat"
   status = 200
-  force = false
   conditions = {Host = ["admin.oslira.com", "admin.oslira.org"]}
 
 # ===========================
 # 📞 CONTACT SUBDOMAIN - contact.oslira.{com|org}
 # ===========================
-
-# Specific contact routes
 [[redirects]]
   from = "/"
   to = "/pages/footer/contact/index.html"
@@ -178,19 +186,15 @@ Content-Security-Policy = """
   status = 200
   conditions = {Host = ["contact.oslira.com", "contact.oslira.org"]}
 
-# Contact subdomain catch-all (LAST)
 [[redirects]]
   from = "/*"
   to = "/pages/footer/contact/:splat"
   status = 200
-  force = false
   conditions = {Host = ["contact.oslira.com", "contact.oslira.org"]}
 
 # ===========================
 # ⚖️ LEGAL SUBDOMAIN - legal.oslira.{com|org}
 # ===========================
-
-# Specific legal routes
 [[redirects]]
   from = "/"
   to = "/pages/footer/legal/index.html"
@@ -221,31 +225,36 @@ Content-Security-Policy = """
   status = 200
   conditions = {Host = ["legal.oslira.com", "legal.oslira.org"]}
 
-# Legal subdomain catch-all (LAST)
 [[redirects]]
   from = "/*"
   to = "/pages/footer/legal/:splat"
   status = 200
-  force = false
   conditions = {Host = ["legal.oslira.com", "legal.oslira.org"]}
 
 # ===========================
 # 📊 STATUS SUBDOMAIN - status.oslira.{com|org}
 # ===========================
+[[redirects]]
+  from = "/"
+  to = "/pages/footer/status/index.html"
+  status = 200
+  conditions = {Host = ["status.oslira.com", "status.oslira.org"]}
 
-# Status subdomain catch-all
 [[redirects]]
   from = "/*"
   to = "/pages/footer/status/:splat"
   status = 200
-  force = false
   conditions = {Host = ["status.oslira.com", "status.oslira.org"]}
 
 # ===========================
-# 🏠 ROOT DOMAIN - oslira.{com|org}
+# 🏠 ROOT DOMAIN - oslira.{com|org} - MARKETING PAGES
 # ===========================
+[[redirects]]
+  from = "/"
+  to = "/pages/home/index.html"
+  status = 200
+  conditions = {Host = ["oslira.com", "www.oslira.com", "oslira.org", "www.oslira.org", "osliratest.netlify.app"]}
 
-# Marketing pages
 [[redirects]]
   from = "/about"
   to = "/pages/footer/about/index.html"
@@ -306,7 +315,7 @@ Content-Security-Policy = """
   status = 200
   conditions = {Host = ["oslira.com", "www.oslira.com", "oslira.org", "www.oslira.org", "osliratest.netlify.app"]}
 
-# Root domain fallback routes (for direct access without subdomains)
+# Root domain fallbacks for app pages
 [[redirects]]
   from = "/dashboard"
   to = "/pages/dashboard/index.html"
@@ -391,33 +400,9 @@ Content-Security-Policy = """
   to = "/assets/images/oslira-logo.png"
   status = 200
 
-# Root domain home - Production (.com)
+# Root domain catch-all - MUST BE LAST
 [[redirects]]
   from = "/*"
   to = "/pages/home/:splat"
   status = 200
-  force = false
-  conditions = {Host = ["oslira.com", "www.oslira.com"]}
-
-# Root domain home - Staging (.org)
-[[redirects]]
-  from = "/*"
-  to = "/pages/home/:splat"
-  status = 200
-  force = false
-  conditions = {Host = ["oslira.org", "www.oslira.org"]}
-
-# Root domain home - Netlify staging
-[[redirects]]
-  from = "/*"
-  to = "/pages/home/:splat"
-  status = 200
-  force = false
-  conditions = {Host = ["osliratest.netlify.app"]}
-
-# Final fallback (no host condition - catches everything else)
-[[redirects]]
-  from = "/*"
-  to = "/pages/home/:splat"
-  status = 200
-  force = false
+  conditions = {Host = ["oslira.com", "www.oslira.com", "oslira.org", "www.oslira.org", "osliratest.netlify.app"]}
