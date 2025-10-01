@@ -3,6 +3,11 @@
 // Single source of truth for environment detection AND page detection
 // =============================================================================
 
+// =============================================================================
+// CENTRALIZED ENVIRONMENT & PAGE MANAGER - ASYNC CONFIG LOADING
+// Single source of truth for environment detection AND page detection
+// =============================================================================
+
 class OsliraEnvManager { 
     constructor() {
         this.hostname = window.location.hostname;
@@ -24,6 +29,7 @@ class OsliraEnvManager {
         // Initialize environment detection (synchronous)
         this.initEnvironment();
         this.initPageDetection();
+        this.initSubdomainHelpers(); // NEW: Initialize URL helpers
         
         console.log('🌍 [Env] Environment & Page Setup:', {
             environment: this.environment,
@@ -31,7 +37,8 @@ class OsliraEnvManager {
             currentPage: this._currentPage,
             pageType: this._pageType,
             workerUrl: this.workerUrl,
-            configLoaded: this.configLoaded
+            configLoaded: this.configLoaded,
+            urlHelpers: 'initialized' // NEW: Confirmation log
         });
     }
     
@@ -128,6 +135,97 @@ if (this.isDevelopment) {
         
         this._currentPage = this.detectCurrentPage();
         this._pageType = this.classifyPage(this._currentPage);
+    }
+
+    // =============================================================================
+    // URL HELPER METHODS - CENTRALIZED CROSS-SUBDOMAIN NAVIGATION
+    // =============================================================================
+    
+    initSubdomainHelpers() {
+        // Extract root domain (strips subdomain prefix)
+        // Example: app.oslira.com → oslira.com
+        // Example: auth.oslira.org → oslira.org
+        const hostParts = this.hostname.split('.');
+        
+        if (hostParts.length >= 2) {
+            // Get last two parts (domain + TLD)
+            this.rootDomain = hostParts.slice(-2).join('.');
+        } else {
+            // Fallback for localhost/dev
+            this.rootDomain = this.hostname;
+        }
+        
+        console.log('🔗 [Env] Root domain detected:', this.rootDomain);
+    }
+    
+    /**
+     * Get app subdomain URL
+     * @param {string} path - Path without leading slash (e.g., 'dashboard' or '/dashboard')
+     * @returns {string} Full URL to app subdomain
+     */
+    getAppUrl(path = '') {
+        const cleanPath = path.startsWith('/') ? path : `/${path}`;
+        return `https://app.${this.rootDomain}${cleanPath}`;
+    }
+    
+    /**
+     * Get auth subdomain URL
+     * @param {string} path - Path without leading slash
+     * @returns {string} Full URL to auth subdomain
+     */
+    getAuthUrl(path = '') {
+        const cleanPath = path.startsWith('/') ? path : `/${path}`;
+        return `https://auth.${this.rootDomain}${cleanPath}`;
+    }
+    
+    /**
+     * Get admin subdomain URL
+     * @param {string} path - Path without leading slash
+     * @returns {string} Full URL to admin subdomain
+     */
+    getAdminUrl(path = '') {
+        const cleanPath = path.startsWith('/') ? path : `/${path}`;
+        return `https://admin.${this.rootDomain}${cleanPath}`;
+    }
+    
+    /**
+     * Get marketing (root domain) URL
+     * @param {string} path - Path without leading slash (e.g., 'about', 'pricing')
+     * @returns {string} Full URL to root domain
+     */
+    getMarketingUrl(path = '') {
+        const cleanPath = path.startsWith('/') ? path : `/${path}`;
+        return `https://${this.rootDomain}${cleanPath}`;
+    }
+    
+    /**
+     * Get legal subdomain URL
+     * @param {string} path - Path without leading slash (e.g., 'terms', 'privacy')
+     * @returns {string} Full URL to legal subdomain
+     */
+    getLegalUrl(path = '') {
+        const cleanPath = path.startsWith('/') ? path : `/${path}`;
+        return `https://legal.${this.rootDomain}${cleanPath}`;
+    }
+    
+    /**
+     * Get contact subdomain URL
+     * @param {string} path - Path without leading slash (e.g., 'support', 'sales')
+     * @returns {string} Full URL to contact subdomain
+     */
+    getContactUrl(path = '') {
+        const cleanPath = path.startsWith('/') ? path : `/${path}`;
+        return `https://contact.${this.rootDomain}${cleanPath}`;
+    }
+    
+    /**
+     * Get status subdomain URL
+     * @param {string} path - Path without leading slash
+     * @returns {string} Full URL to status subdomain
+     */
+    getStatusUrl(path = '') {
+        const cleanPath = path.startsWith('/') ? path : `/${path}`;
+        return `https://status.${this.rootDomain}${cleanPath}`;
     }
     
     detectCurrentPage() {
