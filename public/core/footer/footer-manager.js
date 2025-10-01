@@ -66,23 +66,23 @@ class FooterManager {
 <div class="new-footer-nav">
                             <div class="new-footer-nav-group">
                                 <h4 class="new-footer-nav-title">Product</h4>
-                                <a href="/footer/about" class="new-footer-nav-link">About</a>
-                                <a href="/footer/pricing" class="new-footer-nav-link">Pricing</a>
-                                <a href="/footer/case-studies" class="new-footer-nav-link">Case Studies</a>
-                                <a href="/footer/status" class="new-footer-nav-link">Status</a>
+                                <a href="${window.OsliraEnv.getMarketingUrl('/about')}" class="new-footer-nav-link">About</a>
+                                <a href="${window.OsliraEnv.getMarketingUrl('/pricing')}" class="new-footer-nav-link">Pricing</a>
+                                <a href="${window.OsliraEnv.getMarketingUrl('/case-studies')}" class="new-footer-nav-link">Case Studies</a>
+                                <a href="${window.OsliraEnv.getStatusUrl()}" class="new-footer-nav-link">Status</a>
                             </div>
 <div class="new-footer-nav-group">
     <h4 class="new-footer-nav-title">Resources</h4>
-    <a href="/footer/docs" class="new-footer-nav-link">Docs</a>
-    <a href="/footer/security" class="new-footer-nav-link">Security</a>
-    <a href="/footer/contact" class="new-footer-nav-link">Contact</a>
+    <a href="${window.OsliraEnv.getMarketingUrl('/docs')}" class="new-footer-nav-link">Docs</a>
+    <a href="${window.OsliraEnv.getMarketingUrl('/security')}" class="new-footer-nav-link">Security</a>
+    <a href="${window.OsliraEnv.getContactUrl()}" class="new-footer-nav-link">Contact</a>
 </div>
                             <div class="new-footer-nav-group">
                                 <h4 class="new-footer-nav-title">Legal</h4>
-                                <a href="/footer/privacy" class="new-footer-nav-link">Privacy Policy</a>
-                                <a href="/footer/terms" class="new-footer-nav-link">Terms of Service</a>
-                                <a href="/footer/refund" class="new-footer-nav-link">Refund Policy</a>
-                                <a href="/footer/disclaimer" class="new-footer-nav-link">Disclaimer</a>
+                                <a href="${window.OsliraEnv.getLegalUrl('/privacy')}" class="new-footer-nav-link">Privacy Policy</a>
+                                <a href="${window.OsliraEnv.getLegalUrl('/terms')}" class="new-footer-nav-link">Terms of Service</a>
+                                <a href="${window.OsliraEnv.getLegalUrl('/refund')}" class="new-footer-nav-link">Refund Policy</a>
+                                <a href="${window.OsliraEnv.getLegalUrl('/disclaimer')}" class="new-footer-nav-link">Disclaimer</a>
                             </div>
                         </div>
                     </div>
