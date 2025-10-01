@@ -3,14 +3,12 @@
   "version": "1.0.0",
   "description": "Oslira Platform - Multi-subdomain frontend",
   "type": "module",
-  "scripts": {
-    "build": "npm run build:tailwind",
-    "build:tailwind": "npx tailwindcss -i src/styles.css -o public/assets/css/tailwind.css --minify",
-    "build:tailwind:watch": "npx tailwindcss -i src/styles.css -o public/assets/css/tailwind.css --watch",
-    "dev": "netlify dev",
-    "deploy": "netlify deploy --prod",
-    "deploy:staging": "netlify deploy"
-  },
+"scripts": {
+  "build": "npm run build:tailwind",
+  "build:tailwind": "npx tailwindcss -i src/styles.css -o public/assets/css/tailwind.css --minify",
+  "dev": "netlify dev",
+  "deploy": "netlify deploy --prod"
+},
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0"
   },
