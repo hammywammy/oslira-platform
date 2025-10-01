@@ -391,10 +391,33 @@ Content-Security-Policy = """
   to = "/assets/images/oslira-logo.png"
   status = 200
 
-# Root domain home (LAST - catch-all)
+# Root domain home - Production (.com)
 [[redirects]]
   from = "/*"
   to = "/pages/home/:splat"
   status = 200
   force = false
-  conditions = {Host = ["oslira.com", "www.oslira.com", "oslira.org", "www.oslira.org", "osliratest.netlify.app"]}
+  conditions = {Host = ["oslira.com", "www.oslira.com"]}
+
+# Root domain home - Staging (.org)
+[[redirects]]
+  from = "/*"
+  to = "/pages/home/:splat"
+  status = 200
+  force = false
+  conditions = {Host = ["oslira.org", "www.oslira.org"]}
+
+# Root domain home - Netlify staging
+[[redirects]]
+  from = "/*"
+  to = "/pages/home/:splat"
+  status = 200
+  force = false
+  conditions = {Host = ["osliratest.netlify.app"]}
+
+# Final fallback (no host condition - catches everything else)
+[[redirects]]
+  from = "/*"
+  to = "/pages/home/:splat"
+  status = 200
+  force = false
