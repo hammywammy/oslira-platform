@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Security - Oslira</title>
+    <meta name="description" content="Report security vulnerabilities and contact Oslira's security team">
+    <meta name="robots" content="index, follow">
+    
+    <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/assets/css/tailwind.css">
+    <script src="/core/script-loader.js"></script>
+    
+    <style>
+        .email-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.125rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin: 0.5rem;
+        }
+        
+        .email-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px -5px rgba(220, 38, 38, 0.4);
+        }
+        
+        .email-button-primary {
+            font-size: 1.25rem;
+            padding: 1.25rem 2.5rem;
+        }
+        
+        .severity-card {
+            background: white;
+            border-left: 4px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .severity-critical { border-left-color: #dc2626; }
+        .severity-high { border-left-color: #ea580c; }
+        .severity-medium { border-left-color: #f59e0b; }
+        .severity-low { border-left-color: #10b981; }
+        
+        .severity-card:hover {
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+            transform: translateX(4px);
+        }
+        
+        .severity-label {
+            font-weight: 700;
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .severity-description {
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+        
+        .severity-response {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .template-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .template-card:hover {
+            border-color: #dc2626;
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+            transform: translateX(4px);
+        }
+        
+        .alert-box {
+            background: #fef2f2;
+            border: 2px solid #dc2626;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .info-section {
+            background: #f9fafb;
+            border-left: 4px solid #dc2626;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0.5rem;
+        }
+        
+        .guideline-item {
+            padding: 1rem;
+            background: white;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body style="background-color: #f8fafc; min-height: 100vh;">
+    <div id="header-container"></div>
+
+    <!-- Hero Section -->
+    <section class="contact-hero" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);">
+        <div class="contact-container">
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <span style="font-size: 4rem;">🔒</span>
+            </div>
+            <h1 class="contact-hero-title">Security & Vulnerability Reporting</h1>
+            <p class="contact-hero-subtitle">Help us keep Oslira secure by reporting vulnerabilities responsibly</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="contact-section">
+        <div class="contact-container" style="max-width: 56rem;">
+            
+            <!-- Critical Alert -->
+            <div class="alert-box">
+                <h3 style="font-size: 1.25rem; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🚨 Critical Vulnerabilities</h3>
+                <p style="color: #7f1d1d; margin: 0;">If you've discovered a critical security vulnerability that poses immediate risk, please contact us immediately at <a href="mailto:security@oslira.com?subject=CRITICAL%20SECURITY%20VULNERABILITY" style="color: #dc2626; font-weight: 600; text-decoration: underline;">security@oslira.com</a> with "CRITICAL" in the subject line.</p>
+            </div>
+
+            <!-- Primary Contact -->
+            <div style="text-align: center; margin: 3rem 0;">
+                <h2 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin-bottom: 1rem;">Contact Security Team</h2>
+                <p style="color: #6b7280; margin-bottom: 2rem; font-size: 1.125rem;">Report vulnerabilities and security concerns</p>
+                <a href="mailto:security@oslira.com" class="email-button email-button-primary">
+                    <span>🛡️</span>
+                    security@oslira.com
+                </a>
+            </div>
+
+            <!-- What We Handle -->
+            <div style="background: white; border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <h2 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin-bottom: 1.5rem;">What to Report</h2>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="padding: 0.75rem 0; border-bottom: 1px solid #e5e7eb; color: #374151;">
+                        <span style="color: #dc2626; margin-right: 0.5rem;">•</span> Security vulnerabilities in our platform
+                    </li>
+                    <li style="padding: 0.75rem 0; border-bottom: 1px solid #e5e7eb; color: #374151;">
+                        <span style="color: #dc2626; margin-right: 0.5rem;">•</span> Authentication or authorization issues
+                    </li>
+                    <li style="padding: 0.75rem 0; border-bottom: 1px solid #e5e7eb; color: #374151;">
+                        <span style="color: #dc2626; margin-right: 0.5rem;">•</span> Data exposure or leakage concerns
+                    </li>
+                    <li style="padding: 0.75rem 0; border-bottom: 1px solid #e5e7eb; color: #374151;">
+                        <span style="color: #dc2626; margin-right: 0.5rem;">•</span> XSS, CSRF, or injection vulnerabilities
+                    </li>
+                    <li style="padding: 0.75rem 0; border-bottom: 1px solid #e5e7eb; color: #374151;">
+                        <span style="color: #dc2626; margin-right: 0.5rem;">•</span> API security concerns
+                    </li>
+                    <li style="padding: 0.75rem 0; color: #374151;">
+                        <span style="color: #dc2626; margin-right: 0.5rem;">•</span> Infrastructure or deployment issues
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Severity Guidelines -->
+            <div style="margin: 3rem 0;">
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 1.5rem;">Severity Levels & Response Times</h3>
+                
+                <div class="severity-card severity-critical">
+                    <div class="severity-label" style="color: #dc2626;">🔴 Critical</div>
+                    <div class="severity-description">Remote code execution, authentication bypass, data breach</div>
+                    <div class="severity-response" style="color: #dc2626;">Response: Within 1 hour</div>
+                </div>
+
+                <div class="severity-card severity-high">
+                    <div class="severity-label" style="color: #ea580c;">🟠 High</div>
+                    <div class="severity-description">Privilege escalation, SQL injection, significant data exposure</div>
+                    <div class="severity-response" style="color: #ea580c;">Response: Within 4 hours</div>
+                </div>
+
+                <div class="severity-card severity-medium">
+                    <div class="severity-label" style="color: #f59e0b;">🟡 Medium</div>
+                    <div class="severity-description">XSS, CSRF, information disclosure with limited impact</div>
+                    <div class="severity-response" style="color: #f59e0b;">Response: Within 24 hours</div>
+                </div>
+
+                <div class="severity-card severity-low">
+                    <div class="severity-label" style="color: #10b981;">🟢 Low</div>
+                    <div class="severity-description">Security misconfigurations, best practice violations</div>
+                    <div class="severity-response" style="color: #10b981;">Response: Within 72 hours</div>
+                </div>
+            </div>
+
+            <!-- Email Templates -->
+            <div style="margin: 3rem 0;">
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 1rem;">Pre-Formatted Report Templates</h3>
+                
+                <a href="mailto:security@oslira.com?subject=Security%20Vulnerability%20Report" class="template-card" style="display: block; text-decoration: none;">
+                    <div style="font-size: 1.125rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem;">Report Security Vulnerability</div>
+                    <div style="color: #6b7280; font-size: 0.875rem;">Subject: Security Vulnerability Report</div>
+                </a>
+
+                <a href="mailto:security@oslira.com?subject=Security%20Audit%20Request" class="template-card" style="display: block; text-decoration: none;">
+                    <div style="font-size: 1.125rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem;">Security Audit Request</div>
+                    <div style="color: #6b7280; font-size: 0.875rem;">Subject: Security Audit Request</div>
+                </a>
+
+                <a href="mailto:security@oslira.com?subject=Penetration%20Testing%20Coordination" class="template-card" style="display: block; text-decoration: none;">
+                    <div style="font-size: 1.125rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem;">Penetration Testing Coordination</div>
+                    <div style="color: #6b7280; font-size: 0.875rem;">Subject: Penetration Testing Coordination</div>
+                </a>
+
+                <a href="mailto:security@oslira.com?subject=Security%20Certification%20Inquiry" class="template-card" style="display: block; text-decoration: none;">
+                    <div style="font-size: 1.125rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem;">Security Certification Inquiry</div>
+                    <div style="color: #6b7280; font-size: 0.875rem;">Subject: Security Certification Inquiry</div>
+                </a>
+            </div>
+
+            <!-- Responsible Disclosure -->
+            <div style="background: white; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 1.5rem;">Responsible Disclosure Guidelines</h3>
+                
+                <div class="guideline-item">
+                    <strong style="color: #111827;">1. Report First</strong>
+                    <p style="color: #6b7280; margin: 0.5rem 0 0 0;">Contact us before publicly disclosing any vulnerability</p>
+                </div>
+
+                <div class="guideline-item">
+                    <strong style="color: #111827;">2. Provide Details</strong>
+                    <p style="color: #6b7280; margin: 0.5rem 0 0 0;">Include steps to reproduce, affected systems, and potential impact</p>
+                </div>
+
+                <div class="guideline-item">
+                    <strong style="color: #111827;">3. Allow Time to Fix</strong>
+                    <p style="color: #6b7280; margin: 0.5rem 0 0 0;">Give us reasonable time to address the issue before disclosure (typically 90 days)</p>
+                </div>
+
+                <div class="guideline-item">
+                    <strong style="color: #111827;">4. Act in Good Faith</strong>
+                    <p style="color: #6b7280; margin: 0.5rem 0 0 0;">Don't exploit vulnerabilities or access data beyond what's necessary to demonstrate the issue</p>
+                </div>
+
+                <div class="guideline-item">
+                    <strong style="color: #111827;">5. Don't Cause Harm</strong>
+                    <p style="color: #6b7280; margin: 0.5rem 0 0 0;">Avoid actions that could degrade our service or destroy data</p>
+                </div>
+            </div>
+
+            <!-- PGP Encryption -->
+            <div class="info-section">
+                <h3 style="font-size: 1.25rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem;">🔐 Encrypted Communication</h3>
+                <p style="color: #374151; margin: 0;">For sensitive vulnerability disclosures, you can encrypt your message using our PGP public key. Contact security@oslira.com for our current PGP key.</p>
+            </div>
+
+            <!-- Bug Bounty -->
+            <div style="background: white; border-radius: 1rem; padding: 2rem; margin: 2rem 0; text-align: center;">
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 1rem;">🏆 Bug Bounty Program</h3>
+                <p style="color: #6b7280; margin-bottom: 1rem;">We appreciate security researchers who help us protect our users. Valid security vulnerabilities may be eligible for rewards.</p>
+                <p style="color: #374151; font-weight: 600;">Contact security@oslira.com for details about our bug bounty program</p>
+            </div>
+
+            <!-- What NOT to Report -->
+            <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 0.75rem; padding: 1.5rem; margin: 2rem 0;">
+                <h3 style="font-size: 1.25rem; font-weight: 700; color: #92400e; margin-bottom: 1rem;">⚠️ Out of Scope</h3>
+                <p style="color: #78350f; margin-bottom: 0.5rem;">The following are NOT considered security vulnerabilities:</p>
+                <ul style="color: #78350f; line-height: 1.8; margin: 0.5rem 0 0 1.5rem;">
+                    <li>Missing security headers without demonstrable impact</li>
+                    <li>Denial of service attacks</li>
+                    <li>Social engineering attacks</li>
+                    <li>Reports from automated tools without validation</li>
+                    <li>Issues requiring physical access to a user's device</li>
+                    <li>Issues in third-party services we don't control</li>
+                </ul>
+            </div>
+
+            <!-- Security Contact Summary -->
+            <div style="background: white; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 1.5rem;">Contact Summary</h3>
+                <div style="color: #374151; line-height: 2;">
+                    <p><strong>Email:</strong> security@oslira.com</p>
+                    <p><strong>Response Time (Critical):</strong> Within 1 hour</p>
+                    <p><strong>Response Time (High):</strong> Within 4 hours</p>
+                    <p><strong>Response Time (Medium):</strong> Within 24 hours</p>
+                    <p><strong>Response Time (Low):</strong> Within 72 hours</p>
+                    <p><strong>PGP Key:</strong> Available upon request</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <script>
+        let footerInitialized = false;
+        
+        window.addEventListener('oslira:scripts:loaded', async () => {
+            try {
+                await initializeHeader();
+            } catch (error) {
+                console.error('❌ [ContactSecurity] Header initialization failed:', error);
+            }
+
+            if (footerInitialized) return;
+            
+            try {
+                footerInitialized = true;
+                await initializeFooter();
+            } catch (error) {
+                console.error('❌ [ContactSecurity] Footer initialization failed:', error);
+                footerInitialized = false;
+            }
+        });
+
+        async function initializeHeader() {
+            if (document.querySelector('.home-nav')) return;
+            
+            let container = document.getElementById('header-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'header-container';
+                document.body.insertBefore(container, document.body.firstChild);
+            }
+            
+            for (let i = 0; i < 50; i++) {
+                if (window.HeaderManager) break;
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            if (!window.HeaderManager) throw new Error('HeaderManager not available');
+            
+            const headerManager = new window.HeaderManager();
+            headerManager.render('header-container', { type: 'footer-pages' });
+        }
+        
+        async function initializeFooter() {
+            if (document.querySelector('.new-footer-main')) return;
+            
+            let container = document.getElementById('footer-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'footer-container';
+                document.body.appendChild(container);
+            }
+            
+            for (let i = 0; i < 50; i++) {
+                if (window.FooterManager) break;
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            if (!window.FooterManager) throw new Error('FooterManager not available');
+            
+            const footerManager = new window.FooterManager();
+            footerManager.render('footer-container');
+        }
+    </script>
+
+    <div id="footer-container"></div>
+</body>
+</html>

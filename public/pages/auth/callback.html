@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completing Sign In - Oslira</title>
+    <style>
+        /* Simple callback page styles */
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .callback-container {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        
+        .status {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .retry-btn {
+            background: white;
+            color: #4285f4;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .retry-btn:hover {
+            background: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="callback-container">
+        <div class="logo">Oslira</div>
+        
+        <!-- Loading State -->
+        <div id="loading-state">
+            <div class="spinner"></div>
+            <div class="status" id="status-text">Completing your sign-in...</div>
+        </div>
+        
+        <!-- Error State -->
+        <div id="error-state" class="error">
+            <div id="error-message">Sign-in failed. Please try again.</div>
+            <button id="retry-btn" class="retry-btn">Try Again</button>
+        </div>
+    </div>
+
+    <!-- Simple Script Loading -->
+    <script src="/core/script-loader.js"></script>
+    <script>
+        // Simple callback processing
+        console.log('🔐 [Callback] Starting OAuth callback processing...');
+        
+        function updateStatus(message) {
+            document.getElementById('status-text').textContent = message;
+        }
+        
+        function showError(message) {
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('error-state').style.display = 'block';
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('retry-btn').style.display = 'inline-block';
+        }
+        
+        function redirectTo(url, delay = 1000) {
+            setTimeout(() => {
+                console.log(`🔐 [Callback] Redirecting to: ${url}`);
+                window.location.href = url;
+            }, delay);
+        }
+        
+        // Process callback when scripts are loaded
+     // Process callback when scripts are loaded
+window.addEventListener('oslira:scripts:loaded', async () => {
+    try {
+        console.log('🔐 [Callback] Scripts loaded, processing OAuth callback...');
+        
+        // Update status
+        updateStatus('Processing authentication...');
+        
+        // Wait for auth system to be ready
+        if (!window.OsliraAuth) {
+            throw new Error('Auth system not available');
+        }
+        
+        // Wait for auth system to fully initialize
+        await window.OsliraAuth.waitForAuth();
+        
+        // Check for OAuth callback parameters in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlHash = window.location.hash;
+        
+        console.log('🔐 [Callback] URL params:', urlParams.toString());
+        console.log('🔐 [Callback] URL hash:', urlHash);
+        
+        // Check if we have OAuth parameters (Supabase handles this automatically)
+        updateStatus('Verifying credentials...');
+        
+        // Use auth manager's callback handler
+        const result = await window.OsliraAuth.handleCallback();
+
+if (result && result.session) {
+    console.log('✅ [Callback] Authentication successful');
+    console.log('🔐 [Callback] User:', result.session.user.email);
+    
+    updateStatus('Sign-in successful! Redirecting...');
+    
+    // Redirect based on auth manager's recommendation
+    setTimeout(() => {
+        window.location.href = result.redirectTo;
+    }, 1000);
+} else {
+    console.log('❌ [Callback] No valid session found');
+    throw new Error('No valid session found after authentication');
+}
+                
+            } catch (error) {
+                console.error('❌ [Callback] Callback processing failed:', error);
+                
+                // Determine error type and show appropriate message
+                let errorMessage = 'Sign-in failed. Please try again.';
+                
+                if (error.message.includes('access_denied')) {
+                    errorMessage = 'Google sign-in was cancelled.';
+                } else if (error.message.includes('invalid_request')) {
+                    errorMessage = 'Invalid authentication request.';
+                } else if (error.message.includes('network')) {
+                    errorMessage = 'Network error. Please check your connection.';
+                } else if (error.message.includes('Auth system not available')) {
+                    errorMessage = 'Authentication system failed to load.';
+                }
+                
+                showError(errorMessage);
+            }
+        });
+        
+        // Setup retry button
+        document.getElementById('retry-btn').addEventListener('click', () => {
+            console.log('🔐 [Callback] Retry button clicked, redirecting to auth');
+            window.location.href = '/auth';
+        });
+        
+        // Check for specific error parameters in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorParam = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
+        
+        if (errorParam) {
+            console.log('❌ [Callback] OAuth error in URL:', errorParam, errorDescription);
+            
+            let errorMessage = 'Authentication failed.';
+            switch (errorParam) {
+                case 'access_denied':
+                    errorMessage = 'Google sign-in was cancelled.';
+                    break;
+                case 'invalid_request':
+                    errorMessage = 'Invalid authentication request.';
+                    break;
+                case 'server_error':
+                    errorMessage = 'Authentication server error. Please try again.';
+                    break;
+                default:
+                    errorMessage = errorDescription || 'Authentication failed.';
+            }
+            
+            // Show error immediately if we have error parameters
+            setTimeout(() => {
+                showError(errorMessage);
+            }, 500);
+        }
+        
+        // Fallback timeout - if nothing happens in 15 seconds, show error
+        setTimeout(() => {
+            if (document.getElementById('loading-state').style.display !== 'none') {
+                console.error('❌ [Callback] Callback processing timeout');
+                showError('Authentication is taking too long. Please try again.');
+            }
+        }, 15000);
+        
+        console.log('🔐 [Callback] Waiting for scripts to load...');
+    </script>
+</body>
+</html>

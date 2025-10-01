@@ -1,0 +1,524 @@
+<!-- Skip Navigation - Hidden by default, visible only on keyboard focus -->
+<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded">Skip to main content</a><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oslira - Turn Hours of Instagram Prospecting into Minutes</title>
+    <meta name="description" content="Paste an Instagram link and Oslira grades the profile, gives you a clear debrief, crafts personalized outreach, and suggests your next leads. Get 25 free credits — no card required.">
+    <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
+<link rel="shortcut icon" type="image/png" href="/assets/images/oslira-logo.png">
+    
+    <!-- Preload critical CSS -->
+    <link rel="preload" href="/assets/css/tailwind.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/assets/css/tailwind.css"></noscript>
+    
+    <!-- Critical above-fold styles to prevent FOUC -->
+    <style>
+        body { 
+            visibility: visible; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .show-content { visibility: visible !important; }
+        /* Immediate dopamine-triggering hero animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .hero-demo-preview {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+    
+    <!-- Script loader initialization -->
+    <script src="/core/script-loader.js"></script>
+</head>
+<body class="home-page-body">
+
+    <!-- Sticky Header with CTA -->
+    <nav class="home-nav sticky-nav">
+        <div class="home-nav-container">
+            <a href="/" class="home-logo">
+                <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" class="home-logo-image">
+                <span>Oslira</span>
+            </a>
+            
+<div class="home-nav-menu">
+    <a href="#benefits" class="home-nav-link">Benefits</a>
+    <a href="#how-it-works" class="home-nav-link">How it Works</a>
+    <a href="#social-proof" class="home-nav-link">Success Stories</a>
+    <a href="/auth" class="home-nav-link login-btn">Login</a>
+</div>
+            
+            <!-- Mobile Menu Button -->
+<button id="mobile-menu-button" class="md:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="Toggle mobile menu">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200">
+<div class="px-6 py-4 space-y-3">
+    <a href="#benefits" class="block text-gray-600 hover:text-blue-600 py-2">Benefits</a>
+    <a href="#how-it-works" class="block text-gray-600 hover:text-blue-600 py-2">How it Works</a>
+    <a href="#social-proof" class="block text-gray-600 hover:text-blue-600 py-2">Success Stories</a>
+    <a href="/auth" class="block text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-semibold py-3 px-4 rounded-lg text-center">Login</a>
+</div>
+        </div>
+    </nav>
+
+    <!-- Beta Offer Urgency Banner -->
+    <div class="urgency-banner">
+        <div class="max-w-6xl mx-auto px-6 py-3 text-center">
+            <p class="text-sm text-blue-900">
+                🔔 <strong>Limited Beta Offer:</strong> 25 free credits for copywriters who join by Dec 30th
+                <button class="urgency-close ml-4 text-blue-700 hover:text-blue-900">×</button>
+            </p>
+        </div>
+    </div>
+
+    <main id="main-content" class="home-main-content">
+        <!-- Hero Section - Emotional Hook & Instant Gratification -->
+        <section class="hero-section">
+            <div class="hero-container">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <!-- Left Column: Copy & CTA -->
+                    <div class="text-left md:text-left">
+                        <h1 class="hero-title">
+                            Turn Hours of Instagram 
+                            <span class="hero-title-gradient">Prospecting into Minutes</span>
+                        </h1>
+                        
+                        <p class="hero-subtitle">
+Paste an Instagram link and Oslira grades the profile, gives you a clear debrief, crafts personalized outreach, and suggests your next leads. Get 25 free credits — no card required.
+                        </p>
+
+<div class="hero-demo-container">
+<p class="demo-intro-text">Try the AI analysis below:</p>
+<div class="demo-input-container">
+    <input 
+        type="text" 
+        id="demo-handle-input"
+        placeholder="@instagram_handle"
+        class="demo-input"
+    >
+    <button id="demo-analyze-btn" class="demo-analyze-btn">
+        <span class="demo-btn-text">Quick Analysis</span>
+        <span class="demo-btn-loading hidden">
+            <svg class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Analyzing...
+        </span>
+    </button>
+</div>
+                            
+                            <!-- Demo Results Preview -->
+                            <div id="demo-results" class="demo-results hidden">
+                                <div class="demo-result-card">
+                                    <div class="demo-profile-info">
+                                        <div class="demo-avatar">👤</div>
+                                        <div>
+                                            <h4 class="demo-name">@example_handle</h4>
+                                            <p class="demo-analysis">Perfect fit • Health & Wellness • 15K followers</p>
+                                        </div>
+                                    </div>
+                                    <div class="demo-outreach-preview">
+                                        <p class="demo-message">
+                                            "Hi Sarah! Loved your latest post about wellness routines. 
+                                            I help health coaches like you turn content into..."
+                                        </p>
+                                    </div>
+                                    <p class="demo-upgrade-hint">
+                                        ↑ See 24 more leads like this with your free trial
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Primary CTA -->
+                        <div class="hero-cta-container">
+                            <button class="btn-primary-hero primary-cta-main">
+                                Get 25 Free Credits Now
+                            </button>
+                            <p class="cta-subtext">
+                                No credit card needed • 2-minute setup
+                            </p>
+                        </div>
+
+                        <!-- Social Proof Numbers -->
+                        <div class="hero-stats">
+                            <div class="hero-stat">
+                                <div class="hero-stat-number">1,200+</div>
+                                <div class="hero-stat-label">Copywriters using Oslira</div>
+                            </div>
+                            <div class="hero-stat">
+                                <div class="hero-stat-number">43%</div>
+                                <div class="hero-stat-label">Average response rate</div>
+                            </div>
+                            <div class="hero-stat">
+                                <div class="hero-stat-number">5 hrs</div>
+                                <div class="hero-stat-label">Saved per week</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Visual Demo -->
+                    <div class="hero-visual">
+                        <div class="hero-demo-preview">
+                            <div class="demo-browser-frame">
+                                <div class="demo-browser-header">
+                                    <div class="demo-browser-dots">
+                                        <span></span><span></span><span></span>
+                                    </div>
+                                    <div class="demo-browser-url">oslira.com/dashboard</div>
+                                </div>
+                                <div class="demo-browser-content">
+                                    <div class="demo-dashboard-preview">
+                                        <h3>AI Lead Analysis</h3>
+                                        <div class="demo-lead-card">
+                                            <div class="demo-lead-info">
+                                                <div class="demo-lead-avatar">JD</div>
+                                                <div>
+                                                    <h4>@jane_designer</h4>
+                                                    <p>UI/UX Designer • 8.2K followers</p>
+                                                </div>
+                                                <span class="demo-match-score">92% match</span>
+                                            </div>
+                                            <div class="demo-insights">
+                                                <span class="demo-tag">Needs copy help</span>
+                                                <span class="demo-tag">High engagement</span>
+                                                <span class="demo-tag">Business owner</span>
+                                            </div>
+                                            <div class="demo-outreach">
+                                                <p>"Hi Jane! Your portfolio caught my eye - especially the fintech project. I help designers like you..."</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Benefits Section - Time, Clarity, Personalization -->
+        <section id="benefits" class="benefits-section">
+            <div class="benefits-container">
+                <div class="benefits-header">
+                    <h2 class="benefits-title">Why Copywriters Love Oslira</h2>
+                    <p class="benefits-subtitle">Transform your client acquisition from painful to effortless</p>
+                </div>
+                
+                <div class="benefits-grid">
+                    <!-- Benefit 1: Save Time -->
+                    <div class="benefit-card">
+                        <div class="benefit-icon time-icon">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h3 class="benefit-title">⏰ Save Hours of Work</h3>
+                        <p class="benefit-description">
+                            Automate tedious lead research and reclaim hours every week. What used to take you 5+ hours of scrolling now happens in a 10-second analysis. No more late nights hunting for leads.
+                        </p>
+                        <div class="benefit-proof">
+                            <span class="proof-stat">5+ hours → 10 seconds</span>
+                        </div>
+                    </div>
+
+                    <!-- Benefit 2: Clear Direction -->
+                    <div class="benefit-card">
+                        <div class="benefit-icon clarity-icon">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h3 class="benefit-title">🎯 Clear Direction & Focus</h3>
+                        <p class="benefit-description">
+                            Know exactly who to reach out to and how to approach them. Get instant clarity on your ideal client profile and a ready-made outreach strategy for each lead. No guesswork, just clear opportunities.
+                        </p>
+                        <div class="benefit-proof">
+                            <span class="proof-stat">95% qualified leads</span>
+                        </div>
+                    </div>
+
+                    <!-- Benefit 3: Personalized Outreach -->
+                    <div class="benefit-card">
+                        <div class="benefit-icon personalization-icon">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                        </div>
+                        <h3 class="benefit-title">💌 Personalized Outreach, Better Replies</h3>
+                        <p class="benefit-description">
+                            Win more responses with AI-personalized messages. Users report 2-3× higher response rates when they personalize outreach using Oslira's insights, turning cold DMs into warm conversations.
+                        </p>
+                        <div class="benefit-proof">
+                            <span class="proof-stat">12% → 43% response rate</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section - Effortless 1-2-3 Process -->
+        <section id="how-it-works" class="how-it-works-section">
+            <div class="how-it-works-container">
+                <div class="how-it-works-header">
+                    <h2 class="how-it-works-title">Effortless 3-Step Workflow</h2>
+                    <p class="how-it-works-subtitle">From prospect discovery to personalized outreach in minutes</p>
+                </div>
+                
+                <div class="how-it-works-steps">
+                    <!-- Step 1 -->
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <h3 class="step-title">Analyze a Profile</h3>
+                        <p class="step-description">
+                           Enter any Instagram @handle — Oslira’s AI instantly analyzes the profile for interests, business info, and engagement stats. In one click, get a clear grade and debrief, personalized outreach, and suggested next leads.
+                        </p>
+                        <div class="step-visual">
+                            <div class="step-demo-input">
+                                <span class="demo-text">@sarah_healthcoach</span>
+                                <span class="demo-arrow">→</span>
+                                <span class="demo-result">📊 Analysis complete</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <h3 class="step-title">Target the Right Leads</h3>
+                        <p class="step-description">
+                            Let Oslira find and recommend similar high-potential prospects for you. Our AI then scans for lookalike prospects who meet your ideal client criteria – so you instantly get a list of potential customers without endless scrolling.
+                        </p>
+                        <div class="step-visual">
+                            <div class="step-demo-grid">
+                                <div class="demo-prospect">👤</div>
+                                <div class="demo-prospect">👤</div>
+                                <div class="demo-prospect">👤</div>
+                                <div class="demo-prospect">👤</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <h3 class="step-title">Get Personalized Outreach</h3>
+                        <p class="step-description">
+                            Receive AI-crafted message templates for each lead and start the conversation. For each lead, Oslira generates a personalized DM or email draft – based on their profile's content and interests – so your outreach feels genuine and relevant.
+                        </p>
+                        <div class="step-visual">
+                            <div class="step-demo-message">
+                                <p>"Hi Sarah, loved your latest post about morning routines. I help wellness coaches like you turn content into..."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Social Proof & Trust Signals -->
+        <section id="social-proof" class="social-proof-section">
+            <div class="social-proof-container">
+                <div class="social-proof-header">
+                    <h2 class="social-proof-title">Trusted by 1,200+ Professionals</h2>
+                    <p class="social-proof-subtitle">See why copywriters are switching to Oslira</p>
+                </div>
+
+                <!-- Success Metrics -->
+                <div class="success-metrics">
+                    <div class="metric-card">
+                        <div class="metric-number">85%</div>
+                        <div class="metric-label">Average response rate</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-number">2.4×</div>
+                        <div class="metric-label">ROI increase</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-number">5,000+</div>
+                        <div class="metric-label">Leads delivered</div>
+                    </div>
+                </div>
+
+                <!-- Testimonials -->
+                <div class="testimonials-grid">
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <p>"Oslira helped me book 3 new clients in a month. It's like I have a research assistant working 24/7!"</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">SC</div>
+                            <div>
+                                <div class="author-name">Sarah C.</div>
+                                <div class="author-title">Freelance Copywriter</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial-card featured">
+                        <div class="testimonial-content">
+                            <p>"Our response rate went from 12% to 43%. Finally, a lead gen tool that writes back – my DMs have never been this friendly!"</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">MR</div>
+                            <div>
+                                <div class="author-name">Mike R.</div>
+                                <div class="author-title">Growth Copywriter</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <p>"Finally, I don't have to spend hours scrolling Instagram looking for prospects. Oslira does the heavy lifting."</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">AJ</div>
+                            <div>
+                                <div class="author-name">Alex J.</div>
+                                <div class="author-title">Conversion Copywriter</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final CTA Section - Clear Call to Action with Urgency -->
+        <section class="final-cta-section">
+            <div class="final-cta-container">
+                <div class="final-cta-content">
+                    <h2 class="final-cta-title">Ready to Land Your Next Client Effortlessly?</h2>
+                    <p class="final-cta-subtitle">
+                       Get 25 free credits and see the difference in your workflow — no risk, all reward.
+                    </p>
+                    
+                    <!-- Urgency Element -->
+                    <div class="urgency-element">
+                        <p class="urgency-text">
+                            🚨 <strong>Limited Beta Spots:</strong> Only 47 free trials left this month
+                        </p>
+                    </div>
+
+                    <!-- Main CTA -->
+                    <div class="final-cta-button-container">
+                        <button class="btn-primary-final final-cta-main">
+                            Claim My Free Credits
+                        </button>
+                        <p class="final-cta-subtext">
+                            ✓ 25 free lead credits included<br>
+                            ✓ No credit card required<br>
+                            ✓ 2-minute setup
+                        </p>
+                    </div>
+
+                    <!-- Final urgency -->
+                    <p class="final-urgency">
+                        Get started now and discover your next client in seconds.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mobile Sticky Bottom CTA -->
+        <div class="mobile-sticky-cta">
+            <button class="mobile-cta-btn">
+                <span class="mobile-cta-text">Get 25 Free Credits</span>
+                <span class="mobile-cta-arrow">→</span>
+            </button>
+        </div>
+
+        <!-- Social Proof Popup Notifications -->
+        <div id="social-proof-notifications" class="social-proof-notifications">
+            <!-- Dynamically populated by JavaScript -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div id="footer-container"></div>
+
+    <!-- Demo Modal for Full Results -->
+    <div id="demo-modal" class="demo-modal hidden">
+        <div class="demo-modal-overlay">
+            <div class="demo-modal-content">
+                <div class="demo-modal-header">
+                    <h3>🎉 See Full Results with Free Trial</h3>
+                    <button class="demo-modal-close">×</button>
+                </div>
+                <div class="demo-modal-body">
+                    <p>This was just a preview! Get 25 complete lead analyses with:</p>
+                    <ul class="demo-modal-features">
+                        <li>✓ Full contact information</li>
+                        <li>✓ Detailed business insights</li>
+                        <li>✓ Custom outreach templates</li>
+                        <li>✓ Lookalike prospect discovery</li>
+                    </ul>
+                    <button class="btn-primary-modal">Start Free Trial</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced JavaScript for conversions -->
+    <script>
+        // Enhanced demo functionality, sticky CTAs, social proof popups
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Show content once CSS is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.body.classList.add('show-content');
+            }, 50);
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('mobile-menu');
+            const button = document.getElementById('mobile-menu-button');
+            
+            if (menu && button && !menu.contains(event.target) && !button.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button')?.addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            if (menu) {
+                menu.classList.toggle('hidden');
+            }
+        });
+
+        // Urgency banner close
+        document.querySelector('.urgency-close')?.addEventListener('click', function() {
+            this.closest('.urgency-banner').style.display = 'none';
+        });
+    </script>
+
+    <!-- Script Loading managed by script-loader.js -->
+</body>
+</html>

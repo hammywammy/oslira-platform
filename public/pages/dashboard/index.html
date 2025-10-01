@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Lead Research Dashboard - Oslira</title>
+    <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
+    <link rel="stylesheet" href="/assets/css/tailwind.css">
+    <script src="/core/script-loader.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- Dynamic styles will be injected here -->
+    <div id="dynamic-styles"></div>
+</head>
+<body class="bg-gray-50 overflow-hidden">
+<!-- Main Container with Gradient Background -->
+<div class="min-h-screen dashboard-gradient-bg relative">
+    <div class="wave-overlay"></div>
+    <div class="wave-pattern"></div>
+    
+    <!-- Sidebar Container -->
+    <div id="sidebar-container"></div>
+    
+    <!-- Main Content -->
+    <main class="main-content" style="margin-left: 256px; transition: margin-left 0.3s ease; padding-top: 2rem; height: 100vh; overflow-y: auto; padding-bottom: 2rem;">
+        
+        <!-- Header Section -->
+        <div id="dashboard-header">
+            <!-- Will be rendered by dashboard-header.js -->
+        </div>
+        
+        <!-- Dashboard Content -->
+        <div class="px-6">
+            
+            <!-- Stats Cards -->
+            <div id="priority-cards">
+                <!-- Will be rendered by stats-cards.js -->
+            </div>
+            
+            <!-- Performance Metrics -->
+            <div id="performance-metrics">
+                <!-- Will be rendered by stats-cards.js -->
+            </div>
+            
+<div id="leads-section" class="mb-8">
+    <!-- Leads Container for LeadRenderer -->
+    <div id="leads-container">
+        <div id="leads-table-container">
+            <!-- LeadRenderer will create table structure here -->
+        </div>
+    </div>
+</div>
+            
+            <!-- Insights Panel -->
+            <div id="insights-panel">
+                <!-- Will be rendered by insights-panel.js -->
+            </div>
+            
+        </div>
+        
+        <!-- Bulk Actions Toolbar (hidden by default) -->
+        <div id="bulk-actions-toolbar" class="hidden fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white rounded-xl shadow-lg border border-gray-200 px-6 py-3 z-40">
+            <div class="flex items-center space-x-4">
+                <span id="selection-count" class="text-sm font-medium text-gray-700">0 selected</span>
+                <div class="flex items-center space-x-2">
+                    <button class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Bulk Analyze
+                    </button>
+                    <button class="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                        Export
+                    </button>
+                    <button class="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">
+                        Delete
+                    </button>
+                </div>
+                <button onclick="clearAllSelections()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+    </main>
+    
+<!-- Modal Containers - These will be populated by modal-manager.js -->
+<div id="modal-containers">
+    <!-- Research Modal -->
+    <div id="researchModal" style="display: none;" class="hidden"></div>
+    <!-- Bulk Modal Container -->
+    <div id="bulkModal" style="display: none;" class="hidden"></div>
+    <div id="bulkModalContainer" style="display: none;" class="hidden"></div>
+    <!-- Lead Analysis Modal -->
+    <div id="leadAnalysisModal" style="display: none;" class="hidden"></div>
+    <!-- Bulk Import Modal -->
+    <div id="bulkImportModal" style="display: none;" class="hidden"></div>
+    <!-- Duplicate Lead Modal -->
+    <div id="duplicateModal" style="display: none;" class="hidden"></div>
+</div>
+    
+</div>
+
+<!-- Global Function Bindings Script -->
+<script>
+// Initialize Feather Icons when document loads
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+});
+
+// Global function bindings for UI elements
+window.openResearchModal = function() {
+    if (window.dashboard?.container?.get('researchHandlers')) {
+        window.dashboard.container.get('researchHandlers').openResearchModal();
+    } else if (window.ResearchHandlers) {
+        new window.ResearchHandlers().openResearchModal();
+    }
+};
+
+window.closeResearchModal = function() {
+    if (window.dashboard?.container?.get('researchHandlers')) {
+        window.dashboard.container.get('researchHandlers').closeResearchModal();
+    } else if (window.ResearchHandlers) {
+        new window.ResearchHandlers().closeResearchModal();
+    }
+};
+
+window.submitResearch = function() {
+    if (window.dashboard?.container?.get('researchHandlers')) {
+        window.dashboard.container.get('researchHandlers').submitResearch();
+    } else if (window.ResearchHandlers) {
+        new window.ResearchHandlers().submitResearch();
+    }
+};
+
+window.filterByPriority = function(priority) {
+    if (window.dashboard?.container?.get('statsCards')) {
+        window.dashboard.container.get('statsCards').filterByPriority(priority);
+    } else {
+        console.log('Filtering by priority:', priority);
+    }
+};
+
+window.clearAllSelections = function() {
+    if (window.dashboard?.container?.get('leadRenderer')) {
+        window.dashboard.container.get('leadRenderer').clearAllSelections();
+    }
+};
+
+window.openBulkModal = function() {
+    if (window.dashboard?.container?.get('modalManager')) {
+        window.dashboard.container.get('modalManager').openModal('bulkModal');
+    } else if (window.showBulkModal) {
+        window.showBulkModal();
+    } else {
+        console.error('Bulk modal functionality not available');
+    }
+};
+
+window.handleMainButtonClick = function() {
+    // Get current mode from dashboard header
+    const headerManager = window.dashboard?.container?.get('dashboardHeader');
+    if (!headerManager) {
+        console.error('Dashboard header not available');
+        return;
+    }
+    
+    const currentMode = headerManager.currentMode || 'single';
+    
+    if (currentMode === 'bulk') {
+        // Open bulk modal
+        if (window.dashboard?.container?.get('modalManager')) {
+            window.dashboard.container.get('modalManager').openModal('bulkModal');
+        } else if (window.showBulkModal) {
+            window.showBulkModal();
+        }
+    } else {
+        // Open research modal for single lead
+        if (window.dashboard?.container?.get('researchHandlers')) {
+            window.dashboard.container.get('researchHandlers').openResearchModal();
+        } else if (window.openResearchModal) {
+            window.openResearchModal();
+        }
+    }
+};
+
+</script>
+</body>
+</html>

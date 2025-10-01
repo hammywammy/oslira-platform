@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Center - Oslira</title>
+        <link rel="stylesheet" href="/assets/css/tailwind.css">
+    
+    <!-- Script loader initialization -->
+    <script src="/core/script-loader.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #F5F9FF;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(45, 108, 223, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2D6CDF;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #6B7280;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #2D6CDF;
+        }
+
+        .cta-button {
+            background: linear-gradient(135deg, #2D6CDF, #8A6DF1);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 4rem 0;
+            background: linear-gradient(135deg, #F5F9FF 0%, #E8F3FF 100%);
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #121417;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #2D6CDF, #8A6DF1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #6B7280;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            background: white;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #2D6CDF;
+            box-shadow: 0 0 0 4px rgba(45, 108, 223, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+            font-size: 1.2rem;
+        }
+
+        .categories-section {
+            background: white;
+            margin: 2rem 0;
+            padding: 3rem 0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(45, 108, 223, 0.1);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #121417;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .category-card {
+            background: #F5F9FF;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 2px solid #E5E7EB;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .category-card:hover {
+            transform: translateY(-4px);
+            border-color: #2D6CDF;
+            box-shadow: 0 8px 25px rgba(45, 108, 223, 0.15);
+        }
+
+        .category-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .category-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #121417;
+            margin-bottom: 1rem;
+        }
+
+        .category-description {
+            color: #6B7280;
+            margin-bottom: 1.5rem;
+        }
+
+        .articles-count {
+            color: #2D6CDF;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .contact-section {
+            background: linear-gradient(135deg, #2D6CDF, #8A6DF1);
+            color: white;
+            text-align: center;
+            padding: 3rem 0;
+            margin: 2rem 0;
+            border-radius: 16px;
+        }
+
+        .contact-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .contact-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .contact-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .contact-method {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .contact-method-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact-method-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-method-description {
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .contact-method-action {
+            background: white;
+            color: #2D6CDF;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+
+        .contact-method-action:hover {
+            transform: translateY(-2px);
+        }
+
+        .popular-articles {
+            background: white;
+            margin: 2rem 0;
+            padding: 3rem 0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(45, 108, 223, 0.1);
+        }
+
+        .articles-list {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .article-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid #E5E7EB;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .article-item:hover {
+            background: #F5F9FF;
+        }
+
+        .article-item:last-child {
+            border-bottom: none;
+        }
+
+        .article-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #121417;
+            margin-bottom: 0.5rem;
+        }
+
+        .article-description {
+            color: #6B7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #9CA3AF;
+        }
+
+        .article-category {
+            background: #E5E7EB;
+            padding: 0.25rem 0.75rem;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            color: #6B7280;
+        }
+
+        /* Footer */
+        .footer {
+            background: #121417;
+            color: white;
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #2D6CDF;
+        }
+
+        .footer-section a {
+            color: #9CA3AF;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #374151;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            text-align: center;
+            color: #9CA3AF;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-methods {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="header-container"></div>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Help Center</h1>
+            <p class="hero-subtitle">Find answers, get support, and learn how to make the most of Oslira</p>
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search for help articles...">
+                <span class="search-icon">🔍</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories -->
+    <section class="categories-section">
+        <div class="container">
+            <h2 class="section-title">Browse by Category</h2>
+            <div class="categories-grid">
+                <div class="category-card">
+                    <div class="category-icon">🚀</div>
+                    <h3 class="category-title">Getting Started</h3>
+                    <p class="category-description">Learn the basics of setting up your account and running your first analysis</p>
+                    <div class="articles-count">[NUMBER] articles</div>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">🔍</div>
+                    <h3 class="category-title">Lead Analysis</h3>
+                    <p class="category-description">Deep dive into lead scoring, analysis types, and interpreting results</p>
+                    <div class="articles-count">[NUMBER] articles</div>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">💳</div>
+                    <h3 class="category-title">Credits & Billing</h3>
+                    <p class="category-description">Understand credit usage, pricing, and manage your billing preferences</p>
+                    <div class="articles-count">[NUMBER] articles</div>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">🔗</div>
+                    <h3 class="category-title">Integrations</h3>
+                    <p class="category-description">Connect Oslira with your existing tools and workflows</p>
+                    <div class="articles-count">[NUMBER] articles</div>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">📊</div>
+                    <h3 class="category-title">Analytics & Reporting</h3>
+                    <p class="category-description">Export data, understand metrics, and track your lead research performance</p>
+                    <div class="articles-count">[NUMBER] articles</div>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">🛠️</div>
+                    <h3 class="category-title">Troubleshooting</h3>
+                    <p class="category-description">Common issues, error messages, and step-by-step solutions</p>
+                    <div class="articles-count">[NUMBER] articles</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular Articles -->
+    <section class="popular-articles">
+        <div class="container">
+            <h2 class="section-title">Popular Articles</h2>
+            <div class="articles-list">
+                <div class="article-item">
+                    <h3 class="article-title">[ARTICLE TITLE]</h3>
+                    <p class="article-description">[ARTICLE DESCRIPTION/PREVIEW]</p>
+                    <div class="article-meta">
+                        <span class="article-category">[CATEGORY]</span>
+                        <span>[READ TIME] min read</span>
+                    </div>
+                </div>
+                <div class="article-item">
+                    <h3 class="article-title">[ARTICLE TITLE]</h3>
+                    <p class="article-description">[ARTICLE DESCRIPTION/PREVIEW]</p>
+                    <div class="article-meta">
+                        <span class="article-category">[CATEGORY]</span>
+                        <span>[READ TIME] min read</span>
+                    </div>
+                </div>
+                <div class="article-item">
+                    <h3 class="article-title">[ARTICLE TITLE]</h3>
+                    <p class="article-description">[ARTICLE DESCRIPTION/PREVIEW]</p>
+                    <div class="article-meta">
+                        <span class="article-category">[CATEGORY]</span>
+                        <span>[READ TIME] min read</span>
+                    </div>
+                </div>
+                <div class="article-item">
+                    <h3 class="article-title">[ARTICLE TITLE]</h3>
+                    <p class="article-description">[ARTICLE DESCRIPTION/PREVIEW]</p>
+                    <div class="article-meta">
+                        <span class="article-category">[CATEGORY]</span>
+                        <span>[READ TIME] min read</span>
+                    </div>
+                </div>
+                <div class="article-item">
+                    <h3 class="article-title">[ARTICLE TITLE]</h3>
+                    <p class="article-description">[ARTICLE DESCRIPTION/PREVIEW]</p>
+                    <div class="article-meta">
+                        <span class="article-category">[CATEGORY]</span>
+                        <span>[READ TIME] min read</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <div class="container">
+            <h2 class="contact-title">Need More Help?</h2>
+            <p class="contact-subtitle">Can't find what you're looking for? Our support team is here to help</p>
+            <div class="contact-methods">
+                <div class="contact-method">
+                    <div class="contact-method-icon">📧</div>
+                    <h3 class="contact-method-title">Email Support</h3>
+                    <p class="contact-method-description">Get detailed help via email. We typically respond within [TIME FRAME]</p>
+                    <a href="mailto:[SUPPORT_EMAIL]" class="contact-method-action">Send Email</a>
+                </div>
+                <div class="contact-method">
+                    <div class="contact-method-icon">💬</div>
+                    <h3 class="contact-method-title">Live Chat</h3>
+                    <p class="contact-method-description">Chat with our support team in real-time during business hours</p>
+                    <a href="#" class="contact-method-action">Start Chat</a>
+                </div>
+                <div class="contact-method">
+                    <div class="contact-method-icon">📚</div>
+                    <h3 class="contact-method-title">Documentation</h3>
+                    <p class="contact-method-description">Comprehensive guides and API documentation for developers</p>
+                    <a href="/docs.html" class="contact-method-action">View Docs</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<!-- Footer Manager Initialization -->
+    <script>
+        let footerInitialized = false;
+        
+window.addEventListener('oslira:scripts:loaded', async () => {
+    // Initialize header first
+    try {
+        await initializeHeader();
+    } catch (error) {
+        console.error('❌ [PageName] Header initialization failed:', error);
+    }
+            if (footerInitialized) {
+                console.log('🔄 [Help] Footer already initialized, skipping...');
+                return;
+            }
+            
+            console.log('🚀 [Help] Scripts loaded event received, initializing footer...');
+            try {
+                footerInitialized = true;
+                await initializeFooter();
+            } catch (error) {
+                console.error('❌ [Help] Footer initialization failed:', error);
+                footerInitialized = false;
+            }
+        });
+
+        async function initializeHeader() {
+    try {
+        if (document.querySelector('.home-nav')) {
+            console.log('🔄 [PageName] Header already exists, skipping initialization...');
+            return;
+        }
+        
+        console.log('🧭 [PageName] Starting header initialization...');
+        
+        let container = document.getElementById('header-container');
+        if (!container) {
+            console.log('🔧 [PageName] Creating header-container element');
+            container = document.createElement('div');
+            container.id = 'header-container';
+            document.body.insertBefore(container, document.body.firstChild);
+        }
+        
+        // Wait for HeaderManager to be available
+        console.log('🔍 [PageName] Waiting for HeaderManager...');
+        for (let i = 0; i < 50; i++) {
+            if (window.HeaderManager) {
+                console.log('✅ [PageName] HeaderManager found');
+                break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        if (!window.HeaderManager) {
+            throw new Error('HeaderManager not available after waiting');
+        }
+        
+        // Initialize header for footer pages
+        console.log('🧭 [PageName] Creating HeaderManager instance...');
+        const headerManager = new window.HeaderManager();
+        
+        console.log('🧭 [PageName] Rendering header...');
+        headerManager.render('header-container', {
+            type: 'footer-pages'
+        });
+        
+        console.log('✅ [PageName] Header initialization complete');
+    } catch (error) {
+        console.error('❌ [PageName] Header initialization failed:', error);
+    }
+}
+        
+        async function initializeFooter() {
+            try {
+                // Check if footer already exists
+                if (document.querySelector('.new-footer-main')) {
+                    console.log('🔄 [Help] Footer already exists, skipping initialization...');
+                    return;
+                }
+                
+                console.log('🦶 [Help] Starting footer initialization...');
+                
+                // Check if container exists
+                let container = document.getElementById('footer-container');
+                if (!container) {
+                    console.log('🔧 [Help] Creating footer-container element');
+                    container = document.createElement('div');
+                    container.id = 'footer-container';
+                    document.body.appendChild(container);
+                }
+                
+                // Wait for FooterManager to be available
+                console.log('🔍 [Help] Waiting for FooterManager...');
+                for (let i = 0; i < 50; i++) {
+                    if (window.FooterManager) {
+                        console.log('✅ [Help] FooterManager found');
+                        break;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                if (!window.FooterManager) {
+                    throw new Error('FooterManager not available after waiting');
+                }
+                
+                // Initialize footer
+                console.log('🦶 [Help] Creating FooterManager instance...');
+                const footerManager = new window.FooterManager();
+                
+                console.log('🦶 [Help] Rendering footer...');
+                footerManager.render('footer-container');
+                
+                console.log('✅ [Help] Footer initialization complete');
+            } catch (error) {
+                console.error('❌ [Help] Footer initialization failed:', error);
+            }
+        }
+    </script>
+    <!-- Footer Container -->
+<div id="footer-container"></div>
+</body>
+</html>

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Oslira Internal</title>
+    
+    <!-- Load configuration first -->
+    <script src="/env-config.js"></script>
+    
+    <!-- Load Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script> 
+      
+    <!-- Load shared foundation FIRST -->
+    <script src="/core_utils/shared-code.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar">
+            <div class="admin-logo">
+                <span style="font-size: 28px;">🔧</span>
+                <h1>Admin Control</h1>
+            </div>
+            
+            <nav class="admin-nav">
+                <div class="nav-section">
+                    <h3>Overview</h3>
+                    <div class="nav-item active" data-view="dashboard">
+                        <span class="icon">📊</span>
+                        Dashboard
+                    </div>
+                    <div class="nav-item" data-view="realtime">
+                        <span class="icon">⚡</span>
+                        Real-time Monitor
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>User Management</h3>
+                    <div class="nav-item" data-view="users">
+                        <span class="icon">👥</span>
+                        Active Users
+                    </div>
+                    <div class="nav-item" data-view="subscriptions">
+                        <span class="icon">💳</span>
+                        Subscriptions
+                    </div>
+                    <div class="nav-item" data-view="usage">
+                        <span class="icon">📈</span>
+                        Usage Analytics
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>Platform Health</h3>
+                    <div class="nav-item" data-view="performance">
+                        <span class="icon">🚀</span>
+                        Performance
+                    </div>
+                    <div class="nav-item" data-view="errors">
+                        <span class="icon">🚨</span>
+                        Error Tracking
+                    </div>
+                    <div class="nav-item" data-view="infrastructure">
+                        <span class="icon">🏗️</span>
+                        Infrastructure
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>Business Intelligence</h3>
+                    <div class="nav-item" data-view="revenue">
+                        <span class="icon">💰</span>
+                        Revenue Analytics
+                    </div>
+                    <div class="nav-item" data-view="campaigns">
+                        <span class="icon">🎯</span>
+                        Campaign Intelligence
+                    </div>
+                    <div class="nav-item" data-view="ai-insights">
+                        <span class="icon">🧠</span>
+                        AI Performance
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- User Info -->
+            <div class="admin-user-info">
+                <div class="user-avatar">🔧</div>
+                <div class="user-details">
+                    <div class="user-name" id="admin-user-name">Admin User</div>
+                    <div class="user-role">System Administrator</div>
+                </div>
+                <button class="logout-btn" data-action="logout" title="Sign Out">
+                    <span>🚪</span>
+                </button>
+            </div>
+        </aside>
+        
+        <main class="admin-main">
+            <!-- Dashboard Overview -->
+            <div id="dashboard-view" class="admin-view active">
+                <div class="admin-header">
+                    <div class="header-top">
+                        <h1 class="header-title">Platform Overview</h1>
+                        <div class="header-actions">
+                            <button class="btn btn-secondary" data-action="refresh" title="Refresh Data">
+                                <span class="icon">🔄</span>
+                                Refresh
+                            </button>
+                            <button class="btn btn-secondary" data-action="export" title="Export Data">
+                                <span class="icon">📤</span>
+                                Export
+                            </button>
+                            <div class="live-indicator">
+                                <div class="live-dot"></div>
+                                LIVE MONITORING
+                            </div>
+                        </div>
+                    </div>
+                    <div style="color: #718096; font-size: 16px;">
+                        Real-time insights into your Oslira platform performance and user activity
+                    </div>
+                    <div class="last-updated">
+                        <span id="last-updated">Last updated: --:--:--</span>
+                    </div>
+                </div>
+                
+                <!-- KPI Grid -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-title">Active Users</div>
+                            <div class="kpi-icon">👥</div>
+                        </div>
+                        <div class="kpi-value" id="active-users">Loading...</div>
+                        <div class="kpi-change positive">
+                            ↗ +23% vs last week
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-title">Active Campaigns</div>
+                            <div class="kpi-icon">🎯</div>
+                        </div>
+                        <div class="kpi-value" id="active-campaigns">Loading...</div>
+                        <div class="kpi-change positive">
+                            ↗ +12% vs last week
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-title">Messages Sent</div>
+                            <div class="kpi-icon">📤</div>
+                        </div>
+                        <div class="kpi-value" id="messages-sent">Loading...</div>
+                        <div class="kpi-change positive">
+                            ↗ +34% vs last week
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-title">Monthly Revenue</div>
+                            <div class="kpi-icon">💰</div>
+                        </div>
+                        <div class="kpi-value" id="monthly-revenue">Loading...</div>
+                        <div class="kpi-change positive">
+                            ↗ +18% vs last month
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-title">AI Response Time</div>
+                            <div class="kpi-icon">🧠</div>
+                        </div>
+                        <div class="kpi-value" id="ai-response-time">Loading...</div>
+                        <div class="kpi-change negative">
+                            ↘ +0.1s vs last week
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-title">System Uptime</div>
+                            <div class="kpi-icon">⚡</div>
+                        </div>
+                        <div class="kpi-value" id="system-uptime">Loading...</div>
+                        <div class="kpi-change positive">
+                            ↗ 99.9% this month
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Content Grid -->
+                <div class="dashboard-content">
+                    <!-- Activity Feed -->
+                    <div class="activity-feed">
+                        <h3>📊 Recent Activity</h3>
+                        <div class="feed-container" id="activity-feed">
+                            <div class="feed-item">
+                                <div class="feed-icon user">👤</div>
+                                <div class="feed-content">
+                                    <div class="feed-title">New user registration</div>
+                                    <div class="feed-description">user@example.com signed up</div>
+                                    <div class="feed-time">2 minutes ago</div>
+                                </div>
+                            </div>
+                            
+                            <div class="feed-item">
+                                <div class="feed-icon campaign">🎯</div>
+                                <div class="feed-content">
+                                    <div class="feed-title">Campaign launched</div>
+                                    <div class="feed-description">SaaS Outreach Q1 started</div>
+                                    <div class="feed-time">15 minutes ago</div>
+                                </div>
+                            </div>
+                            
+                            <div class="feed-item">
+                                <div class="feed-icon system">🔧</div>
+                                <div class="feed-content">
+                                    <div class="feed-title">System maintenance</div>
+                                    <div class="feed-description">Database optimization completed</div>
+                                    <div class="feed-time">1 hour ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Google Sheets Integration -->
+                    <div class="google-sheets-panel">
+                        <h3>📊 External Data Sources</h3>
+                        <div id="google-sheets-data" class="sheets-data-container">
+                            <div class="placeholder-state">
+                                <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+                                <h4>Google Sheets Integration</h4>
+                                <p>Connect your Google Sheets for real-time data updates</p>
+                                <button class="btn btn-primary" onclick="window.adminDashboard.loadGoogleSheetsData()">
+                                    Connect Sheets
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Tables -->
+                <div class="detailed-tables">
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h3 class="table-title">Top Performing Users</h3>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Plan</th>
+                                    <th>Messages Sent</th>
+                                    <th>Success Rate</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>john@example.com</td>
+                                    <td>Pro</td>
+                                    <td>1,247</td>
+                                    <td>23%</td>
+                                    <td><span class="status-badge status-active">Active</span></td>
+                                </tr>
+                                <tr>
+                                    <td>sarah@company.com</td>
+                                    <td>Enterprise</td>
+                                    <td>2,891</td>
+                                    <td>31%</td>
+                                    <td><span class="status-badge status-active">Active</span></td>
+                                </tr>
+                                <tr>
+                                    <td>mike@startup.co</td>
+                                    <td>Pro</td>
+                                    <td>956</td>
+                                    <td>18%</td>
+                                    <td><span class="status-badge status-pending">Trial</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h3 class="table-title">Recent Transactions</h3>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>User</th>
+                                    <th>Plan</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Jan 15, 2025</td>
+                                    <td>alex@business.com</td>
+                                    <td>Pro Monthly</td>
+                                    <td>$49</td>
+                                    <td><span class="status-badge status-active">Paid</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Jan 15, 2025</td>
+                                    <td>lisa@agency.net</td>
+                                    <td>Enterprise</td>
+                                    <td>$199</td>
+                                    <td><span class="status-badge status-active">Paid</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Jan 14, 2025</td>
+                                    <td>tom@freelance.io</td>
+                                    <td>Pro Monthly</td>
+                                    <td>$49</td>
+                                    <td><span class="status-badge status-pending">Pending</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users View -->
+            <div id="users-view" class="admin-view">
+                <div class="admin-header">
+                    <div class="header-top">
+                        <h1 class="header-title">User Management</h1>
+                        <div class="header-actions">
+                            <button class="btn btn-secondary" onclick="window.adminDashboard.loadUserData()">
+                                🔄 Refresh
+                            </button>
+                            <button class="btn btn-primary" onclick="window.adminDashboard.exportUsers()">
+                                📤 Export Users
+                            </button>
+                        </div>
+                    </div>
+                    <div style="color: #718096; font-size: 16px;">
+                        Manage user accounts, subscriptions, and permissions
+                    </div>
+                </div>
+                
+                <!-- Users table container will be populated by JavaScript -->
+                <div id="users-table-container" class="view-container"></div>
+            </div>
+
+            <!-- Subscriptions View -->
+            <div id="subscriptions-view" class="admin-view">
+                <div class="admin-header">
+                    <div class="header-top">
+                        <h1 class="header-title">Subscription Management</h1>
+                        <div class="header-actions">
+                            <button class="btn btn-secondary" onclick="window.adminDashboard.loadSubscriptionData()">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div style="color: #718096; font-size: 16px;">
+                        Monitor and manage user subscriptions and billing
+                    </div>
+                </div>
+                
+                <!-- Subscriptions dashboard container -->
+                <div id="subscriptions-dashboard-container" class="view-container"></div>
+            </div>
+
+            <!-- Performance View -->
+            <div id="performance-view" class="admin-view">
+                <div class="admin-header">
+                    <div class="header-top">
+                        <h1 class="header-title">Performance Analytics</h1>
+                        <div class="header-actions">
+                            <button class="btn btn-secondary" onclick="window.adminDashboard.loadPerformanceData()">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div style="color: #718096; font-size: 16px;">
+                        System performance metrics and optimization insights
+                    </div>
+                </div>
+                
+                <!-- Performance dashboard container -->
+                <div id="performance-dashboard-container" class="view-container"></div>
+            </div>
+
+            <!-- Revenue View -->
+            <div id="revenue-view" class="admin-view">
+                <div class="admin-header">
+                    <div class="header-top">
+                        <h1 class="header-title">Revenue Analytics</h1>
+                        <div class="header-actions">
+                            <button class="btn btn-secondary" onclick="window.adminDashboard.loadRevenueData()">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div style="color: #718096; font-size: 16px;">
+                        Financial metrics, revenue tracking, and business intelligence
+                    </div>
+                </div>
+                
+                <!-- Revenue dashboard container -->
+                <div id="revenue-dashboard-container" class="view-container"></div>
+            </div>
+
+            <!-- AI Insights View -->
+            <div id="ai-insights-view" class="admin-view">
+                <div class="admin-header">
+                    <div class="header-top">
+                        <h1 class="header-title">AI Performance</h1>
+                        <div class="header-actions">
+                            <button class="btn btn-secondary" onclick="window.adminDashboard.loadAIData()">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div style="color: #718096; font-size: 16px;">
+                        AI model performance, accuracy metrics, and optimization insights
+                    </div>
+                </div>
+                
+                <!-- AI dashboard container -->
+                <div id="ai-dashboard-container" class="view-container"></div>
+            </div>
+
+            <!-- Real-time Monitor View -->
+            <div id="realtime-view" class="admin-view">
+                <div class="admin-header">
+                    <div class="header-top">
+                        <h1 class="header-title">Real-time Monitor</h1>
+                        <div class="live-indicator">
+                            <div class="live-dot"></div>
+                            LIVE DATA
+                        </div>
+                    </div>
+                    <div style="color: #718096; font-size: 16px;">
+                        Live system monitoring and performance metrics
+                    </div>
+                </div>
+                
+                <!-- Real-time dashboard container -->
+                <div id="realtime-dashboard-container" class="view-container"></div>
+            </div>
+
+            <!-- Additional views for other nav items -->
+            <div id="usage-view" class="admin-view">
+                <div class="admin-header">
+                    <div class="header-top">
+                        <h1 class="header-title">Usage Analytics</h1>
+                    </div>
+                    <div style="color: #718096; font-size: 16px;">
+                        User activity patterns and feature usage analytics
+                    </div>
+                </div>
+                
+                <div class="coming-soon">
+                    <div style="font-size: 64px; margin-bottom: 24px;">📈</div>
+                    <h2>Usage Analytics</h2>
+                    <p>Detailed usage analytics and user behavior insights coming soon</p>
+                </div>
+            </div>
+
+            <div id="errors-view" class="admin-view">
+                <div class="admin-header">
+                    <div class="header-top">
+                        <h1 class="header-title">Error Tracking</h1>
+                    </div>
+                    <div style="color: #718096; font-size: 16px;">
+                        System errors, exceptions, and debugging information
+                    </div>
+                </div>
+                
+                <div class="coming-soon">
+                    <div style="font-size: 64px; margin-bottom: 24px;">🚨</div>
+                    <h2>Error Tracking</h2>
+                    <p>Advanced error monitoring and debugging tools coming soon</p>
+                </div>
+            </div>
+
+            <div id="infrastructure-view" class="admin-view">
+                <div class="admin-header">
+                    <div class="header-top">
+                        <h1 class="header-title">Infrastructure</h1>
+                    </div>
+                    <div style="color: #718096; font-size: 16px;">
+                        Server infrastructure, deployments, and system health
+                    </div>
+                </div>
+                
+                <div class="coming-soon">
+                    <div style="font-size: 64px; margin-bottom: 24px;">🏗️</div>
+                    <h2>Infrastructure Management</h2>
+                    <p>Infrastructure monitoring and deployment management coming soon</p>
+                </div>
+            </div>
+
+            <div id="campaigns-view" class="admin-view">
+                <div class="admin-header">
+                    <div class="header-top">
+                        <h1 class="header-title">Campaign Intelligence</h1>
+                    </div>
+                    <div style="color: #718096; font-size: 16px;">
+                        Campaign performance analytics and optimization insights
+                    </div>
+                </div>
+                
+                <div class="coming-soon">
+                    <div style="font-size: 64px; margin-bottom: 24px;">🎯</div>
+                    <h2>Campaign Intelligence</h2>
+                    <p>Advanced campaign analytics and optimization tools coming soon</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading Overlay (inherited from shared-code.js) -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <div class="loading-text">Loading...</div>
+        </div>
+    </div>
+    <script src="/core_utils/shared-code.js"></script>
+    <!-- Toast Messages (inherited from shared-code.js) -->
+    <div id="toast-container" class="toast-container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <!-- Load admin-specific JavaScript LAST -->
+    <script src="/admin/admin.js"></script>
+
+</body>
+</html>
