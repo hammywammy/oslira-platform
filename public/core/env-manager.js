@@ -56,7 +56,7 @@ if (this.isDevelopment) {
 } else if (this.isProduction) {
     this.workerUrl = 'https://api.oslira.com';
 } else {
-    this.workerUrl = 'https://staging-api.oslira.com';
+    this.workerUrl = 'https://api.oslira.org';
 }
         
         // Auth callback URLs
