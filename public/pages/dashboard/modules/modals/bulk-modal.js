@@ -5,7 +5,7 @@ class BulkModal {
         this.container = container;
         this.eventBus = container.get('eventBus');
         this.stateManager = container.get('stateManager');
-        this.uploadedFile = null;
+        this.uploadedFile = null; 
         this.parsedData = [];
         this.duplicateCount = 0;
         this.analysisType = 'light';
