@@ -29,24 +29,27 @@ async function handleConfig(request) {
     const url = new URL(request.url);
     const hostname = url.hostname;
     
-    // Environment detection
-    const isProduction = hostname === 'oslira.com';
-    const isStaging = hostname === 'oslira.org' || hostname.includes('osliratest');
-    
-    // Worker URL based on environment
-    const workerUrl = isProduction ? 
-      'https://api.oslira.com' : 
-      'https://api-staging.oslira.com';
+// Detect environment from hostname
+const isProduction = hostname.includes('oslira.com');
+const isStaging = hostname.includes('oslira.org');
+
+// Hardcoded worker URLs (no env vars needed)
+const workerUrl = isProduction ? 
+  'https://api.oslira.com' : 
+  'https://api.oslira.org';
+
+console.log('🔧 [Netlify Edge] Environment:', { hostname, isProduction, isStaging, workerUrl });
     
     console.log('🔧 [Netlify Edge] Fetching config from Cloudflare Worker:', workerUrl);
     
-    // Fetch configuration from your Cloudflare Worker (which has AWS access)
-    const configResponse = await fetch(`${workerUrl}/api/public-config`, {
-      headers: {
-        'User-Agent': 'Netlify-Edge-Function',
-        'Accept': 'application/json'
-      }
-    });
+// Fetch ALL config from worker (which has AWS access)
+const configResponse = await fetch(`${workerUrl}/config/public`, {
+  method: 'GET',
+  headers: {
+    'User-Agent': 'Netlify-Edge-Function',
+    'Accept': 'application/json'
+  }
+});
     
     if (!configResponse.ok) {
       throw new Error(`Worker responded with ${configResponse.status}`);
@@ -66,14 +69,12 @@ async function handleConfig(request) {
     
   } catch (error) {
     console.error('❌ [Netlify Edge] Failed to fetch config from Worker:', error);
-    
-    // Fallback configuration
-    const fallbackConfig = {
-      supabaseUrl: 'https://jswzzihuqtjqvobfosks.supabase.co',
-      supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzd3p6aWh1cXRqcXZvYmZvc2tzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5NzQ3NjcsImV4cCI6MjA1MDU1MDc2N30.Z7EQBfC8N4QQjl8uIi-cGLM4-MJb4LrUa1Dz6kqBWPU',
-      workerUrl,
-      fallback: true
-    };
+// Minimal fallback (should never be used in production)
+const fallbackConfig = {
+  error: 'Worker unavailable',
+  workerUrl,
+  fallback: true
+};
     
     return new Response(JSON.stringify(fallbackConfig), {
       headers: {
