@@ -186,7 +186,7 @@ eventBus.on(window.DASHBOARD_EVENTS.ANALYSIS_COMPLETED, async (data) => {
                 });
                 
                 // Redirect to auth
-                window.location.href = '/auth';
+                window.location.href = window.OsliraEnv.getAuthUrl();
             }
         });
     }
