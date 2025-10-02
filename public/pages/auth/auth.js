@@ -89,11 +89,11 @@ if (window.OsliraAuth) {
         }
     }
 
-    showOptionsStep() {
-        document.getElementById('auth-options').style.display = 'block';
-        document.getElementById('auth-title').textContent = 'Start your free trial';
-        document.getElementById('auth-subtitle').textContent = 'Get 5 free lead analyses, then upgrade for unlimited access';
-    }
+showOptionsStep() {
+    document.getElementById('auth-options').style.display = 'block';
+    document.getElementById('auth-title').textContent = 'Start your free trial';
+    document.getElementById('auth-subtitle').textContent = 'Get 25 free lead analyses, then upgrade for unlimited access';
+}
 
     showEmailStep() {
         document.getElementById('email-input-step').style.display = 'block';
