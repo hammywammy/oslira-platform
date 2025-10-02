@@ -76,7 +76,7 @@ this.analysisStages = {
         container.className = 'enhanced-analysis-queue';
         container.style.cssText = `
             position: fixed;
-            top: 200px;
+            top: 140px;
             right: 24px;
             z-index: 40;
             width: 380px;
