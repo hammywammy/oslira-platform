@@ -42,10 +42,7 @@ class BulkModal {
                         </svg>
                     </button>
                 </div>
-                <p class="text-gray-600">Upload a CSV with Instagram usernames to analyze multiple leads</p>
-                <div class="mt-3 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p class="text-sm text-blue-800 font-medium">Maximum 50 leads per analysis</p>
-                </div>
+<p class="text-gray-600">Upload a CSV with Instagram usernames to analyze multiple leads</p>
             </div>
 
             <!-- Content -->
@@ -78,31 +75,62 @@ class BulkModal {
                             </div>
                         </div>
                         
-                        <!-- Upload Area -->
-                        <div class="flex-1">
-                            <div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-orange-300 hover:bg-orange-50/30 transition-all cursor-pointer">
-                                <input type="file" id="csvFile" accept=".csv" onchange="handleFileUpload(event)" class="hidden">
-                                <div onclick="document.getElementById('csvFile').click()">
-                                    <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                                    </svg>
-                                    <div class="text-sm font-medium text-gray-700">Drop CSV here</div>
-                                    <div class="text-xs text-gray-500 mt-1">or click to browse</div>
-                                </div>
-                            </div>
-                            
-                            <!-- File Preview -->
-                            <div id="file-preview" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
-                                <div class="flex items-center space-x-2">
-                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    <span id="file-name" class="text-sm font-medium text-green-800"></span>
-                                </div>
-                                <div id="leads-count" class="text-xs text-green-600 mt-1"></div>
-                                <div id="duplicate-info" class="text-xs text-yellow-600 mt-1 hidden"></div>
-                            </div>
-                        </div>
+<!-- Upload Area -->
+<div class="flex-1">
+    <div id="drop-zone" class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-orange-300 hover:bg-orange-50/30 transition-all cursor-pointer">
+        <input type="file" id="csvFile" accept=".csv" onchange="handleFileUpload(event)" class="hidden">
+        <div id="drop-placeholder" onclick="document.getElementById('csvFile').click()">
+            <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            <div class="text-sm font-medium text-gray-700">Drop CSV here</div>
+            <div class="text-xs text-gray-500 mt-1">or click to browse</div>
+        </div>
+        
+        <!-- File Display - Initially Hidden -->
+        <div id="file-display" class="hidden">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    <span id="file-name-display" class="text-sm font-medium text-gray-800"></span>
+                </div>
+                <button onclick="removeUploadedFile(event)" class="p-1 hover:bg-gray-100 rounded-full transition-colors" title="Remove file">
+                    <svg class="w-4 h-4 text-gray-500 hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="file-stats" class="text-xs text-gray-600 mt-1"></div>
+        </div>
+    </div>
+    
+    <!-- Validation Feedback Bars -->
+    <div id="validation-success" class="hidden mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
+        <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+                <div id="success-message" class="text-sm font-medium text-green-800"></div>
+                <div id="success-details" class="text-xs text-green-600 mt-1"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="validation-error" class="hidden mt-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+        <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+                <div id="error-message-text" class="text-sm font-medium text-red-800"></div>
+                <div id="error-details" class="text-xs text-red-600 mt-1"></div>
+            </div>
+        </div>
+    </div>
+</div>
                     </div>
                 </div>
 
@@ -137,14 +165,17 @@ class BulkModal {
                     </div>
                 </div>
 
-                <!-- Platform -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-900 mb-3">Platform</label>
-                    <select id="bulkPlatform" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white">
-                        <option value="instagram">📸 Instagram</option>
-                    </select>
-                </div>
-
+<!-- Platform -->
+<div>
+    <label class="block text-sm font-medium text-gray-900 mb-3">Platform</label>
+    <div class="relative flex items-center px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 cursor-not-allowed">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" 
+             alt="Instagram" 
+             class="w-6 h-6 mr-3 rounded">
+        <span class="text-gray-900 font-medium">Instagram</span>
+        <span class="ml-auto text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">Default</span>
+    </div>
+</div>
                 <!-- Credit Calculation -->
                 <div id="credit-calculation" class="hidden">
                     <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
@@ -247,6 +278,14 @@ class BulkModal {
             event.preventDefault();
             self.processBulkAnalysis();
         };
+
+        // File removal handler
+window.removeUploadedFile = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    self.resetFileInput();
+    self.hideValidationBars();
+};
     }
 
     isValidUsername(username) {
@@ -275,77 +314,138 @@ class BulkModal {
         return true;
     }
 
-    parseCSVFile(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                this.hideError();
-                
-                const csv = e.target.result;
-                const lines = csv.split('\n')
-                    .map(line => line.trim())
-                    .filter(line => line.length > 0);
-                
-                // Validate CSV format - should be simple list, no commas in valid usernames
-                const invalidLines = lines.filter(line => {
-                    // Check if line contains comma (indicates multiple columns)
-                    if (line.includes(',')) {
-                        return true;
-                    }
-                    // Check if line contains tab or semicolon
-                    if (line.includes('\t') || line.includes(';')) {
-                        return true;
-                    }
-                    return false;
-                });
-                
-                if (invalidLines.length > 0) {
-                    this.showError('Invalid CSV format. File should contain only usernames, one per line, no columns or separators.');
-                    return;
-                }
-                
-                // Clean and validate usernames
-                const usernames = lines.map(line => {
-                    const cleaned = line.replace(/^@/, '').trim();
-                    return cleaned;
-                });
-                
-                // Check for invalid usernames
-                const invalidUsernames = usernames.filter(username => !this.isValidUsername(username));
-                if (invalidUsernames.length > 0) {
-                    this.showError(`Invalid usernames detected: ${invalidUsernames.slice(0, 3).join(', ')}${invalidUsernames.length > 3 ? '...' : ''}. Only alphanumeric characters, periods, and underscores allowed.`);
-                    return;
-                }
-                
-                // Check for too many leads
-                if (usernames.length > 50) {
-                    this.showError(`Too many leads! Maximum 50 allowed, you uploaded ${usernames.length}. Please reduce your list.`);
-                    return;
-                }
-                
-                // Remove duplicates and count them
-                const uniqueUsernames = [...new Set(usernames.map(u => u.toLowerCase()))];
-                this.duplicateCount = usernames.length - uniqueUsernames.length;
-                this.parsedData = uniqueUsernames;
-                
-                this.displayFilePreview(file.name, uniqueUsernames.length);
-                this.updateCostDisplay();
-                
-                const submitBtn = document.getElementById('bulk-submit-btn');
-                if (uniqueUsernames.length > 0) {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = `Analyze ${uniqueUsernames.length} Profiles`;
-                } else {
-                    this.showError('No valid usernames found in the file.');
-                }
-                
-            } catch (error) {
-                this.showError('Failed to parse CSV file. Please check the file format.');
-                console.error('CSV parsing error:', error);
+parseCSVFile(file) {
+    // Reset validation UI
+    this.hideValidationBars();
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const csv = e.target.result;
+            const lines = csv.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+            
+            // Validate CSV format
+            const invalidLines = lines.filter(line => {
+                return line.includes(',') || line.includes('\t') || line.includes(';');
+            });
+            
+            if (invalidLines.length > 0) {
+                this.showValidationError(
+                    'Invalid CSV format',
+                    'File should contain only usernames, one per line, no columns or separators.'
+                );
+                this.resetFileInput();
+                return;
             }
-        };
-        reader.readAsText(file);
+            
+            // Clean and validate usernames
+            const usernames = lines.map(line => line.replace(/^@/, '').trim());
+            
+            const invalidUsernames = usernames.filter(username => !this.isValidUsername(username));
+            if (invalidUsernames.length > 0) {
+                this.showValidationError(
+                    'Invalid usernames detected',
+                    `${invalidUsernames.slice(0, 3).join(', ')}${invalidUsernames.length > 3 ? '...' : ''}. Only alphanumeric characters, periods, and underscores allowed.`
+                );
+                this.resetFileInput();
+                return;
+            }
+            
+            // Check for too many leads
+            if (usernames.length > 50) {
+                this.showValidationError(
+                    'Too many leads!',
+                    `Maximum 50 allowed, you uploaded ${usernames.length}. Please reduce your list.`
+                );
+                this.resetFileInput();
+                return;
+            }
+            
+            // Remove duplicates
+            const uniqueUsernames = [...new Set(usernames)];
+            this.duplicateCount = usernames.length - uniqueUsernames.length;
+            
+            // Store validated data
+            this.parsedData = uniqueUsernames;
+            this.uploadedFile = file;
+            
+            // Update UI with success
+            this.displayUploadedFile(file.name, uniqueUsernames.length);
+            this.showValidationSuccess(uniqueUsernames.length);
+            this.updateCostDisplay();
+            
+        } catch (error) {
+            console.error('❌ [BulkModal] CSV parsing failed:', error);
+            this.showValidationError('File processing failed', error.message);
+            this.resetFileInput();
+        }
+    };
+    reader.readAsText(file);
+}
+
+displayUploadedFile(filename, count) {
+    const dropPlaceholder = document.getElementById('drop-placeholder');
+    const fileDisplay = document.getElementById('file-display');
+    const fileNameDisplay = document.getElementById('file-name-display');
+    const fileStats = document.getElementById('file-stats');
+    
+    if (dropPlaceholder) dropPlaceholder.classList.add('hidden');
+    if (fileDisplay) fileDisplay.classList.remove('hidden');
+    if (fileNameDisplay) fileNameDisplay.textContent = filename;
+    if (fileStats) {
+        fileStats.textContent = `${count} unique username${count !== 1 ? 's' : ''} found`;
+        if (this.duplicateCount > 0) {
+            fileStats.textContent += ` (${this.duplicateCount} duplicate${this.duplicateCount !== 1 ? 's' : ''} removed)`;
+        }
     }
+}
+
+showValidationSuccess(count) {
+    const successBar = document.getElementById('validation-success');
+    const successMessage = document.getElementById('success-message');
+    const successDetails = document.getElementById('success-details');
+    
+    if (successBar) successBar.classList.remove('hidden');
+    if (successMessage) successMessage.textContent = `${count} valid username${count !== 1 ? 's' : ''} found`;
+    if (successDetails) successDetails.textContent = 'File validated successfully';
+}
+
+showValidationError(title, details) {
+    const errorBar = document.getElementById('validation-error');
+    const errorMessage = document.getElementById('error-message-text');
+    const errorDetails = document.getElementById('error-details');
+    
+    if (errorBar) errorBar.classList.remove('hidden');
+    if (errorMessage) errorMessage.textContent = title;
+    if (errorDetails) errorDetails.textContent = details;
+}
+
+hideValidationBars() {
+    const successBar = document.getElementById('validation-success');
+    const errorBar = document.getElementById('validation-error');
+    
+    if (successBar) successBar.classList.add('hidden');
+    if (errorBar) errorBar.classList.add('hidden');
+}
+
+resetFileInput() {
+    const csvFileEl = document.getElementById('csvFile');
+    if (csvFileEl) csvFileEl.value = '';
+    
+    this.uploadedFile = null;
+    this.parsedData = [];
+    this.duplicateCount = 0;
+    
+    const dropPlaceholder = document.getElementById('drop-placeholder');
+    const fileDisplay = document.getElementById('file-display');
+    
+    if (dropPlaceholder) dropPlaceholder.classList.remove('hidden');
+    if (fileDisplay) fileDisplay.classList.add('hidden');
+    
+    this.updateCostDisplay();
+}
 
     showError(message) {
         const errorEl = document.getElementById('error-message');
@@ -477,63 +577,55 @@ class BulkModal {
         }
     }
 
-    resetModal() {
-        this.uploadedFile = null;
-        this.parsedData = [];
-        this.duplicateCount = 0;
-        
-        // Reset file input
-        const csvFileEl = document.getElementById('csvFile');
-        if (csvFileEl) csvFileEl.value = '';
-        
-        // Reset UI elements
-        const filePreviewEl = document.getElementById('file-preview');
-        const calculationEl = document.getElementById('credit-calculation');
-        const submitBtnEl = document.getElementById('bulk-submit-btn');
-        const csvExampleEl = document.getElementById('csv-example');
-        const csvLabelEl = document.getElementById('csv-label');
-        const duplicateInfoEl = document.getElementById('duplicate-info');
-        
-        if (filePreviewEl) filePreviewEl.classList.add('hidden');
-        if (calculationEl) calculationEl.classList.add('hidden');
-        if (duplicateInfoEl) duplicateInfoEl.classList.add('hidden');
-        
-        if (submitBtnEl) {
-            submitBtnEl.disabled = true;
-            submitBtnEl.textContent = 'Upload File First';
-            submitBtnEl.classList.remove('bg-gray-400');
-            submitBtnEl.classList.add('bg-gradient-to-r', 'from-orange-500', 'to-red-600');
-        }
-        
-        // Reset example CSV
-        if (csvExampleEl) {
-            csvExampleEl.innerHTML = '<div>nasa</div><div>instagram</div><div>hormozi</div>';
-        }
-        if (csvLabelEl) {
-            csvLabelEl.textContent = 'Example CSV format:';
-        }
-        
-        // Hide any errors
-        this.hideError();
-        
-        // Reset analysis type selection
-        const lightRadio = document.querySelector('input[name="bulkAnalysisType"][value="light"]');
-        if (lightRadio) {
-            lightRadio.checked = true;
-            this.analysisType = 'light';
-        }
-        
-        // Reset visual selection
-        document.querySelectorAll('.analysis-option').forEach(option => {
-            option.classList.remove('border-orange-200', 'bg-orange-50', 'border-purple-200', 'bg-purple-50', 'border-blue-200', 'bg-blue-50');
-            option.classList.add('border-gray-200');
-        });
-        
-        const lightOption = document.querySelector('input[name="bulkAnalysisType"][value="light"]')?.closest('label').querySelector('.analysis-option');
-        if (lightOption) {
-            lightOption.classList.add('border-orange-200', 'bg-orange-50');
-        }
+  resetModal() {
+    this.uploadedFile = null;
+    this.parsedData = [];
+    this.duplicateCount = 0;
+    
+    // Reset file input
+    const csvFileEl = document.getElementById('csvFile');
+    if (csvFileEl) csvFileEl.value = '';
+    
+    // Reset file display
+    const dropPlaceholder = document.getElementById('drop-placeholder');
+    const fileDisplay = document.getElementById('file-display');
+    if (dropPlaceholder) dropPlaceholder.classList.remove('hidden');
+    if (fileDisplay) fileDisplay.classList.add('hidden');
+    
+    // Hide validation bars
+    this.hideValidationBars();
+    
+    // Reset cost calculation display
+    const calculationEl = document.getElementById('credit-calculation');
+    if (calculationEl) calculationEl.classList.add('hidden');
+    
+    // Reset submit button
+    const submitBtnEl = document.getElementById('bulk-submit-btn');
+    if (submitBtnEl) {
+        submitBtnEl.disabled = true;
+        submitBtnEl.textContent = 'Upload File First';
+        submitBtnEl.classList.remove('bg-gray-400');
+        submitBtnEl.classList.add('bg-gradient-to-r', 'from-orange-500', 'to-red-600');
     }
+    
+    // Reset analysis type selection
+    const lightRadio = document.querySelector('input[name="bulkAnalysisType"][value="light"]');
+    if (lightRadio) {
+        lightRadio.checked = true;
+        this.analysisType = 'light';
+    }
+    
+    // Reset visual selection for analysis types
+    document.querySelectorAll('.analysis-option').forEach(option => {
+        option.classList.remove('border-orange-200', 'bg-orange-50', 'border-purple-200', 'bg-purple-50', 'border-blue-200', 'bg-blue-50');
+        option.classList.add('border-gray-200');
+    });
+    
+    const lightOption = document.querySelector('input[name="bulkAnalysisType"][value="light"]')?.closest('label').querySelector('.analysis-option');
+    if (lightOption) {
+        lightOption.classList.add('border-orange-200', 'bg-orange-50');
+    }
+}
 }
 
 if (typeof module !== 'undefined' && module.exports) {
