@@ -194,13 +194,15 @@ async handleSessionChange(session) {
             // User doesn't exist, create them
             console.log('🔧 [Auth] Creating user record for authenticated user...');
             
-            const userData = {
-                id: this.user.id,
-                email: this.user.email,
-                full_name: this.user.user_metadata?.full_name || this.user.user_metadata?.name,
-                created_via: this.user.app_metadata?.provider || 'email',
-                onboarding_completed: false
-            };
+const userData = {
+    id: this.user.id,
+    email: this.user.email,
+    full_name: this.user.user_metadata?.full_name || this.user.user_metadata?.name,
+    created_via: this.user.app_metadata?.provider || 'email',
+    onboarding_completed: false,
+    credits: 25,  // ADD THIS LINE - initial 25 free credits
+    subscription_plan: 'free'  // ADD THIS LINE
+};
             
             const { error: createError } = await this.supabase
                 .from('users')
