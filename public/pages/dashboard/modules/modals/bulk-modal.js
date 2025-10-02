@@ -77,56 +77,54 @@ class BulkModal {
                         
 <!-- Upload Area -->
 <div class="flex-1">
-    <div id="drop-zone" class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-orange-300 hover:bg-orange-50/30 transition-all cursor-pointer">
-        <input type="file" id="csvFile" accept=".csv" onchange="handleFileUpload(event)" class="hidden">
-        <div id="drop-placeholder" onclick="document.getElementById('csvFile').click()">
-            <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-            </svg>
-            <div class="text-sm font-medium text-gray-700">Drop CSV here</div>
-            <div class="text-xs text-gray-500 mt-1">or click to browse</div>
-        </div>
-        
-        <!-- File Display - Initially Hidden -->
-        <div id="file-display" class="hidden">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                    </svg>
-                    <span id="file-name-display" class="text-sm font-medium text-gray-800"></span>
-                </div>
-                <button onclick="removeUploadedFile(event)" class="p-1 hover:bg-gray-100 rounded-full transition-colors" title="Remove file">
-                    <svg class="w-4 h-4 text-gray-500 hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-            <div id="file-stats" class="text-xs text-gray-600 mt-1"></div>
-        </div>
+    <input type="file" id="csvFile" accept=".csv" onchange="handleFileUpload(event)" class="hidden">
+    
+    <!-- Drop Zone - Shown when no file -->
+    <div id="drop-zone" class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-orange-300 hover:bg-orange-50/30 transition-all cursor-pointer" onclick="document.getElementById('csvFile').click()">
+        <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+        </svg>
+        <div class="text-sm font-medium text-gray-700">Drop CSV here</div>
+        <div class="text-xs text-gray-500 mt-1">or click to browse</div>
     </div>
     
-    <!-- Validation Feedback Bars -->
+    <!-- File Display - Shown after upload -->
+    <div id="file-display" class="hidden border-2 border-gray-200 rounded-xl p-4 bg-gray-50">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                <span id="file-name-display" class="text-sm font-medium text-gray-800"></span>
+            </div>
+            <button onclick="removeUploadedFile(event)" class="p-1 hover:bg-gray-100 rounded-full transition-colors" title="Remove file">
+                <svg class="w-4 h-4 text-gray-500 hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div id="file-stats" class="text-xs text-gray-600 mt-1"></div>
+    </div>
+    
+    <!-- Validation Success Bar -->
     <div id="validation-success" class="hidden mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
         <div class="flex items-center space-x-2">
-            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <div>
-                <div id="success-message" class="text-sm font-medium text-green-800"></div>
-                <div id="success-details" class="text-xs text-green-600 mt-1"></div>
-            </div>
+            <span id="success-message" class="text-sm font-medium text-green-800"></span>
         </div>
     </div>
     
+    <!-- Validation Error Bar -->
     <div id="validation-error" class="hidden mt-3 p-3 bg-red-50 border border-red-200 rounded-xl">
-        <div class="flex items-center space-x-2">
-            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex items-start space-x-2">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <div>
+            <div class="flex-1">
                 <div id="error-message-text" class="text-sm font-medium text-red-800"></div>
-                <div id="error-details" class="text-xs text-red-600 mt-1"></div>
+                <div id="error-details" class="text-xs text-red-600 mt-0.5"></div>
             </div>
         </div>
     </div>
@@ -405,11 +403,9 @@ displayUploadedFile(filename, count) {
 showValidationSuccess(count) {
     const successBar = document.getElementById('validation-success');
     const successMessage = document.getElementById('success-message');
-    const successDetails = document.getElementById('success-details');
     
     if (successBar) successBar.classList.remove('hidden');
     if (successMessage) successMessage.textContent = `${count} valid username${count !== 1 ? 's' : ''} found`;
-    if (successDetails) successDetails.textContent = 'File validated successfully';
 }
 
 showValidationError(title, details) {
