@@ -340,7 +340,7 @@ async handleSignin(password) {
     
     this.showLoading('Welcome back! Redirecting...');
     setTimeout(() => {
-        window.location.href = '/dashboard';
+        window.location.href = window.OsliraEnv.getAppUrl('/dashboard');
     }, 1000);
 }
     
@@ -387,7 +387,7 @@ if (user) {
         
         this.showLoading('Password set! Redirecting to onboarding...');
         setTimeout(() => {
-            window.location.href = '/onboarding';
+            window.location.href = window.OsliraEnv.getAppUrl('/onboarding');
         }, 1000);
         
     } catch (error) {
