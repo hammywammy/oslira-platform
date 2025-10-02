@@ -37,8 +37,8 @@ https://app.oslira.org/*                   /pages/dashboard/:splat          200
 # =============================================================================
 https://auth.oslira.com/                   /pages/auth/index.html           200
 https://auth.oslira.org/                   /pages/auth/index.html           200
-https://auth.oslira.com/callback           /pages/auth/callback.html        200
-https://auth.oslira.org/callback           /pages/auth/callback.html        200
+https://auth.oslira.com/auth/callback      /pages/auth/callback.html        200
+https://auth.oslira.org/auth/callback      /pages/auth/callback.html        200
 https://auth.oslira.com/*                  /pages/auth/:splat               200
 https://auth.oslira.org/*                  /pages/auth/:splat               200
 
