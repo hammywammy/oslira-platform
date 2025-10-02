@@ -474,7 +474,7 @@ async loadUserBusinesses() {
         
         if (!this.isAuthenticated()) {
             console.log('🚫 [Auth] Authentication required, redirecting...');
-            window.location.href = '/auth';
+            window.location.href = window.OsliraEnv.getAuthUrl();
             return false;
         }
         
@@ -487,7 +487,7 @@ async loadUserBusinesses() {
         const needsOnboarding = await this.checkOnboardingStatus();
         if (needsOnboarding) {
             console.log('📝 [Auth] Onboarding required, redirecting...');
-            window.location.href = '/onboarding';
+            window.location.href = window.OsliraEnv.getAppUrl('/onboarding');
             return false;
         }
         
