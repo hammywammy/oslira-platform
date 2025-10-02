@@ -65,11 +65,15 @@ openModal(modalId, data = {}) {
     // Close other modals first
     this.closeAllModals();
     
-    // Remove hidden class from modal only
+    // Remove hidden class from modal
     modal.classList.remove('hidden');
     modal.style.display = 'flex';
     
-    // DO NOT remove hidden from children - let components control their own visibility
+    // Show first-level modal wrapper only (not validation/error elements)
+    const modalWrapper = modal.querySelector('.fixed.inset-0');
+    if (modalWrapper) {
+        modalWrapper.classList.remove('hidden');
+    }
     
     this.activeModals.add(modalId);
         
