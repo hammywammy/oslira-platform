@@ -386,10 +386,14 @@ async loadUserBusinesses() {
                 // Check if user needs onboarding
                 const needsOnboarding = await this.checkOnboardingStatus();
                 
-                return {
-                    session: data.session,
-                    redirectTo: needsOnboarding ? '/onboarding' : '/dashboard'
-                };
+// Build redirect URL using app subdomain
+const rootDomain = window.location.hostname.replace(/^(auth|app|admin|legal|contact|status|www)\./, '');
+const appUrl = window.OsliraEnv.getAppUrl(needsOnboarding ? '/onboarding' : '/dashboard');
+
+return {
+    session: data.session,
+    redirectTo: appUrl
+};
             } else {
                 throw new Error('No session found in callback');
             }
