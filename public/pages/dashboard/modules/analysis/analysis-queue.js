@@ -78,7 +78,7 @@ this.analysisStages = {
             position: fixed;
             top: 120px;
             right: 24px;
-            z-index: 9999;
+            z-index: 40;
             width: 380px;
             max-height: 600px;
             display: none;
