@@ -71,31 +71,34 @@ async initializeApp() {
         throw new Error('OsliraAuth not available');
     }
 
-    // CRITICAL: Restore transferred session BEFORE auth initialization
-    const transferredAuth = sessionStorage.getItem('oslira_auth_transfer');
-    if (transferredAuth) {
-        console.log('🔐 [Dashboard] Found transferred session, restoring...');
-        try {
-            const tokens = JSON.parse(transferredAuth);
-            sessionStorage.removeItem('oslira_auth_transfer');
-            
-            // Restore session in Supabase BEFORE auth-manager loads session
-            const { error } = await window.OsliraAuth.supabase.auth.setSession({
-                access_token: tokens.access_token,
-                refresh_token: tokens.refresh_token
-            });
-            
-            if (error) {
-                console.error('❌ [Dashboard] Failed to restore session:', error);
-            } else {
-                console.log('✅ [Dashboard] Session restored, waiting for propagation...');
-                await new Promise(resolve => setTimeout(resolve, 300));
-            }
-        } catch (error) {
-            console.error('❌ [Dashboard] Session transfer failed:', error);
-        }
-    }
+// CRITICAL: Check URL hash for auth tokens
+const hashParams = new URLSearchParams(window.location.hash.substring(1));
+const authToken = hashParams.get('auth');
 
+if (authToken) {
+    console.log('🔐 [Dashboard] Found auth token in URL, restoring session...');
+    try {
+        const tokens = JSON.parse(atob(authToken));
+        
+        // Clear hash from URL
+        history.replaceState(null, '', window.location.pathname);
+        
+        // Restore session in Supabase
+        const { error } = await window.OsliraAuth.supabase.auth.setSession({
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token
+        });
+        
+        if (error) {
+            console.error('❌ [Dashboard] Failed to restore session:', error);
+        } else {
+            console.log('✅ [Dashboard] Session restored from URL');
+            await new Promise(resolve => setTimeout(resolve, 300));
+        }
+    } catch (error) {
+        console.error('❌ [Dashboard] Session transfer failed:', error);
+    }
+}
     // NOW initialize auth (will pick up restored session)
     await window.OsliraAuth.initialize();
 
