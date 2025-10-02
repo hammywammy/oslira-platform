@@ -54,52 +54,6 @@ closeModal(modalId) {
             console.log(`❌ [ModalManager] Modal closed: ${modalId}`);
         }
     }
-
-    blurBackground() {
-    // Blur main content
-    const mainContent = document.querySelector('.main-content');
-    if (mainContent) {
-        mainContent.style.filter = 'blur(4px)';
-        mainContent.style.pointerEvents = 'none';
-    }
-    
-    // Blur sidebar
-    const sidebar = document.querySelector('#sidebar-container');
-    if (sidebar) {
-        sidebar.style.filter = 'blur(4px)';
-        sidebar.style.pointerEvents = 'none';
-    }
-    
-    // Blur analysis queue
-    const queue = document.querySelector('.analysis-queue, #analysis-queue');
-    if (queue) {
-        queue.style.filter = 'blur(4px)';
-        queue.style.pointerEvents = 'none';
-    }
-}
-
-unblurBackground() {
-    // Restore main content
-    const mainContent = document.querySelector('.main-content');
-    if (mainContent) {
-        mainContent.style.filter = '';
-        mainContent.style.pointerEvents = '';
-    }
-    
-    // Restore sidebar
-    const sidebar = document.querySelector('#sidebar-container');
-    if (sidebar) {
-        sidebar.style.filter = '';
-        sidebar.style.pointerEvents = '';
-    }
-    
-    // Restore analysis queue
-    const queue = document.querySelector('.analysis-queue, #analysis-queue');
-    if (queue) {
-        queue.style.filter = '';
-        queue.style.pointerEvents = '';
-    }
-}
     
 openModal(modalId, data = {}) {
     const modal = document.getElementById(modalId);
@@ -110,9 +64,6 @@ openModal(modalId, data = {}) {
     
     // Close other modals first
     this.closeAllModals();
-    
-    // Blur/hide background content
-    this.blurBackground();
     
     // Remove hidden class from modal
     modal.classList.remove('hidden');
