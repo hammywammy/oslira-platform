@@ -598,7 +598,7 @@ resetFileInput() {
         }
     }
 
-  resetModal() {
+resetModal() {
     this.uploadedFile = null;
     this.parsedData = [];
     this.duplicateCount = 0;
@@ -613,7 +613,10 @@ resetFileInput() {
     if (dropPlaceholder) dropPlaceholder.classList.remove('hidden');
     if (fileDisplay) fileDisplay.classList.add('hidden');
     
-    // Hide validation bars
+    // Hide ALL error/validation elements
+    const errorMessage = document.getElementById('error-message');
+    if (errorMessage) errorMessage.classList.add('hidden');
+    
     this.hideValidationBars();
     
     // Reset cost calculation display
