@@ -70,7 +70,7 @@ class HeaderManager {
                         <a href="#benefits" class="home-nav-link">Benefits</a>
                         <a href="#how-it-works" class="home-nav-link">How it Works</a>
                         <a href="#social-proof" class="home-nav-link">Success Stories</a>
-                        <a href="${this.currentConfig.loginUrl}" class="home-nav-link login-btn">Login</a>
+                        <a href="${window.OsliraEnv.getAuthUrl()}" class="home-nav-link login-btn">Login</a>
                     </div>
                     
                     <!-- Mobile Menu Button -->
@@ -87,7 +87,7 @@ class HeaderManager {
                         <a href="#benefits" class="block text-gray-600 hover:text-blue-600 py-2">Benefits</a>
                         <a href="#how-it-works" class="block text-gray-600 hover:text-blue-600 py-2">How it Works</a>
                         <a href="#social-proof" class="block text-gray-600 hover:text-blue-600 py-2">Success Stories</a>
-                        <a href="${this.currentConfig.loginUrl}" class="block text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-semibold py-3 px-4 rounded-lg text-center">Login</a>
+                        <a href="${window.OsliraEnv.getAuthUrl()}" class="block text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-semibold py-3 px-4 rounded-lg text-center">Login</a>
                     </div>
                 </div>
             </nav>
@@ -99,17 +99,17 @@ class HeaderManager {
             <!-- Footer Pages Header -->
             <nav class="home-nav sticky-nav">
                 <div class="home-nav-container">
-                    <a href="${this.currentConfig.homeUrl}" class="home-logo">
+                    <a href="${window.OsliraEnv.getMarketingUrl()}" class="home-logo">
                         <img src="${this.currentConfig.logoUrl}" alt="Oslira Logo" class="home-logo-image">
                         <span>${this.currentConfig.companyName}</span>
                     </a>
                     
                     <div class="home-nav-menu">
-                        <a href="/footer/about" class="home-nav-link">About</a>
-                        <a href="/footer/pricing" class="home-nav-link">Pricing</a>
-                        <a href="/footer/security" class="home-nav-link">Security</a>
-                        <a href="/footer/help" class="home-nav-link">Help</a>
-                        <a href="${this.currentConfig.loginUrl}" class="home-nav-link login-btn">Login</a>
+                        <a href="${window.OsliraEnv.getMarketingUrl('/about')}" class="home-nav-link">About</a>
+                        <a href="${window.OsliraEnv.getMarketingUrl('/pricing')}" class="home-nav-link">Pricing</a>
+                        <a href="${window.OsliraEnv.getMarketingUrl('/security')}" class="home-nav-link">Security</a>
+                        <a href="${window.OsliraEnv.getMarketingUrl('/help')}" class="home-nav-link">Help</a>
+                        <a href="${window.OsliraEnv.getAuthUrl()}" class="home-nav-link login-btn">Login</a>
                     </div>
                     
                     <!-- Mobile Menu Button -->
@@ -123,11 +123,11 @@ class HeaderManager {
                 <!-- Mobile Menu -->
                 <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200">
                     <div class="px-6 py-4 space-y-3">
-                        <a href="/footer/about" class="block text-gray-600 hover:text-blue-600 py-2">About</a>
-                        <a href="/footer/pricing" class="block text-gray-600 hover:text-blue-600 py-2">Pricing</a>
-                        <a href="/footer/security" class="block text-gray-600 hover:text-blue-600 py-2">Security</a>
-                        <a href="/footer/help" class="block text-gray-600 hover:text-blue-600 py-2">Help</a>
-                        <a href="${this.currentConfig.loginUrl}" class="block text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-semibold py-3 px-4 rounded-lg text-center">Login</a>
+                        <a href="${window.OsliraEnv.getMarketingUrl('/about')}" class="block text-gray-600 hover:text-blue-600 py-2">About</a>
+                        <a href="${window.OsliraEnv.getMarketingUrl('/pricing')}" class="block text-gray-600 hover:text-blue-600 py-2">Pricing</a>
+                        <a href="${window.OsliraEnv.getMarketingUrl('/security')}" class="block text-gray-600 hover:text-blue-600 py-2">Security</a>
+                        <a href="${window.OsliraEnv.getMarketingUrl('/help')}" class="block text-gray-600 hover:text-blue-600 py-2">Help</a>
+                        <a href="${window.OsliraEnv.getAuthUrl()}" class="block text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-semibold py-3 px-4 rounded-lg text-center">Login</a>
                     </div>
                 </div>
             </nav>
