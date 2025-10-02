@@ -582,18 +582,19 @@ resetFileInput() {
         }
     }
 
-    processBulkAnalysis() {
-        try {
-            const platform = document.getElementById('bulkPlatform').value;
-            const analysisType = document.querySelector('input[name="bulkAnalysisType"]:checked').value;
-            
-            console.log('Processing bulk analysis:', {
-                platform,
-                analysisType,
-                leads: this.parsedData.length,
-                usernames: this.parsedData,
-                duplicatesRemoved: this.duplicateCount
-            });
+processBulkAnalysis() {
+    try {
+        // Platform is hardcoded to Instagram - no bulkPlatform element exists
+        const platform = 'instagram';
+        const analysisType = document.querySelector('input[name="bulkAnalysisType"]:checked')?.value || this.analysisType || 'light';
+        
+        console.log('Processing bulk analysis:', {
+            platform,
+            analysisType,
+            leads: this.parsedData.length,
+            usernames: this.parsedData,
+            duplicatesRemoved: this.duplicateCount
+        });
 
             // TODO: Integrate with your existing analysis system
             // Example integration:
