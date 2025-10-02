@@ -604,7 +604,10 @@ function setupAuthStateMonitoring() {
         subscriptionState.supabase.auth.onAuthStateChange((event, session) => {
             console.log('🔐 [Subscription] Auth state change:', event);
             
-            if (event === 'SIGNED_OUT') {
+            // CRITICAL: Only redirect on explicit sign out, not transient state changes
+            if (event === 'SIGNED_OUT' && !session && subscriptionState.currentSession) {
+                // Only redirect if we HAD a session and now it's explicitly gone
+                console.log('🚪 [Subscription] User signed out, redirecting...');
                 window.location.href = window.OsliraEnv.getAuthUrl();
             } else if (event === 'SIGNED_IN' && session) {
                 subscriptionState.currentSession = session;
