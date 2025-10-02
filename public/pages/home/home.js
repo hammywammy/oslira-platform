@@ -479,7 +479,7 @@ function setupMobileStickyCA() {
   if (mobileBtn) {
     mobileBtn.addEventListener('click', () => {
       trackConversionEvent('mobile_cta_clicked');
-      window.location.href = '/auth';
+      window.location.href = window.OsliraEnv.getAuthUrl();
     });
   }
 }
