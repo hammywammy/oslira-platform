@@ -65,13 +65,11 @@ openModal(modalId, data = {}) {
     // Close other modals first
     this.closeAllModals();
     
-    // Remove hidden class from modal AND its children
+    // Remove hidden class from modal only
     modal.classList.remove('hidden');
     modal.style.display = 'flex';
     
-    // Remove hidden class from all child elements
-    const hiddenChildren = modal.querySelectorAll('.hidden');
-    hiddenChildren.forEach(child => child.classList.remove('hidden'));
+    // DO NOT remove hidden from children - let components control their own visibility
     
     this.activeModals.add(modalId);
         
