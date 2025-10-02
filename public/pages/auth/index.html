@@ -146,9 +146,9 @@
                 By continuing, you agree to our Terms of Service and Privacy Policy.
             </p>
             <div class="auth-links">
-<a href="#" id="terms-link" class="auth-link">Terms of Service</a>
-<a href="#" id="privacy-link" class="auth-link">Privacy Policy</a>
-<a href="#" id="contact-link" class="auth-link">Contact Center</a>
+<a href="#" data-legal-link="terms" class="auth-link">Terms of Service</a>
+<a href="#" data-legal-link="privacy" class="auth-link">Privacy Policy</a>
+<a href="#" data-legal-link="contact" class="auth-link">Contact Center</a>
             </div>
         </div>
     </div>
@@ -164,19 +164,33 @@
             return;
         }
         
+        console.log('🔗 [Auth] Setting legal links with root domain:', window.OsliraEnv.rootDomain);
+        
         document.querySelectorAll('[data-legal-link]').forEach(link => {
             const type = link.getAttribute('data-legal-link');
+            let targetUrl;
+            
             if (type === 'terms') {
-                link.href = window.OsliraEnv.getLegalUrl('/terms');
+                targetUrl = window.OsliraEnv.getLegalUrl('terms');
             } else if (type === 'privacy') {
-                link.href = window.OsliraEnv.getLegalUrl('/privacy');
+                targetUrl = window.OsliraEnv.getLegalUrl('privacy');
             } else if (type === 'contact') {
-                link.href = window.OsliraEnv.getContactUrl();
+                targetUrl = window.OsliraEnv.getContactUrl('');
+            }
+            
+            if (targetUrl) {
+                link.href = targetUrl;
+                console.log(`✅ [Auth] Set ${type} link to:`, targetUrl);
             }
         });
     }
     
-    setLegalLinks();
+    // Wait for env manager to initialize
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setLegalLinks);
+    } else {
+        setLegalLinks();
+    }
     
     console.log('🔐 [Auth] Simple auth page loaded');
 </script>
