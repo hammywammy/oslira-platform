@@ -230,38 +230,59 @@ if (this.isDevelopment) {
         return `https://status.${this.rootDomain}${cleanPath}`;
     }
     
-    detectCurrentPage() {
-        // Exact match first
-        if (this.pageMap[this.pathname]) {
-            return this.pageMap[this.pathname];
-        }
+  detectCurrentPage() {
+    // CRITICAL: Check subdomain FIRST before pathname
+    // This ensures subdomains like auth.oslira.org are detected correctly
+    
+    // Extract subdomain
+    const hostParts = this.hostname.split('.');
+    const isSubdomain = hostParts.length > 2;
+    const subdomain = isSubdomain ? hostParts[0] : null;
+    
+    // Subdomain-based detection (highest priority)
+    if (subdomain) {
+        // Remove 'staging-' prefix if present
+        const cleanSubdomain = subdomain.replace(/^staging-/, '');
+        
+        if (cleanSubdomain === 'auth') return 'auth';
+        if (cleanSubdomain === 'app') return 'dashboard';
+        if (cleanSubdomain === 'admin') return 'admin';
+        if (cleanSubdomain === 'legal') return 'privacy';
+        if (cleanSubdomain === 'contact') return 'contact-hub';
+        if (cleanSubdomain === 'status') return 'status';
+    }
+    
+    // Exact pathname match
+    if (this.pageMap[this.pathname]) {
+        return this.pageMap[this.pathname];
+    }
 
-        // Try without trailing slash
-        const pathWithoutSlash = this.pathname.replace(/\/$/, '');
-        if (this.pageMap[pathWithoutSlash]) {
-            return this.pageMap[pathWithoutSlash];
-        }
-        
-        // Pattern matching for dynamic paths
-        if (this.pathname.startsWith('/auth/callback')) {
-            return 'auth-callback';
-        }
-        
-        if (this.pathname.startsWith('/footer/legal/')) {
-            return 'privacy';
-        }
-        
-        if (this.pathname.startsWith('/footer/')) {
-            return 'about';
-        }
-        
-        // Root level detection
-        if (this.pathname === '/' || this.pathname === '' || this.pathname === '/index.html') {
-            return 'home';
-        }
-        
+    // Try without trailing slash
+    const pathWithoutSlash = this.pathname.replace(/\/$/, '');
+    if (this.pageMap[pathWithoutSlash]) {
+        return this.pageMap[pathWithoutSlash];
+    }
+    
+    // Pattern matching for dynamic paths
+    if (this.pathname.startsWith('/auth/callback')) {
+        return 'auth-callback';
+    }
+    
+    if (this.pathname.startsWith('/footer/legal/')) {
+        return 'privacy';
+    }
+    
+    if (this.pathname.startsWith('/footer/')) {
+        return 'about';
+    }
+    
+    // Root level detection (ONLY if no subdomain detected)
+    if (this.pathname === '/' || this.pathname === '' || this.pathname === '/index.html') {
         return 'home';
     }
+    
+    return 'home';
+}
     
     classifyPage(pageName) {
         for (const [classification, pages] of Object.entries(this.pageTypes)) {
