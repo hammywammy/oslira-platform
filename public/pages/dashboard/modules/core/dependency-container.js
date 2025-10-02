@@ -84,12 +84,22 @@ get(name) {
     // Check factories - create once and cache
     if (this.factories.has(name)) {
         const factoryInfo = this.factories.get(name);
-        if (!factoryInfo.instance) {
-            console.log(`🏗️ [DependencyContainer] Creating factory instance: ${name}`);
-            factoryInfo.instance = this.createFactoryInstance(name);
-            this.singletons.set(name, factoryInfo.instance); // Cache it!
+        
+        // If instance exists, return it
+        if (factoryInfo.instance) {
+            return factoryInfo.instance;
         }
-        return factoryInfo.instance;
+        
+        // Create new instance
+        console.log(`🏗️ [DependencyContainer] Creating factory instance: ${name}`);
+        const deps = factoryInfo.dependencies.map(depName => this.get(depName));
+        const instance = factoryInfo.factory(...deps);
+        
+        // Cache the instance
+        factoryInfo.instance = instance;
+        this.singletons.set(name, instance);
+        
+        return instance;
     }
     
     throw new Error(`Dependency '${name}' not found. Available: ${Array.from(this.dependencies.keys()).concat(Array.from(this.factories.keys())).join(', ')}`);
