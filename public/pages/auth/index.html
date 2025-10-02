@@ -153,27 +153,32 @@
         </div>
     </div>
 
-    <!-- Simple script to show page immediately -->
-    <script>
-        // Show content immediately
-        document.body.style.visibility = 'visible';
-        
-        // The existing auth.js will handle all functionality
-        // We just need to provide the DOM elements it expects
-        console.log('🔐 [Auth] Simple auth page loaded');
-    </script>
-    
-    <script>
+<script>
     // Show content immediately
     document.body.style.visibility = 'visible';
-    console.log('🔐 [Auth] Simple auth page loaded');
     
-    // Set dynamic links after OsliraEnv loads
-    window.addEventListener('oslira:config:loaded', () => {
-        document.getElementById('terms-link').href = window.OsliraEnv.getLegalUrl('/terms');
-        document.getElementById('privacy-link').href = window.OsliraEnv.getLegalUrl('/privacy');
-        document.getElementById('contact-link').href = window.OsliraEnv.getContactUrl();
-    });
+    // Set legal links dynamically after env loads
+    function setLegalLinks() {
+        if (!window.OsliraEnv || !window.OsliraEnv.rootDomain) {
+            setTimeout(setLegalLinks, 100);
+            return;
+        }
+        
+        document.querySelectorAll('[data-legal-link]').forEach(link => {
+            const type = link.getAttribute('data-legal-link');
+            if (type === 'terms') {
+                link.href = window.OsliraEnv.getLegalUrl('/terms');
+            } else if (type === 'privacy') {
+                link.href = window.OsliraEnv.getLegalUrl('/privacy');
+            } else if (type === 'contact') {
+                link.href = window.OsliraEnv.getContactUrl();
+            }
+        });
+    }
+    
+    setLegalLinks();
+    
+    console.log('🔐 [Auth] Simple auth page loaded');
 </script>
 </body>
 </html>
