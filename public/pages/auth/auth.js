@@ -361,18 +361,20 @@ const { data: { user } } = await window.OsliraAuth.supabase.auth.getUser();
 if (user) {
     console.log('💾 [Auth] Creating user record in custom users table (ONLY after password set)...');
     
-    const { error: insertError } = await window.OsliraAuth.supabase
-        .from('users')
-        .insert([{
-            id: user.id,
-            email: user.email,
-            full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
-            created_via: 'email',
-            phone_verified: true,  // OTP was verified
-            onboarding_completed: false,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        }]);
+const { error: insertError } = await window.OsliraAuth.supabase
+    .from('users')
+    .insert([{
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
+        created_via: 'email',
+        phone_verified: true,
+        onboarding_completed: false,
+        credits: 25,  // ADD THIS LINE - initial 25 free credits
+        subscription_plan: 'free',  // ADD THIS LINE
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+    }]);
         
     if (insertError) {
         console.error('❌ [Auth] Failed to create user record:', insertError);
@@ -456,11 +458,6 @@ showAlert(message, type = 'info') {
     // =============================================================================
 
     setupEventListeners() {
-        // Navigation
-        document.getElementById('email-continue-btn')?.addEventListener('click', () => {
-            this.hideError();
-            this.showStep('email');
-        });
         
         document.getElementById('back-to-options')?.addEventListener('click', (e) => {
             e.preventDefault();
