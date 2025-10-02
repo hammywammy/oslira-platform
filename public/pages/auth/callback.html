@@ -184,7 +184,7 @@ if (result && result.session) {
         // Setup retry button
         document.getElementById('retry-btn').addEventListener('click', () => {
             console.log('🔐 [Callback] Retry button clicked, redirecting to auth');
-            window.location.href = '/auth';
+            window.location.href = window.OsliraEnv.getAuthUrl();
         });
         
         // Check for specific error parameters in URL
