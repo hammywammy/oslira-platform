@@ -152,10 +152,22 @@ if (result && result.session) {
     
     updateStatus('Sign-in successful! Redirecting...');
     
-    // Redirect based on auth manager's recommendation
+    // CRITICAL: Store session tokens for cross-subdomain access
+    const tokens = {
+        access_token: result.session.access_token,
+        refresh_token: result.session.refresh_token,
+        expires_at: result.session.expires_at,
+        user: result.session.user
+    };
+    
+    // Store in sessionStorage (persists during redirect)
+    sessionStorage.setItem('oslira_auth_transfer', JSON.stringify(tokens));
+    console.log('🔐 [Callback] Session tokens stored for transfer');
+    
+    // Redirect with session info
     setTimeout(() => {
         window.location.href = result.redirectTo;
-    }, 1000);
+    }, 500);
 } else {
     console.log('❌ [Callback] No valid session found');
     throw new Error('No valid session found after authentication');
