@@ -403,6 +403,55 @@ return {
             throw error;
         }
     }
+
+    // =============================================================================
+// CROSS-SUBDOMAIN SESSION RESTORATION
+// =============================================================================
+
+/**
+ * Check URL hash for auth tokens and restore session if present
+ * This enables session transfer across subdomains
+ * Call this BEFORE initialize() on any authenticated page
+ */
+async restoreSessionFromUrl() {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const authToken = hashParams.get('auth');
+
+    if (!authToken) {
+        return false; // No token in URL
+    }
+
+    console.log('🔐 [Auth] Found auth token in URL, restoring session...');
+    
+    try {
+        const tokens = JSON.parse(atob(authToken));
+        
+        // Clear hash from URL immediately
+        history.replaceState(null, '', window.location.pathname);
+        
+        // Restore session in Supabase
+        const { error } = await this.supabase.auth.setSession({
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token
+        });
+        
+        if (error) {
+            console.error('❌ [Auth] Failed to restore session:', error);
+            return false;
+        }
+        
+        console.log('✅ [Auth] Session restored from URL');
+        
+        // Wait for session to propagate
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        return true;
+        
+    } catch (error) {
+        console.error('❌ [Auth] Session transfer failed:', error);
+        return false;
+    }
+}
     
     async checkOnboardingStatus() {
         if (!this.supabase || !this.user) {
