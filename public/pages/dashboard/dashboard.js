@@ -8,19 +8,19 @@ class DashboardInitializer {
         this.app = null;
     }
     
-    async init() {
-        if (this.initialized) return this;
+async init() {
+    if (this.initialized) return this;
+    
+    try {
+        console.log('🚀 [Dashboard] Starting initialization...');
         
-        try {
-            console.log('🚀 [Dashboard] Starting initialization...');
-            
-            // CRITICAL: Wait for config to be loaded
-            console.log('⏳ [Dashboard] Waiting for config to be ready...');
-            await window.OsliraEnv.ready();
-            console.log('✅ [Dashboard] Config ready, proceeding with initialization');
-            
-            // Verify all required modules are loaded
-            this.verifyModules();
+        // CRITICAL: Wait for config to be loaded
+        console.log('⏳ [Dashboard] Waiting for config to be ready...');
+        await window.OsliraEnv.ready();
+        console.log('✅ [Dashboard] Config ready, proceeding with initialization');
+        
+        // Verify all required modules are loaded (now async)
+        await this.verifyModules();
             
             // Initialize the dashboard application
             await this.initializeApp();
@@ -43,20 +43,39 @@ class DashboardInitializer {
         }
     }
     
-    verifyModules() {
-        console.log('🔍 [Dashboard] Verifying required modules...');
-        
-        const requiredModules = [
-            'DashboardCore',
-            'DashboardApp',
-            'DashboardEventSystem',
-            'DashboardErrorSystem',
-            'DependencyContainer'
-        ];
-        
+async verifyModules() {
+    console.log('🔍 [Dashboard] Verifying required modules...');
+    
+    const requiredModules = [
+        'DashboardCore',
+        'DashboardApp',
+        'DashboardEventSystem',
+        'DashboardErrorSystem',
+        'DependencyContainer'
+    ];
+    
+    // Wait for all modules with retry logic
+    const maxAttempts = 50;
+    let attempts = 0;
+    
+    while (attempts < maxAttempts) {
         const missing = requiredModules.filter(module => !window[module]);
         
-        if (missing.length > 0) {
+        if (missing.length === 0) {
+            console.log('✅ [Dashboard] All required modules verified');
+            return;
+        }
+        
+        if (attempts === 0) {
+            console.log('⏳ [Dashboard] Waiting for modules:', missing);
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+    }
+    
+    const missing = requiredModules.filter(module => !window[module]);
+    if (missing.length > 0) {
             throw new Error(`Missing required modules: ${missing.join(', ')}`);
         }
         
