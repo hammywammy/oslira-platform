@@ -1005,11 +1005,12 @@ async startSingleAnalysis(username, analysisType, businessId, requestData) {
             const chunk = leads.slice(i, i + maxConcurrent);
             const chunkPromises = chunk.map(async (lead) => {
                 const username = lead.username || lead;
-                const requestData = {
-                    username: username.replace('@', ''),
-                    analysisType,
-                    business_id: businessId
-                };
+const requestData = {
+    username: username.replace('@', ''),
+    analysis_type: analysisType,  // API expects 'analysis_type' not 'analysisType'
+    business_id: businessId,
+    user_id: this.stateManager?.getState('user')?.id || window.OsliraAuth?.user?.id
+};
                 
                 try {
                     const result = await this.startSingleAnalysis(username, analysisType, businessId, requestData);
