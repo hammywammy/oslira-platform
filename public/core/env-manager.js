@@ -82,62 +82,94 @@ if (this.isDevelopment) {
     // PAGE DETECTION (SYNCHRONOUS)
     // =============================================================================
     
-    initPageDetection() {
-        // Page mapping (exact pathname to page name)
-        this.pageMap = {
-            // Core app pages
-            '/': 'home',
-            '/dashboard': 'dashboard',
-            '/auth': 'auth',
-            '/onboarding': 'onboarding',
-            '/subscription': 'subscription',
-            '/admin': 'admin',
-            
-            // Settings & profile
-            '/settings': 'settings',
-            '/analytics': 'analytics',
-            '/campaigns': 'campaigns',
-            '/leads': 'leads',
-            '/messages': 'messages',
-            '/integrations': 'integrations',
-            
-            // Footer pages (public)
-            '/footer/about': 'about',
-            '/footer/api-docs': 'api-docs',
-            '/footer/case-studies': 'case-studies',
-            '/footer/guides': 'guides',
-            '/footer/help': 'help',
-            '/footer/pricing': 'pricing',
-            '/footer/security-page': 'security-page',
-            '/footer/status': 'status',
-            '/footer/contact': 'contact-hub',
-            
-            // Legal pages (public)
-            '/footer/legal/privacy': 'privacy',
-            '/footer/legal/terms': 'terms',
-            '/footer/legal/refund': 'refund',
-            '/footer/legal/disclaimer': 'disclaimer'
-        };
+initPageDetection() {
+    // COMPLETE PAGE MAPPING - All pages in the system
+    this.pageMap = {
+        // ============= ROOT MARKETING (oslira.com/) =============
+        '/': 'home',
+        '/index.html': 'home',
         
-        // PAGE TYPE CLASSIFICATION
-        this.pageTypes = {
-            PUBLIC: [
-                'home', 'about', 'api-docs', 'case-studies', 'guides', 'help', 
-                'pricing', 'security-page', 'status', 'contact-hub', 'privacy', 'terms', 
-                'refund', 'disclaimer'
-            ],
-            AUTH_ONLY: ['auth', 'auth-callback'], 
-            AUTH_REQUIRED: [
-                'dashboard', 'settings', 'analytics', 'campaigns', 
-                'leads', 'messages', 'integrations', 'subscription'
-            ],
-            ONBOARDING_REQUIRED: ['onboarding'],
-            ADMIN_REQUIRED: ['admin']
-        };
+        // ============= APP SUBDOMAIN (app.oslira.com) =============
+        '/dashboard': 'dashboard',
+        '/settings': 'settings',
+        '/analytics': 'analytics',
+        '/campaigns': 'campaigns',
+        '/leads': 'leads',
+        '/messages': 'messages',
+        '/integrations': 'integrations',
+        '/subscription': 'subscription',
+        '/automations': 'automations',
+        '/onboarding': 'onboarding',
         
-        this._currentPage = this.detectCurrentPage();
-        this._pageType = this.classifyPage(this._currentPage);
-    }
+        // ============= AUTH SUBDOMAIN (auth.oslira.com) =============
+        '/auth': 'auth',
+        '/auth/callback': 'auth-callback',
+        
+        // ============= ADMIN SUBDOMAIN (admin.oslira.com) =============
+        '/admin': 'admin',
+        
+        // ============= MARKETING/FOOTER PAGES (oslira.com/footer/*) =============
+        '/footer/about': 'about',
+        '/footer/pricing': 'pricing',
+        '/footer/security': 'security-page',
+        '/footer/help': 'help',
+        '/footer/guides': 'guides',
+        '/footer/case-studies': 'case-studies',
+        '/footer/api': 'api-docs',
+        
+        // ============= LEGAL SUBDOMAIN (legal.oslira.com) =============
+        '/footer/terms': 'terms',
+        '/footer/privacy': 'privacy',
+        '/footer/refund': 'refund',
+        '/footer/disclaimer': 'disclaimer',
+        '/footer/legal/terms': 'terms',
+        '/footer/legal/privacy': 'privacy',
+        '/footer/legal/refund': 'refund',
+        '/footer/legal/disclaimer': 'disclaimer',
+        '/terms': 'terms',
+        '/privacy': 'privacy',
+        '/refund': 'refund',
+        '/disclaimer': 'disclaimer',
+        
+        // ============= CONTACT SUBDOMAIN (contact.oslira.com) =============
+        '/footer/contact': 'contact-hub',
+        '/footer/contact/support': 'contact-support',
+        '/footer/contact/sales': 'contact-sales',
+        '/footer/contact/security': 'contact-security',
+        '/footer/contact/bug-report': 'contact-bug-report',
+        '/footer/contact/legal': 'contact-legal',
+        '/contact': 'contact-hub',
+        '/contact/support': 'contact-support',
+        '/contact/sales': 'contact-sales',
+        '/contact/security': 'contact-security',
+        '/contact/bug-report': 'contact-bug-report',
+        '/contact/legal': 'contact-legal',
+        
+        // ============= STATUS SUBDOMAIN (status.oslira.com) =============
+        '/footer/status': 'status',
+        '/status': 'status'
+    };
+    
+    // PAGE TYPE CLASSIFICATION
+    this.pageTypes = {
+        PUBLIC: [
+            'home', 'about', 'api-docs', 'case-studies', 'guides', 'help', 
+            'pricing', 'security-page', 'status', 'contact-hub', 'contact-support',
+            'contact-sales', 'contact-security', 'contact-bug-report', 'contact-legal',
+            'privacy', 'terms', 'refund', 'disclaimer'
+        ],
+        AUTH_ONLY: ['auth', 'auth-callback'], 
+        AUTH_REQUIRED: [
+            'dashboard', 'settings', 'analytics', 'campaigns', 
+            'leads', 'messages', 'integrations', 'subscription', 'automations'
+        ],
+        ONBOARDING_REQUIRED: ['onboarding'],
+        ADMIN_REQUIRED: ['admin']
+    };
+    
+    this._currentPage = this.detectCurrentPage();
+    this._pageType = this.classifyPage(this._currentPage);
+}
 
     // =============================================================================
     // URL HELPER METHODS - CENTRALIZED CROSS-SUBDOMAIN NAVIGATION
@@ -230,57 +262,58 @@ if (this.isDevelopment) {
         return `https://status.${this.rootDomain}${cleanPath}`;
     }
     
-  detectCurrentPage() {
-    // CRITICAL: Check subdomain FIRST before pathname
-    // This ensures subdomains like auth.oslira.org are detected correctly
-    
+ detectCurrentPage() {
     // Extract subdomain
     const hostParts = this.hostname.split('.');
-    const isSubdomain = hostParts.length > 2;
-    const subdomain = isSubdomain ? hostParts[0] : null;
+    const subdomain = hostParts.length > 2 ? hostParts[0].replace(/^staging-/, '') : null;
     
-    // Subdomain-based detection (highest priority)
-    if (subdomain) {
-        // Remove 'staging-' prefix if present
-        const cleanSubdomain = subdomain.replace(/^staging-/, '');
-        
-        if (cleanSubdomain === 'auth') return 'auth';
-        if (cleanSubdomain === 'app') return 'dashboard';
-        if (cleanSubdomain === 'admin') return 'admin';
-        if (cleanSubdomain === 'legal') return 'privacy';
-        if (cleanSubdomain === 'contact') return 'contact-hub';
-        if (cleanSubdomain === 'status') return 'status';
-    }
-    
-    // Exact pathname match
+    // STEP 1: Exact pathname match (highest priority)
     if (this.pageMap[this.pathname]) {
         return this.pageMap[this.pathname];
     }
 
-    // Try without trailing slash
+    // STEP 2: Try without trailing slash
     const pathWithoutSlash = this.pathname.replace(/\/$/, '');
     if (this.pageMap[pathWithoutSlash]) {
         return this.pageMap[pathWithoutSlash];
     }
     
-    // Pattern matching for dynamic paths
-    if (this.pathname.startsWith('/auth/callback')) {
-        return 'auth-callback';
-    }
+    // STEP 3: Dynamic pattern matching
+    if (this.pathname.startsWith('/auth/callback')) return 'auth-callback';
+    if (this.pathname.startsWith('/contact/')) return 'contact-hub';
+    if (this.pathname.startsWith('/footer/contact/')) return 'contact-hub';
+    if (this.pathname.startsWith('/footer/legal/')) return 'privacy';
+    if (this.pathname.startsWith('/footer/')) return 'about';
     
-    if (this.pathname.startsWith('/footer/legal/')) {
-        return 'privacy';
-    }
-    
-    if (this.pathname.startsWith('/footer/')) {
-        return 'about';
-    }
-    
-    // Root level detection (ONLY if no subdomain detected)
+    // STEP 4: Root path detection (use subdomain context)
     if (this.pathname === '/' || this.pathname === '' || this.pathname === '/index.html') {
-        return 'home';
+        // Subdomain determines which root page
+        switch(subdomain) {
+            case 'auth': return 'auth';
+            case 'app': return 'dashboard';
+            case 'admin': return 'admin';
+            case 'legal': return 'privacy';
+            case 'contact': return 'contact-hub';
+            case 'status': return 'status';
+            default: return 'home'; // No subdomain = marketing root
+        }
     }
     
+    // STEP 5: Fallback - try to infer from subdomain
+    if (subdomain) {
+        console.warn(`⚠️ [Env] Unknown path "${this.pathname}" on subdomain "${subdomain}", falling back to subdomain default`);
+        switch(subdomain) {
+            case 'auth': return 'auth';
+            case 'app': return 'dashboard';
+            case 'admin': return 'admin';
+            case 'legal': return 'privacy';
+            case 'contact': return 'contact-hub';
+            case 'status': return 'status';
+        }
+    }
+    
+    // Final fallback
+    console.warn(`⚠️ [Env] Could not detect page for "${this.pathname}", defaulting to home`);
     return 'home';
 }
     
