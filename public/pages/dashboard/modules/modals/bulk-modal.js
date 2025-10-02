@@ -610,11 +610,17 @@ async processBulkAnalysis() {
             throw new Error('Analysis queue not available');
         }
         
-        // Start bulk analysis with correct parameters
+        // Convert usernames to lead objects format
+        const leads = this.parsedData.map(username => ({
+            username: username,
+            platform: 'instagram'
+        }));
+        
+        // Start bulk analysis with correct parameters: (leads, analysisType, businessId)
         await analysisQueue.startBulkAnalysis(
-            this.parsedData,  // Array of usernames
-            analysisType,     // 'light', 'deep', or 'xray'
-            businessId        // Business profile ID
+            leads,           // Array of lead objects
+            analysisType,    // 'light', 'deep', or 'xray'
+            businessId       // Business profile ID
         );
         
         // Close modal
