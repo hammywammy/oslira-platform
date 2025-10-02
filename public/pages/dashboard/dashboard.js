@@ -63,71 +63,74 @@ class DashboardInitializer {
         console.log('✅ [Dashboard] All required modules present');
     }
     
-    async initializeApp() {
-        console.log('📱 [Dashboard] Initializing dashboard app...');
-        
-// Wait for OsliraAuth
-if (!window.OsliraAuth) {
-    throw new Error('OsliraAuth not available');
-}
-
-// Initialize auth
-await window.OsliraAuth.initialize();
-
-// CRITICAL: Check for transferred session from auth subdomain
-const transferredAuth = sessionStorage.getItem('oslira_auth_transfer');
-if (transferredAuth && !window.OsliraAuth.user) {
-    console.log('🔐 [Dashboard] Found transferred session, restoring...');
-    try {
-        const tokens = JSON.parse(transferredAuth);
-        sessionStorage.removeItem('oslira_auth_transfer'); // Clean up
-        
-        // Restore session in Supabase
-        await window.OsliraAuth.supabase.auth.setSession({
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token
-        });
-        
-        // Wait for session to be set
-        await new Promise(resolve => setTimeout(resolve, 500));
-        console.log('✅ [Dashboard] Session restored from transfer');
-    } catch (error) {
-        console.error('❌ [Dashboard] Failed to restore transferred session:', error);
+async initializeApp() {
+    console.log('📱 [Dashboard] Initializing dashboard app...');
+    
+    // Wait for OsliraAuth
+    if (!window.OsliraAuth) {
+        throw new Error('OsliraAuth not available');
     }
-}
 
-const user = window.OsliraAuth.user;
-
-if (!user) {
-    console.log('❌ [Dashboard] No authenticated user, redirecting to auth');
-    window.location.href = window.OsliraEnv.getAuthUrl();
-    return;
-}
-        
-console.log('✅ [Dashboard] OsliraAuth compatibility layer created');
-        
-        // Create and initialize the dashboard app
-        this.app = new DashboardApp();
-        await this.app.init();
-        
-        // CRITICAL: Expose container globally for TimingManager
-        window.dashboard = {
-            container: this.app.container,
-            app: this.app
-        };
-        
-        // Set global reference for onclick handlers
-        if (this.app && this.app.container) {
-            try {
-                window.analysisQueue = this.app.container.get('analysisQueue');
-                console.log('✅ [Dashboard] Global analysisQueue reference set');
-            } catch (error) {
-                console.warn('⚠️ [Dashboard] Failed to set global analysisQueue:', error.message);
+    // CRITICAL: Restore transferred session BEFORE auth initialization
+    const transferredAuth = sessionStorage.getItem('oslira_auth_transfer');
+    if (transferredAuth) {
+        console.log('🔐 [Dashboard] Found transferred session, restoring...');
+        try {
+            const tokens = JSON.parse(transferredAuth);
+            sessionStorage.removeItem('oslira_auth_transfer');
+            
+            // Restore session in Supabase BEFORE auth-manager loads session
+            const { error } = await window.OsliraAuth.supabase.auth.setSession({
+                access_token: tokens.access_token,
+                refresh_token: tokens.refresh_token
+            });
+            
+            if (error) {
+                console.error('❌ [Dashboard] Failed to restore session:', error);
+            } else {
+                console.log('✅ [Dashboard] Session restored, waiting for propagation...');
+                await new Promise(resolve => setTimeout(resolve, 300));
             }
+        } catch (error) {
+            console.error('❌ [Dashboard] Session transfer failed:', error);
         }
-        
-        console.log('✅ [Dashboard] App initialized successfully');
     }
+
+    // NOW initialize auth (will pick up restored session)
+    await window.OsliraAuth.initialize();
+
+    const user = window.OsliraAuth.user;
+
+    if (!user) {
+        console.log('❌ [Dashboard] No authenticated user, redirecting to auth');
+        window.location.href = window.OsliraEnv.getAuthUrl();
+        return;
+    }
+    
+    console.log('✅ [Dashboard] OsliraAuth compatibility layer created');
+    
+    // Create and initialize the dashboard app
+    this.app = new DashboardApp();
+    await this.app.init();
+    
+    // CRITICAL: Expose container globally for TimingManager
+    window.dashboard = {
+        container: this.app.container,
+        app: this.app
+    };
+    
+    // Set global reference for onclick handlers
+    if (this.app && this.app.container) {
+        try {
+            window.analysisQueue = this.app.container.get('analysisQueue');
+            console.log('✅ [Dashboard] Global analysisQueue reference set');
+        } catch (error) {
+            console.warn('⚠️ [Dashboard] Failed to set global analysisQueue:', error.message);
+        }
+    }
+    
+    console.log('✅ [Dashboard] App initialized successfully');
+}
     
     async initializeSidebar() {
         console.log('📐 [Dashboard] Initializing modular sidebar...');
