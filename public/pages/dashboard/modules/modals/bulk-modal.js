@@ -422,6 +422,23 @@ displayUploadedFile(filename, count) {
         fileDisplay.style.display = 'block';
         fileDisplay.classList.remove('hidden');
     }
+    
+    // Update csv-example section to show uploaded usernames
+    const csvExample = document.getElementById('csv-example');
+    const csvLabel = document.getElementById('csv-label');
+    
+    if (csvExample && this.parsedData.length > 0) {
+        const displayUsernames = this.parsedData.slice(0, 20);
+        csvExample.innerHTML = displayUsernames.map(username => `<div>${username}</div>`).join('');
+        
+        if (this.parsedData.length > 20) {
+            csvExample.innerHTML += `<div class="text-gray-400 text-xs mt-2">... and ${this.parsedData.length - 20} more</div>`;
+        }
+        
+        if (csvLabel) {
+            csvLabel.textContent = 'Your uploaded usernames:';
+        }
+    }
 }
 showValidationSuccess(count) {
     const successBar = document.getElementById('validation-success');
