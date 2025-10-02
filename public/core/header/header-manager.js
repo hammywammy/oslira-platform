@@ -8,7 +8,7 @@ class HeaderManager {
             companyName: 'Oslira',
             logoUrl: '/assets/images/oslira-logo.png',
             homeUrl: '/',
-            loginUrl: '/auth',
+            loginUrl: window.OsliraEnv.getAuthUrl(),
             type: 'home' // 'home' or 'footer-pages'
         };
         this.initialized = false;
