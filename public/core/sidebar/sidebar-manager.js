@@ -308,15 +308,15 @@ async updateUserInfo(user) {
                     <div class="nav-section">
                         <h4 class="nav-section-header">Main</h4>
                         <div class="nav-items">
-                            <a href="/dashboard" data-page="dashboard" data-tooltip="Dashboard" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/dashboard')}" data-page="dashboard" data-tooltip="Dashboard" class="nav-item">
                                 <span class="nav-icon">📊</span>
                                 <span class="nav-text">Dashboard</span>
                             </a>
-                            <a href="/leads" data-page="leads" data-tooltip="Lead Research" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/leads')}" data-page="leads" data-tooltip="Lead Research" class="nav-item">
                                 <span class="nav-icon">🔍</span>
                                 <span class="nav-text">Lead Research</span>
                             </a>
-                            <a href="/analytics" data-page="analytics" data-tooltip="Analytics" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/analytics')}" data-page="analytics" data-tooltip="Analytics" class="nav-item">
                                 <span class="nav-icon">📈</span>
                                 <span class="nav-text">Analytics</span>
                             </a>
@@ -327,11 +327,11 @@ async updateUserInfo(user) {
                     <div class="nav-section">
                         <h4 class="nav-section-header">Tools</h4>
                         <div class="nav-items">
-                            <a href="/campaigns" data-page="campaigns" data-tooltip="Campaigns" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/campaigns')}" data-page="campaigns" data-tooltip="Campaigns" class="nav-item">
                                 <span class="nav-icon">🎯</span>
                                 <span class="nav-text">Campaigns</span>
                             </a>
-                            <a href="/automations" data-page="automations" data-tooltip="Automations" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/automations')}" data-page="automations" data-tooltip="Automations" class="nav-item">
                                 <span class="nav-icon">⚡</span>
                                 <span class="nav-text">Automations</span>
                             </a>
@@ -342,11 +342,11 @@ async updateUserInfo(user) {
                     <div class="nav-section">
                         <h4 class="nav-section-header">Account</h4>
                         <div class="nav-items">
-                        <a href="/subscription" data-page="Subscription" data-tooltip="Subscription" class="nav-item">
+                        <a href="${window.OsliraEnv.getAppUrl('/subscription')}" data-page="Subscription" data-tooltip="Subscription" class="nav-item">
                                 <span class="nav-icon">💳</span>
                                 <span class="nav-text">Subscription</span>
                             </a>
-                            <a href="/settings" data-page="settings" data-tooltip="Settings" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/settings')}" data-page="settings" data-tooltip="Settings" class="nav-item">
                                 <span class="nav-icon">⚙️</span>
                                 <span class="nav-text">Settings</span>
                             </a>
