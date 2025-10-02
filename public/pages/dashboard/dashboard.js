@@ -77,7 +77,7 @@ const user = window.OsliraAuth.user;
 
 if (!user) {
     console.log('❌ [Dashboard] No authenticated user, redirecting to auth');
-    window.location.href = '/auth';
+    window.location.href = window.OsliraEnv.getAuthUrl();
     return;
 }
 
@@ -461,7 +461,7 @@ console.log('✅ [Dashboard] OsliraAuth compatibility layer created');
                     <button onclick="window.location.reload()" style="padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
                         🔄 Reload Page
                     </button>
-                    <button onclick="window.location.href='/auth'" style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    <button onclick="window.location.href='${window.OsliraEnv.getAuthUrl()}'" style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
                         🔐 Return to Login
                     </button>
                 </div>
