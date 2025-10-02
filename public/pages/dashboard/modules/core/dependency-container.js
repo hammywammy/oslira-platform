@@ -71,38 +71,36 @@ registerSingleton(name, instance) {
      * Get dependency instance
      */
 get(name) {
-    // Check singletons first
-    if (this.singletons.has(name)) {
-        return this.singletons.get(name);
+    // Check if it's a factory
+    if (this.factories.has(name)) {
+        const factoryInfo = this.factories.get(name);
+        
+        // Return cached instance if exists
+        if (factoryInfo.instance) {
+            return factoryInfo.instance;
+        }
+        
+        // Create instance only once
+        const deps = factoryInfo.dependencies.map(dep => this.get(dep));
+        const result = factoryInfo.factory(...deps);
+        
+        // Handle async factories
+        if (result && typeof result.then === 'function') {
+            throw new Error(`Async factory '${name}' must be resolved before use. Use getAsync() or ensure factory is pre-resolved.`);
+        }
+        
+        factoryInfo.instance = result;
+        console.log(`🏗️ [DependencyContainer] Factory instance created: ${name}`);
+        
+        return factoryInfo.instance;
     }
-    
+        
     // Check regular dependencies
     if (this.dependencies.has(name)) {
         return this.dependencies.get(name);
     }
     
-    // Check factories - create once and cache
-    if (this.factories.has(name)) {
-        const factoryInfo = this.factories.get(name);
-        
-        // If instance exists, return it
-        if (factoryInfo.instance) {
-            return factoryInfo.instance;
-        }
-        
-        // Create new instance
-        console.log(`🏗️ [DependencyContainer] Creating factory instance: ${name}`);
-        const deps = factoryInfo.dependencies.map(depName => this.get(depName));
-        const instance = factoryInfo.factory(...deps);
-        
-        // Cache the instance
-        factoryInfo.instance = instance;
-        this.singletons.set(name, instance);
-        
-        return instance;
-    }
-    
-    throw new Error(`Dependency '${name}' not found. Available: ${Array.from(this.dependencies.keys()).concat(Array.from(this.factories.keys())).join(', ')}`);
+    throw new Error(`Dependency '${name}' not found. Available: ${Array.from(this.dependencies.keys()).join(', ')}`);
 }
 
     /**
