@@ -32,6 +32,9 @@ async function initializeSubscriptionPage() {
         await window.OsliraEnv.ready();
         console.log('✅ [Subscription] Config ready, proceeding with initialization');
         
+        // CRITICAL: Restore session from URL if present (centralized)
+        await window.OsliraAuth.restoreSessionFromUrl();
+        
         // Get authenticated user from auth-manager
         if (!window.OsliraAuth?.user) {
             console.error('❌ [Subscription] No authenticated user');
