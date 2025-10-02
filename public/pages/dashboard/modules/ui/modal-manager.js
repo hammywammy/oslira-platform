@@ -279,25 +279,30 @@ showAnalysisModal(prefillUsername = '') {
         console.log('✅ [ModalManager] Bulk modal opened');
     }
     
-    resetBulkModal() {
-        // Reset form
-        const form = document.getElementById('bulkForm');
-        if (form) {
-            form.reset();
-        }
-        
-        // Clear file input display
-        const fileDisplay = document.getElementById('file-display');
-        if (fileDisplay) {
-            fileDisplay.innerHTML = '';
-        }
-        
-        // Reset validation state
-        const submitBtn = document.getElementById('bulk-submit-btn');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Select Analysis Type';
-        }
+resetBulkModal() {
+    // Reset form
+    const form = document.getElementById('bulkForm');
+    if (form) {
+        form.reset();
+    }
+    
+    // Clear file input display
+    const fileDisplay = document.getElementById('file-display');
+    if (fileDisplay) {
+        fileDisplay.innerHTML = '';
+    }
+    
+    // Hide validation bars on initial load
+    const successBar = document.getElementById('validation-success');
+    const errorBar = document.getElementById('validation-error');
+    if (successBar) successBar.classList.add('hidden');
+    if (errorBar) errorBar.classList.add('hidden');
+    
+    // Reset validation state
+    const submitBtn = document.getElementById('bulk-submit-btn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+    }
         
         // Clear usernames
         this.bulkUsernames = [];
