@@ -86,7 +86,6 @@ initPageDetection() {
     // COMPLETE PAGE MAPPING - All pages in the system
     this.pageMap = {
         // ============= ROOT MARKETING (oslira.com/) =============
-        '/': 'home',
         '/index.html': 'home',
         
         // ============= APP SUBDOMAIN (app.oslira.com) =============
