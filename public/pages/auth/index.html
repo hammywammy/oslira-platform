@@ -146,9 +146,9 @@
                 By continuing, you agree to our Terms of Service and Privacy Policy.
             </p>
             <div class="auth-links">
-                <a href="${window.OsliraEnv.getLegalUrl('/terms')}" class="auth-link">Terms of Service</a>
-                <a href="${window.OsliraEnv.getLegalUrl('/privacy')}" class="auth-link">Privacy Policy</a>
-                <a href="${window.OsliraEnv.getLegalUrl('/contact')}" class="auth-link">Contact Center</a>
+<a href="#" id="terms-link" class="auth-link">Terms of Service</a>
+<a href="#" id="privacy-link" class="auth-link">Privacy Policy</a>
+<a href="#" id="contact-link" class="auth-link">Contact Center</a>
             </div>
         </div>
     </div>
@@ -162,5 +162,18 @@
         // We just need to provide the DOM elements it expects
         console.log('🔐 [Auth] Simple auth page loaded');
     </script>
+    
+    <script>
+    // Show content immediately
+    document.body.style.visibility = 'visible';
+    console.log('🔐 [Auth] Simple auth page loaded');
+    
+    // Set dynamic links after OsliraEnv loads
+    window.addEventListener('oslira:config:loaded', () => {
+        document.getElementById('terms-link').href = window.OsliraEnv.getLegalUrl('/terms');
+        document.getElementById('privacy-link').href = window.OsliraEnv.getLegalUrl('/privacy');
+        document.getElementById('contact-link').href = window.OsliraEnv.getContactUrl();
+    });
+</script>
 </body>
 </html>
