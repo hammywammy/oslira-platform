@@ -68,8 +68,9 @@ if (this.isDevelopment) {
     this.workerUrl = 'https://api.oslira.org';
 }
         
-        // Auth callback URLs
-        this.authCallbackUrl = `${this.origin}/auth/callback`;
+// Auth callback URLs - always use auth subdomain
+const rootDomain = this.hostname.replace(/^(auth|app|admin|legal|contact|status|www)\./, '');
+this.authCallbackUrl = `https://auth.${rootDomain}/auth/callback`;
         
         console.log('🔧 [Env] Environment detected:', {
             environment: this.environment,
