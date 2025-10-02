@@ -567,13 +567,25 @@
                 Cancel or change your plan anytime. No setup fees or hidden charges.
             </p>
             <div class="flex justify-center gap-6">
-                <a href="${window.OsliraEnv.getLegalUrl('/terms')}" class="text-white/80 hover:text-white transition">Terms of Service</a>
-                <a href="${window.OsliraEnv.getLegalUrl('/privacy')}" class="text-white/80 hover:text-white transition">Privacy Policy</a>
-                <a href="${window.OsliraEnv.getLegalUrl('/refund')}" class="text-white/80 hover:text-white transition">Refund Policy</a>
-                <a href="/footer/contact" class="text-white/80 hover:text-white transition">Contact Support</a>
+<a href="#" id="sub-terms-link" class="text-white/80 hover:text-white transition">Terms of Service</a>
+<a href="#" id="sub-privacy-link" class="text-white/80 hover:text-white transition">Privacy Policy</a>
+<a href="#" id="sub-refund-link" class="text-white/80 hover:text-white transition">Refund Policy</a>
+<a href="#" id="sub-contact-link" class="auth-link">Contact Support</a>
             </div>
         </div>
 </div>
+
+    <script>
+window.addEventListener('oslira:config:loaded', () => {
+    document.getElementById('sub-terms-link').href = window.OsliraEnv.getLegalUrl('/terms');
+    document.getElementById('sub-privacy-link').href = window.OsliraEnv.getLegalUrl('/privacy');
+    document.getElementById('sub-refund-link').href = window.OsliraEnv.getLegalUrl('/refund');
+    document.getElementById('sub-contact-link').href = window.OsliraEnv.getContactUrl();
+    });
+});
+</script>
 </main>
+
+  
 </body>
 </html>
