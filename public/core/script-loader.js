@@ -65,16 +65,11 @@ this.coreScripts = [
                 enableTailwind: true
             },
             
-            'home': {
-                scripts: [
-                    '/core/api-client.js',
-                    '/pages/home/homeHandlers.js',
-                    '/pages/home/home.js',
-                    '/core/footer/footer-manager.js'
-                ],
-                requiresAuth: false,
-                enableTailwind: true
-            },
+'home': {
+    scripts: ['/core/header/header-manager.js', '/pages/home/homeHandlers.js', '/pages/home/home.js', '/core/footer/footer-manager.js'],
+    requiresAuth: false,
+    enableTailwind: true
+},
             
             'onboarding': {
                 scripts: [
