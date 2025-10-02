@@ -50,7 +50,7 @@
         
         if (!session || !session.user) {
             console.log('❌ [Onboarding] No valid session, redirecting to auth');
-            window.location.href = '/auth';
+            window.location.href = window.OsliraEnv.getAuthUrl();
             return;
         }
         
@@ -822,7 +822,7 @@ if (typeof window.OsliraAPI.request !== 'function') {
             console.log('✅ [Onboarding] Onboarding complete, redirecting...');
             
             setTimeout(() => {
-                window.location.href = '/dashboard/';
+                window.location.href = window.OsliraEnv.getAppUrl('/dashboard');
             }, 1000);
             
         } catch (error) {
@@ -851,7 +851,7 @@ if (typeof window.OsliraAPI.request !== 'function') {
             
             if (error.message.includes('Authentication') || error.message.includes('Invalid signature')) {
                 setTimeout(() => {
-                    window.location.href = '/auth';
+                    window.location.href = window.OsliraEnv.getAuthUrl();
                 }, 3000);
             }
         }
