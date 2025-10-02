@@ -582,46 +582,62 @@ resetFileInput() {
         }
     }
 
-processBulkAnalysis() {
+async processBulkAnalysis() {
     try {
-        // Platform is hardcoded to Instagram - no bulkPlatform element exists
-        const platform = 'instagram';
         const analysisType = document.querySelector('input[name="bulkAnalysisType"]:checked')?.value || this.analysisType || 'light';
+        const businessId = this.stateManager?.getState('selectedBusiness')?.id;
         
-        console.log('Processing bulk analysis:', {
-            platform,
+        if (!businessId) {
+            this.showValidationError('No business profile selected', 'Please select a business profile');
+            return;
+        }
+        
+        if (!this.parsedData || this.parsedData.length === 0) {
+            this.showValidationError('No usernames', 'Please upload a CSV file with usernames');
+            return;
+        }
+        
+        console.log('📁 [BulkModal] Processing bulk analysis:', {
             analysisType,
-            leads: this.parsedData.length,
+            count: this.parsedData.length,
             usernames: this.parsedData,
-            duplicatesRemoved: this.duplicateCount
+            businessId
         });
 
-            // TODO: Integrate with your existing analysis system
-            // Example integration:
-            if (this.container && this.container.get('analysisQueue')) {
-                const analysisQueue = this.container.get('analysisQueue');
-                analysisQueue.startBulkAnalysis({
-                    usernames: this.parsedData,
-                    analysisType,
-                    platform,
-                    businessId: this.stateManager?.getState('selectedBusiness')?.id
-                });
-            }
-
-            alert(`Bulk analysis started for ${this.parsedData.length} leads with ${analysisType} analysis`);
-            
-            // Close modal using proper method reference
+        // Get analysis queue
+        const analysisQueue = this.container.get('analysisQueue');
+        if (!analysisQueue) {
+            throw new Error('Analysis queue not available');
+        }
+        
+        // Start bulk analysis with correct parameters
+        await analysisQueue.startBulkAnalysis(
+            this.parsedData,  // Array of usernames
+            analysisType,     // 'light', 'deep', or 'xray'
+            businessId        // Business profile ID
+        );
+        
+        // Close modal
+        const modalManager = this.container.get('modalManager');
+        if (modalManager) {
+            modalManager.closeModal('bulkModal');
+        } else {
             const modal = document.querySelector('#bulkModal > div');
             if (modal) {
                 modal.classList.add('hidden');
-                this.resetModal();
             }
-            
-        } catch (error) {
-            console.error('Bulk analysis processing error:', error);
-            this.showError('Failed to start bulk analysis. Please try again.');
         }
+        
+        // Reset modal state
+        this.resetModal();
+        
+        console.log('✅ [BulkModal] Bulk analysis started successfully');
+        
+    } catch (error) {
+        console.error('❌ [BulkModal] Bulk analysis processing error:', error);
+        this.showValidationError('Processing failed', error.message);
     }
+}
 
 resetModal() {
     this.uploadedFile = null;
