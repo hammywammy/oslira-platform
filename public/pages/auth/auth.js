@@ -92,7 +92,7 @@ if (window.OsliraAuth) {
 showOptionsStep() {
     document.getElementById('auth-options').style.display = 'block';
     document.getElementById('auth-title').textContent = 'Start your free trial';
-    document.getElementById('auth-subtitle').textContent = 'Get 25 free lead analyses, then upgrade for unlimited access';
+    document.getElementById('auth-subtitle').textContent = 'Get 25 free credits for lead analyses, then upgrade for more access to AI-powered lead generation';
 }
 
     showEmailStep() {
