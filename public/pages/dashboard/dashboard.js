@@ -71,19 +71,26 @@ if (!window.OsliraAuth) {
     throw new Error('OsliraAuth not available');
 }
 
+// CRITICAL: Wait for Supabase to process any URL fragments (access_token in hash)
+await new Promise(resolve => setTimeout(resolve, 100));
+
 // Get user from auth-manager
 await window.OsliraAuth.initialize();
+
+// Give Supabase time to process the session if coming from callback
+let retries = 0;
+while (!window.OsliraAuth.user && retries < 30) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    retries++;
+}
+
 const user = window.OsliraAuth.user;
 
 if (!user) {
-    console.log('❌ [Dashboard] No authenticated user, redirecting to auth');
+    console.log('❌ [Dashboard] No authenticated user after 3 seconds, redirecting to auth');
     window.location.href = window.OsliraEnv.getAuthUrl();
     return;
 }
-
-        // Direct reference - no compatibility layer needed
-// Modules should use window.OsliraAuth directly
-// Business property now available at window.OsliraAuth.business
         
 console.log('✅ [Dashboard] OsliraAuth compatibility layer created');
         
