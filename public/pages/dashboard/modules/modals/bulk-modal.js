@@ -388,34 +388,41 @@ parseCSVFile(file) {
 displayUploadedFile(filename, count) {
     const dropPlaceholder = document.getElementById('drop-placeholder');
     const fileDisplay = document.getElementById('file-display');
-    const fileNameDisplay = document.getElementById('file-name-display');
-    const fileStats = document.getElementById('file-stats');
     
     // Hide drop zone placeholder
     if (dropPlaceholder) {
         dropPlaceholder.style.display = 'none';
+        dropPlaceholder.classList.add('hidden');
     }
     
-    // Show file display
+    // Populate and show file display
     if (fileDisplay) {
+        let statsText = `${count} unique username${count !== 1 ? 's' : ''} found`;
+        if (this.duplicateCount > 0) {
+            statsText += ` (${this.duplicateCount} duplicate${this.duplicateCount !== 1 ? 's' : ''} removed)`;
+        }
+        
+        fileDisplay.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    <span id="file-name-display" class="text-sm font-medium text-gray-800">${filename}</span>
+                </div>
+                <button onclick="removeUploadedFile(event)" class="p-1 hover:bg-gray-100 rounded-full transition-colors" title="Remove file">
+                    <svg class="w-4 h-4 text-gray-500 hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="file-stats" class="text-xs text-gray-600 mt-1">${statsText}</div>
+        `;
+        
         fileDisplay.style.display = 'block';
         fileDisplay.classList.remove('hidden');
     }
-    
-    // Set file name
-    if (fileNameDisplay) {
-        fileNameDisplay.textContent = filename;
-    }
-    
-    // Set file stats
-    if (fileStats) {
-        fileStats.textContent = `${count} unique username${count !== 1 ? 's' : ''} found`;
-        if (this.duplicateCount > 0) {
-            fileStats.textContent += ` (${this.duplicateCount} duplicate${this.duplicateCount !== 1 ? 's' : ''} removed)`;
-        }
-    }
 }
-
 showValidationSuccess(count) {
     const successBar = document.getElementById('validation-success');
     const successMessage = document.getElementById('success-message');
