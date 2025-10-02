@@ -35,7 +35,7 @@ async function initializeSubscriptionPage() {
         // Get authenticated user from auth-manager
         if (!window.OsliraAuth?.user) {
             console.error('❌ [Subscription] No authenticated user');
-            window.location.href = '/auth';
+            window.location.href = window.OsliraEnv.getAuthUrl();
             return;
         }
         
@@ -389,7 +389,7 @@ async function handleLogout(e) {
         }
         
         console.log('✅ [Subscription] Logged out successfully');
-        window.location.href = '/';
+        window.location.href = window.OsliraEnv.getMarketingUrl(); 
         
     } catch (error) {
         console.error('❌ [Subscription] Logout failed:', error);
@@ -602,7 +602,7 @@ function setupAuthStateMonitoring() {
             console.log('🔐 [Subscription] Auth state change:', event);
             
             if (event === 'SIGNED_OUT') {
-                window.location.href = '/auth';
+                window.location.href = window.OsliraEnv.getAuthUrl();
             } else if (event === 'SIGNED_IN' && session) {
                 subscriptionState.currentSession = session;
                 subscriptionState.currentUser = session.user;
