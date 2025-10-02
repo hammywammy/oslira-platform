@@ -66,28 +66,40 @@ class DashboardInitializer {
     async initializeApp() {
         console.log('📱 [Dashboard] Initializing dashboard app...');
         
-// Wait for OsliraAuth (which loads before dashboard page scripts)
+// Wait for OsliraAuth
 if (!window.OsliraAuth) {
     throw new Error('OsliraAuth not available');
 }
 
-// CRITICAL: Wait for Supabase to process any URL fragments (access_token in hash)
-await new Promise(resolve => setTimeout(resolve, 100));
-
-// Get user from auth-manager
+// Initialize auth
 await window.OsliraAuth.initialize();
 
-// Give Supabase time to process the session if coming from callback
-let retries = 0;
-while (!window.OsliraAuth.user && retries < 30) {
-    await new Promise(resolve => setTimeout(resolve, 100));
-    retries++;
+// CRITICAL: Check for transferred session from auth subdomain
+const transferredAuth = sessionStorage.getItem('oslira_auth_transfer');
+if (transferredAuth && !window.OsliraAuth.user) {
+    console.log('🔐 [Dashboard] Found transferred session, restoring...');
+    try {
+        const tokens = JSON.parse(transferredAuth);
+        sessionStorage.removeItem('oslira_auth_transfer'); // Clean up
+        
+        // Restore session in Supabase
+        await window.OsliraAuth.supabase.auth.setSession({
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token
+        });
+        
+        // Wait for session to be set
+        await new Promise(resolve => setTimeout(resolve, 500));
+        console.log('✅ [Dashboard] Session restored from transfer');
+    } catch (error) {
+        console.error('❌ [Dashboard] Failed to restore transferred session:', error);
+    }
 }
 
 const user = window.OsliraAuth.user;
 
 if (!user) {
-    console.log('❌ [Dashboard] No authenticated user after 3 seconds, redirecting to auth');
+    console.log('❌ [Dashboard] No authenticated user, redirecting to auth');
     window.location.href = window.OsliraEnv.getAuthUrl();
     return;
 }
