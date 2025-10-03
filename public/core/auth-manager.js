@@ -223,16 +223,18 @@ const userData = {
         throw error;
     }
 }
-    
 async loadUserBusinesses() {
     if (!this.supabase || !this.user) {
-        this.businessesLoaded = true; // Mark as loaded even if skipped
+        this.businessesLoaded = true;
         return;
     }
     
     try {
         // Ensure user exists in database before loading businesses
         await this.ensureUserExists();
+        
+        // Enrich user object with database profile data
+        await this.enrichUserProfile();
         
         const { data: businesses, error } = await this.supabase
             .from('business_profiles')
@@ -589,6 +591,66 @@ async waitForBusinesses() {
     }
     
     return this.businesses;
+}
+
+    async enrichUserProfile() {
+    if (!this.supabase || !this.user) {
+        return;
+    }
+    
+    try {
+        const { data: profile, error } = await this.supabase
+            .from('users')
+            .select('credits, subscription_plan, full_name, onboarding_completed')
+            .eq('id', this.user.id)
+            .single();
+        
+        if (error) {
+            console.warn('⚠️ [Auth] Could not load user profile:', error);
+            return;
+        }
+        
+        if (profile) {
+            // Merge database profile into auth user object
+            this.user.credits = profile.credits;
+            this.user.subscription_plan = profile.subscription_plan;
+            this.user.full_name = profile.full_name;
+            this.user.onboarding_completed = profile.onboarding_completed;
+            
+            console.log('✅ [Auth] User profile enriched with database data');
+        }
+    } catch (error) {
+        console.error('❌ [Auth] Error enriching user profile:', error);
+    }
+}async enrichUserProfile() {
+    if (!this.supabase || !this.user) {
+        return;
+    }
+    
+    try {
+        const { data: profile, error } = await this.supabase
+            .from('users')
+            .select('credits, subscription_plan, full_name, onboarding_completed')
+            .eq('id', this.user.id)
+            .single();
+        
+        if (error) {
+            console.warn('⚠️ [Auth] Could not load user profile:', error);
+            return;
+        }
+        
+        if (profile) {
+            // Merge database profile into auth user object
+            this.user.credits = profile.credits;
+            this.user.subscription_plan = profile.subscription_plan;
+            this.user.full_name = profile.full_name;
+            this.user.onboarding_completed = profile.onboarding_completed;
+            
+            console.log('✅ [Auth] User profile enriched with database data');
+        }
+    } catch (error) {
+        console.error('❌ [Auth] Error enriching user profile:', error);
+    }
 }
 
 hasBusinesses() {
