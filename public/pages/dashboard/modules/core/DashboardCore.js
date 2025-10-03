@@ -120,6 +120,13 @@ if (leadsTable && leadsTable.setupFilterHandlers) {
     leadsTable.setupFilterHandlers();
     console.log('✅ [DashboardCore] Filter handlers initialized');
 }
+
+// Setup selection handlers
+console.log('🔧 [DashboardCore] Setting up selection handlers...');
+if (leadsTable && leadsTable.setupSelectionHandlers) {
+    leadsTable.setupSelectionHandlers();
+    console.log('✅ [DashboardCore] Selection handlers initialized');
+}
             
 console.log('✅ [DashboardCore] Initialization completed');
 return true;
