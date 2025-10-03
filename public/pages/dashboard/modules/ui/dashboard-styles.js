@@ -243,6 +243,33 @@ class DashboardStyles {
     transform: translateY(0);
 }
 
+.leads-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.leads-table thead th {
+    border-bottom: 2px solid #cbd5e1 !important;
+}
+
+.leads-table tbody tr {
+    border-bottom: 1.5px solid #e2e8f0 !important;
+}
+
+.leads-table tbody tr:hover {
+    border-bottom-color: #cbd5e1 !important;
+}
+
+.leads-table th,
+.leads-table td {
+    border-right: 1.5px solid #e2e8f0;
+}
+
+.leads-table th:last-child,
+.leads-table td:last-child {
+    border-right: none;
+}
+
 /* Checkbox smooth state changes */
 .lead-checkbox {
     transition: all 0.15s ease;
