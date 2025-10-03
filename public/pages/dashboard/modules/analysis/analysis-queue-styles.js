@@ -16,18 +16,30 @@ class AnalysisQueueStyles {
             /* ===================================================================
                QUEUE WRAPPER - COLLAPSIBLE CONTAINER
                =================================================================== */
-            .queue-wrapper {
-                position: fixed;
-                top: 50%;
-                right: 0;
-                transform: translateY(-50%);
-                z-index: 40;
-                display: flex;
-                align-items: center;
-                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            }
+.queue-wrapper {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
 
-/* Toggle Button (Always Visible) */
+.queue-wrapper > * {
+    pointer-events: auto;
+}
+
+.queue-wrapper.collapsed {
+    pointer-events: none;
+}
+
+.queue-wrapper.collapsed .queue-toggle-btn {
+    pointer-events: auto;
+}
+
 .queue-toggle-btn {
     width: 32px;
     height: 64px;
@@ -42,6 +54,7 @@ class AnalysisQueueStyles {
     position: absolute;
     right: 360px;
     z-index: 41;
+    pointer-events: auto;
 }
 
 .queue-wrapper.collapsed .queue-toggle-btn {
