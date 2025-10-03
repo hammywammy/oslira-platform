@@ -26,6 +26,11 @@ constructor(container) {
         this.smoothProgressEnabled = true;
         this.soundEnabled = false; // Can be toggled in settings
         this.animationSpeed = 300;
+
+        // NEW: Independent progress animation system
+    this.progressAnimators = new Map(); // Store RAF animation loops per analysis
+    this.lastProgressEvent = new Map(); // Throttle progress events
+    this.renderThrottle = null; // Throttle non-progress renders
         
 this.analysisStages = {
     light: [
@@ -248,23 +253,27 @@ updateAnalysis(analysisId, updates) {
     const analysis = this.activeAnalyses.get(analysisId);
     if (!analysis) return;
     
-    // Handle smooth progress updates
-    if (updates.progress !== undefined && this.smoothProgressEnabled) {
-        // Create a copy of updates without progress for immediate assignment
-        const updatesWithoutProgress = { ...updates };
-        delete updatesWithoutProgress.progress;
+    // Handle progress updates separately (visual layer only)
+    if (updates.progress !== undefined) {
+        // Store target progress without triggering renders
+        analysis.targetProgress = updates.progress;
         
-        // Apply non-progress updates immediately
-        Object.assign(analysis, updatesWithoutProgress);
+        // Start independent progress animator if not running
+        if (!this.progressAnimators.has(analysisId)) {
+            this.startProgressAnimator(analysisId);
+        }
         
-        // Start smooth progress animation (don't update progress immediately)
-        this.smoothProgressUpdate(analysisId, updates.progress);
+        // If there are other updates besides progress, handle them
+        const nonProgressUpdates = { ...updates };
+        delete nonProgressUpdates.progress;
         
-        // Early return to avoid double update
-        this.stateManager.setState('analysisQueue', new Map(this.activeAnalyses));
-        this.eventBus.emit(window.DASHBOARD_EVENTS.ANALYSIS_PROGRESS, {
-            analysisId, updates: updatesWithoutProgress, analysis
-        });
+        if (Object.keys(nonProgressUpdates).length > 0) {
+            Object.assign(analysis, nonProgressUpdates);
+            this.throttledRender();
+        }
+        
+        // Throttle progress events (max once per second)
+        this.emitProgressEventThrottled(analysisId, updates, analysis);
         return;
     }
     
@@ -272,27 +281,128 @@ updateAnalysis(analysisId, updates) {
     Object.assign(analysis, updates);
     
     // Calculate estimated time remaining
-    if (analysis.status === 'analyzing' && updates.progress) {
+    if (analysis.status === 'analyzing' && updates.progress !== undefined) {
         analysis.estimatedTimeRemaining = this.calculateTimeRemaining(analysis);
     }
     
     this.stateManager.setState('analysisQueue', new Map(this.activeAnalyses));
-    this.renderQueue();
-    
-    this.eventBus.emit(window.DASHBOARD_EVENTS.ANALYSIS_PROGRESS, {
-        analysisId, updates, analysis
-    });
+    this.throttledRender();
     
     console.log(`🔄 [EnhancedAnalysisQueue] Updated: ${analysisId}`, updates);
 }
+
+    // ===============================================================================
+// INDEPENDENT PROGRESS ANIMATION SYSTEM
+// ===============================================================================
+
+startProgressAnimator(analysisId) {
+    const analysis = this.activeAnalyses.get(analysisId);
+    if (!analysis) return;
     
-    completeAnalysis(analysisId, success = true, message = null, result = null) {
-        const analysis = this.activeAnalyses.get(analysisId);
-        if (!analysis) return;
+    // Initialize progress tracking
+    if (analysis.visualProgress === undefined) {
+        analysis.visualProgress = 0;
+    }
+    if (analysis.targetProgress === undefined) {
+        analysis.targetProgress = 0;
+    }
+    
+    // Animation loop using requestAnimationFrame
+    const animate = () => {
+        const currentAnalysis = this.activeAnalyses.get(analysisId);
+        if (!currentAnalysis || currentAnalysis.status === 'completed' || currentAnalysis.status === 'failed') {
+            // Stop animator when analysis completes
+            this.progressAnimators.delete(analysisId);
+            return;
+        }
         
-        analysis.status = success ? 'completed' : 'failed';
-        analysis.progress = 100;
-        analysis.message = message || (success ? 'Analysis completed!' : 'Analysis failed');
+        const target = currentAnalysis.targetProgress || 0;
+        const current = currentAnalysis.visualProgress || 0;
+        
+        // Smooth interpolation - move 10% of the distance each frame
+        const diff = target - current;
+        const step = diff * 0.1;
+        
+        // Update visual progress
+        if (Math.abs(diff) > 0.1) {
+            currentAnalysis.visualProgress = current + step;
+        } else {
+            currentAnalysis.visualProgress = target;
+        }
+        
+        // Update only the progress bar DOM element (no full render)
+        this.updateProgressBarDOM(analysisId, currentAnalysis.visualProgress);
+        
+        // Store RAF ID and continue animation
+        const rafId = requestAnimationFrame(animate);
+        this.progressAnimators.set(analysisId, rafId);
+    };
+    
+    // Start the animation loop
+    const rafId = requestAnimationFrame(animate);
+    this.progressAnimators.set(analysisId, rafId);
+    
+    console.log(`🎬 [ProgressAnimator] Started for ${analysisId}`);
+}
+
+updateProgressBarDOM(analysisId, visualProgress) {
+    // Direct DOM update - bypasses full render
+    const progressBar = document.querySelector(`#queue-item-${analysisId} .smooth-progress`);
+    const progressText = document.querySelector(`#progress-${analysisId}`);
+    
+    if (progressBar) {
+        const percentage = Math.min(100, Math.max(0, Math.round(visualProgress)));
+        progressBar.style.width = `${percentage}%`;
+        
+        if (progressText) {
+            progressText.textContent = `${percentage}%`;
+        }
+    }
+}
+
+emitProgressEventThrottled(analysisId, updates, analysis) {
+    const now = Date.now();
+    const lastEmit = this.lastProgressEvent.get(analysisId) || 0;
+    
+    // Only emit progress events once per second
+    if (now - lastEmit > 1000) {
+        this.eventBus.emit(window.DASHBOARD_EVENTS.ANALYSIS_PROGRESS, {
+            analysisId, 
+            updates: { progress: Math.round(analysis.visualProgress || 0) }, 
+            analysis
+        });
+        this.lastProgressEvent.set(analysisId, now);
+    }
+}
+
+throttledRender() {
+    // Throttle renders to max once per 300ms for non-progress updates
+    if (this.renderThrottle) {
+        clearTimeout(this.renderThrottle);
+    }
+    
+    this.renderThrottle = setTimeout(() => {
+        this.stateManager.setState('analysisQueue', new Map(this.activeAnalyses));
+        this.actualRenderQueue();
+        this.renderThrottle = null;
+    }, 300);
+}
+    
+completeAnalysis(analysisId, success = true, message = null, result = null) {
+    const analysis = this.activeAnalyses.get(analysisId);
+    if (!analysis) return;
+    
+    // Stop progress animator
+    const rafId = this.progressAnimators.get(analysisId);
+    if (rafId) {
+        cancelAnimationFrame(rafId);
+        this.progressAnimators.delete(analysisId);
+    }
+    
+    analysis.status = success ? 'completed' : 'failed';
+    analysis.targetProgress = 100;
+    analysis.visualProgress = 100;
+    analysis.message = message || (success ? 'Analysis completed!' : 'Analysis failed');
         analysis.endTime = Date.now();
         analysis.duration = Math.round((analysis.endTime - analysis.startTime) / 1000);
         analysis.estimatedTimeRemaining = 0;
@@ -319,15 +429,23 @@ updateAnalysis(analysisId, updates) {
         console.log(`${success ? '✅' : '❌'} [EnhancedAnalysisQueue] ${success ? 'Completed' : 'Failed'}: @${analysis.username}`);
     }
     
-    removeAnalysis(analysisId) {
-        const analysis = this.activeAnalyses.get(analysisId);
-        if (!analysis) return;
-        
-        const element = document.getElementById(`queue-item-${analysisId}`);
-        if (element) {
-            element.classList.add('queue-item-exit');
-            setTimeout(() => {
-                this.activeAnalyses.delete(analysisId);
+removeAnalysis(analysisId) {
+    const analysis = this.activeAnalyses.get(analysisId);
+    if (!analysis) return;
+    
+    // Stop progress animator and cleanup
+    const rafId = this.progressAnimators.get(analysisId);
+    if (rafId) {
+        cancelAnimationFrame(rafId);
+        this.progressAnimators.delete(analysisId);
+    }
+    this.lastProgressEvent.delete(analysisId);
+    
+    const element = document.getElementById(`queue-item-${analysisId}`);
+    if (element) {
+        element.classList.add('queue-item-exit');
+        setTimeout(() => {
+            this.activeAnalyses.delete(analysisId);
                 this.stateManager.setState('analysisQueue', new Map(this.activeAnalyses));
                 this.renderQueue();
                 this.maybeHideQueue();
@@ -346,16 +464,9 @@ updateAnalysis(analysisId, updates) {
     // ===============================================================================
     // ENHANCED UI RENDERING
     // ===============================================================================
-    renderQueue() {
-    // Debounce renders to prevent spam
-    if (this.renderDebounce) {
-        clearTimeout(this.renderDebounce);
-    }
-    
-    this.renderDebounce = setTimeout(() => {
-        this.actualRenderQueue();
-        this.renderDebounce = null;
-    }, 16); // 60fps max
+renderQueue() {
+    // Call throttledRender instead (300ms throttle)
+    this.throttledRender();
 }
     
     actualRenderQueue() {
@@ -395,11 +506,12 @@ updateAnalysis(analysisId, updates) {
         });
     }
     
-    renderEnhancedQueueItem(analysis) {
-        const elapsed = Math.round((Date.now() - analysis.startTime) / 1000);
-        const timeText = this.formatElapsedTime(elapsed);
-        const progressPercentage = Math.min(100, Math.max(0, analysis.progress));
-        const statusConfig = this.getEnhancedStatusConfig(analysis.status);
+renderEnhancedQueueItem(analysis) {
+    const elapsed = Math.round((Date.now() - analysis.startTime) / 1000);
+    const timeText = this.formatElapsedTime(elapsed);
+    // Use visualProgress for rendering (smoothly animated by RAF)
+    const progressPercentage = Math.min(100, Math.max(0, Math.round(analysis.visualProgress || 0)));
+    const statusConfig = this.getEnhancedStatusConfig(analysis.status);
         const profileInitial = analysis.username.charAt(0).toUpperCase();
         const isActive = analysis.status === 'starting' || analysis.status === 'analyzing';
         const isCompleted = analysis.status === 'completed';
@@ -607,88 +719,38 @@ startStageBasedProgress(analysisId) {
     const stages = this.analysisStages[analysis.analysisType];
     let currentStage = 0;
     
-    // Create continuous progress within each stage
+    // Update stage info and target progress
     const progressStage = () => {
         if (currentStage >= stages.length || analysis.status !== 'analyzing') return;
         
         const stage = stages[currentStage];
         const progressPerStage = 100 / stages.length;
-        const stageStartProgress = currentStage * progressPerStage;
-        const stageEndProgress = (currentStage + 1) * progressPerStage;
+        const targetProgress = Math.round((currentStage + 1) * progressPerStage);
         
-        // Update stage info immediately
+        // Update stage info (no progress, that's handled by animator)
         this.updateAnalysis(analysisId, {
             currentStage,
             message: stage.text.replace('@profile', `@${analysis.username}`),
             estimatedTimeRemaining: this.calculateStageTimeRemaining(analysis, currentStage)
         });
         
-        // Smooth progress within this stage
-        const smoothProgressInStage = () => {
-            const steps = 30; // Number of progress updates within stage
-            const stepSize = progressPerStage / steps;
-            const stepDelay = stage.duration / steps;
-            
-            let step = 0;
-            const stepUpdate = () => {
-                if (step >= steps || analysis.status !== 'analyzing') {
-                    currentStage++;
-                    setTimeout(progressStage, 100); // Brief pause between stages
-                    return;
-                }
-                
-                const currentProgress = stageStartProgress + (step * stepSize);
-                analysis.progress = Math.round(currentProgress);
-                this.renderQueue();
-                
-                step++;
-                setTimeout(stepUpdate, stepDelay);
-            };
-            
-            stepUpdate();
-        };
+        // Set target progress for animator to reach smoothly
+        this.updateAnalysis(analysisId, {
+            progress: targetProgress
+        });
         
-        smoothProgressInStage();
-    };
-        
-        // Start with analyzing status
-        setTimeout(() => {
-            this.updateAnalysis(analysisId, { status: 'analyzing' });
-            progressStage();
-        }, 500);
-    }
-    
-smoothProgressUpdate(analysisId, targetProgress) {
-    const analysis = this.activeAnalyses.get(analysisId);
-    if (!analysis) return;
-    
-    // Skip if already animating to prevent conflicts
-    if (analysis.isAnimating) return;
-    analysis.isAnimating = true;
-    
-    const currentProgress = analysis.progress || 0;
-    const progressDiff = targetProgress - currentProgress;
-    const steps = 20;
-    const stepSize = progressDiff / steps;
-    const stepDelay = 50;
-    
-    let currentStep = 0;
-    const smoothStep = () => {
-        if (currentStep >= steps || analysis.status === 'completed' || analysis.status === 'failed') {
-            analysis.progress = targetProgress;
-            analysis.isAnimating = false;
-            this.renderQueue();
-            return;
+        // Move to next stage after duration
+        currentStage++;
+        if (currentStage < stages.length) {
+            setTimeout(progressStage, stage.duration);
         }
-        
-        analysis.progress = Math.round(currentProgress + (stepSize * currentStep));
-        this.renderQueue();
-        
-        currentStep++;
-        setTimeout(smoothStep, stepDelay);
     };
     
-    smoothStep();
+    // Start with analyzing status
+    setTimeout(() => {
+        this.updateAnalysis(analysisId, { status: 'analyzing' });
+        progressStage();
+    }, 500);
 }
     
     triggerCelebration(analysisId, result = null) {
