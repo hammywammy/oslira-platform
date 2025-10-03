@@ -105,4 +105,24 @@ window.DependencyReadiness.registerCheck('AnalysisQueue', () => {
     return typeof window.AnalysisQueue === 'function';
 });
 
+window.DependencyReadiness.registerCheck('DashboardStateManager', () => {
+    return typeof window.DashboardStateManager === 'function';
+});
+
+window.DependencyReadiness.registerCheck('StatsCards', () => {
+    return typeof window.StatsCards === 'function';
+});
+
+window.DependencyReadiness.registerCheck('LeadsTable', () => {
+    return typeof window.LeadsTable === 'function';
+});
+
+window.DependencyReadiness.registerCheck('InsightsPanel', () => {
+    return typeof window.InsightsPanel === 'function';
+});
+
+window.DependencyReadiness.registerCheck('ResearchHandlers', () => {
+    return typeof window.ResearchHandlers === 'function';
+});
+
 console.log('✅ [DependencyReadiness] Module loaded with registered checks');
