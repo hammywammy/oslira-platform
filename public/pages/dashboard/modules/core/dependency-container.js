@@ -70,39 +70,52 @@ registerSingleton(name, instance) {
     /**
      * Get dependency instance
      */
-get(name) {
-    // Check if it's a factory
-    if (this.factories.has(name)) {
-        const factoryInfo = this.factories.get(name);
-        
-        // Return cached instance if exists
-        if (factoryInfo.instance) {
-            return factoryInfo.instance;
-        }
-        
-        // Create instance only once
-        const deps = factoryInfo.dependencies.map(dep => this.get(dep));
-        const result = factoryInfo.factory(...deps);
-        
-        // Handle async factories
-        if (result && typeof result.then === 'function') {
-            throw new Error(`Async factory '${name}' must be resolved before use. Use getAsync() or ensure factory is pre-resolved.`);
-        }
-        
-        factoryInfo.instance = result;
-        console.log(`🏗️ [DependencyContainer] Factory instance created: ${name}`);
-        
-        return factoryInfo.instance;
-    }
-        
-    // Check regular dependencies
-    if (this.dependencies.has(name)) {
-        return this.dependencies.get(name);
-    }
+get(name, retryCount = 0) {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 100;
     
-    throw new Error(`Dependency '${name}' not found. Available: ${Array.from(this.dependencies.keys()).join(', ')}`);
-}
+    // Check if singleton exists
+    if (this.instances.has(name)) {
+        return this.instances.get(name);
+    }
 
+    const factoryInfo = this.factories.get(name);
+    if (!factoryInfo) {
+        throw new Error(`Dependency '${name}' not registered`);
+    }
+
+    // Resolve dependencies first
+    const resolvedDeps = this.resolveDependencies(factoryInfo.dependencies);
+
+    try {
+        console.log(`🏗️ [DependencyContainer] Factory instance created: ${name}`);
+        const instance = factoryInfo.factory(...resolvedDeps);
+        
+        // Convert to singleton if marked
+        if (factoryInfo.dependencies.length > 0) {
+            this.instances.set(name, instance);
+            this.factories.delete(name);
+            console.log(`🔄 [DependencyContainer] Replaced factory with singleton: ${name}`);
+        }
+        
+        return instance;
+        
+    } catch (error) {
+        // Retry logic for race conditions
+        if (retryCount < MAX_RETRIES && error.message.includes('not loaded')) {
+            console.warn(`⚠️ [DependencyContainer] Retry ${retryCount + 1}/${MAX_RETRIES} for ${name}`);
+            
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve(this.get(name, retryCount + 1));
+                }, RETRY_DELAY * (retryCount + 1));
+            });
+        }
+        
+        console.error(`❌ [DependencyContainer] Failed to create ${name}:`, error);
+        throw error;
+    }
+}
     /**
  * Get dependency instance (async version for async factories)
  */
