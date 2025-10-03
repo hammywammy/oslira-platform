@@ -217,7 +217,7 @@ handleBusinessChange(event) {
 }
 
 updateUserInfo() {
-    const user = window.OsliraAuth?.user || this.auth?.user;
+    const user = window.OsliraAuth?.user;
     if (!user) {
         console.warn('⚠️ [SidebarManager] No user available for info update');
         return;
@@ -225,13 +225,26 @@ updateUserInfo() {
     
     console.log('👤 [SidebarManager] Updating user info:', {
         email: user.email,
-        credits: user.credits
+        credits: user.credits,
+        plan: user.subscription_plan
     });
     
+    // Update email display
+    const emailElement = document.getElementById('sidebar-email');
+    if (emailElement && user.email) {
+        emailElement.textContent = user.email;
+    }
+    
+    // Update plan display
+    const planElement = document.getElementById('sidebar-plan');
+    if (planElement) {
+        planElement.textContent = this.formatPlanName(user.subscription_plan || 'free');
+    }
+    
     // Update credits display
-    const creditsElement = document.querySelector('#sidebar-credits');
+    const creditsElement = document.getElementById('sidebar-credits');
     if (creditsElement && user.credits !== undefined) {
-        creditsElement.textContent = user.credits;
+        creditsElement.textContent = user.credits.toLocaleString();
     }
 }
 
@@ -641,15 +654,14 @@ setBusinessManager(businessManager) {
     // =========================================================================
 // USER DATA INTEGRATION
 // =========================================================================
-
 initializeUserIntegration() {
     console.log('👤 [SidebarManager] Initializing user integration...');
     
-    // Wait for OsliraApp to be available and update user info
+    // Poll for OsliraAuth user data (primary source)
     const waitForUserData = setInterval(() => {
-        if (window.OsliraApp?.user) {
+        if (window.OsliraAuth?.user) {
             clearInterval(waitForUserData);
-            this.updateUserInfo(window.OsliraApp.user);
+            this.updateUserInfo();
             console.log('✅ [SidebarManager] User integration initialized');
         }
     }, 100);
