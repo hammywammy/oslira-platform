@@ -45,8 +45,7 @@ renderTableContainer() {
         Delete
     </button>
                     
-    <!-- Copy Dropdown -->
-    <div class="relative">
+
 <div class="relative z-50">
     <button id="copy-dropdown-btn" onclick="window.toggleCopyDropdown()" 
             class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-1">
