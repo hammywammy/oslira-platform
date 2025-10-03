@@ -27,6 +27,7 @@ this.coreScripts = [
         this.pageConfigs = {
             'dashboard': {
                 scripts: [
+                    '/core/dependency-readiness.js',
                     '/core/api-client.js',
                     '/core/sidebar/sidebar-manager.js',
                     '/pages/dashboard/modules/core/DashboardCore.js',
