@@ -499,13 +499,6 @@
   scrollbar-color: #d1d5db transparent;
 }
 
-/* Sidebar Logo Link */
-.sidebar-logo-link {
-    display: block;
-    text-decoration: none;
-    cursor: pointer;
-    transition: opacity 0.2s ease;
-}
 
 .sidebar-logo-link:hover {
     opacity: 0.85;
@@ -517,6 +510,40 @@
 
 .sidebar-logo-link:hover .sidebar-logo-text {
     color: #6366f1;
+}
+
+/* Sidebar logo link layout */
+.sidebar-logo-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    transition: none;
+}
+
+/* Sidebar logo image - no hover effects */
+.sidebar-logo-link .sidebar-logo-image {
+    display: block;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.sidebar-logo-link:hover .sidebar-logo-image {
+    transform: none !important;
+    filter: none !important;
+}
+
+/* Sidebar logo text - has hover effect */
+.sidebar-logo-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    white-space: nowrap;
+}
+
+.sidebar-logo-text.home-logo:hover {
+    color: #3b82f6 !important;
 }
 
 /* Mobile responsiveness */
