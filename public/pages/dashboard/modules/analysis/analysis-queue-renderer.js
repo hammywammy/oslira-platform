@@ -22,18 +22,15 @@ class AnalysisQueueRenderer {
         );
 
         if (analyses.length === 0) {
-            container.innerHTML = '';
+            container.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">No active analyses</div>';
+            this.queue.updateQueueBadge();
             return;
         }
 
-        const needsScroll = analyses.length > this.queue.maxVisible;
-        const visibleAnalyses = needsScroll ? 
-            analyses.slice(0, this.queue.maxVisible) : analyses;
-
+        // Show all items with scrolling (no maxVisible limit in collapsed view)
         container.innerHTML = `
             <div class="space-y-3">
-                ${visibleAnalyses.map(analysis => this.renderQueueItem(analysis)).join('')}
-                ${this.renderQueueFooter(analyses.length, needsScroll)}
+                ${analyses.map(analysis => this.renderQueueItem(analysis)).join('')}
             </div>
         `;
 
@@ -47,8 +44,10 @@ class AnalysisQueueRenderer {
 
         this.queue.eventBus.emit(window.DASHBOARD_EVENTS.QUEUE_UPDATED, {
             count: analyses.length,
-            visible: visibleAnalyses.length
+            visible: analyses.length
         });
+
+        this.queue.updateQueueBadge();
     }
 
     renderQueueItem(analysis) {
@@ -167,27 +166,8 @@ class AnalysisQueueRenderer {
     }
 
     renderQueueFooter(totalCount, needsScroll) {
-        const completedCount = Array.from(this.queue.activeAnalyses.values())
-            .filter(a => a.status === 'completed' || a.status === 'failed').length;
-
-        return `
-            ${needsScroll ? `
-                <div class="glass-card rounded-lg p-3 text-center">
-                    <p class="text-sm text-gray-600">+${totalCount - this.queue.maxVisible} more analyses</p>
-                </div>
-            ` : ''}
-            ${completedCount > 0 ? `
-                <div class="flex justify-center">
-                    <button onclick="analysisQueue.clearCompleted()" 
-                            class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors flex items-center space-x-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                        </svg>
-                        <span>Clear Completed</span>
-                    </button>
-                </div>
-            ` : ''}
-        `;
+        // Footer removed - queue shows all items with scroll
+        return '';
     }
 
     updateProgressBarDOM(analysisId, visualProgress) {
