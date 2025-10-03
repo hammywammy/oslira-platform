@@ -66,9 +66,9 @@ class AnalysisQueueStyles {
                 transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             }
 
-            /* Collapsed State */
+            /* Collapsed State - Move completely off screen */
             .queue-wrapper.collapsed .queue-container {
-                transform: translateX(360px);
+                transform: translateX(calc(360px + 32px));
             }
 
             /* Purple Wave Gradient Header */
