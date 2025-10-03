@@ -108,6 +108,23 @@ if (window.BulkModal) {
     console.warn('⚠️ [DashboardCore] BulkModal class not found');
 }
 
+// Initialize and populate FilterModal
+console.log('🔧 [DashboardCore] Populating FilterModal...');
+if (window.FilterModal) {
+    const filterModal = new window.FilterModal(container);
+    const modalHTML = filterModal.renderModal();
+    const modalContainer = document.getElementById('filter-modal-container');
+    if (modalContainer) {
+        modalContainer.innerHTML = modalHTML;
+        filterModal.setupEventHandlers();
+        console.log('✅ [DashboardCore] FilterModal populated with content');
+    } else {
+        console.warn('⚠️ [DashboardCore] #filter-modal-container not found');
+    }
+} else {
+    console.warn('⚠️ [DashboardCore] FilterModal class not found');
+}
+
 // Load lead data after UI and renderer are ready
 console.log('📊 [DashboardCore] Loading lead data...');
 const leadManager = container.get('leadManager');
