@@ -7,35 +7,88 @@ class LeadsTable {
         this.leadRenderer = container.get('leadRenderer');
     }
 
-    renderTableContainer() {
-        return `
+renderTableContainer() {
+    return `
 <!-- Recent Lead Research - Full Width -->
 <div class="mb-8">
     <div class="glass-white rounded-2xl overflow-hidden">
         <!-- Table Header -->
-        <div class="p-6 border-b border-gray-100">
-            <div class="flex items-center justify-between">
+        <div class="p-6 pb-4 border-b border-gray-100">
+            <div class="flex items-center justify-between mb-4">
                 <div>
                     <h3 class="text-lg font-bold text-gray-800">Recent Lead Research</h3>
                     <p class="text-sm text-gray-500 mt-1">Individual leads with AI-generated scores and status</p>
                 </div>
-                <div class="flex items-center space-x-3">
-                    <!-- Filter Dropdown -->
-<select id="platform-filter" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-    <option>All Platforms</option>
-    <option>Instagram</option>
-</select>
-<!-- Sort Dropdown -->
-<select id="sort-filter" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-    <option value="date-desc">Recent (newest → oldest)</option>
-    <option value="date-asc">Recent (oldest → newest)</option>
-    <option value="score-desc">Score (high → low)</option>
-    <option value="score-asc">Score (low → high)</option>
-    <option value="followers-desc">Followers (high → low)</option>
-    <option value="followers-asc">Followers (low → high)</option>
-    <option value="name-asc">Name (A → Z)</option>
-    <option value="name-desc">Name (Z → A)</option>
-</select>
+            </div>
+            
+            <!-- Filter Bar Below Header -->
+            <div class="flex items-center justify-between space-x-3 pt-2">
+                <!-- Bulk Actions (Hidden by default) -->
+                <div id="bulk-actions-bar" class="hidden flex items-center space-x-2">
+                    <button id="delete-selected-btn" onclick="window.deleteSelectedLeads()" 
+                            class="px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors">
+                        Delete
+                    </button>
+                    
+                    <!-- Copy Dropdown -->
+                    <div class="relative">
+                        <button id="copy-dropdown-btn" onclick="window.toggleCopyDropdown()" 
+                                class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-1">
+                            <span>Copy</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div id="copy-dropdown" class="hidden absolute left-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                            <button onclick="window.copySelectedAsFormat('csv')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg">
+                                Copy as CSV
+                            </button>
+                            <button onclick="window.copySelectedAsFormat('json')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg">
+                                Copy as JSON
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Export Dropdown -->
+                    <div class="relative">
+                        <button id="export-dropdown-btn" onclick="window.toggleExportDropdown()" 
+                                class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-1">
+                            <span>Export</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div id="export-dropdown" class="hidden absolute left-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                            <button onclick="window.exportSelectedAsFormat('csv')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg">
+                                Export as CSV
+                            </button>
+                            <button onclick="window.exportSelectedAsFormat('json')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg">
+                                Export as JSON
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <span id="selected-count" class="text-sm text-gray-600 ml-2"></span>
+                </div>
+                
+                <!-- Right-side Filters -->
+                <div class="flex items-center space-x-3 ml-auto">
+                    <!-- Platform Filter -->
+                    <select id="platform-filter" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option>All Platforms</option>
+                        <option>Instagram</option>
+                    </select>
+                    <!-- Sort Dropdown -->
+                    <select id="sort-filter" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="date-desc">Recent (newest → oldest)</option>
+                        <option value="date-asc">Recent (oldest → newest)</option>
+                        <option value="score-desc">Score (high → low)</option>
+                        <option value="score-asc">Score (low → high)</option>
+                        <option value="followers-desc">Followers (high → low)</option>
+                        <option value="followers-asc">Followers (low → high)</option>
+                        <option value="name-asc">Name (A → Z)</option>
+                        <option value="name-desc">Name (Z → A)</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -58,7 +111,7 @@ class LeadsTable {
         </div>
     </div>
 </div>`;
-    }
+}
 
 
 updatePagination(start, end, total) {
@@ -356,6 +409,234 @@ setupEventHandlers() {
             }, 300);
         }, 3000);
     }
+
+    setupSelectionHandlers() {
+    const stateManager = this.container.get('stateManager');
+    const leadRenderer = this.container.get('leadRenderer');
+    const leadManager = this.container.get('leadManager');
+    
+    // Toggle single lead selection
+    window.toggleLeadSelection = (leadId, isChecked) => {
+        const selectedLeads = stateManager.getState('selectedLeads') || new Set();
+        
+        if (isChecked) {
+            selectedLeads.add(leadId);
+        } else {
+            selectedLeads.delete(leadId);
+        }
+        
+        stateManager.setState('selectedLeads', selectedLeads);
+        this.updateBulkActionsBar(selectedLeads.size);
+        this.updateSelectAllCheckbox();
+        
+        console.log(`✅ [LeadsTable] Lead ${leadId} ${isChecked ? 'selected' : 'deselected'}. Total: ${selectedLeads.size}`);
+    };
+    
+    // Toggle all leads selection
+    window.toggleAllLeadSelections = (isChecked) => {
+        const leads = stateManager.getState('filteredLeads') || stateManager.getState('leads') || [];
+        const selectedLeads = new Set();
+        
+        if (isChecked) {
+            leads.forEach(lead => selectedLeads.add(lead.id));
+        }
+        
+        // Update all checkboxes
+        document.querySelectorAll('.lead-checkbox').forEach(checkbox => {
+            checkbox.checked = isChecked;
+        });
+        
+        stateManager.setState('selectedLeads', selectedLeads);
+        this.updateBulkActionsBar(selectedLeads.size);
+        
+        console.log(`✅ [LeadsTable] ${isChecked ? 'Selected' : 'Deselected'} all leads. Total: ${selectedLeads.size}`);
+    };
+    
+    // Delete selected leads
+    window.deleteSelectedLeads = async () => {
+        const selectedLeads = stateManager.getState('selectedLeads') || new Set();
+        
+        if (selectedLeads.size === 0) {
+            alert('No leads selected');
+            return;
+        }
+        
+        const confirmed = confirm(`Are you sure you want to delete ${selectedLeads.size} lead(s)? This action cannot be undone.`);
+        if (!confirmed) return;
+        
+        try {
+            const deleteBtn = document.getElementById('delete-selected-btn');
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+                deleteBtn.textContent = 'Deleting...';
+            }
+            
+            await leadManager.bulkDeleteLeads(Array.from(selectedLeads));
+            
+            // Clear selection and hide bulk actions
+            stateManager.setState('selectedLeads', new Set());
+            this.updateBulkActionsBar(0);
+            this.updateSelectAllCheckbox();
+            
+            // Refresh leads display
+            leadRenderer.displayLeads();
+            
+            alert(`Successfully deleted ${selectedLeads.size} lead(s)`);
+            
+        } catch (error) {
+            console.error('❌ [LeadsTable] Delete failed:', error);
+            alert(`Failed to delete leads: ${error.message}`);
+        } finally {
+            const deleteBtn = document.getElementById('delete-selected-btn');
+            if (deleteBtn) {
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = 'Delete';
+            }
+        }
+    };
+    
+    // Copy/Export handlers
+    window.toggleCopyDropdown = () => {
+        const dropdown = document.getElementById('copy-dropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('hidden');
+        }
+        // Close export dropdown if open
+        const exportDropdown = document.getElementById('export-dropdown');
+        if (exportDropdown) exportDropdown.classList.add('hidden');
+    };
+    
+    window.toggleExportDropdown = () => {
+        const dropdown = document.getElementById('export-dropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('hidden');
+        }
+        // Close copy dropdown if open
+        const copyDropdown = document.getElementById('copy-dropdown');
+        if (copyDropdown) copyDropdown.classList.add('hidden');
+    };
+    
+    window.copySelectedAsFormat = (format) => {
+        const selectedLeads = this.getSelectedLeadsData();
+        if (selectedLeads.length === 0) {
+            alert('No leads selected');
+            return;
+        }
+        
+        let content = '';
+        if (format === 'csv') {
+            content = this.convertToCSV(selectedLeads);
+        } else if (format === 'json') {
+            content = JSON.stringify(selectedLeads, null, 2);
+        }
+        
+        navigator.clipboard.writeText(content).then(() => {
+            alert(`Copied ${selectedLeads.length} lead(s) as ${format.toUpperCase()}`);
+            document.getElementById('copy-dropdown').classList.add('hidden');
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+            alert('Failed to copy to clipboard');
+        });
+    };
+    
+    window.exportSelectedAsFormat = (format) => {
+        const selectedLeads = this.getSelectedLeadsData();
+        if (selectedLeads.length === 0) {
+            alert('No leads selected');
+            return;
+        }
+        
+        if (format === 'csv') {
+            this.downloadCSV(selectedLeads, 'selected');
+        } else if (format === 'json') {
+            this.downloadJSON(selectedLeads);
+        }
+        
+        document.getElementById('export-dropdown').classList.add('hidden');
+    };
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#copy-dropdown-btn') && !e.target.closest('#copy-dropdown')) {
+            const copyDropdown = document.getElementById('copy-dropdown');
+            if (copyDropdown) copyDropdown.classList.add('hidden');
+        }
+        if (!e.target.closest('#export-dropdown-btn') && !e.target.closest('#export-dropdown')) {
+            const exportDropdown = document.getElementById('export-dropdown');
+            if (exportDropdown) exportDropdown.classList.add('hidden');
+        }
+    });
+    
+    console.log('✅ [LeadsTable] Selection handlers attached');
+}
+
+updateBulkActionsBar(count) {
+    const bulkActionsBar = document.getElementById('bulk-actions-bar');
+    const selectedCount = document.getElementById('selected-count');
+    
+    if (count > 0) {
+        if (bulkActionsBar) bulkActionsBar.classList.remove('hidden');
+        if (selectedCount) selectedCount.textContent = `${count} selected`;
+    } else {
+        if (bulkActionsBar) bulkActionsBar.classList.add('hidden');
+        if (selectedCount) selectedCount.textContent = '';
+    }
+}
+
+updateSelectAllCheckbox() {
+    const stateManager = this.container.get('stateManager');
+    const selectAllCheckbox = document.getElementById('select-all-checkbox');
+    if (!selectAllCheckbox) return;
+    
+    const leads = stateManager.getState('filteredLeads') || stateManager.getState('leads') || [];
+    const selectedLeads = stateManager.getState('selectedLeads') || new Set();
+    
+    if (leads.length === 0) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+    } else if (selectedLeads.size === leads.length) {
+        selectAllCheckbox.checked = true;
+        selectAllCheckbox.indeterminate = false;
+    } else if (selectedLeads.size > 0) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = true;
+    } else {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+    }
+}
+
+getSelectedLeadsData() {
+    const stateManager = this.container.get('stateManager');
+    const selectedLeads = stateManager.getState('selectedLeads') || new Set();
+    const allLeads = stateManager.getState('leads') || [];
+    
+    return allLeads.filter(lead => selectedLeads.has(lead.id));
+}
+
+convertToCSV(leads) {
+    const headers = ['Username', 'Full Name', 'Platform', 'Score', 'Followers', 'Analysis Type', 'Date Added'];
+    const rows = leads.map(lead => [
+        lead.username || '',
+        lead.full_name || lead.display_name || '',
+        lead.platform || 'instagram',
+        lead.score || 0,
+        lead.followers_count || lead.follower_count || 0,
+        lead.analysis_type || '',
+        this.formatDate(lead.created_at || lead.first_discovered_at)
+    ]);
+    
+    return [headers, ...rows].map(row => row.join(',')).join('\n');
+}
+
+downloadJSON(leads) {
+    const jsonContent = JSON.stringify(leads, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `leads-export-${new Date().toISOString().slice(0,10)}.json`;
+    link.click();
+}
 }
 
 if (typeof module !== 'undefined' && module.exports) {
