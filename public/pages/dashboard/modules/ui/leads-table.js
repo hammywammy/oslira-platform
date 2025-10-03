@@ -72,15 +72,15 @@ renderTableContainer() {
 <!-- Right-side Filters - Always stay right -->
     <div class="flex items-center space-x-3" style="margin-left: auto;">
                     <!-- Platform Filter -->
-                    <select id="platform-filter" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <option>All Platforms</option>
-                        <option>Instagram</option>
+                    <select id="platform-filter" class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="all">All Platforms</option>
+                        <option value="instagram">Instagram</option>
                     </select>
                     <!-- Sort Dropdown -->
-                    <select id="sort-filter" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <option value="date-desc">Recent (newest → oldest)</option>
-                        <option value="date-asc">Recent (oldest → newest)</option>
-                        <option value="score-desc">Score (high → low)</option>
+                    <select id="sort-filter" class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="date-desc">Recent (newest first)</option>
+                        <option value="date-asc">Recent (oldest first)</option>
+                        <option value="score-desc">Score (high to low)</option>
                         <option value="score-asc">Score (low → high)</option>
                         <option value="followers-desc">Followers (high → low)</option>
                         <option value="followers-asc">Followers (low → high)</option>
