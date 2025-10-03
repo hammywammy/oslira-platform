@@ -146,65 +146,58 @@ async getAsync(name) {
     /**
      * Initialize all dependencies in correct order
      */
-    async initialize() {
-        if (this.initialized) {
-            console.log('⚠️ [DependencyContainer] Already initialized');
-            return;
-        }
-        
-        console.log('🔄 [DependencyContainer] Starting initialization...');
-        
-        // Get dependency graph for factories
-        const factoryNames = Array.from(this.factories.keys());
-        const sortedFactories = this.topologicalSort(factoryNames);
-        
-// Initialize factories in dependency order
-for (const factoryName of sortedFactories) {
-    if (!this.factories.get(factoryName).instance) {
-        try {
-            // Skip async factories that haven't been pre-resolved
-            const factoryInfo = this.factories.get(factoryName);
-const instance = this.get(factoryName);
-
-if (result && typeof result.then === 'function') {
-    console.warn(`⚠️ [DependencyContainer] Skipping async factory '${factoryName}'`);
-    continue;
-}
-            
-            // Call init method if it exists
-            if (instance && typeof instance.init === 'function') {
-                console.log(`🔧 [DependencyContainer] Initializing: ${factoryName}`);
-                await instance.init();
-            }
-            
-            this.initializationOrder.push(factoryName);
-        } catch (error) {
-            console.error(`❌ [DependencyContainer] Failed to initialize ${factoryName}:`, error);
-            // Don't throw for non-critical failures
-            if (factoryName === 'analysisFunctions' || factoryName === 'supabase') {
-                throw error; // Critical dependencies
-            }
-        }
+async initialize() {
+    if (this.initialized) {
+        console.log('⚠️ [DependencyContainer] Already initialized');
+        return;
     }
-}
-        
-        // Initialize singletons that have init methods
-        for (const [name, instance] of this.singletons.entries()) {
-            if (instance && typeof instance.init === 'function') {
-                try {
-                    console.log(`🔧 [DependencyContainer] Initializing singleton: ${name}`);
+    
+    console.log('🔄 [DependencyContainer] Starting initialization...');
+    
+    const factoryNames = Array.from(this.factories.keys());
+    const sortedFactories = this.topologicalSort(factoryNames);
+    
+    // Initialize factories in dependency order
+    for (const factoryName of sortedFactories) {
+        if (!this.factories.get(factoryName).instance) {
+            try {
+                const instance = this.get(factoryName);
+                
+                // Call init method if it exists
+                if (instance && typeof instance.init === 'function') {
+                    console.log(`🔧 [DependencyContainer] Initializing: ${factoryName}`);
                     await instance.init();
-                } catch (error) {
-                    console.error(`❌ [DependencyContainer] Failed to initialize singleton ${name}:`, error);
+                }
+                
+                this.initializationOrder.push(factoryName);
+            } catch (error) {
+                console.error(`❌ [DependencyContainer] Failed to initialize ${factoryName}:`, error);
+                
+                // Critical dependencies must succeed
+                if (factoryName === 'analysisFunctions' || factoryName === 'supabase') {
                     throw error;
                 }
             }
         }
-        
-        this.initialized = true;
-        console.log('✅ [DependencyContainer] Initialization completed');
-        console.log('📋 [DependencyContainer] Initialization order:', this.initializationOrder);
     }
+    
+    // Initialize singletons that have init methods
+    for (const [name, instance] of this.singletons.entries()) {
+        if (instance && typeof instance.init === 'function') {
+            try {
+                console.log(`🔧 [DependencyContainer] Initializing singleton: ${name}`);
+                await instance.init();
+            } catch (error) {
+                console.error(`❌ [DependencyContainer] Failed to initialize singleton ${name}:`, error);
+                throw error;
+            }
+        }
+    }
+    
+    this.initialized = true;
+    console.log('✅ [DependencyContainer] Initialization completed');
+    console.log('📋 [DependencyContainer] Initialization order:', this.initializationOrder);
+}
     
     /**
      * Cleanup all dependencies
