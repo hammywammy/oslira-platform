@@ -31,13 +31,55 @@ getProfileImageUrl(lead) {
         '/assets/images/default-avatar.jpg';
 }
 
-    getScoreGradient(score) {
-        if (score >= 85) return 'from-emerald-400 via-green-500 to-teal-600';
-        if (score >= 70) return 'from-blue-400 via-indigo-500 to-purple-600';
-        if (score >= 55) return 'from-yellow-400 via-orange-500 to-red-500';
-        if (score >= 40) return 'from-orange-400 via-red-500 to-pink-600';
-        return 'from-gray-400 via-slate-500 to-gray-600';
+getScoreGradient(score) {
+    // Calculate gradient based on smooth color interpolation
+    // Bad (0-30): Deep Red #B22222
+    // Medium (31-50): Amber/Orange #FF8C00
+    // Upper Medium (51-65): Soft Teal #40E0D0
+    // Good (66-80): Deep Blue #1E3A8A
+    // Excellent (81+): Rich Purple #6B21A8
+    
+    if (score >= 81) {
+        // Excellent: Rich Purple gradient
+        return 'from-purple-800 via-purple-700 to-purple-600';
+    } else if (score >= 66) {
+        // Good: Deep Blue with purple blend based on proximity to 81
+        const blendFactor = (score - 66) / 15; // 0 to 1 as score goes 66→81
+        if (blendFactor > 0.6) {
+            return 'from-indigo-900 via-indigo-800 to-purple-700';
+        } else if (blendFactor > 0.3) {
+            return 'from-indigo-900 via-blue-800 to-indigo-700';
+        }
+        return 'from-blue-900 via-indigo-900 to-blue-800';
+    } else if (score >= 51) {
+        // Upper Medium: Soft Teal with blue blend based on proximity to 66
+        const blendFactor = (score - 51) / 15; // 0 to 1 as score goes 51→66
+        if (blendFactor > 0.6) {
+            return 'from-teal-500 via-cyan-600 to-blue-700';
+        } else if (blendFactor > 0.3) {
+            return 'from-teal-400 via-teal-500 to-cyan-500';
+        }
+        return 'from-teal-400 via-cyan-400 to-teal-500';
+    } else if (score >= 31) {
+        // Medium: Amber/Orange with teal blend based on proximity to 51
+        const blendFactor = (score - 31) / 20; // 0 to 1 as score goes 31→51
+        if (blendFactor > 0.6) {
+            return 'from-orange-500 via-yellow-500 to-teal-400';
+        } else if (blendFactor > 0.3) {
+            return 'from-orange-600 via-orange-500 to-yellow-500';
+        }
+        return 'from-orange-600 via-orange-600 to-orange-500';
+    } else {
+        // Bad: Deep Red with orange blend based on proximity to 31
+        const blendFactor = score / 30; // 0 to 1 as score goes 0→30
+        if (blendFactor > 0.6) {
+            return 'from-red-700 via-red-600 to-orange-600';
+        } else if (blendFactor > 0.3) {
+            return 'from-red-700 via-red-700 to-red-600';
+        }
+        return 'from-red-800 via-red-700 to-red-700';
     }
+}
 
     getMainScore(lead, analysisData, isDeepAnalysis) {
         return isDeepAnalysis ? 
