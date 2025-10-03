@@ -196,6 +196,106 @@ class DashboardStyles {
         background-size: 200% 100%;
         animation: scoreWave 3s ease-in-out infinite;
     }
+
+    /* ============================================================================
+   DASHBOARD SMOOTH TRANSITIONS & ANIMATIONS
+   ============================================================================ */
+
+/* Smooth table refresh transitions */
+.leads-table tbody {
+    transition: opacity 0.2s ease-in-out;
+}
+
+.leads-table tbody.refreshing {
+    opacity: 0.7;
+}
+
+/* Bulk actions bar smooth slide-in */
+#bulk-actions-bar {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: left center;
+}
+
+#bulk-actions-bar.hidden {
+    opacity: 0;
+    transform: translateX(-20px);
+    pointer-events: none;
+}
+
+#bulk-actions-bar:not(.hidden) {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Checkbox smooth state changes */
+.lead-checkbox {
+    transition: all 0.15s ease;
+}
+
+.lead-checkbox:checked {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+/* Select-all checkbox indeterminate state */
+#select-all-checkbox:indeterminate {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 8h8'/%3e%3c/svg%3e");
+}
+
+/* Selected row highlight */
+tr[data-lead-id].bg-blue-50 {
+    transition: background-color 0.2s ease;
+}
+
+/* Prevent layout shift */
+.flex-shrink-0 {
+    flex-shrink: 0 !important;
+}
+
+/* Dropdown smooth animations */
+#copy-dropdown,
+#export-dropdown {
+    animation: dropdownSlideIn 0.2s ease-out;
+}
+
+@keyframes dropdownSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Button hover states */
+#bulk-actions-bar button {
+    transition: all 0.2s ease;
+}
+
+#bulk-actions-bar button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+#bulk-actions-bar button:active {
+    transform: translateY(0);
+}
+
+/* Smooth scroll behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Loading state for buttons */
+button[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
 </style>`;
     }
 }
