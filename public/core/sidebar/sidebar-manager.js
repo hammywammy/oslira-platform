@@ -226,28 +226,32 @@ updateUserInfo() {
     console.log('👤 [SidebarManager] Updating user info:', {
         email: user.email,
         credits: user.credits,
-        plan: user.subscription_plan
+        plan: user.plan_type
     });
     
-    // Update email display
+    // Update email
     const emailElement = document.getElementById('sidebar-email');
     if (emailElement && user.email) {
         emailElement.textContent = user.email;
     }
     
-    // Update plan display
+    // Update plan
     const planElement = document.getElementById('sidebar-plan');
-    if (planElement) {
-        planElement.textContent = this.formatPlanName(user.subscription_plan || 'free');
+    if (planElement && user.plan_type) {
+        const planNames = {
+            'free': 'Free Plan',
+            'starter': 'Starter Plan',
+            'pro': 'Pro Plan'
+        };
+        planElement.textContent = planNames[user.plan_type] || 'Free Plan';
     }
     
-    // Update credits display
+    // Update credits
     const creditsElement = document.getElementById('sidebar-credits');
-    if (creditsElement && user.credits !== undefined) {
-        creditsElement.textContent = user.credits.toLocaleString();
+    if (creditsElement) {
+        creditsElement.textContent = user.credits !== undefined ? user.credits.toLocaleString() : '--';
     }
 }
-
     setActiveMenuItem(pageId) {
         console.log(`🎯 [SidebarManager] Setting active menu item: ${pageId}`);
         
