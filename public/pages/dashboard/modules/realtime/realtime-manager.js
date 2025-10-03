@@ -20,7 +20,7 @@ class RealtimeManager {
         this.lastUpdateTimestamp = null;
         this.connectionAttempts = 0;
         this.maxConnectionAttempts = 3;
-        this.pollingIntervalMs = 30000; // 30 seconds
+        this.pollingIntervalMs = 60000; // 30 seconds
         
         // Bind methods for event listeners
         this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
