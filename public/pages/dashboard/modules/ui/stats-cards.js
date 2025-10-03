@@ -7,8 +7,20 @@ class StatsCards {
         this.stateManager = container.get('stateManager');
     }
 
-    init() {
+init() {
     this.setupEventHandlers();
+    this.setupClickHandlers();
+}
+
+setupClickHandlers() {
+    // Use event delegation for premium view link
+    document.addEventListener('click', (e) => {
+        if (e.target && e.target.id === 'premium-view-link') {
+            e.preventDefault();
+            e.stopPropagation();
+            this.showHighQualityLeads();
+        }
+    });
 }
 
 setupEventHandlers() {
@@ -145,14 +157,14 @@ renderPerformanceMetrics() {
     </div>
     
 <!-- Premium Leads -->
-    <div class="glass-white rounded-2xl p-6 hover-lift cursor-pointer" onclick="window.statsCards.showHighQualityLeads()">
+    <div class="glass-white rounded-2xl p-6">
         <div class="flex items-center justify-between mb-4">
             <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
                 <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
                 </svg>
             </div>
-            <span class="text-xs text-blue-600 font-semibold cursor-pointer">VIEW</span>
+            <span id="premium-view-link" class="text-xs text-blue-600 font-semibold cursor-pointer hover:text-blue-700 transition-colors">VIEW</span>
         </div>
         <h3 class="text-2xl font-bold text-gray-800" id="premium-leads">1</h3>
         <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Premium leads (80+)</p>
@@ -276,7 +288,16 @@ showHighQualityLeads() {
     const sortFilter = document.getElementById('sort-filter');
     if (sortFilter) {
         sortFilter.value = 'score-desc';
+        
+        // Trigger visual feedback on dropdown
+        sortFilter.classList.add('ring-2', 'ring-blue-500');
+        setTimeout(() => {
+            sortFilter.classList.remove('ring-2', 'ring-blue-500');
+        }, 1000);
     }
+    
+    // Show filter indicator badge
+    this.showFilterBadge('Score (High to Low)', sortedLeads.length);
     
     // Display sorted leads
     const leadRenderer = this.container.get('leadRenderer');
@@ -297,6 +318,71 @@ showHighQualityLeads() {
     if (leadsSection) {
         leadsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+}
+
+showFilterBadge(filterText, count) {
+    // Check if badge container exists in table header
+    let badgeContainer = document.getElementById('active-filter-badge');
+    
+    if (!badgeContainer) {
+        // Create badge container if it doesn't exist
+        const tableHeader = document.querySelector('.glass-white.rounded-2xl .p-6.pb-4');
+        if (tableHeader) {
+            const titleDiv = tableHeader.querySelector('.flex.items-center.justify-between.mb-4 > div');
+            if (titleDiv) {
+                badgeContainer = document.createElement('div');
+                badgeContainer.id = 'active-filter-badge';
+                badgeContainer.className = 'mt-2';
+                titleDiv.appendChild(badgeContainer);
+            }
+        }
+    }
+    
+    if (badgeContainer) {
+        badgeContainer.innerHTML = `
+            <div class="inline-flex items-center space-x-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg animate-fadeIn">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                </svg>
+                <span class="text-sm font-medium text-blue-700">Active Filter: ${filterText}</span>
+                <span class="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">${count} leads</span>
+                <button onclick="window.statsCards.clearFilter()" class="ml-1 text-blue-600 hover:text-blue-800 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+    }
+}
+
+clearFilter() {
+    console.log('🔄 Clearing filter');
+    
+    // Reset to all leads
+    const allLeads = this.stateManager.getState('leads') || [];
+    this.stateManager.setState('filteredLeads', allLeads);
+    
+    // Reset sort dropdown to default
+    const sortFilter = document.getElementById('sort-filter');
+    if (sortFilter) {
+        sortFilter.value = 'date-desc';
+    }
+    
+    // Display all leads
+    const leadRenderer = this.container.get('leadRenderer');
+    if (leadRenderer) {
+        leadRenderer.displayLeads(allLeads);
+    }
+    
+    // Remove filter badge
+    const badgeContainer = document.getElementById('active-filter-badge');
+    if (badgeContainer) {
+        badgeContainer.innerHTML = '';
+    }
+    
+    // Emit event
+    this.eventBus.emit('leads:filter-cleared');
 }
 
 // Helper method to create analysis queue modal
