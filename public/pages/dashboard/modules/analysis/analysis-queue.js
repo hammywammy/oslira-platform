@@ -77,14 +77,23 @@ class AnalysisQueue {
 
             if (!analysisId) return;
 
-            switch (action) {
-                case 'minimize':
-                    this.toggleMinimize(analysisId);
-                    break;
-                case 'remove':
-                    this.removeAnalysis(analysisId);
-                    break;
+switch (action) {
+    case 'minimize':
+        this.toggleMinimize(analysisId);
+        break;
+    case 'remove':
+        const analysis = this.activeAnalyses.get(analysisId);
+        if (analysis && (analysis.status === 'starting' || analysis.status === 'analyzing')) {
+            // Confirm cancellation for active analyses
+            if (confirm(`Cancel analysis for @${analysis.username}?`)) {
+                this.cancelAnalysis(analysisId);
             }
+        } else {
+            // Just remove completed/failed analyses
+            this.removeAnalysis(analysisId);
+        }
+        break;
+}
         });
 
         console.log('✅ [AnalysisQueue] Event delegation setup complete');
@@ -268,7 +277,33 @@ class AnalysisQueue {
 
         console.log(`${success ? '✅' : '❌'} [AnalysisQueue] ${success ? 'Completed' : 'Failed'}: @${analysis.username}`);
     }
+cancelAnalysis(analysisId) {
+    const analysis = this.activeAnalyses.get(analysisId);
+    if (!analysis) return;
 
+    console.log(`🚫 [AnalysisQueue] Cancelling analysis: ${analysisId}`);
+    
+    // Stop any running intervals
+    if (analysis.progressInterval) {
+        clearInterval(analysis.progressInterval);
+    }
+    if (analysis.stageInterval) {
+        clearInterval(analysis.stageInterval);
+    }
+    
+    // Update status to cancelled
+    analysis.status = 'failed';
+    analysis.message = 'Analysis cancelled';
+    analysis.endTime = Date.now();
+    
+    // Trigger immediate removal
+    setTimeout(() => {
+        this.removeAnalysis(analysisId);
+    }, 500);
+    
+    this.renderQueue();
+}
+    
     removeAnalysis(analysisId) {
         const analysis = this.activeAnalyses.get(analysisId);
         if (!analysis) return;
