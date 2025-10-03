@@ -194,13 +194,17 @@ static async renderDashboardUI(container) {
             }
         }
         
-        const leadsTable = container.get('leadsTable');
-        if (leadsTable && leadsTable.renderTableContainer) {
-            const leadsSection = document.getElementById('leads-section');
-            if (leadsSection) {
-                leadsSection.innerHTML = leadsTable.renderTableContainer();
-            }
+const leadsTable = container.get('leadsTable');
+if (leadsTable && leadsTable.renderTableContainer) {
+    const leadsSection = document.getElementById('leads-section');
+    if (leadsSection) {
+        leadsSection.innerHTML = leadsTable.renderTableContainer();
+        // Setup refresh button after rendering
+        if (leadsTable.setupRefreshButton) {
+            leadsTable.setupRefreshButton();
         }
+    }
+}
         
         const insightsPanel = container.get('insightsPanel');
         if (insightsPanel && insightsPanel.renderInsightsPanel) {
