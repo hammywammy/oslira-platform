@@ -24,7 +24,7 @@ renderTableContainer() {
 <!-- Filter Bar Below Header -->
 <div class="flex items-center space-x-3 pt-2">
     <!-- Bulk Actions (Hidden by default, takes left space when shown) -->
-    <div id="bulk-actions-bar" class="hidden flex items-center space-x-2 flex-shrink-0">
+    <div id="bulk-actions-bar" class="hidden flex items-center space-x-2 flex-shrink-0" style="transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);">
     <button id="delete-selected-btn" onclick="window.deleteSelectedLeads()" 
             class="px-3 py-1.5 text-sm font-medium text-red-700 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
         Delete
@@ -571,9 +571,24 @@ updateBulkActionsBar(count) {
     const bulkActionsBar = document.getElementById('bulk-actions-bar');
     
     if (count > 0) {
-        if (bulkActionsBar) bulkActionsBar.classList.remove('hidden');
+        if (bulkActionsBar) {
+            bulkActionsBar.style.opacity = '0';
+            bulkActionsBar.style.transform = 'translateY(10px)';
+            bulkActionsBar.classList.remove('hidden');
+            
+            requestAnimationFrame(() => {
+                bulkActionsBar.style.opacity = '1';
+                bulkActionsBar.style.transform = 'translateY(0)';
+            });
+        }
     } else {
-        if (bulkActionsBar) bulkActionsBar.classList.add('hidden');
+        if (bulkActionsBar) {
+            bulkActionsBar.style.opacity = '0';
+            bulkActionsBar.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                bulkActionsBar.classList.add('hidden');
+            }, 500);
+        }
     }
 }
 
