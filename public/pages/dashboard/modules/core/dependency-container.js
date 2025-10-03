@@ -209,9 +209,15 @@ async initialize() {
     
     // Initialize factories in dependency order
     for (const factoryName of sortedFactories) {
-        if (!this.factories.get(factoryName).instance) {
+        const factoryInfo = this.factories.get(factoryName);
+        
+        if (!factoryInfo.instance) {
             try {
-                const instance = this.get(factoryName);
+                // Get/create instance - this also stores it
+                const instance = await this.get(factoryName);
+                
+                // Ensure it's stored in factoryInfo
+                factoryInfo.instance = instance;
                 
                 // Call init method if it exists
                 if (instance && typeof instance.init === 'function') {
