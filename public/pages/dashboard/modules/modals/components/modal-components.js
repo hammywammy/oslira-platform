@@ -42,33 +42,33 @@ getScoreGradient(score) {
     if (score >= 81) {
         // Excellent: Rich Purple gradient
         return 'from-purple-800 via-purple-700 to-purple-600';
-    } else if (score >= 66) {
-        // Good: Deep Blue with purple blend based on proximity to 81
-        const blendFactor = (score - 66) / 15; // 0 to 1 as score goes 66→81
-        if (blendFactor > 0.6) {
-            return 'from-indigo-900 via-indigo-800 to-purple-700';
-        } else if (blendFactor > 0.3) {
-            return 'from-indigo-900 via-blue-800 to-indigo-700';
-        }
-        return 'from-blue-900 via-indigo-900 to-blue-800';
-    } else if (score >= 51) {
-        // Upper Medium: Soft Teal with blue blend based on proximity to 66
-        const blendFactor = (score - 51) / 15; // 0 to 1 as score goes 51→66
-        if (blendFactor > 0.6) {
-            return 'from-teal-500 via-cyan-600 to-blue-700';
-        } else if (blendFactor > 0.3) {
-            return 'from-teal-400 via-teal-500 to-cyan-500';
-        }
-        return 'from-teal-400 via-cyan-400 to-teal-500';
-    } else if (score >= 31) {
-        // Medium: Amber/Orange with teal blend based on proximity to 51
-        const blendFactor = (score - 31) / 20; // 0 to 1 as score goes 31→51
-        if (blendFactor > 0.6) {
-            return 'from-orange-500 via-yellow-500 to-teal-400';
-        } else if (blendFactor > 0.3) {
-            return 'from-orange-600 via-orange-500 to-yellow-500';
-        }
-        return 'from-orange-600 via-orange-600 to-orange-500';
+} else if (score >= 66) {
+    // Good: Brighter Blue with purple blend based on proximity to 81
+    const blendFactor = (score - 66) / 15; // 0 to 1 as score goes 66→81
+    if (blendFactor > 0.6) {
+        return 'from-blue-600 via-indigo-600 to-purple-600';
+    } else if (blendFactor > 0.3) {
+        return 'from-blue-600 via-blue-700 to-indigo-600';
+    }
+    return 'from-blue-600 via-blue-600 to-blue-700';
+} else if (score >= 51) {
+    // Upper Medium: Soft Teal with blue blend based on proximity to 66
+    const blendFactor = (score - 51) / 15; // 0 to 1 as score goes 51→66
+    if (blendFactor > 0.6) {
+        return 'from-teal-500 via-cyan-500 to-blue-600';
+    } else if (blendFactor > 0.3) {
+        return 'from-teal-400 via-teal-500 to-cyan-400';
+    }
+    return 'from-teal-400 via-cyan-400 to-teal-400';
+} else if (score >= 31) {
+    // Medium: Amber/Orange with teal blend based on proximity to 51
+    const blendFactor = (score - 31) / 20; // 0 to 1 as score goes 31→51
+    if (blendFactor > 0.6) {
+        return 'from-orange-500 via-yellow-400 to-teal-300';
+    } else if (blendFactor > 0.3) {
+        return 'from-orange-600 via-orange-500 to-yellow-500';
+    }
+    return 'from-orange-600 via-orange-500 to-orange-500';
     } else {
         // Bad: Deep Red with orange blend based on proximity to 31
         const blendFactor = score / 30; // 0 to 1 as score goes 0→30
