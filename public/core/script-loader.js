@@ -47,6 +47,8 @@ this.coreScripts = [
 '/pages/dashboard/modules/analysis/analysis-queue-renderer.js',
 '/pages/dashboard/modules/analysis/analysis-queue-animator.js',
 '/pages/dashboard/modules/analysis/analysis-queue.js',
+                    '/pages/dashboard/modules/ui/filter-modal.js',
+                    
                     '/pages/dashboard/modules/bulk/bulk-upload.js',
                     '/pages/dashboard/modules/business/business-manager.js',
                     '/pages/dashboard/modules/handlers/lead-analysis-handlers.js',
