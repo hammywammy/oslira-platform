@@ -212,19 +212,19 @@ class DashboardStyles {
 
 /* Bulk actions bar smooth slide-in */
 #bulk-actions-bar {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     transform-origin: left center;
 }
 
 #bulk-actions-bar.hidden {
     opacity: 0;
-    transform: translateX(-20px);
+    transform: translateY(10px);
     pointer-events: none;
 }
 
 #bulk-actions-bar:not(.hidden) {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
 }
 
 /* Checkbox smooth state changes */
