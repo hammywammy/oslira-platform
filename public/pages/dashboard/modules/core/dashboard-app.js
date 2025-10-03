@@ -118,20 +118,9 @@ container.registerSingleton('osliraAuth', window.OsliraAuth);
             return new LeadManager(container);
         }, []);
         
-        container.registerFactory('analysisQueue', () => {
-            return new AnalysisQueue(container);
-        }, []);
 
         container.registerFactory('realtimeManager', () => {
             return new RealtimeManager(container);
-        }, []);
-
-        container.registerFactory('leadRenderer', () => {
-            return new LeadRenderer(container);
-        }, []);
-
-        container.registerFactory('statsCalculator', () => {
-            return new StatsCalculator(container);
         }, []);
 
         container.registerFactory('businessManager', () => {
@@ -146,17 +135,55 @@ container.registerFactory('researchHandlers', () => {
     return new ResearchHandlers();
 }, []);
 
-// Register UI components
-container.registerFactory('dashboardHeader', () => {
-    const header = new DashboardHeader(container);
-    console.log('🏭 [DependencyContainer] DashboardHeader factory created');
-    return header;
-});
 container.registerFactory('statsCards', () => {
     const instance = new window.StatsCards(container);
     if (instance.init) instance.init();
     return instance;
 });
+
+container.registerFactory('leadManager', () => {
+    return new window.LeadManager(container);
+}, []);
+
+container.registerFactory('analysisQueue', () => {
+    return new window.AnalysisQueue(container);
+}, []);
+
+container.registerFactory('realtimeManager', () => {
+    return new window.RealtimeManager(container);
+}, []);
+
+container.registerFactory('leadRenderer', () => {
+    return new window.LeadRenderer(container);
+}, []);
+
+container.registerFactory('statsCalculator', () => {
+    return new window.StatsCalculator(container);
+}, []);
+
+container.registerFactory('businessManager', () => {
+    return new window.BusinessManager(container);
+}, []);
+
+container.registerFactory('modalManager', () => {
+    return new window.ModalManager(container);
+}, []);
+
+container.registerFactory('researchHandlers', () => {
+    return new window.ResearchHandlers();
+}, []);
+
+// Register UI components
+container.registerFactory('dashboardHeader', () => {
+    return new window.DashboardHeader(container);
+});
+
+container.registerFactory('statsCards', () => {
+    const instance = new window.StatsCards(container);
+    if (instance.init) instance.init();
+    return instance;
+});
+
 container.registerFactory('leadsTable', () => new window.LeadsTable(container));
 container.registerFactory('insightsPanel', () => new window.InsightsPanel(container));
         
