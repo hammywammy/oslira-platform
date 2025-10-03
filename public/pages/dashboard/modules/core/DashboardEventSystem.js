@@ -25,12 +25,12 @@ class DashboardEventSystem {
      */
     static setupDataEvents(eventBus, container) {
         // Data refresh requests
-        eventBus.on(DASHBOARD_EVENTS.LOADING_START, (data) => {
-            console.log('🔄 [DashboardEventSystem] Data refresh requested:', data.reason);
-            
-            try {
-                const leadManager = container.get('leadManager');
-                await leadManager.loadDashboardData();
+eventBus.on(DASHBOARD_EVENTS.LOADING_START, async (data) => {  // ← Add async
+    console.log('🔄 [DashboardEventSystem] Data refresh requested:', data.reason);
+    
+    try {
+        const leadManager = container.get('leadManager');
+        await leadManager.loadDashboardData();
                 
                 eventBus.emit(DASHBOARD_EVENTS.DATA_REFRESH_COMPLETE, {
                     reason: data.reason,
@@ -48,7 +48,7 @@ class DashboardEventSystem {
         });
         
         // Data loading events
-        eventBus.on(DASHBOARD_EVENTS.DATA_LOADING_START, (data) => {
+        eventBus.on(DASHBOARD_EVENTS.BUSINESS_CHANGED, async (data) => {  // ← Already async, good
             const stateManager = container.get('stateManager');
             stateManager.setState('isLoading', true);
             stateManager.setState('loadingMessage', data.message || 'Loading...');
