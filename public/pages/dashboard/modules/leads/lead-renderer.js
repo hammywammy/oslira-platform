@@ -136,133 +136,147 @@ if (!tableBody) {
         const score = lead.score || 0;
         
 const getScoreConfig = (score) => {
-    // Unified color system with smooth gradient interpolation
+    // Add subtle variation even at exact thresholds to avoid static colors
+    const scoreWithVariation = score + (Math.random() * 2 - 1); // ±1 variation
+    
+    // Unified color system with animated wave gradients for ALL scores
     // Bad (0-30): Deep Red #B22222
     // Medium (31-50): Amber/Orange #FF8C00
     // Upper Medium (51-65): Soft Teal #40E0D0
-    // Good (66-80): Deep Blue #1E3A8A
+    // Good (66-80): Bright Blue #3B82F6
     // Excellent (81+): Rich Purple #6B21A8
     
-if (score >= 81) {
-    // Excellent: Rich Purple
-    return {
-        class: 'bg-purple-100 text-purple-900 border-purple-200',
-        label: 'Excellent',
-        color: 'purple',
-        icon: '⭐',
-        gradient: 'from-purple-800 to-purple-700',
-        barGradient: 'from-purple-800 via-purple-700 to-purple-600',
-        borderColor: 'border-purple-800'
-    };
-}
-    
-if (score >= 66) {
-    // Good: Brighter Blue with purple blend
-    const blendFactor = (score - 66) / 15;
-    if (blendFactor > 0.6) {
+    if (scoreWithVariation >= 81) {
+        // Excellent: Rich Purple with animated wave
         return {
-            class: 'bg-blue-100 text-blue-800 border-blue-200',
-            label: 'Good',
-            color: 'blue',
-            icon: '💎',
-            gradient: 'from-blue-600 to-purple-600',
-            barGradient: 'from-blue-600 via-indigo-600 to-purple-600',
-            borderColor: 'border-blue-600'
+            class: 'bg-purple-100 text-purple-900 border-purple-200',
+            label: 'Excellent',
+            color: 'purple',
+            icon: '⭐',
+            gradient: 'from-purple-800 to-purple-700',
+            barGradient: 'from-purple-800 via-purple-700 to-purple-600',
+            barClass: 'score-wave-gradient-excellent',
+            borderColor: 'border-purple-800'
         };
-    } else if (blendFactor > 0.3) {
+    }
+    
+    if (scoreWithVariation >= 66) {
+        // Good: Brighter Blue with purple blend + animated wave
+        const blendFactor = (scoreWithVariation - 66) / 15;
+        if (blendFactor > 0.6) {
+            return {
+                class: 'bg-blue-100 text-blue-800 border-blue-200',
+                label: 'Good',
+                color: 'blue',
+                icon: '💎',
+                gradient: 'from-blue-600 to-purple-600',
+                barGradient: 'from-blue-600 via-indigo-600 to-purple-600',
+                barClass: 'score-wave-gradient-good-high',
+                borderColor: 'border-blue-600'
+            };
+        } else if (blendFactor > 0.3) {
+            return {
+                class: 'bg-blue-100 text-blue-800 border-blue-200',
+                label: 'Good',
+                color: 'blue',
+                icon: '💎',
+                gradient: 'from-blue-600 to-indigo-600',
+                barGradient: 'from-blue-600 via-blue-700 to-indigo-600',
+                barClass: 'score-wave-gradient-good-mid',
+                borderColor: 'border-blue-600'
+            };
+        }
         return {
             class: 'bg-blue-100 text-blue-800 border-blue-200',
             label: 'Good',
             color: 'blue',
             icon: '💎',
-            gradient: 'from-blue-600 to-indigo-600',
-            barGradient: 'from-blue-600 via-blue-700 to-indigo-600',
+            gradient: 'from-blue-600 to-blue-700',
+            barGradient: 'from-blue-600 via-blue-600 to-blue-700',
+            barClass: 'score-wave-gradient-good-low',
             borderColor: 'border-blue-600'
         };
     }
-    return {
-        class: 'bg-blue-100 text-blue-800 border-blue-200',
-        label: 'Good',
-        color: 'blue',
-        icon: '💎',
-        gradient: 'from-blue-600 to-blue-700',
-        barGradient: 'from-blue-600 via-blue-600 to-blue-700',
-        borderColor: 'border-blue-600'
-    };
-}
     
-if (score >= 51) {
-    // Upper Medium: Soft Teal with blue blend
-    const blendFactor = (score - 51) / 15;
-    if (blendFactor > 0.6) {
-        return {
-            class: 'bg-teal-100 text-teal-800 border-teal-200',
-            label: 'Moderate',
-            color: 'teal',
-            icon: '⚡',
-            gradient: 'from-teal-500 to-blue-600',
-            barGradient: 'from-teal-500 via-cyan-500 to-blue-600',
-            borderColor: 'border-teal-500'
-        };
-    } else if (blendFactor > 0.3) {
+    if (scoreWithVariation >= 51) {
+        // Upper Medium: Soft Teal with blue blend + animated wave
+        const blendFactor = (scoreWithVariation - 51) / 15;
+        if (blendFactor > 0.6) {
+            return {
+                class: 'bg-teal-100 text-teal-800 border-teal-200',
+                label: 'Moderate',
+                color: 'teal',
+                icon: '⚡',
+                gradient: 'from-teal-500 to-blue-600',
+                barGradient: 'from-teal-500 via-cyan-500 to-blue-600',
+                barClass: 'score-wave-gradient-moderate-high',
+                borderColor: 'border-teal-500'
+            };
+        } else if (blendFactor > 0.3) {
+            return {
+                class: 'bg-teal-100 text-teal-700 border-teal-200',
+                label: 'Moderate',
+                color: 'teal',
+                icon: '⚡',
+                gradient: 'from-teal-400 to-teal-500',
+                barGradient: 'from-teal-400 via-teal-500 to-cyan-400',
+                barClass: 'score-wave-gradient-moderate-mid',
+                borderColor: 'border-teal-400'
+            };
+        }
         return {
             class: 'bg-teal-100 text-teal-700 border-teal-200',
             label: 'Moderate',
             color: 'teal',
             icon: '⚡',
-            gradient: 'from-teal-400 to-teal-500',
-            barGradient: 'from-teal-400 via-teal-500 to-cyan-400',
+            gradient: 'from-teal-400 to-cyan-400',
+            barGradient: 'from-teal-400 via-cyan-400 to-teal-400',
+            barClass: 'score-wave-gradient-moderate-low',
             borderColor: 'border-teal-400'
         };
     }
-    return {
-        class: 'bg-teal-100 text-teal-700 border-teal-200',
-        label: 'Moderate',
-        color: 'teal',
-        icon: '⚡',
-        gradient: 'from-teal-400 to-cyan-400',
-        barGradient: 'from-teal-400 via-cyan-400 to-teal-400',
-        borderColor: 'border-teal-400'
-    };
-}
-
-if (score >= 31) {
-    // Medium: Amber/Orange with teal blend
-    const blendFactor = (score - 31) / 20;
-    if (blendFactor > 0.6) {
-        return {
-            class: 'bg-orange-100 text-orange-800 border-orange-200',
-            label: 'Fair',
-            color: 'orange',
-            icon: '📈',
-            gradient: 'from-orange-500 to-yellow-400',
-            barGradient: 'from-orange-500 via-yellow-400 to-teal-300',
-            borderColor: 'border-orange-500'
-        };
-    } else if (blendFactor > 0.3) {
+    
+    if (scoreWithVariation >= 31) {
+        // Medium: Amber/Orange with smooth yellow/teal blend + animated wave
+        const blendFactor = (scoreWithVariation - 31) / 20;
+        if (blendFactor > 0.65) {
+            // Approaching teal - smooth transition
+            return {
+                class: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                label: 'Fair',
+                color: 'yellow',
+                icon: '📈',
+                gradient: 'from-yellow-500 to-yellow-400',
+                barGradient: 'from-yellow-500 via-yellow-400 to-teal-300',
+                barClass: 'score-wave-gradient-fair-high',
+                borderColor: 'border-yellow-500'
+            };
+        } else if (blendFactor > 0.3) {
+            return {
+                class: 'bg-orange-100 text-orange-700 border-orange-200',
+                label: 'Fair',
+                color: 'orange',
+                icon: '📈',
+                gradient: 'from-orange-600 to-orange-500',
+                barGradient: 'from-orange-600 via-orange-500 to-yellow-500',
+                barClass: 'score-wave-gradient-fair-mid',
+                borderColor: 'border-orange-600'
+            };
+        }
         return {
             class: 'bg-orange-100 text-orange-700 border-orange-200',
             label: 'Fair',
             color: 'orange',
             icon: '📈',
-            gradient: 'from-orange-600 to-orange-500',
-            barGradient: 'from-orange-600 via-orange-500 to-yellow-500',
+            gradient: 'from-orange-600 to-orange-600',
+            barGradient: 'from-orange-600 via-orange-500 to-orange-500',
+            barClass: 'score-wave-gradient-fair-low',
             borderColor: 'border-orange-600'
         };
     }
-    return {
-        class: 'bg-orange-100 text-orange-700 border-orange-200',
-        label: 'Fair',
-        color: 'orange',
-        icon: '📈',
-        gradient: 'from-orange-600 to-orange-600',
-        barGradient: 'from-orange-600 via-orange-500 to-orange-500',
-        borderColor: 'border-orange-600'
-    };
-}
     
-    // Bad: Deep Red with orange blend (0-30)
-    const blendFactor = score / 30;
+    // Bad: Deep Red with orange blend (0-30) + animated wave
+    const blendFactor = scoreWithVariation / 30;
     if (blendFactor > 0.6) {
         return {
             class: 'bg-red-100 text-red-800 border-red-200',
@@ -271,6 +285,7 @@ if (score >= 31) {
             icon: '⚠️',
             gradient: 'from-red-700 to-orange-600',
             barGradient: 'from-red-700 via-red-600 to-orange-600',
+            barClass: 'score-wave-gradient-poor-high',
             borderColor: 'border-red-700'
         };
     } else if (blendFactor > 0.3) {
@@ -281,6 +296,7 @@ if (score >= 31) {
             icon: '⚠️',
             gradient: 'from-red-700 to-red-600',
             barGradient: 'from-red-700 via-red-700 to-red-600',
+            barClass: 'score-wave-gradient-poor-mid',
             borderColor: 'border-red-700'
         };
     }
@@ -291,6 +307,7 @@ if (score >= 31) {
         icon: '⚠️',
         gradient: 'from-red-800 to-red-700',
         barGradient: 'from-red-800 via-red-700 to-red-700',
+        barClass: 'score-wave-gradient-poor-low',
         borderColor: 'border-red-800'
     };
 };
@@ -476,15 +493,15 @@ return `
                             </div>
                         </div>
                         
-                        <!-- Enhanced progress bar with glow effect -->
-                        <div class="relative">
-                            <div class="w-full bg-slate-100 rounded-full h-3 shadow-inner">
-                                <div class="bg-gradient-to-r ${scoreConfig.barGradient} h-3 rounded-full transition-all duration-500 ease-out shadow-sm relative overflow-hidden" 
-                                     style="width: ${score}%">
-                                    <!-- Animated shine effect -->
-                                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 animate-shimmer"></div>
-                                </div>
-                            </div>
+<!-- Enhanced progress bar with animated wave gradient -->
+<div class="relative">
+    <div class="w-full bg-slate-100 rounded-full h-3 shadow-inner">
+        <div class="bg-gradient-to-r ${scoreConfig.barGradient} ${scoreConfig.barClass} h-3 rounded-full transition-all duration-500 ease-out shadow-sm relative overflow-hidden" 
+             style="width: ${score}%">
+            <!-- Animated wave shine effect -->
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 animate-shimmer"></div>
+        </div>
+    </div>
                             <!-- Score indicator dot -->
                             <div class="absolute top-1/2 transform -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md border-2 ${scoreConfig.borderColor} transition-all duration-300"
                                  style="left: calc(${score}% - 8px)"></div>
