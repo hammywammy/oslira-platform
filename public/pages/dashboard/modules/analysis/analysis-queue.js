@@ -148,20 +148,35 @@ switch (action) {
         document.body.appendChild(wrapper);
 
         // Setup toggle functionality
-        const toggleBtn = document.getElementById('queue-toggle-btn');
-        const queueWrapper = document.getElementById('analysis-queue-wrapper');
+// Setup toggle functionality with multiple event types for reliability
+const toggleBtn = document.getElementById('queue-toggle-btn');
+const queueWrapper = document.getElementById('analysis-queue-wrapper');
 
-        toggleBtn.addEventListener('click', () => {
-            const isCollapsed = queueWrapper.classList.contains('collapsed');
-            
-            if (isCollapsed) {
-                queueWrapper.classList.remove('collapsed');
-                toggleBtn.querySelector('svg').style.transform = 'rotate(180deg)';
-            } else {
-                queueWrapper.classList.add('collapsed');
-                toggleBtn.querySelector('svg').style.transform = 'rotate(0deg)';
-            }
-        });
+const toggleQueue = (e) => {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    const isCollapsed = queueWrapper.classList.contains('collapsed');
+    
+    console.log('🔄 [AnalysisQueue] Toggle clicked, collapsed:', isCollapsed);
+    
+    if (isCollapsed) {
+        queueWrapper.classList.remove('collapsed');
+        const svg = toggleBtn.querySelector('svg');
+        if (svg) svg.style.transform = 'rotate(180deg)';
+    } else {
+        queueWrapper.classList.add('collapsed');
+        const svg = toggleBtn.querySelector('svg');
+        if (svg) svg.style.transform = 'rotate(0deg)';
+    }
+};
+
+// Add multiple event listeners for reliability
+toggleBtn.addEventListener('click', toggleQueue, true);
+toggleBtn.addEventListener('mousedown', toggleQueue, true);
+toggleBtn.addEventListener('touchstart', toggleQueue, true);
 
         console.log('✅ [AnalysisQueue] Collapsible container created');
     }
