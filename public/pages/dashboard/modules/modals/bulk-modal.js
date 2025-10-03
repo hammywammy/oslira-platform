@@ -583,6 +583,10 @@ resetFileInput() {
     }
 
 async processBulkAnalysis() {
+    // Close modal immediately on submit
+    const bulkModal = document.getElementById('bulkModal');
+    if (bulkModal) bulkModal.remove();
+    
     try {
         const analysisType = document.querySelector('input[name="bulkAnalysisType"]:checked')?.value || this.analysisType || 'light';
         const businessId = this.stateManager?.getState('selectedBusiness')?.id;
