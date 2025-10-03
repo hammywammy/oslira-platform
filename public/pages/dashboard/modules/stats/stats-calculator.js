@@ -149,39 +149,54 @@ calculateAverageScore(leads) {
 renderStats(stats) {
     console.log('🎨 [StatsCalculator] Rendering stats to UI:', stats);
     
-// Credits this month - show remaining credits only
+// Credits this month - show remaining credits and dynamic percentage
 const creditsUsedEl = document.getElementById('credits-used');
 const creditsTotalEl = document.getElementById('credits-total');
-const creditsPercentEl = document.querySelector('.glass-white .text-xs.text-gray-500');
+const creditsPercentEl = document.getElementById('credits-percent');
 
 if (creditsUsedEl) creditsUsedEl.textContent = stats.creditsRemaining || 0;
 if (creditsTotalEl) creditsTotalEl.textContent = this.formatNumber(stats.planCredits);
 if (creditsPercentEl) {
-    const percentage = Math.round(((stats.planCredits - stats.creditsRemaining) / stats.planCredits) * 100);
-    creditsPercentEl.textContent = `${percentage}% used`;
+    const remaining = stats.creditsRemaining || 0;
+    const total = stats.planCredits || 1;
+    const used = total - remaining;
+    
+    // Show 0% if more credits than started with
+    if (remaining >= total) {
+        creditsPercentEl.textContent = '0% used';
+    } else {
+        // Calculate percentage to 1 decimal
+        const percentage = ((used / total) * 100).toFixed(1);
+        creditsPercentEl.textContent = `${percentage}% used`;
+    }
 }
     
-    // Leads this month
+    // Leads researched this month
     const leadsResearchedEl = document.getElementById('leads-researched');
     if (leadsResearchedEl) leadsResearchedEl.textContent = stats.leadsThisMonth || 0;
     
-    // Average quality score
+// Average quality score with updated thresholds: 0-30 poor, 31-50 low, 51-70 good, 71+ excellent
     const avgQualityEl = document.getElementById('avg-quality');
     const avgQualityContainer = avgQualityEl?.closest('.glass-white');
     if (avgQualityEl) {
         avgQualityEl.textContent = stats.averageScore || 0;
         
-        // Update status indicator
+        // Update status indicator with new scoring factors
         const statusIndicator = avgQualityContainer?.querySelector('.text-xs.font-semibold');
         if (statusIndicator) {
-            if (stats.averageScore >= 80) {
+            const score = stats.averageScore || 0;
+            
+            if (score >= 71) {
                 statusIndicator.textContent = 'EXCELLENT';
                 statusIndicator.className = 'text-xs text-green-600 font-semibold';
-            } else if (stats.averageScore >= 60) {
+            } else if (score >= 51) {
                 statusIndicator.textContent = 'GOOD';
                 statusIndicator.className = 'text-xs text-blue-600 font-semibold';
+            } else if (score >= 31) {
+                statusIndicator.textContent = 'LOW';
+                statusIndicator.className = 'text-xs text-yellow-600 font-semibold';
             } else {
-                statusIndicator.textContent = 'NEEDS IMPROVEMENT';
+                statusIndicator.textContent = 'POOR';
                 statusIndicator.className = 'text-xs text-red-600 font-semibold';
             }
         }
