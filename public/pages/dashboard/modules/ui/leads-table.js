@@ -209,6 +209,37 @@ applySorting(leads, sortValue) {
 }
 
 setupEventHandlers() {
+
+    window.toggleToolbarCopyDropdown = () => {
+    const dropdown = document.getElementById('toolbar-copy-dropdown');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+    }
+    const exportDropdown = document.getElementById('toolbar-export-dropdown');
+    if (exportDropdown) exportDropdown.classList.add('hidden');
+};
+
+window.toggleToolbarExportDropdown = () => {
+    const dropdown = document.getElementById('toolbar-export-dropdown');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+    }
+    const copyDropdown = document.getElementById('toolbar-copy-dropdown');
+    if (copyDropdown) copyDropdown.classList.add('hidden');
+};
+
+window.clearToolbarSelections = () => {
+    const stateManager = this.container.get('stateManager');
+    stateManager.setState('selectedLeads', new Set());
+    
+    document.querySelectorAll('.lead-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    this.updateBulkActionsBar(0);
+    this.updateBulkActionsToolbar(0);
+    this.updateSelectAllCheckbox();
+};
         // Export dropdown handlers
         window.toggleExportDropdown = () => {
             const dropdown = document.getElementById('exportDropdown');
@@ -578,8 +609,9 @@ updateBulkActionsBar(count) {
         this.hideTimeout = null;
     }
     
-    if (count > 0) {
+if (count > 0) {
         bulkActionsBar.classList.remove('hidden');
+        this.updateBulkActionsToolbar(count); // Add this line
         bulkActionsBar.style.opacity = '0';
         bulkActionsBar.style.transform = 'translateY(10px)';
         
@@ -591,10 +623,27 @@ updateBulkActionsBar(count) {
         bulkActionsBar.style.opacity = '0';
         bulkActionsBar.style.transform = 'translateY(10px)';
         
-        this.hideTimeout = setTimeout(() => {
+this.hideTimeout = setTimeout(() => {
             bulkActionsBar.classList.add('hidden');
+            this.updateBulkActionsToolbar(0); // Add this line
             this.hideTimeout = null;
         }, 500);
+    }
+}
+
+updateBulkActionsToolbar(count) {
+    const toolbar = document.getElementById('bulk-actions-toolbar');
+    const selectionCount = document.getElementById('selection-count');
+    
+    if (!toolbar) return;
+    
+    if (count > 0) {
+        toolbar.classList.remove('hidden');
+        if (selectionCount) {
+            selectionCount.textContent = `${count} selected`;
+        }
+    } else {
+        toolbar.classList.add('hidden');
     }
 }
 
