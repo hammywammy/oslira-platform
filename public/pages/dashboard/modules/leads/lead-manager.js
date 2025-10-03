@@ -148,17 +148,26 @@ created_at: latestRun?.created_at || lead.first_discovered_at, // Use run date, 
                 aboutToCallBatchUpdate: true
             });
 
-            // Update application state
-            this.stateManager.batchUpdate({
-                'leads': enrichedLeads,
-                'allLeads': enrichedLeads, 
-                'filteredLeads': enrichedLeads
-            });
+// Preserve existing selection during refresh
+const existingSelection = this.stateManager.getState('selectedLeads') || new Set();
+const validSelection = new Set();
 
-            console.log('🔍 [DEBUG] State update completed');
+// Only keep selections for leads that still exist
+enrichedLeads.forEach(lead => {
+    if (existingSelection.has(lead.id)) {
+        validSelection.add(lead.id);
+    }
+});
 
-            // Clear selection
-            this.stateManager.setState('selectedLeads', new Set());
+// Update application state
+this.stateManager.batchUpdate({
+    'leads': enrichedLeads,
+    'allLeads': enrichedLeads, 
+    'filteredLeads': enrichedLeads,
+    'selectedLeads': validSelection
+});
+
+console.log('🔍 [DEBUG] State update completed with preserved selection:', validSelection.size);
 
             // Cache the data
             this.dataCache.set('leads', enrichedLeads);
