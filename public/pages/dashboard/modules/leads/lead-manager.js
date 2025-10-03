@@ -287,6 +287,8 @@ async waitForSupabaseClient(timeout = 3000) {
         checkSupabase();
     });
 }
+
+    
     // ===============================================================================
     // LEAD DETAILS
     // ===============================================================================
@@ -762,6 +764,34 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
         this.clearData();
         this.dataCache.clear();
     }
+    /**
+ * Refresh table with animation
+ */
+async refreshWithAnimation() {
+    console.log('🔄 [LeadManager] Manual refresh triggered');
+    
+    // Trigger animation
+    const tableContainer = document.getElementById('leads-table-container');
+    if (tableContainer) {
+        tableContainer.style.transition = 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        tableContainer.style.opacity = '0';
+        
+        // Wait for fade out
+        await new Promise(resolve => setTimeout(resolve, 400));
+    }
+    
+    // Reload data
+    await this.loadDashboardData();
+    
+    // Fade back in
+    if (tableContainer) {
+        setTimeout(() => {
+            tableContainer.style.opacity = '1';
+        }, 50);
+    }
+    
+    console.log('✅ [LeadManager] Refresh complete');
+}
 }
 
 // Export for global use
