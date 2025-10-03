@@ -15,158 +15,94 @@ class AnalysisQueueAnimator {
     // SMOOTH PROGRESS ANIMATION
     // ===============================================================================
 
-    startProgressAnimator(analysisId) {
-        const analysis = this.queue.activeAnalyses.get(analysisId);
-        if (!analysis) return;
+  startProgressAnimator(analysisId) {
+    const analysis = this.queue.activeAnalyses.get(analysisId);
+    if (!analysis) return;
 
-        // Initialize progress state
-        if (analysis.visualProgress === undefined) analysis.visualProgress = 0;
-        if (analysis.targetProgress === undefined) analysis.targetProgress = 0;
+    // Initialize progress state
+    if (analysis.visualProgress === undefined) analysis.visualProgress = 0;
+    if (analysis.targetProgress === undefined) analysis.targetProgress = 0;
+    
+    analysis.lastBackendUpdate = Date.now();
+    let lastFrameTime = Date.now();
 
-        // Timing trackers
-        analysis.stageStartTime = Date.now();
-        analysis.lastBackendUpdate = Date.now();
-        analysis.maxReachedProgress = 0;
+    const animate = () => {
+        const currentAnalysis = this.queue.activeAnalyses.get(analysisId);
+        if (!currentAnalysis || currentAnalysis.status === 'completed' || currentAnalysis.status === 'failed') {
+            this.progressAnimators.delete(analysisId);
+            return;
+        }
 
-        let lastFrameTime = Date.now();
+        const now = Date.now();
+        const deltaTime = (now - lastFrameTime) / 1000;
+        lastFrameTime = now;
 
-        const animate = () => {
-            const currentAnalysis = this.queue.activeAnalyses.get(analysisId);
-            if (!currentAnalysis || currentAnalysis.status === 'completed' || currentAnalysis.status === 'failed') {
-                this.progressAnimators.delete(analysisId);
-                return;
-            }
-
-            const now = Date.now();
-            const deltaTime = (now - lastFrameTime) / 1000; // seconds
-            lastFrameTime = now;
-
-            // Get stage info
-            const currentStage = currentAnalysis.currentStage || 0;
-            const stages = this.queue.analysisStages[currentAnalysis.analysisType];
-            const stage = stages?.[currentStage];
-
-            if (!stage) {
-                // Fallback to simple interpolation
-                this.simpleProgressAnimation(currentAnalysis, analysisId, deltaTime);
-                const rafId = requestAnimationFrame(animate);
-                this.progressAnimators.set(analysisId, rafId);
-                return;
-            }
-
-            // ===================================================================
-            // SMOOTH PREDICTIVE PROGRESS CALCULATION
-            // ===================================================================
-
-            const stageElapsed = now - (currentAnalysis.stageStartTime || now);
-            const stageDuration = stage.duration;
-            const progressPerStage = 100 / stages.length;
-            const stageBaseProgress = currentStage * progressPerStage;
-
-            // Time-based expected progress (linear within stage)
-            const timeRatio = Math.min(stageElapsed / stageDuration, 1);
-            const timeBasedProgress = stageBaseProgress + (timeRatio * progressPerStage);
-
-            // Backend target (what server says we should be at)
-            const backendTarget = currentAnalysis.targetProgress || 0;
-            const timeSinceBackendUpdate = now - (currentAnalysis.lastBackendUpdate || now);
-
-            // Current visual position
-            const currentVisual = currentAnalysis.visualProgress || 0;
-
-            // ===================================================================
-            // INTELLIGENT TARGET SELECTION
-            // ===================================================================
-
-            let targetProgress;
-
-            if (timeSinceBackendUpdate < 2000) {
-                // Recent backend update - blend time-based with backend
-                const blendFactor = Math.min(timeSinceBackendUpdate / 2000, 1);
-                targetProgress = backendTarget * (1 - blendFactor) + timeBasedProgress * blendFactor;
+        // Get current and target values
+        const currentVisual = currentAnalysis.visualProgress || 0;
+        const targetProgress = Math.min(currentAnalysis.targetProgress || 0, 97);
+        const timeSinceBackendUpdate = now - (currentAnalysis.lastBackendUpdate || now);
+        
+        // Calculate distance to target
+        const distance = targetProgress - currentVisual;
+        
+        // ===================================================================
+        // INTELLIGENT ADAPTIVE SPEED SYSTEM
+        // ===================================================================
+        
+        let speed;
+        
+        if (distance > 20) {
+            // Large gap: Fast catch-up (8-12% per second)
+            speed = 10 * deltaTime * 60;
+        } else if (distance > 10) {
+            // Medium gap: Moderate speed (4-6% per second)
+            speed = 5 * deltaTime * 60;
+        } else if (distance > 2) {
+            // Small gap: Smooth approach (2-3% per second)
+            speed = 2.5 * deltaTime * 60;
+        } else if (distance > 0.5) {
+            // Very close: Gentle ease (1% per second)
+            speed = 1 * deltaTime * 60;
+        } else {
+            // At target: Idle creep if backend hasn't updated recently
+            if (timeSinceBackendUpdate > 3000 && currentVisual < 95) {
+                // Slow forward drift (0.3% per second) - prevents stalling
+                speed = 0.3 * deltaTime * 60;
             } else {
-                // No recent backend - use time prediction but cap growth
-                const maxLeadAllowed = 5; // Don't get more than 5% ahead of backend
-                const currentLead = currentVisual - backendTarget;
-
-                if (currentLead > maxLeadAllowed) {
-                    // Too far ahead - slow crawl only
-                    targetProgress = currentVisual + 0.1;
-                } else {
-                    // Normal prediction with damping
-                    const dampingFactor = Math.max(0, 1 - (currentLead / maxLeadAllowed));
-                    targetProgress = backendTarget + (timeBasedProgress - backendTarget) * dampingFactor;
-                }
+                // Stop - we're at target and backend is active
+                speed = 0;
             }
+        }
+        
+        // Calculate new progress (ensure monotonic increase)
+        let newProgress = currentVisual + speed;
+        
+        // Never go backwards or exceed target
+        newProgress = Math.max(currentVisual, Math.min(newProgress, targetProgress));
+        
+        // Absolute cap at 97% until completion
+        newProgress = Math.min(newProgress, 97);
+        
+        // Only update if there's actual movement (prevents unnecessary DOM updates)
+        if (Math.abs(newProgress - currentVisual) > 0.01) {
+            currentAnalysis.visualProgress = newProgress;
+            this.updateProgressBarDOM(analysisId, newProgress);
+            
+            // Throttled event emission
+            this.emitProgressEventThrottled(analysisId, { progress: Math.round(newProgress) }, currentAnalysis);
+        }
 
-            // Never go backward
-            targetProgress = Math.max(targetProgress, currentVisual);
-
-            // Hard caps
-            if (backendTarget < 95) {
-                targetProgress = Math.min(targetProgress, 97);
-            } else if (backendTarget < 98) {
-                targetProgress = Math.min(targetProgress, 98);
-            } else if (backendTarget < 100) {
-                targetProgress = Math.min(targetProgress, 99);
-            }
-
-            // ===================================================================
-            // SMOOTH INTERPOLATION WITH VELOCITY-BASED EASING
-            // ===================================================================
-
-            const diff = targetProgress - currentVisual;
-
-            // Dynamic speed based on distance and time
-            let speed;
-            if (diff > 10) {
-                speed = 0.15; // Fast when very far
-            } else if (diff > 5) {
-                speed = 0.08; // Medium-fast
-            } else if (diff > 1) {
-                speed = 0.04; // Medium
-            } else if (diff > 0.3) {
-                speed = 0.02; // Slow approach
-            } else {
-                speed = 0.01; // Gentle creep
-            }
-
-            // Calculate movement (frame-rate independent)
-            let movement = diff * speed;
-
-            // Add minimum forward motion to prevent stalling
-            const minSpeed = 0.015 * deltaTime * 60; // ~0.9% per second minimum
-            if (diff > 0 && movement < minSpeed && targetProgress < 97) {
-                movement = Math.max(movement, minSpeed);
-            }
-
-            // Apply movement
-            let newVisualProgress = currentVisual + movement;
-
-            // Ensure monotonic increase
-            newVisualProgress = Math.max(newVisualProgress, currentVisual);
-            currentAnalysis.maxReachedProgress = Math.max(
-                currentAnalysis.maxReachedProgress || 0,
-                newVisualProgress
-            );
-
-            currentAnalysis.visualProgress = newVisualProgress;
-
-            // Update DOM (direct manipulation, no re-render)
-            this.updateProgressBarDOM(analysisId, currentAnalysis.visualProgress);
-
-            // Continue animation loop
-            const rafId = requestAnimationFrame(animate);
-            this.progressAnimators.set(analysisId, rafId);
-        };
-
-        // Start animation
+        // Continue animation loop
         const rafId = requestAnimationFrame(animate);
         this.progressAnimators.set(analysisId, rafId);
+    };
 
-        console.log(`🎬 [ProgressAnimator] Started smooth progress for ${analysisId}`);
-    }
+    // Start animation
+    const rafId = requestAnimationFrame(animate);
+    this.progressAnimators.set(analysisId, rafId);
 
+    console.log(`🎬 [ProgressAnimator] Started smooth adaptive progress for ${analysisId}`);
+}
     simpleProgressAnimation(analysis, analysisId, deltaTime) {
         const target = Math.min(analysis.targetProgress || 0, 97);
         const current = analysis.visualProgress || 0;
