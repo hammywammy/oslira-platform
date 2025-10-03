@@ -23,56 +23,54 @@ renderTableContainer() {
             
 <!-- Filter Bar Below Header -->
 <div class="flex items-center space-x-3 pt-2">
-    <!-- Bulk Actions (Hidden by default, takes left space when shown) -->
+ <!-- Bulk Actions (Hidden by default, takes left space when shown) -->
 <div id="bulk-actions-bar" class="hidden flex items-center space-x-2 flex-shrink-0">
     <button id="delete-selected-btn" onclick="window.deleteSelectedLeads()" 
-            class="px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors">
+            class="px-3 py-1.5 text-sm font-medium text-red-700 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
         Delete
     </button>
                     
-                    <!-- Copy Dropdown -->
-                    <div class="relative">
-                        <button id="copy-dropdown-btn" onclick="window.toggleCopyDropdown()" 
-                                class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-1">
-                            <span>Copy</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
-                        <div id="copy-dropdown" class="hidden absolute left-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                            <button onclick="window.copySelectedAsFormat('csv')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg">
-                                Copy as CSV
-                            </button>
-                            <button onclick="window.copySelectedAsFormat('json')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg">
-                                Copy as JSON
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Export Dropdown -->
-                    <div class="relative">
-                        <button id="export-dropdown-btn" onclick="window.toggleExportDropdown()" 
-                                class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-1">
-                            <span>Export</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
-                        <div id="export-dropdown" class="hidden absolute left-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                            <button onclick="window.exportSelectedAsFormat('csv')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg">
-                                Export as CSV
-                            </button>
-                            <button onclick="window.exportSelectedAsFormat('json')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg">
-                                Export as JSON
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <span id="selected-count" class="text-sm text-gray-600 ml-2"></span>
-                </div>
+    <!-- Copy Dropdown -->
+    <div class="relative">
+        <button id="copy-dropdown-btn" onclick="window.toggleCopyDropdown()" 
+                class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-1">
+            <span>Copy</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+        <div id="copy-dropdown" class="hidden absolute left-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+            <button onclick="window.copySelectedAsFormat('csv')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg">
+                Copy as CSV
+            </button>
+            <button onclick="window.copySelectedAsFormat('json')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg">
+                Copy as JSON
+            </button>
+        </div>
+    </div>
+    
+    <!-- Export Dropdown -->
+    <div class="relative">
+        <button id="export-dropdown-btn" onclick="window.toggleExportDropdown()" 
+                class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-1">
+            <span>Export</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+        <div id="export-dropdown" class="hidden absolute left-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+            <button onclick="window.exportSelectedAsFormat('csv')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg">
+                Export as CSV
+            </button>
+            <button onclick="window.exportSelectedAsFormat('json')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg">
+                Export as JSON
+            </button>
+        </div>
+    </div>
+</div>
                 
     <!-- Right-side Filters - Always stay right -->
-    <div class="flex items-center space-x-3">
+    <div class="flex items-center space-x-3 ml-auto">
                     <!-- Platform Filter -->
                     <select id="platform-filter" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                         <option>All Platforms</option>
@@ -571,14 +569,11 @@ window.toggleLeadSelection = (leadId, isChecked) => {
 
 updateBulkActionsBar(count) {
     const bulkActionsBar = document.getElementById('bulk-actions-bar');
-    const selectedCount = document.getElementById('selected-count');
     
     if (count > 0) {
         if (bulkActionsBar) bulkActionsBar.classList.remove('hidden');
-        if (selectedCount) selectedCount.textContent = `${count} selected`;
     } else {
         if (bulkActionsBar) bulkActionsBar.classList.add('hidden');
-        if (selectedCount) selectedCount.textContent = '';
     }
 }
 
