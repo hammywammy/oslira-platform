@@ -15,18 +15,25 @@ class LeadRenderer {
         // Cache for rendered elements
         this.renderCache = new Map();
         this.dateFormatCache = new Map();
+
+        // Pagination state
+this.currentPage = 1;
+this.leadsPerPage = 10;
         
         console.log('🚀 [LeadRenderer] Enhanced version initialized');
     }
     
-    async init() {
-        // Listen to data changes for re-rendering
-        this.stateManager.subscribe('leads', this.handleLeadsChanged.bind(this));
-        this.stateManager.subscribe('filteredLeads', this.handleFilteredLeadsChanged.bind(this));
-        this.stateManager.subscribe('selectedLeads', this.handleSelectionChanged.bind(this));
-        
-        console.log('✅ [LeadRenderer] Event listeners initialized');
-    }
+async init() {
+    // Listen to data changes for re-rendering
+    this.stateManager.subscribe('leads', this.handleLeadsChanged.bind(this));
+    this.stateManager.subscribe('filteredLeads', this.handleFilteredLeadsChanged.bind(this));
+    this.stateManager.subscribe('selectedLeads', this.handleSelectionChanged.bind(this));
+    
+    // Make available globally for pagination
+    window.leadRenderer = this;
+    
+    console.log('✅ [LeadRenderer] Event listeners initialized');
+}
     
     // ===============================================================================
     // EVENT HANDLERS
@@ -44,10 +51,11 @@ handleLeadsChanged(leads) {
     }, 50);
 }
     
-    handleFilteredLeadsChanged(filteredLeads) {
-        console.log('🔄 [LeadRenderer] Filtered leads changed, re-rendering');
-        this.displayLeads(filteredLeads);
-    }
+handleFilteredLeadsChanged(filteredLeads) {
+    console.log('🔄 [LeadRenderer] Filtered leads changed, resetting to page 1');
+    this.currentPage = 1; // Reset to first page on filter change
+    this.displayLeads(filteredLeads);
+}
     
     handleSelectionChanged(selectedLeads) {
         console.log('🔄 [LeadRenderer] Selection changed, updating UI');
@@ -92,27 +100,40 @@ if (!tableBody) {
     tableBody = newTableBody; // Now this works
 }
     
-    console.log(`🎨 [LeadRenderer] Displaying ${leadsToDisplay?.length || 0} leads with enhanced styling`);
-        
-        // Show loading state if needed
-        if (this.stateManager.getState('isLoading')) {
-            this.renderLoadingState(tableBody);
-            return;
-        }
-        
-        // Handle empty state
-        if (leadsToDisplay.length === 0) {
-            this.renderEmptyState(tableBody);
-            this.updateLeadCounts(0, 0);
-            return;
-        }
-        
+console.log(`🎨 [LeadRenderer] Displaying ${leadsToDisplay?.length || 0} leads with enhanced styling`);
+    
+    // Show loading state if needed
+    if (this.stateManager.getState('isLoading')) {
+        this.renderLoadingState(tableBody);
+        return;
+    }
+    
+    // Handle empty state
+    if (leadsToDisplay.length === 0) {
+        this.renderEmptyState(tableBody);
+        this.updateLeadCounts(0, 0);
+        this.renderPagination(0, 0);
+        return;
+    }
+
+// Calculate pagination
+const totalLeads = leadsToDisplay.length;
+const totalPages = Math.ceil(totalLeads / this.leadsPerPage);
+const startIndex = (this.currentPage - 1) * this.leadsPerPage;
+const endIndex = Math.min(startIndex + this.leadsPerPage, totalLeads);
+const paginatedLeads = leadsToDisplay.slice(startIndex, endIndex);
+
+console.log(`📄 [LeadRenderer] Page ${this.currentPage}/${totalPages}: Showing ${startIndex + 1}-${endIndex} of ${totalLeads}`);
+    
 // Store current scroll position
 const currentScroll = window.scrollY;
 
-// Render leads with enhanced styling
-const leadCards = leadsToDisplay.map(lead => this.createLeadCard(lead)).join('');
+// Render paginated leads
+const leadCards = paginatedLeads.map(lead => this.createLeadCard(lead)).join('');
 tableBody.innerHTML = leadCards;
+
+// Render pagination controls
+this.renderPagination(totalLeads, totalPages);
 
 // Restore scroll position immediately
 requestAnimationFrame(() => {
@@ -754,6 +775,116 @@ formatDateProfessional(dateString) {
         }
     }
 
+    renderPagination(totalLeads, totalPages) {
+    const paginationStart = document.getElementById('pagination-start');
+    const paginationTotal = document.getElementById('pagination-total');
+    const paginationControls = document.getElementById('pagination-controls');
+    
+    if (!paginationStart || !paginationTotal || !paginationControls) return;
+    
+    // Update count display
+    const startIndex = (this.currentPage - 1) * this.leadsPerPage + 1;
+    const endIndex = Math.min(this.currentPage * this.leadsPerPage, totalLeads);
+    
+    paginationStart.textContent = totalLeads > 0 ? `${startIndex}-${endIndex}` : '0';
+    paginationTotal.textContent = totalLeads;
+    
+    // Clear existing controls
+    paginationControls.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+    
+    // Build pagination buttons
+    let paginationHTML = '';
+    
+    // Previous button
+    paginationHTML += `
+        <button 
+            onclick="window.leadRenderer.goToPage(${this.currentPage - 1})"
+            ${this.currentPage === 1 ? 'disabled' : ''}
+            class="px-3 py-1 text-sm border border-gray-300 rounded-lg ${this.currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}"
+        >
+            Previous
+        </button>
+    `;
+    
+    // Page number buttons - show current, prev, next, first, and last
+    const pagesToShow = [];
+    
+    // Always show first page
+    if (this.currentPage > 2) {
+        pagesToShow.push(1);
+        if (this.currentPage > 3) {
+            pagesToShow.push('...');
+        }
+    }
+    
+    // Show previous, current, and next page
+    for (let i = Math.max(1, this.currentPage - 1); i <= Math.min(totalPages, this.currentPage + 1); i++) {
+        pagesToShow.push(i);
+    }
+    
+    // Always show last page
+    if (this.currentPage < totalPages - 1) {
+        if (this.currentPage < totalPages - 2) {
+            pagesToShow.push('...');
+        }
+        pagesToShow.push(totalPages);
+    }
+    
+    pagesToShow.forEach(page => {
+        if (page === '...') {
+            paginationHTML += `
+                <span class="px-3 py-1 text-sm text-gray-400">...</span>
+            `;
+        } else {
+            paginationHTML += `
+                <button 
+                    onclick="window.leadRenderer.goToPage(${page})"
+                    class="px-3 py-1 text-sm border rounded-lg ${page === this.currentPage ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}"
+                >
+                    ${page}
+                </button>
+            `;
+        }
+    });
+    
+    // Next button
+    paginationHTML += `
+        <button 
+            onclick="window.leadRenderer.goToPage(${this.currentPage + 1})"
+            ${this.currentPage === totalPages ? 'disabled' : ''}
+            class="px-3 py-1 text-sm border border-gray-300 rounded-lg ${this.currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}"
+        >
+            Next
+        </button>
+    `;
+    
+    paginationControls.innerHTML = paginationHTML;
+}
+
+goToPage(pageNumber) {
+    const leadsToDisplay = this.stateManager.getState('visibleLeads') || 
+                          this.stateManager.getState('filteredLeads') || 
+                          this.stateManager.getState('leads') || [];
+    
+    const totalPages = Math.ceil(leadsToDisplay.length / this.leadsPerPage);
+    
+    if (pageNumber < 1 || pageNumber > totalPages) return;
+    
+    this.currentPage = pageNumber;
+    
+    // Scroll to top of table
+    const tableContainer = document.querySelector('.leads-table-container');
+    if (tableContainer) {
+        tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    this.displayLeads();
+    
+    console.log(`📄 [LeadRenderer] Navigated to page ${pageNumber}/${totalPages}`);
+}
+
     updateSelectionUI() {
         const selectedLeads = this.stateManager.getState('selectedLeads') || new Set();
         const checkboxes = document.querySelectorAll('.lead-checkbox');
@@ -1207,4 +1338,9 @@ if (typeof module !== 'undefined' && module.exports) {
 } else if (typeof window !== 'undefined') {
     window.LeadRenderer = LeadRenderer;
     console.log('✅ [LeadRenderer] Enhanced renderer class available globally');
+}
+
+// Make leadRenderer available globally for pagination buttons
+if (typeof window !== 'undefined') {
+    window.leadRenderer = null; // Will be set after initialization
 }
