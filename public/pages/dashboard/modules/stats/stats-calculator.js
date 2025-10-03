@@ -149,17 +149,17 @@ calculateAverageScore(leads) {
 renderStats(stats) {
     console.log('🎨 [StatsCalculator] Rendering stats to UI:', stats);
     
-    // Credits this month
-    const creditsUsedEl = document.getElementById('credits-used');
-    const creditsTotalEl = document.getElementById('credits-total');
-    const creditsPercentEl = document.querySelector('.glass-white .text-xs.text-gray-500');
-    
-    if (creditsUsedEl) creditsUsedEl.textContent = stats.creditsUsed || 0;
-    if (creditsTotalEl) creditsTotalEl.textContent = this.formatNumber(stats.planCredits);
-    if (creditsPercentEl) {
-        const percentage = Math.round(((stats.creditsUsed || 0) / stats.planCredits) * 100);
-        creditsPercentEl.textContent = `${percentage}% used`;
-    }
+// Credits this month - show remaining credits only
+const creditsUsedEl = document.getElementById('credits-used');
+const creditsTotalEl = document.getElementById('credits-total');
+const creditsPercentEl = document.querySelector('.glass-white .text-xs.text-gray-500');
+
+if (creditsUsedEl) creditsUsedEl.textContent = stats.creditsRemaining || 0;
+if (creditsTotalEl) creditsTotalEl.textContent = this.formatNumber(stats.planCredits);
+if (creditsPercentEl) {
+    const percentage = Math.round(((stats.planCredits - stats.creditsRemaining) / stats.planCredits) * 100);
+    creditsPercentEl.textContent = `${percentage}% used`;
+}
     
     // Leads this month
     const leadsResearchedEl = document.getElementById('leads-researched');
