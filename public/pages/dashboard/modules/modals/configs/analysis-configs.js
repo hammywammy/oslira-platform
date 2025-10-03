@@ -10,14 +10,30 @@ class AnalysisConfigs {
 
 registerDefaultConfigs() {
     // Light Analysis Configuration - No tabs
-    this.configs.set('light', {
-        hasTabs: false,
-        components: [
-            'heroHeader',
-            'aiSummary',
-            'lightAnalysisNotice'
-        ]
-    });
+// Light Analysis Configuration - WITH TABS (matching xray structure)
+this.configs.set('light', {
+    hasTabs: true,
+    tabs: [
+        {
+            id: 'analysis',
+            label: 'Analysis',
+            components: [
+                'aiSummary',
+                'lightAnalysisNotice'
+            ]
+        },
+        {
+            id: 'personality',
+            label: 'Personality',
+            components: [
+                'personalityOverview',
+                'behaviorPatterns',
+                'communicationStyle',
+                'motivationDrivers'
+            ]
+        }
+    ]
+});
 
     // Deep Analysis Configuration - WITH TABS  
     this.configs.set('deep', {
