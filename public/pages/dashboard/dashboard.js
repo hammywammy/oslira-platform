@@ -1,27 +1,34 @@
+//public/pages/dashboard/dashboard.js
+
 // =============================================================================
-// DASHBOARD.JS - Main Dashboard Controller with Config Wait
+// DASHBOARD.JS - Event-Driven Initialization System
+// Waits for script-loader completion via 'oslira:scripts:loaded' event
 // =============================================================================
 
 class DashboardInitializer {
     constructor() {
         this.initialized = false;
         this.app = null;
+        this.initTimeout = null;
     }
     
-async init() {
-    if (this.initialized) return this;
-    
-    try {
-        console.log('🚀 [Dashboard] Starting initialization...');
+    async init() {
+        if (this.initialized) {
+            console.log('⚠️ [Dashboard] Already initialized');
+            return this;
+        }
         
-        // CRITICAL: Wait for config to be loaded
-        console.log('⏳ [Dashboard] Waiting for config to be ready...');
-        await window.OsliraEnv.ready();
-        console.log('✅ [Dashboard] Config ready, proceeding with initialization');
-        
-        // Verify all required modules are loaded (now async)
-        await this.verifyModules();
+        try {
+            console.log('🚀 [Dashboard] Starting initialization...');
             
+            // Wait for config to be loaded
+            console.log('⏳ [Dashboard] Waiting for config to be ready...');
+            await window.OsliraEnv.ready();
+            console.log('✅ [Dashboard] Config ready, proceeding with initialization');
+            
+            // Verify all required modules are loaded
+            await this.verifyModules();
+                
             // Initialize the dashboard application
             await this.initializeApp();
             
@@ -43,107 +50,92 @@ async init() {
         }
     }
     
-async verifyModules() {
-    console.log('🔍 [Dashboard] Verifying required modules...');
-    
-    const requiredModules = [
-        'DashboardCore',
-        'DashboardApp',
-        'DashboardEventSystem',
-        'DashboardErrorSystem',
-        'DependencyContainer'
-    ];
-    
-    // Wait for all modules with retry logic
-    const maxAttempts = 50;
-    let attempts = 0;
-    
-    while (attempts < maxAttempts) {
+    async verifyModules() {
+        console.log('🔍 [Dashboard] Verifying required modules...');
+        
+        const requiredModules = [
+            'DashboardCore',
+            'DashboardApp',
+            'DashboardEventSystem',
+            'DashboardErrorSystem',
+            'DependencyContainer'
+        ];
+        
+        // All modules should be loaded by script-loader at this point
         const missing = requiredModules.filter(module => !window[module]);
         
-        if (missing.length === 0) {
-            console.log('✅ [Dashboard] All required modules verified');
-            return;
+        if (missing.length > 0) {
+            throw new Error(`Required modules not loaded: ${missing.join(', ')}`);
         }
         
-        if (attempts === 0) {
-            console.log('⏳ [Dashboard] Waiting for modules:', missing);
-        }
+        console.log('✅ [Dashboard] All required modules verified');
+    }
+    
+    async initializeApp() {
+        console.log('📱 [Dashboard] Initializing dashboard app...');
         
-        await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
-    }
-    
-    const missing = requiredModules.filter(module => !window[module]);
-    if (missing.length > 0) {
-            throw new Error(`Missing required modules: ${missing.join(', ')}`);
-        }
-        
-        console.log('✅ [Dashboard] All required modules present');
-    }
-    
-async initializeApp() {
-    console.log('📱 [Dashboard] Initializing dashboard app...');
-    
-    // Wait for OsliraAuth
-    if (!window.OsliraAuth) {
-        throw new Error('OsliraAuth not available');
-    }
-
-    // CRITICAL: Restore session from URL if present
-    await window.OsliraAuth.restoreSessionFromUrl();
-
-    // NOW initialize auth (will pick up restored session)
-    await window.OsliraAuth.initialize();
-
-    const user = window.OsliraAuth.user;
-
-    if (!user) {
-        console.log('❌ [Dashboard] No authenticated user, redirecting to auth');
-        window.location.href = window.OsliraEnv.getAuthUrl();
-        return;
-    }
-    
-    console.log('✅ [Dashboard] OsliraAuth compatibility layer created');
-    
-    // Create and initialize the dashboard app
-    this.app = new DashboardApp();
-    await this.app.init();
-    
-    // CRITICAL: Expose container globally for TimingManager
-    window.dashboard = {
-        container: this.app.container,
-        app: this.app
-    };
-    
-    // Set global reference for onclick handlers
-    if (this.app && this.app.container) {
         try {
-            window.analysisQueue = this.app.container.get('analysisQueue');
-            console.log('✅ [Dashboard] Global analysisQueue reference set');
+            // Wait for OsliraAuth
+            if (!window.OsliraAuth) {
+                throw new Error('OsliraAuth not available');
+            }
+
+            // Restore session from URL if present
+            await window.OsliraAuth.restoreSessionFromUrl();
+
+            // Initialize auth (will pick up restored session)
+            await window.OsliraAuth.initialize();
+
+            const user = window.OsliraAuth.user;
+
+            if (!user) {
+                console.log('❌ [Dashboard] No authenticated user, redirecting to auth');
+                window.location.href = window.OsliraEnv.getAuthUrl();
+                return;
+            }
+            
+            // Create compatibility layer for OsliraAuth if needed
+            if (!window.osliraAuth) {
+                window.osliraAuth = window.OsliraAuth;
+                console.log('✅ [Dashboard] OsliraAuth compatibility layer created');
+            }
+            
+            // Create and initialize dashboard app
+            this.app = new window.DashboardApp();
+            await this.app.init();
+            
+            // Set global analysisQueue reference for backwards compatibility
+            if (this.app.container) {
+                const queue = this.app.container.get('analysisQueue');
+                if (queue) {
+                    window.analysisQueue = queue;
+                    console.log('✅ [Dashboard] Global analysisQueue reference set');
+                }
+            }
+            
+            console.log('✅ [Dashboard] App initialized successfully');
+            
         } catch (error) {
-            console.warn('⚠️ [Dashboard] Failed to set global analysisQueue:', error.message);
+            console.error('❌ [Dashboard] App initialization failed:', error);
+            throw error;
         }
     }
-    
-    console.log('✅ [Dashboard] App initialized successfully');
-}
     
     async initializeSidebar() {
         console.log('📐 [Dashboard] Initializing modular sidebar...');
         
-        // Wait for SidebarManager to be available
-        if (!window.SidebarManager) {
-            console.warn('⚠️ [Dashboard] SidebarManager not available, skipping sidebar initialization');
-            return;
-        }
-        
-        try {
-            await window.sidebarManager.render('#sidebar-container');
-            console.log('✅ [Dashboard] Sidebar initialized successfully');
-        } catch (error) {
-            console.error('❌ [Dashboard] Sidebar initialization failed:', error);
-            // Non-critical error, continue with dashboard initialization
+        if (window.SidebarManager) {
+            try {
+                const sidebarManager = new window.SidebarManager();
+                await sidebarManager.init();
+                window.sidebar = sidebarManager;
+                console.log('✅ [Dashboard] Sidebar initialized successfully');
+            } catch (error) {
+                console.error('❌ [Dashboard] Sidebar initialization failed:', error);
+                // Non-critical, continue initialization
+            }
+        } else {
+            console.warn('⚠️ [Dashboard] SidebarManager not available');
         }
     }
     
@@ -162,11 +154,6 @@ async initializeApp() {
             showAnalysisModal: (username = '') => {
                 console.log('🔍 [Dashboard] Global showAnalysisModal called with:', username);
                 try {
-                    if (this.app?.showAnalysisModal) {
-                        return this.app.showAnalysisModal(username);
-                    }
-                    
-                    // Fallback: direct modal opening
                     const modal = document.getElementById('analysisModal');
                     if (modal) {
                         modal.style.display = 'flex';
@@ -181,7 +168,7 @@ async initializeApp() {
                             if (inputContainer) inputContainer.style.display = 'block';
                         }
                         
-                        console.log('✅ [Dashboard] Analysis modal opened via fallback');
+                        console.log('✅ [Dashboard] Analysis modal opened');
                     }
                 } catch (error) {
                     console.error('❌ [Dashboard] showAnalysisModal failed:', error);
@@ -191,14 +178,10 @@ async initializeApp() {
             showBulkModal: () => {
                 console.log('📁 [Dashboard] Global showBulkModal called');
                 try {
-                    if (this.app?.showBulkModal) {
-                        return this.app.showBulkModal();
-                    }
-                    
                     const modal = document.getElementById('bulkModal');
                     if (modal) {
                         modal.style.display = 'flex';
-                        console.log('✅ [Dashboard] Bulk modal opened via fallback');
+                        console.log('✅ [Dashboard] Bulk modal opened');
                     }
                 } catch (error) {
                     console.error('❌ [Dashboard] showBulkModal failed:', error);
@@ -208,153 +191,13 @@ async initializeApp() {
             closeModal: (modalId) => {
                 console.log('❌ [Dashboard] Global closeModal called with:', modalId);
                 try {
-                    if (this.app?.closeModal) {
-                        return this.app.closeModal(modalId);
-                    }
-                    
                     const modal = document.getElementById(modalId);
                     if (modal) {
                         modal.style.display = 'none';
-                        console.log(`✅ [Dashboard] Modal ${modalId} closed via fallback`);
+                        console.log(`✅ [Dashboard] Modal ${modalId} closed`);
                     }
                 } catch (error) {
                     console.error('❌ [Dashboard] closeModal failed:', error);
-                }
-            },
-            
-            // Form Handlers
-            submitAnalysis: async () => {
-                console.log('🔍 [Dashboard] Global submitAnalysis called');
-                
-                const submitBtn = document.getElementById('analysis-submit-btn');
-                const analysisType = document.getElementById('analysis-type')?.value;
-                const username = document.getElementById('username')?.value;
-                
-                if (!analysisType) {
-                    this.showAlert('Please select an analysis type', 'error');
-                    return;
-                }
-                
-                if (analysisType === 'profile' && !username?.trim()) {
-                    this.showAlert('Please enter a username', 'error');
-                    return;
-                }
-                
-                let originalText = 'Start Analysis';
-                
-                try {
-                    if (submitBtn) {
-                        originalText = submitBtn.textContent;
-                        submitBtn.textContent = 'Processing...';
-                        submitBtn.disabled = true;
-                    }
-                    
-                    const config = await window.OsliraConfig.getConfig();
-                    const session = window.OsliraAuth.getCurrentSession();
-                    
-                    if (!session?.access_token) {
-                        throw new Error('Authentication required');
-                    }
-                    
-                    const response = await fetch(`${config.workerUrl}/analyze/single`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${session.access_token}`
-                        },
-                        body: JSON.stringify({
-                            username: username?.trim(),
-                            analysis_type: analysisType
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        this.showAlert('Analysis started! Results will appear in your dashboard.', 'success');
-                        this.closeModal('analysisModal');
-                        
-                        if (this.app?.refreshLeads) {
-                            setTimeout(() => this.app.refreshLeads(), 2000);
-                        }
-                    } else {
-                        const errorText = await response.text();
-                        throw new Error(errorText || `Server error: ${response.status}`);
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ [Dashboard] Analysis submission failed:', error);
-                    this.showAlert(error.message || 'Analysis failed. Please try again.', 'error');
-                } finally {
-                    if (submitBtn) {
-                        submitBtn.textContent = originalText;
-                        submitBtn.disabled = false;
-                    }
-                }
-            },
-            
-            // Lead Management
-            deleteLead: (leadId) => {
-                console.log('🗑️ [Dashboard] Global deleteLead called with:', leadId);
-                try {
-                    if (this.app?.deleteLead) {
-                        return this.app.deleteLead(leadId);
-                    }
-                    console.warn('❌ [Dashboard] deleteLead not available in app');
-                } catch (error) {
-                    console.error('❌ [Dashboard] deleteLead failed:', error);
-                }
-            },
-            
-            selectLead: (checkbox) => {
-                try {
-                    if (this.app?.selectLead) {
-                        return this.app.selectLead(checkbox);
-                    }
-                } catch (error) {
-                    console.error('❌ [Dashboard] selectLead failed:', error);
-                }
-            },
-            
-            toggleAllLeads: (masterCheckbox) => {
-                try {
-                    if (this.app?.toggleAllLeads) {
-                        return this.app.toggleAllLeads(masterCheckbox);
-                    }
-                } catch (error) {
-                    console.error('❌ [Dashboard] toggleAllLeads failed:', error);
-                }
-            },
-            
-            // Filtering and Search
-            filterLeads: (filter) => {
-                try {
-                    if (this.app?.filterLeads) {
-                        return this.app.filterLeads(filter);
-                    }
-                } catch (error) {
-                    console.error('❌ [Dashboard] filterLeads failed:', error);
-                }
-            },
-            
-            searchLeads: (term) => {
-                try {
-                    if (this.app?.searchLeads) {
-                        return this.app.searchLeads(term);
-                    }
-                } catch (error) {
-                    console.error('❌ [Dashboard] searchLeads failed:', error);
-                }
-            },
-            
-            // Bulk Operations
-            processBulkUpload: () => {
-                console.log('📁 [Dashboard] Global processBulkUpload called');
-                try {
-                    if (this.app?.processBulkUpload) {
-                        return this.app.processBulkUpload();
-                    }
-                    console.warn('❌ [Dashboard] processBulkUpload not available in app');
-                } catch (error) {
-                    console.error('❌ [Dashboard] processBulkUpload failed:', error);
                 }
             },
             
@@ -411,31 +254,10 @@ async initializeApp() {
                 }
                 console.groupEnd();
                 
-                if (this.app?.debugDashboard) {
-                    return this.app.debugDashboard();
+                if (this.app?.debug) {
+                    return this.app.debug();
                 }
-            },
-            
-            debugDashboard: () => {
-                console.log('🐛 [Dashboard] Debug info:', {
-                    app: !!this.app,
-                    appMethods: this.app ? Object.keys(this.app) : [],
-                    container: !!this.app?.container,
-                    modules: this.app?.container ? {
-                        modalManager: !!this.app.container.get('modalManager'),
-                        businessManager: !!this.app.container.get('businessManager'),
-                        leadManager: !!this.app.container.get('leadManager')
-                    } : 'No container'
-                });
-                
-                if (this.app?.debugDashboard) {
-                    return this.app.debugDashboard();
-                }
-            },
-            
-            // Internal reference for advanced usage
-            _app: this.app,
-            _initializer: this
+            }
         };
         
         // Expose debugging utilities
@@ -480,7 +302,7 @@ async initializeApp() {
                     <button onclick="window.location.reload()" style="padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
                         🔄 Reload Page
                     </button>
-                    <button onclick="window.location.href='${window.OsliraEnv.getAuthUrl()}'" style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    <button onclick="window.location.href='${window.OsliraEnv?.getAuthUrl ? window.OsliraEnv.getAuthUrl() : '/'}'" style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
                         🔐 Return to Login
                     </button>
                 </div>
@@ -498,42 +320,57 @@ async initializeApp() {
 }
 
 // =============================================================================
-// AUTO-INITIALIZATION
+// AUTO-INITIALIZATION - Event-Driven Approach
 // =============================================================================
 
 const dashboardInitializer = new DashboardInitializer();
 
-const startDashboard = async () => {
-    try {
-        console.log('📄 [Dashboard] Dashboard initializer ready');
+const startDashboard = () => {
+    console.log('📄 [Dashboard] Dashboard initializer ready');
+    
+    // Listen for script-loader completion event
+    window.addEventListener('oslira:scripts:loaded', async (event) => {
+        if (dashboardInitializer.initialized) {
+            console.log('⚠️ [Dashboard] Already initialized, ignoring event');
+            return;
+        }
         
-        window.addEventListener('oslira:timing:ready', () => {
-            console.log('📄 [Dashboard] TimingManager ready, dashboard can proceed');
-        });
+        console.log('📄 [Dashboard] Scripts loaded event received:', event.detail);
         
-        // Polling with shorter interval for faster response
-        console.log('📄 [Dashboard] Setting up dependency polling...');
-const pollForDependencies = setInterval(async () => {
-    if (window.OsliraAuth && !dashboardInitializer.initialized) {
-                console.log('📄 [Dashboard] Dependencies detected via polling, initializing...');
-                clearInterval(pollForDependencies);
-                await dashboardInitializer.init();
-            }
-        }, 100);
+        // Clear any existing timeout
+        if (dashboardInitializer.initTimeout) {
+            clearTimeout(dashboardInitializer.initTimeout);
+        }
         
-        // Cleanup timeout after 10 seconds
-        setTimeout(() => {
-            clearInterval(pollForDependencies);
-            if (!dashboardInitializer.initialized) {
-                console.log('📄 [Dashboard] Polling timeout reached without initialization');
-            }
-        }, 10000);
-        
-    } catch (error) {
-        console.error('❌ [Dashboard] Failed to start dashboard:', error);
-    }
+        try {
+            await dashboardInitializer.init();
+        } catch (error) {
+            console.error('❌ [Dashboard] Failed to initialize:', error);
+        }
+    }, { once: true }); // Only listen once
+    
+    // Fallback: If event already fired before this listener was added
+    setTimeout(() => {
+        if (!dashboardInitializer.initialized && window.OsliraAuth) {
+            console.log('📄 [Dashboard] Event missed, checking dependencies directly...');
+            dashboardInitializer.init().catch(error => {
+                console.error('❌ [Dashboard] Fallback initialization failed:', error);
+            });
+        }
+    }, 1000);
+    
+    // Safety timeout: force initialization after 10 seconds
+    dashboardInitializer.initTimeout = setTimeout(() => {
+        if (!dashboardInitializer.initialized) {
+            console.warn('⚠️ [Dashboard] Timeout reached, attempting forced initialization...');
+            dashboardInitializer.init().catch(error => {
+                console.error('❌ [Dashboard] Forced initialization failed:', error);
+            });
+        }
+    }, 10000);
 };
 
+// Start when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', startDashboard);
 } else {
