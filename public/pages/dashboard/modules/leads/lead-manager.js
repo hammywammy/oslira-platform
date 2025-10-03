@@ -399,16 +399,20 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
             engagement_rate: 0
         };
         
-        // X-Ray analysis fields - ADD THIS SECTION
-        if (payload.copywriter_profile) {
-            analysisData.copywriter_profile = payload.copywriter_profile;
-        }
-        if (payload.commercial_intelligence) {
-            analysisData.commercial_intelligence = payload.commercial_intelligence;
-        }
-        if (payload.persuasion_strategy) {
-            analysisData.persuasion_strategy = payload.persuasion_strategy;
-        }
+// X-Ray analysis fields
+if (payload.copywriter_profile) {
+    analysisData.copywriter_profile = payload.copywriter_profile;
+}
+if (payload.commercial_intelligence) {
+    analysisData.commercial_intelligence = payload.commercial_intelligence;
+}
+if (payload.persuasion_strategy) {
+    analysisData.persuasion_strategy = payload.persuasion_strategy;
+}
+// Add X-Ray deep_summary
+if (payload.deep_summary) {
+    analysisData.deep_summary = payload.deep_summary;
+}
         
         // Legacy compatibility for older fields
         analysisData.audience_quality = 'Medium'; // Default since not in new format
