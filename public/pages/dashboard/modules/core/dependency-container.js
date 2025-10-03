@@ -66,6 +66,30 @@ registerSingleton(name, instance) {
     register(name, instance) {
         return this.registerSingleton(name, instance);
     }
+
+    /**
+ * Resolve dependencies for a factory
+ */
+resolveDependencies(dependencies) {
+    return dependencies.map(dep => {
+        if (!this.has(dep)) {
+            throw new Error(`Dependency '${dep}' not registered. Available: ${Array.from(this.dependencies.keys()).concat(Array.from(this.factories.keys())).join(', ')}`);
+        }
+        
+        // If it's a singleton, return it directly
+        if (this.singletons.has(dep)) {
+            return this.singletons.get(dep);
+        }
+        
+        // If it's a regular dependency, return it
+        if (this.dependencies.has(dep)) {
+            return this.dependencies.get(dep);
+        }
+        
+        // If it's a factory, instantiate it (recursive call to get)
+        return this.get(dep);
+    });
+}
     
     /**
      * Get dependency instance
@@ -74,10 +98,10 @@ get(name, retryCount = 0) {
     const MAX_RETRIES = 3;
     const RETRY_DELAY = 100;
     
-    // Check if singleton exists
-    if (this.instances.has(name)) {
-        return this.instances.get(name);
-    }
+// Check if singleton exists
+if (this.singletons.has(name)) {
+    return this.singletons.get(name);
+}
 
     const factoryInfo = this.factories.get(name);
     if (!factoryInfo) {
@@ -91,10 +115,11 @@ get(name, retryCount = 0) {
         console.log(`🏗️ [DependencyContainer] Factory instance created: ${name}`);
         const instance = factoryInfo.factory(...resolvedDeps);
         
-        // Convert to singleton if marked
-        if (factoryInfo.dependencies.length > 0) {
-            this.instances.set(name, instance);
-            this.factories.delete(name);
+// Convert to singleton if marked
+if (factoryInfo.dependencies.length > 0) {
+    this.singletons.set(name, instance);
+    this.dependencies.set(name, instance);
+    this.factories.delete(name);
             console.log(`🔄 [DependencyContainer] Replaced factory with singleton: ${name}`);
         }
         
