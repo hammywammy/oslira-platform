@@ -1,28 +1,51 @@
 //public/pages/dashboard/modules/core/dashboard-app.js
 
 /**
- * DASHBOARD APP - Clean Modern Implementation
- * Main orchestrator using modular components
+ * DASHBOARD APP - Production-Grade Initialization System
+ * Handles dependency injection, parallel loading, and graceful failure recovery
+ * Designed to work with script-loader.js parallel loading architecture
  */
 class DashboardApp {
     constructor() {
         this.container = null;
         this.initialized = false;
         this.initStartTime = Date.now();
+        this.initializationPromise = null;
         
         console.log('🚀 [DashboardApp] Starting initialization...');
     }
     
     /**
-     * Main initialization method
+     * Main initialization method with idempotent protection
      */
     async init() {
+        // Prevent multiple simultaneous initializations
+        if (this.initializationPromise) {
+            console.log('⏳ [DashboardApp] Initialization already in progress, waiting...');
+            return this.initializationPromise;
+        }
+        
+        if (this.initialized) {
+            console.log('⚠️ [DashboardApp] Already initialized');
+            return true;
+        }
+        
+        this.initializationPromise = this._performInitialization();
+        
         try {
-            if (this.initialized) {
-                console.log('⚠️ [DashboardApp] Already initialized');
-                return;
-            }
-            
+            await this.initializationPromise;
+            return true;
+        } catch (error) {
+            this.initializationPromise = null;
+            throw error;
+        }
+    }
+    
+    /**
+     * Internal initialization logic
+     */
+    async _performInitialization() {
+        try {
             console.log('🔧 [DashboardApp] Setting up dependency container...');
             
             // Create and setup dependency container
@@ -31,22 +54,26 @@ class DashboardApp {
             // Validate container setup
             const validation = this.container.validate();
             if (!validation.valid) {
+                console.error('❌ [DashboardApp] Dependency validation failed:', validation.issues);
                 throw new Error('Dependency validation failed: ' + JSON.stringify(validation.issues));
             }
             
-// Use DashboardCore for initialization
-await DashboardCore.initialize(this.container);
-
-// Sync business to OsliraAuth after initialization
-const businessManager = this.container.get('businessManager');
-const currentBusiness = businessManager.getCurrentBusiness();
-if (currentBusiness && window.OsliraAuth) {
-    window.OsliraAuth.business = currentBusiness;
-    console.log('✅ [DashboardApp] Business synced to OsliraAuth:', currentBusiness.business_name);
-}
-
-// Setup event system
-DashboardEventSystem.setupHandlers(
+            console.log('✅ [DashboardApp] Dependency validation passed');
+            
+            // Use DashboardCore for initialization (handles all async resolution)
+            await DashboardCore.initialize(this.container);
+            
+            // Sync business to OsliraAuth after initialization
+            const businessManager = this.container.get('businessManager');
+            const currentBusiness = businessManager.getCurrentBusiness();
+            if (currentBusiness && window.OsliraAuth) {
+                window.OsliraAuth.business = currentBusiness;
+                console.log('✅ [DashboardApp] Business synced to OsliraAuth:', currentBusiness.business_name);
+            }
+            
+            // Setup event system
+            console.log('📡 [DashboardApp] Setting up event handlers...');
+            DashboardEventSystem.setupHandlers(
                 this.container.get('eventBus'),
                 this.container
             );
@@ -55,7 +82,6 @@ DashboardEventSystem.setupHandlers(
             this.exposePublicAPI();
             
             this.initialized = true;
-            
             const initTime = Date.now() - this.initStartTime;
             console.log(`✅ [DashboardApp] Initialization completed in ${initTime}ms`);
             
@@ -74,102 +100,93 @@ DashboardEventSystem.setupHandlers(
     
     /**
      * Setup dependency container with all required services
+     * All factories are SYNCHRONOUS - scripts already loaded by script-loader.js
      */
-setupDependencyContainer() {
-    const container = new DependencyContainer();
-    
-    // Register core infrastructure
-    console.log('📋 [DashboardApp] Registering core dependencies...');
-    container.registerSingleton('eventBus', new DashboardEventBus());
-
-    // Analysis Functions - async factory with readiness check
-    container.registerFactory('analysisFunctions', async () => {
-        await window.DependencyReadiness.waitForDependency('AnalysisFunctions');
-        const instance = new window.AnalysisFunctions(container);
-        if (typeof instance.init === 'function') {
-            instance.init();
-        }
-        return instance;
-    });
-    
-    // State Manager - with dependency on eventBus
-    container.registerFactory('stateManager', async (eventBus) => {
-        await window.DependencyReadiness.waitForDependency('DashboardStateManager');
-        return new window.DashboardStateManager(eventBus);
-    }, ['eventBus']);
-
-    // Register OsliraAuth as direct reference
-    container.registerSingleton('osliraAuth', window.OsliraAuth);
-    
-    // Register feature modules (DEDUPLICATED)
-    console.log('📋 [DashboardApp] Registering feature modules...');
-    
-    container.registerFactory('leadManager', async () => {
-        await window.DependencyReadiness.waitForDependency('LeadManager');
-        return new window.LeadManager(container);
-    }, []);
-    
-    container.registerFactory('realtimeManager', async () => {
-        await window.DependencyReadiness.waitForDependency('RealtimeManager');
-        return new window.RealtimeManager(container);
-    }, []);
-
-    container.registerFactory('businessManager', async () => {
-        await window.DependencyReadiness.waitForDependency('BusinessManager');
-        return new window.BusinessManager(container);
-    }, []);
-
-    container.registerFactory('modalManager', async () => {
-        await window.DependencyReadiness.waitForDependency('ModalManager');
-        return new window.ModalManager(container);
-    }, []);
-
-    container.registerFactory('researchHandlers', async () => {
-        await window.DependencyReadiness.waitForDependency('ResearchHandlers');
-        return new window.ResearchHandlers();
-    }, []);
-
-    container.registerFactory('analysisQueue', async () => {
-        await window.DependencyReadiness.waitForDependency('AnalysisQueue');
-        return new window.AnalysisQueue(container);
-    }, []);
-
-    container.registerFactory('leadRenderer', async () => {
-        await window.DependencyReadiness.waitForDependency('LeadRenderer');
-        return new window.LeadRenderer(container);
-    }, []);
-
-    container.registerFactory('statsCalculator', async () => {
-        await window.DependencyReadiness.waitForDependency('StatsCalculator');
-        return new window.StatsCalculator(container);
-    }, []);
-
-    // Register UI components
-    container.registerFactory('dashboardHeader', async () => {
-        await window.DependencyReadiness.waitForDependency('DashboardHeader');
-        return new window.DashboardHeader(container);
-    });
-
-    container.registerFactory('statsCards', async () => {
-        await window.DependencyReadiness.waitForDependency('StatsCards');
-        const instance = new window.StatsCards(container);
-        if (instance.init) instance.init();
-        return instance;
-    });
-
-    container.registerFactory('leadsTable', async () => {
-        await window.DependencyReadiness.waitForDependency('LeadsTable');
-        return new window.LeadsTable(container);
-    });
-    
-    container.registerFactory('insightsPanel', async () => {
-        await window.DependencyReadiness.waitForDependency('InsightsPanel');
-        return new window.InsightsPanel(container);
-    });
-    
-    console.log('✅ [DashboardApp] All dependencies registered');
-    return container;
-}
+    setupDependencyContainer() {
+        const container = new DependencyContainer();
+        
+        // =========================================================================
+        // CORE INFRASTRUCTURE - Singletons
+        // =========================================================================
+        console.log('📋 [DashboardApp] Registering core dependencies...');
+        
+        // EventBus - Pure singleton, no dependencies
+        container.registerSingleton('eventBus', new DashboardEventBus());
+        
+        // StateManager - Depends on eventBus, synchronous factory
+        container.registerFactory('stateManager', (eventBus) => {
+            return new window.DashboardStateManager(eventBus);
+        }, ['eventBus']);
+        
+        // OsliraAuth - Direct reference to global
+        container.registerSingleton('osliraAuth', window.OsliraAuth);
+        
+        // AnalysisFunctions - Synchronous, scripts already loaded
+        container.registerFactory('analysisFunctions', () => {
+            return new window.AnalysisFunctions(container);
+        }, []);
+        
+        // =========================================================================
+        // FEATURE MODULES - All synchronous factories
+        // =========================================================================
+        console.log('📋 [DashboardApp] Registering feature modules...');
+        
+        container.registerFactory('leadManager', () => {
+            return new window.LeadManager(container);
+        }, []);
+        
+        container.registerFactory('realtimeManager', () => {
+            return new window.RealtimeManager(container);
+        }, []);
+        
+        container.registerFactory('businessManager', () => {
+            return new window.BusinessManager(container);
+        }, []);
+        
+        container.registerFactory('modalManager', () => {
+            return new window.ModalManager(container);
+        }, []);
+        
+        container.registerFactory('researchHandlers', () => {
+            return new window.ResearchHandlers();
+        }, []);
+        
+        container.registerFactory('analysisQueue', () => {
+            return new window.AnalysisQueue(container);
+        }, []);
+        
+        container.registerFactory('leadRenderer', () => {
+            return new window.LeadRenderer(container);
+        }, []);
+        
+        container.registerFactory('statsCalculator', () => {
+            return new window.StatsCalculator(container);
+        }, []);
+        
+        // =========================================================================
+        // UI COMPONENTS - All synchronous factories
+        // =========================================================================
+        console.log('📋 [DashboardApp] Registering UI components...');
+        
+        container.registerFactory('dashboardHeader', () => {
+            return new window.DashboardHeader(container);
+        }, []);
+        
+        container.registerFactory('statsCards', () => {
+            return new window.StatsCards(container);
+        }, []);
+        
+        container.registerFactory('leadsTable', () => {
+            return new window.LeadsTable(container);
+        }, []);
+        
+        container.registerFactory('insightsPanel', () => {
+            return new window.InsightsPanel(container);
+        }, []);
+        
+        console.log('✅ [DashboardApp] All dependencies registered');
+        return container;
+    }
     
     /**
      * Expose public API for external access
@@ -260,7 +277,7 @@ setupDependencyContainer() {
      * Check if dashboard is ready
      */
     isReady() {
-        return this.initialized && this.container && window.osliraAuth?.user;
+        return this.initialized && this.container && window.OsliraAuth?.user;
     }
     
     /**
@@ -292,6 +309,8 @@ setupDependencyContainer() {
             delete window.DashboardAPI;
             
             this.initialized = false;
+            this.initializationPromise = null;
+            
             console.log('✅ [DashboardApp] Cleanup completed');
             
         } catch (error) {
@@ -304,7 +323,10 @@ setupDependencyContainer() {
      */
     debug() {
         if (!this.initialized) {
-            return { status: 'not_initialized' };
+            return { 
+                status: 'not_initialized',
+                initializationInProgress: !!this.initializationPromise
+            };
         }
         
         return {
@@ -314,7 +336,7 @@ setupDependencyContainer() {
             modules: this.container ? this.container.list() : [],
             stats: this.getStats(),
             user: this.getCurrentUser()?.email,
-            events: this.container ? this.container.get('eventBus').getListeners() : {}
+            containerStatus: this.container ? this.container.getStatus() : null
         };
     }
 }
