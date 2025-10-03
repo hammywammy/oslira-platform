@@ -304,6 +304,18 @@ window.clearToolbarSelections = () => {
                 this.isExportDropdownOpen = false;
             }
         });
+
+    // Close toolbar dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('#toolbar-copy-btn') && !e.target.closest('#toolbar-copy-dropdown')) {
+        const toolbarCopyDropdown = document.getElementById('toolbar-copy-dropdown');
+        if (toolbarCopyDropdown) toolbarCopyDropdown.classList.add('hidden');
+    }
+    if (!e.target.closest('#toolbar-export-btn') && !e.target.closest('#toolbar-export-dropdown')) {
+        const toolbarExportDropdown = document.getElementById('toolbar-export-dropdown');
+        if (toolbarExportDropdown) toolbarExportDropdown.classList.add('hidden');
+    }
+});
     }
 
     downloadCSV(leads, type) {
