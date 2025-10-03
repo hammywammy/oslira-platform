@@ -98,42 +98,40 @@ get(name, retryCount = 0) {
     const MAX_RETRIES = 3;
     const RETRY_DELAY = 100;
     
-    // Check if singleton exists
+    // Priority 1: Check singletons first
     if (this.singletons.has(name)) {
         return this.singletons.get(name);
     }
     
-    // Check if already in dependencies map
+    // Priority 2: Check dependencies map
     if (this.dependencies.has(name)) {
         return this.dependencies.get(name);
     }
-
+    
+    // Priority 3: Check if factory has already created instance
     const factoryInfo = this.factories.get(name);
-    if (!factoryInfo) {
+    if (factoryInfo) {
+        if (factoryInfo.instance) {
+            console.log(`♻️ [DependencyContainer] Returning cached factory instance: ${name}`);
+            return factoryInfo.instance;
+        }
+    } else {
         throw new Error(`Dependency '${name}' not registered. Available: ${Array.from(this.dependencies.keys()).concat(Array.from(this.factories.keys())).join(', ')}`);
     }
-    
-    // If factory already created an instance, return it
-    if (factoryInfo.instance) {
-        return factoryInfo.instance;
-    }
 
-    // Resolve dependencies first
+    // Priority 4: Create new instance if none exists
     const resolvedDeps = this.resolveDependencies(factoryInfo.dependencies);
 
     try {
         console.log(`🏗️ [DependencyContainer] Factory instance created: ${name}`);
         const instance = factoryInfo.factory(...resolvedDeps);
         
-        // Store instance in factory info AND dependencies map
+        // CRITICAL: Store instance in ALL THREE locations
         factoryInfo.instance = instance;
         this.dependencies.set(name, instance);
+        this.singletons.set(name, instance);
         
-        // Convert to singleton after first use
-        if (factoryInfo.dependencies.length > 0) {
-            this.singletons.set(name, instance);
-            console.log(`🔄 [DependencyContainer] Converted to singleton: ${name}`);
-        }
+        console.log(`💾 [DependencyContainer] Instance cached: ${name}`);
         
         return instance;
         
