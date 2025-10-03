@@ -570,25 +570,31 @@ window.toggleLeadSelection = (leadId, isChecked) => {
 updateBulkActionsBar(count) {
     const bulkActionsBar = document.getElementById('bulk-actions-bar');
     
+    if (!bulkActionsBar) return;
+    
+    // Clear any pending hide timeout
+    if (this.hideTimeout) {
+        clearTimeout(this.hideTimeout);
+        this.hideTimeout = null;
+    }
+    
     if (count > 0) {
-        if (bulkActionsBar) {
-            bulkActionsBar.style.opacity = '0';
-            bulkActionsBar.style.transform = 'translateY(10px)';
-            bulkActionsBar.classList.remove('hidden');
-            
-            requestAnimationFrame(() => {
-                bulkActionsBar.style.opacity = '1';
-                bulkActionsBar.style.transform = 'translateY(0)';
-            });
-        }
+        bulkActionsBar.classList.remove('hidden');
+        bulkActionsBar.style.opacity = '0';
+        bulkActionsBar.style.transform = 'translateY(10px)';
+        
+        requestAnimationFrame(() => {
+            bulkActionsBar.style.opacity = '1';
+            bulkActionsBar.style.transform = 'translateY(0)';
+        });
     } else {
-        if (bulkActionsBar) {
-            bulkActionsBar.style.opacity = '0';
-            bulkActionsBar.style.transform = 'translateY(10px)';
-            setTimeout(() => {
-                bulkActionsBar.classList.add('hidden');
-            }, 500);
-        }
+        bulkActionsBar.style.opacity = '0';
+        bulkActionsBar.style.transform = 'translateY(10px)';
+        
+        this.hideTimeout = setTimeout(() => {
+            bulkActionsBar.classList.add('hidden');
+            this.hideTimeout = null;
+        }, 500);
     }
 }
 
