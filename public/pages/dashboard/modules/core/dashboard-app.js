@@ -75,120 +75,101 @@ DashboardEventSystem.setupHandlers(
     /**
      * Setup dependency container with all required services
      */
-    setupDependencyContainer() {
-        const container = new DependencyContainer();
-        
-        // Register core infrastructure
-        console.log('📋 [DashboardApp] Registering core dependencies...');
-        container.registerSingleton('eventBus', new DashboardEventBus());
+setupDependencyContainer() {
+    const container = new DependencyContainer();
+    
+    // Register core infrastructure
+    console.log('📋 [DashboardApp] Registering core dependencies...');
+    container.registerSingleton('eventBus', new DashboardEventBus());
 
-        // Analysis Functions - async factory
-        container.registerFactory('analysisFunctions', async () => {
-            let attempts = 0;
-            const maxAttempts = 50;
-            
-            while (attempts < maxAttempts) {
-                if (window.AnalysisFunctions && typeof window.AnalysisFunctions === 'function') {
-                    console.log('✅ [DependencyContainer] AnalysisFunctions available after', attempts, 'attempts');
-                    const instance = new window.AnalysisFunctions(container);
-                    if (typeof instance.init === 'function') {
-                        instance.init();
-                    }
-                    return instance;
-                }
-                await new Promise(resolve => setTimeout(resolve, 100));
-                attempts++;
-            }
-            
-            throw new Error(`AnalysisFunctions not loaded after ${maxAttempts} attempts. Check script loading order.`);
-        });
-        
-container.registerFactory('stateManager', (eventBus) => {
-    return new window.DashboardStateManager(eventBus);
-}, ['eventBus']);
+    // Analysis Functions - async factory with readiness check
+    container.registerFactory('analysisFunctions', async () => {
+        await window.DependencyReadiness.waitForDependency('AnalysisFunctions');
+        const instance = new window.AnalysisFunctions(container);
+        if (typeof instance.init === 'function') {
+            instance.init();
+        }
+        return instance;
+    });
+    
+    // State Manager - with dependency on eventBus
+    container.registerFactory('stateManager', async (eventBus) => {
+        await window.DependencyReadiness.waitForDependency('DashboardStateManager');
+        return new window.DashboardStateManager(eventBus);
+    }, ['eventBus']);
 
-// Register OsliraAuth as direct reference
-container.registerSingleton('osliraAuth', window.OsliraAuth);
-        
-        // Register feature modules
-        console.log('📋 [DashboardApp] Registering feature modules...');
-        
-        container.registerFactory('leadManager', () => {
-            return new LeadManager(container);
-        }, []);
-        
+    // Register OsliraAuth as direct reference
+    container.registerSingleton('osliraAuth', window.OsliraAuth);
+    
+    // Register feature modules (DEDUPLICATED)
+    console.log('📋 [DashboardApp] Registering feature modules...');
+    
+    container.registerFactory('leadManager', async () => {
+        await window.DependencyReadiness.waitForDependency('LeadManager');
+        return new window.LeadManager(container);
+    }, []);
+    
+    container.registerFactory('realtimeManager', async () => {
+        await window.DependencyReadiness.waitForDependency('RealtimeManager');
+        return new window.RealtimeManager(container);
+    }, []);
 
-        container.registerFactory('realtimeManager', () => {
-            return new RealtimeManager(container);
-        }, []);
+    container.registerFactory('businessManager', async () => {
+        await window.DependencyReadiness.waitForDependency('BusinessManager');
+        return new window.BusinessManager(container);
+    }, []);
 
-        container.registerFactory('businessManager', () => {
-            return new BusinessManager(container);
-        }, []);
+    container.registerFactory('modalManager', async () => {
+        await window.DependencyReadiness.waitForDependency('ModalManager');
+        return new window.ModalManager(container);
+    }, []);
 
-container.registerFactory('modalManager', () => {
-    return new ModalManager(container);
-}, []);
+    container.registerFactory('researchHandlers', async () => {
+        await window.DependencyReadiness.waitForDependency('ResearchHandlers');
+        return new window.ResearchHandlers();
+    }, []);
 
-container.registerFactory('researchHandlers', () => {
-    return new ResearchHandlers();
-}, []);
+    container.registerFactory('analysisQueue', async () => {
+        await window.DependencyReadiness.waitForDependency('AnalysisQueue');
+        return new window.AnalysisQueue(container);
+    }, []);
 
-container.registerFactory('statsCards', () => {
-    const instance = new window.StatsCards(container);
-    if (instance.init) instance.init();
-    return instance;
-});
+    container.registerFactory('leadRenderer', async () => {
+        await window.DependencyReadiness.waitForDependency('LeadRenderer');
+        return new window.LeadRenderer(container);
+    }, []);
 
-container.registerFactory('leadManager', () => {
-    return new window.LeadManager(container);
-}, []);
+    container.registerFactory('statsCalculator', async () => {
+        await window.DependencyReadiness.waitForDependency('StatsCalculator');
+        return new window.StatsCalculator(container);
+    }, []);
 
-container.registerFactory('analysisQueue', () => {
-    return new window.AnalysisQueue(container);
-}, []);
+    // Register UI components
+    container.registerFactory('dashboardHeader', async () => {
+        await window.DependencyReadiness.waitForDependency('DashboardHeader');
+        return new window.DashboardHeader(container);
+    });
 
-container.registerFactory('realtimeManager', () => {
-    return new window.RealtimeManager(container);
-}, []);
+    container.registerFactory('statsCards', async () => {
+        await window.DependencyReadiness.waitForDependency('StatsCards');
+        const instance = new window.StatsCards(container);
+        if (instance.init) instance.init();
+        return instance;
+    });
 
-container.registerFactory('leadRenderer', () => {
-    return new window.LeadRenderer(container);
-}, []);
-
-container.registerFactory('statsCalculator', () => {
-    return new window.StatsCalculator(container);
-}, []);
-
-container.registerFactory('businessManager', () => {
-    return new window.BusinessManager(container);
-}, []);
-
-container.registerFactory('modalManager', () => {
-    return new window.ModalManager(container);
-}, []);
-
-container.registerFactory('researchHandlers', () => {
-    return new window.ResearchHandlers();
-}, []);
-
-// Register UI components
-container.registerFactory('dashboardHeader', () => {
-    return new window.DashboardHeader(container);
-});
-
-container.registerFactory('statsCards', () => {
-    const instance = new window.StatsCards(container);
-    if (instance.init) instance.init();
-    return instance;
-});
-
-container.registerFactory('leadsTable', () => new window.LeadsTable(container));
-container.registerFactory('insightsPanel', () => new window.InsightsPanel(container));
-        
-        console.log('✅ [DashboardApp] All dependencies registered');
-        return container;
-    }
+    container.registerFactory('leadsTable', async () => {
+        await window.DependencyReadiness.waitForDependency('LeadsTable');
+        return new window.LeadsTable(container);
+    });
+    
+    container.registerFactory('insightsPanel', async () => {
+        await window.DependencyReadiness.waitForDependency('InsightsPanel');
+        return new window.InsightsPanel(container);
+    });
+    
+    console.log('✅ [DashboardApp] All dependencies registered');
+    return container;
+}
     
     /**
      * Expose public API for external access
