@@ -127,6 +127,13 @@ if (leadsTable && leadsTable.setupSelectionHandlers) {
     leadsTable.setupSelectionHandlers();
     console.log('✅ [DashboardCore] Selection handlers initialized');
 }
+
+// Setup event handlers (toolbar buttons, dropdowns, etc.)
+console.log('🔧 [DashboardCore] Setting up event handlers...');
+if (leadsTable && leadsTable.setupEventHandlers) {
+    leadsTable.setupEventHandlers();
+    console.log('✅ [DashboardCore] Event handlers initialized');
+}
             
 console.log('✅ [DashboardCore] Initialization completed');
 return true;
