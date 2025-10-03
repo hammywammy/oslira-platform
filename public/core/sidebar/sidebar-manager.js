@@ -280,12 +280,9 @@ updateUserInfo() {
             <div class="sidebar-container">
                 <!-- Header -->
 <div class="sidebar-header">
-    <a href="${window.OsliraEnv.getMarketingUrl()}" class="sidebar-logo-link">
-        <div class="sidebar-logo-container">
-            <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" 
-                 class="sidebar-logo-image">
-            <div class="sidebar-logo-text">Oslira</div>
-        </div>
+    <a href="${window.OsliraEnv.getMarketingUrl()}" class="sidebar-logo-link home-logo">
+        <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" class="sidebar-logo-image home-logo-image">
+        <span class="sidebar-logo-text">Oslira</span>
     </a>
 </div>
                 
