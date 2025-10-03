@@ -196,6 +196,7 @@ validateUsernameField(input) {
     if (!input || !input.value) {
         input.classList.remove('field-invalid', 'border-red-500');
         input.classList.remove('field-valid', 'border-green-500');
+        this.hideUsernameError();
         return;
     }
     
@@ -206,7 +207,7 @@ validateUsernameField(input) {
     if (validation.isValid) {
         input.classList.remove('field-invalid', 'border-red-500');
         input.classList.add('field-valid', 'border-green-500');
-        this.hideUsernameError();
+        this.showUsernameSuccess();  // Add this line
     } else {
         input.classList.add('field-invalid', 'border-red-500');
         input.classList.remove('field-valid', 'border-green-500');
@@ -259,20 +260,69 @@ showUsernameError(message) {
         existingError.remove();
     }
     
-    // Create new error message
+    // Create new error message with icon
     const errorDiv = document.createElement('div');
     errorDiv.id = 'username-validation-error';
-    errorDiv.className = 'text-sm text-red-600 mt-1';
-    errorDiv.textContent = message;
+    errorDiv.className = 'username-validation-error';
+    errorDiv.innerHTML = `
+        <svg class="validation-message-icon validation-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>${message}</span>
+    `;
     
     // Insert after input
     profileInput.parentNode.insertBefore(errorDiv, profileInput.nextSibling);
 }
 
+showUsernameSuccess() {
+    const profileInput = document.getElementById('username');
+    if (!profileInput) return;
+    
+    // Remove existing messages
+    const existingError = document.getElementById('username-validation-error');
+    const existingSuccess = document.getElementById('username-validation-success');
+    if (existingError) existingError.remove();
+    if (existingSuccess) existingSuccess.remove();
+    
+    // Create success message with icon (optional - remove if you don't want this)
+    const successDiv = document.createElement('div');
+    successDiv.id = 'username-validation-success';
+    successDiv.className = 'username-validation-success';
+    successDiv.innerHTML = `
+        <svg class="validation-message-icon validation-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>Valid Instagram username</span>
+    `;
+    
+    // Insert after input
+    profileInput.parentNode.insertBefore(successDiv, profileInput.nextSibling);
+    
+    // Auto-remove success message after 2 seconds (optional)
+    setTimeout(() => {
+        if (successDiv.parentNode) {
+            successDiv.style.opacity = '0';
+            successDiv.style.transform = 'translateY(-5px)';
+            setTimeout(() => successDiv.remove(), 300);
+        }
+    }, 2000);
+}
+
 hideUsernameError() {
     const existingError = document.getElementById('username-validation-error');
+    const existingSuccess = document.getElementById('username-validation-success');
+    
     if (existingError) {
-        existingError.remove();
+        existingError.style.opacity = '0';
+        existingError.style.transform = 'translateY(-5px)';
+        setTimeout(() => existingError.remove(), 300);
+    }
+    
+    if (existingSuccess) {
+        existingSuccess.style.opacity = '0';
+        existingSuccess.style.transform = 'translateY(-5px)';
+        setTimeout(() => existingSuccess.remove(), 300);
     }
 }
     
