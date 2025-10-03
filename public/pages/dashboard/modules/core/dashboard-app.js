@@ -251,14 +251,37 @@ class DashboardApp {
             events: this.container.get('eventBus')
         };
         
-        // Expose utility methods
-        window.DashboardAPI = {
-            refreshData: () => this.refreshLeads(),
-            getState: (key) => this.container.get('stateManager').getState(key),
-            setState: (key, value) => this.container.get('stateManager').setState(key, value),
-            emit: (event, data) => this.container.get('eventBus').emit(event, data),
-            getManager: (name) => this.container.get(name)
-        };
+window.DashboardAPI = {
+    refreshData: () => this.refreshLeads(),
+    getState: (key) => this.container.get('stateManager').getState(key),
+    setState: (key, value) => this.container.get('stateManager').setState(key, value),
+    emit: (event, data) => this.container.get('eventBus').emit(event, data),
+    getManager: (name) => this.container.get(name)
+};
+
+// Expose refresh function for manual button
+window.refreshLeadsTable = async () => {
+    const btn = document.getElementById('manual-refresh-btn');
+    const icon = document.getElementById('refresh-icon');
+    
+    if (btn) btn.disabled = true;
+    if (icon) {
+        icon.style.transform = 'rotate(360deg)';
+        icon.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+    }
+    
+    try {
+        const leadManager = this.container.get('leadManager');
+        await leadManager.refreshWithAnimation();
+    } finally {
+        if (btn) btn.disabled = false;
+        if (icon) {
+            setTimeout(() => {
+                icon.style.transform = 'rotate(0deg)';
+            }, 100);
+        }
+    }
+};
         
         console.log('✅ [DashboardApp] Public API exposed');
     }
