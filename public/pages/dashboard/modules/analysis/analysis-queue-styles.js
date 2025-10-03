@@ -2,7 +2,7 @@
 
 /**
  * ANALYSIS QUEUE STYLES MODULE
- * Injects all CSS styles for the analysis queue
+ * Injects all CSS styles for the collapsible analysis queue
  */
 class AnalysisQueueStyles {
     static inject() {
@@ -13,16 +13,116 @@ class AnalysisQueueStyles {
         const styles = document.createElement('style');
         styles.id = 'enhanced-queue-styles';
         styles.textContent = `
-            /* Enhanced Analysis Queue Styles */
-            .enhanced-analysis-queue {
+            /* ===================================================================
+               QUEUE WRAPPER - COLLAPSIBLE CONTAINER
+               =================================================================== */
+            .queue-wrapper {
+                position: fixed;
+                top: 50%;
+                right: 0;
+                transform: translateY(-50%);
+                z-index: 40;
+                display: flex;
+                align-items: center;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            /* Toggle Button (Always Visible) */
+            .queue-toggle-btn {
+                width: 32px;
+                height: 64px;
+                background: linear-gradient(135deg, #9333ea 0%, #7e22ce 50%, #6b21a8 100%);
+                border-radius: 8px 0 0 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: -2px 0 8px rgba(147, 51, 234, 0.3);
+                transition: all 0.3s ease;
+                position: relative;
+                z-index: 41;
+            }
+
+            .queue-toggle-btn:hover {
+                background: linear-gradient(135deg, #a855f7 0%, #9333ea 50%, #7e22ce 100%);
+                box-shadow: -4px 0 12px rgba(147, 51, 234, 0.5);
+            }
+
+            .queue-toggle-btn:active {
+                transform: scale(0.95);
+            }
+
+            /* Queue Container */
+            .queue-container {
+                width: 360px;
+                max-height: 580px;
+                background: white;
+                border-radius: 12px 0 0 12px;
+                box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                transform: translateX(0);
                 transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             }
-            
-            .enhanced-analysis-queue.show {
-                transform: translateX(0) !important;
+
+            /* Collapsed State */
+            .queue-wrapper.collapsed .queue-container {
+                transform: translateX(360px);
             }
-            
-            /* Queue Item Animations */
+
+            /* Purple Wave Gradient Header */
+            .queue-header-gradient {
+                background: linear-gradient(135deg, #9333ea 0%, #7e22ce 50%, #6b21a8 100%);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .wave-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-image: 
+                    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+                animation: waveFloat 8s ease-in-out infinite;
+            }
+
+            @keyframes waveFloat {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+            }
+
+            /* Queue Items Scroll Area */
+            .queue-items-scroll {
+                flex: 1;
+                overflow-y: auto;
+                padding: 12px;
+                background: linear-gradient(to bottom, #fafafa 0%, #ffffff 100%);
+            }
+
+            .queue-items-scroll::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .queue-items-scroll::-webkit-scrollbar-track {
+                background: #f1f5f9;
+            }
+
+            .queue-items-scroll::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 3px;
+            }
+
+            .queue-items-scroll::-webkit-scrollbar-thumb:hover {
+                background: #94a3b8;
+            }
+
+            /* ===================================================================
+               QUEUE ITEM ANIMATIONS
+               =================================================================== */
             .queue-item-new {
                 opacity: 0;
                 transform: translateX(20px);
@@ -145,6 +245,29 @@ class AnalysisQueueStyles {
                 backdrop-filter: blur(20px);
                 -webkit-backdrop-filter: blur(20px);
                 border: 1px solid rgba(71, 85, 105, 0.3);
+            }
+
+            /* Ensure queue is below modals */
+            .queue-wrapper {
+                z-index: 40 !important;
+            }
+
+            /* Glow effect on toggle button when active */
+            .queue-wrapper:not(.collapsed) .queue-toggle-btn {
+                box-shadow: -2px 0 12px rgba(147, 51, 234, 0.5), 
+                            0 0 20px rgba(147, 51, 234, 0.3);
+                animation: toggleGlow 2s ease-in-out infinite;
+            }
+
+            @keyframes toggleGlow {
+                0%, 100% {
+                    box-shadow: -2px 0 12px rgba(147, 51, 234, 0.5), 
+                                0 0 20px rgba(147, 51, 234, 0.3);
+                }
+                50% {
+                    box-shadow: -2px 0 16px rgba(147, 51, 234, 0.6), 
+                                0 0 24px rgba(147, 51, 234, 0.4);
+                }
             }
         `;
 
