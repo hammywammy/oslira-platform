@@ -20,18 +20,20 @@ renderTableContainer() {
         <p class="text-sm text-gray-500 mt-1">Individual leads with AI-generated scores and status</p>
     </div>
     
-    <!-- Manual Refresh Button -->
-    <button 
-        id="manual-refresh-btn" 
-        type="button"
-        class="group relative p-2.5 bg-white hover:bg-blue-50 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md border border-gray-200 hover:border-blue-300 cursor-pointer active:scale-95"
-        title="Refresh leads"
-        aria-label="Refresh leads table"
-    >
-        <svg id="refresh-icon" class="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-        </svg>
-    </button>
+<!-- Manual Refresh Button -->
+<button 
+    id="manual-refresh-btn" 
+    type="button"
+    onclick="window.refreshLeadsTableManual()"
+    class="group relative p-2.5 bg-white hover:bg-blue-50 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md border border-gray-200 hover:border-blue-300 cursor-pointer active:scale-95"
+    title="Refresh leads"
+    aria-label="Refresh leads table"
+    style="z-index: 10;"
+>
+    <svg id="refresh-icon" class="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+    </svg>
+</button>
 </div>
 
 <!-- Filter Bar Below Header -->
@@ -127,43 +129,37 @@ renderTableContainer() {
     /**
  * Setup refresh button handlers after table is rendered
  */
+/**
+ * Setup refresh button as global function
+ */
 setupRefreshButton() {
-    const refreshBtn = document.getElementById('manual-refresh-btn');
-    const refreshIcon = document.getElementById('refresh-icon');
+    const self = this;
     
-    if (!refreshBtn) return;
-    
-    refreshBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+    window.refreshLeadsTableManual = async function() {
+        const refreshBtn = document.getElementById('manual-refresh-btn');
+        const refreshIcon = document.getElementById('refresh-icon');
         
-        // Prevent double-clicks
-        if (refreshBtn.disabled) return;
+        if (!refreshBtn || refreshBtn.disabled) return;
         
         console.log('🔄 [LeadsTable] Manual refresh triggered');
         
-        // Disable button and start animation
         refreshBtn.disabled = true;
-        refreshBtn.style.pointerEvents = 'none';
         
         if (refreshIcon) {
             refreshIcon.style.transform = 'rotate(360deg)';
             refreshIcon.style.transition = 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)';
         }
         
-        // Fade out table
-        const tableContainer = document.getElementById('leads-table-container');
+        const tableContainer = document.querySelector('.leads-table-container');
         if (tableContainer) {
             tableContainer.style.transition = 'opacity 0.35s ease-out';
             tableContainer.style.opacity = '0.3';
         }
         
         try {
-            // Get lead manager and refresh
-            const leadManager = this.container.get('leadManager');
+            const leadManager = self.container.get('leadManager');
             await leadManager.loadDashboardData();
             
-            // Fade table back in
             if (tableContainer) {
                 await new Promise(resolve => setTimeout(resolve, 100));
                 tableContainer.style.opacity = '1';
@@ -177,7 +173,6 @@ setupRefreshButton() {
                 tableContainer.style.opacity = '1';
             }
         } finally {
-            // Re-enable button and reset icon
             await new Promise(resolve => setTimeout(resolve, 700));
             
             if (refreshIcon) {
@@ -185,13 +180,11 @@ setupRefreshButton() {
             }
             
             refreshBtn.disabled = false;
-            refreshBtn.style.pointerEvents = 'auto';
         }
-    });
+    };
     
-    console.log('✅ [LeadsTable] Refresh button handlers attached');
+    console.log('✅ [LeadsTable] Refresh function exposed globally');
 }
-
 updatePagination(start, end, total) {
     const startEl = document.getElementById('pagination-start');
     const totalEl = document.getElementById('pagination-total');
