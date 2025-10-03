@@ -313,26 +313,9 @@ setupEventHandlers() {
         leadRenderer.displayLeads();
         console.log('🗑️ [LeadsTable] Cleared all selections');
     };
-        // Export dropdown handlers
-        window.toggleExportDropdown = () => {
-            const dropdown = document.getElementById('exportDropdown');
-            if (dropdown) {
-                this.isExportDropdownOpen = !this.isExportDropdownOpen;
-                if (this.isExportDropdownOpen) {
-                    dropdown.classList.remove('hidden');
-                } else {
-                    dropdown.classList.add('hidden');
-                }
-            }
-        };
 
-        window.closeExportDropdown = () => {
-            const dropdown = document.getElementById('exportDropdown');
-            if (dropdown) {
-                dropdown.classList.add('hidden');
-                this.isExportDropdownOpen = false;
-            }
-        };
+
+
 
         // Export data handlers
         window.exportData = (type) => {
@@ -628,6 +611,14 @@ window.toggleLeadSelection = (leadId, isChecked) => {
         const copyDropdown = document.getElementById('copy-dropdown');
         if (copyDropdown) copyDropdown.classList.add('hidden');
     };
+
+        window.closeExportDropdown = () => {
+            const dropdown = document.getElementById('exportDropdown');
+            if (dropdown) {
+                dropdown.classList.add('hidden');
+                this.isExportDropdownOpen = false;
+            }
+        };
     
     window.copySelectedAsFormat = (format) => {
         const selectedLeads = this.getSelectedLeadsData();
