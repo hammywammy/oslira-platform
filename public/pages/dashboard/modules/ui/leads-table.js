@@ -21,12 +21,10 @@ class LeadsTable {
                 </div>
                 <div class="flex items-center space-x-3">
                     <!-- Filter Dropdown -->
-                    <select id="platform-filter" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <option>All Platforms</option>
-                        <option>LinkedIn</option>
-                        <option>Instagram</option>
-                        <option>Twitter</option>
-                    </select>
+<select id="platform-filter" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+    <option>All Platforms</option>
+    <option>Instagram</option>
+</select>
                     <!-- Sort Dropdown -->
                     <select id="sort-filter" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                         <option>Sort by: Recent</option>
