@@ -104,35 +104,19 @@ class AnalysisQueueRenderer {
         
 <!-- Actions -->
 <div class="flex items-center space-x-1">
-    ${!isActive ? `
-        <button data-action="minimize" data-analysis-id="${analysis.id}"
-                class="p-1 hover:bg-gray-100 rounded-md transition-colors">
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${analysis.isMinimized ? 'M19 9l-7 7-7-7' : 'M5 15l7-7 7 7'}"/>
-            </svg>
-        </button>
-    ` : `
-        <div class="p-1 opacity-30 cursor-not-allowed">
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${analysis.isMinimized ? 'M19 9l-7 7-7-7' : 'M5 15l7-7 7 7'}"/>
-            </svg>
-        </div>
-    `}
+    <button data-action="minimize" data-analysis-id="${analysis.id}"
+            class="p-1 hover:bg-gray-100 rounded-md transition-colors">
+        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${analysis.isMinimized ? 'M19 9l-7 7-7-7' : 'M5 15l7-7 7 7'}"/>
+        </svg>
+    </button>
     
-    ${isCompleted || isFailed ? `
-        <button data-action="remove" data-analysis-id="${analysis.id}"
-                class="p-1 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors">
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </button>
-    ` : `
-        <div class="p-1 opacity-30 cursor-not-allowed">
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </div>
-    `}
+    <button data-action="remove" data-analysis-id="${analysis.id}"
+            class="p-1 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors">
+        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
 </div>
     </div>
     
