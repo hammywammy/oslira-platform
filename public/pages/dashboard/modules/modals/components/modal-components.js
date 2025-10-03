@@ -567,44 +567,128 @@ this.registerComponent('outreachMessage', {
         // ===============================================================================
         // LIGHT ANALYSIS UPGRADE NOTICE COMPONENT
         // ===============================================================================
-        this.registerComponent('lightAnalysisNotice', {
-            condition: (lead, analysisData) => lead.analysis_type === 'light',
-            render: (lead, analysisData) => {
-                const summaryText = lead.quick_summary || analysisData?.summary_text || 'Basic profile analysis shows potential for outreach.';
+this.registerComponent('lightAnalysisNotice', {
+    render: (lead, analysisData) => {
+        return `
+            <div class="text-center py-12 px-6">
+                <div class="inline-block p-4 bg-blue-100 rounded-full mb-6">
+                    <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
                 
-                return `
-                    <!-- Light Analysis with Animated Elements -->
-                    <div class="group relative overflow-hidden rounded-3xl bg-white p-12 shadow-2xl border-2 border-blue-200/50 text-center hover-3d stagger-reveal" style="animation-delay: 0.3s;">
-                        <!-- Pulsing background orbs -->
-                        <div class="absolute top-8 left-8 w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full opacity-10 group-hover:scale-150 transition-transform duration-1000" style="animation: float 3s ease-in-out infinite;"></div>
-                        <div class="absolute bottom-8 right-8 w-12 h-12 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full opacity-10 group-hover:scale-150 transition-transform duration-1000" style="animation: float 4s ease-in-out infinite; animation-delay: 1s;"></div>
-                        
-                        <div class="relative z-10 space-y-6">
-                            <div class="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl group-hover:rotate-12 transition-transform duration-500">
-                                <svg class="w-10 h-10 text-white subtle-icon-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                            <h3 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent count-up">Light Analysis Complete</h3>
-                            <p class="text-gray-600 text-lg font-light max-w-2xl mx-auto count-up" style="animation-delay: 0.3s;">
-                                ${summaryText}
-                            </p>
-                            <p class="text-gray-500 max-w-xl mx-auto count-up" style="animation-delay: 0.6s;">
-                                For detailed engagement metrics, audience insights, and personalized outreach messages, run a deep analysis.
-                            </p>
-                            <button onclick="startDeepAnalysis('${lead.username}')" class="group/btn relative overflow-hidden px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-bold text-lg shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-500 shimmer-effect count-up" style="animation-delay: 0.9s;">
-                                <span class="relative z-10 flex items-center space-x-3">
-                                    <svg class="w-6 h-6 group-hover/btn:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                                    </svg>
-                                    <span>Run Deep Analysis</span>
-                                </span>
-                            </button>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Light Analysis Complete</h3>
+                
+                <p class="text-gray-500 text-sm mb-8">
+                    For detailed engagement metrics, audience insights, and personalized outreach messages, run a deep analysis.
+                </p>
+                
+                <button onclick="startDeepAnalysis('${lead.id}')" 
+                        class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-xl hover:shadow-lg transition-all">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    Run Deep Analysis
+                </button>
+            </div>
+        `;
+    }
+});
+
+        this.registerComponent('personalityLockedLight', {
+    render: (lead, analysisData) => {
+        return `
+            <div class="text-center py-16 px-6">
+                <div class="max-w-2xl mx-auto">
+                    <!-- Lock Icon with Gradient -->
+                    <div class="relative inline-block mb-8">
+                        <div class="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full blur-xl opacity-30"></div>
+                        <div class="relative p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-full border-2 border-purple-200">
+                            <svg class="w-16 h-16 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
                         </div>
                     </div>
-                `;
-            }
-        });
+                    
+                    <!-- Title -->
+                    <h3 class="text-3xl font-bold text-gray-800 mb-4">
+                        Personality Insights Locked
+                    </h3>
+                    
+                    <!-- Description -->
+                    <p class="text-gray-600 text-lg mb-8 leading-relaxed">
+                        Unlock advanced personality analysis with Deep or X-Ray analysis to see:
+                    </p>
+                    
+                    <!-- Feature List -->
+                    <div class="grid grid-cols-2 gap-4 mb-10 text-left">
+                        <div class="flex items-start space-x-3 bg-white p-4 rounded-xl border border-purple-100">
+                            <div class="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-800 text-sm">DISC Assessment</div>
+                                <div class="text-xs text-gray-500">Personality breakdown</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3 bg-white p-4 rounded-xl border border-purple-100">
+                            <div class="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-800 text-sm">Communication Style</div>
+                                <div class="text-xs text-gray-500">Preferred approach</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3 bg-white p-4 rounded-xl border border-purple-100">
+                            <div class="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-800 text-sm">Behavior Patterns</div>
+                                <div class="text-xs text-gray-500">Activity insights</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3 bg-white p-4 rounded-xl border border-purple-100">
+                            <div class="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-800 text-sm">Motivation Drivers</div>
+                                <div class="text-xs text-gray-500">What drives them</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- CTA Button -->
+                    <button onclick="startDeepAnalysis('${lead.id}')" 
+                            class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        Run Deep Analysis
+                        <span class="ml-3 px-3 py-1 bg-white/20 rounded-full text-sm font-normal">2 credits</span>
+                    </button>
+                    
+                    <p class="text-gray-400 text-sm mt-6">
+                        Or upgrade to X-Ray for complete psychological profiling (3 credits)
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+});
 
         // ===============================================================================
         // REASONS COMPONENT (If needed for specific analysis types)
