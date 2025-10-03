@@ -23,12 +23,13 @@ renderTableContainer() {
     <!-- Manual Refresh Button -->
     <button 
         id="manual-refresh-btn" 
-        onclick="window.refreshLeadsTable && window.refreshLeadsTable()"
-        class="group relative p-2 bg-transparent hover:bg-gray-50 rounded-lg transition-all duration-300 hover:shadow-sm border border-transparent hover:border-gray-200"
-        title="Refresh table"
+        type="button"
+        class="group relative p-2.5 bg-white hover:bg-blue-50 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md border border-gray-200 hover:border-blue-300 cursor-pointer active:scale-95"
+        title="Refresh leads"
+        aria-label="Refresh leads table"
     >
-        <svg id="refresh-icon" class="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-all duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        <svg id="refresh-icon" class="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
         </svg>
     </button>
 </div>
@@ -123,6 +124,73 @@ renderTableContainer() {
 </div>`;
 }
 
+    /**
+ * Setup refresh button handlers after table is rendered
+ */
+setupRefreshButton() {
+    const refreshBtn = document.getElementById('manual-refresh-btn');
+    const refreshIcon = document.getElementById('refresh-icon');
+    
+    if (!refreshBtn) return;
+    
+    refreshBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Prevent double-clicks
+        if (refreshBtn.disabled) return;
+        
+        console.log('🔄 [LeadsTable] Manual refresh triggered');
+        
+        // Disable button and start animation
+        refreshBtn.disabled = true;
+        refreshBtn.style.pointerEvents = 'none';
+        
+        if (refreshIcon) {
+            refreshIcon.style.transform = 'rotate(360deg)';
+            refreshIcon.style.transition = 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)';
+        }
+        
+        // Fade out table
+        const tableContainer = document.getElementById('leads-table-container');
+        if (tableContainer) {
+            tableContainer.style.transition = 'opacity 0.35s ease-out';
+            tableContainer.style.opacity = '0.3';
+        }
+        
+        try {
+            // Get lead manager and refresh
+            const leadManager = this.container.get('leadManager');
+            await leadManager.loadDashboardData();
+            
+            // Fade table back in
+            if (tableContainer) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                tableContainer.style.opacity = '1';
+            }
+            
+            console.log('✅ [LeadsTable] Refresh complete');
+            
+        } catch (error) {
+            console.error('❌ [LeadsTable] Refresh failed:', error);
+            if (tableContainer) {
+                tableContainer.style.opacity = '1';
+            }
+        } finally {
+            // Re-enable button and reset icon
+            await new Promise(resolve => setTimeout(resolve, 700));
+            
+            if (refreshIcon) {
+                refreshIcon.style.transform = 'rotate(0deg)';
+            }
+            
+            refreshBtn.disabled = false;
+            refreshBtn.style.pointerEvents = 'auto';
+        }
+    });
+    
+    console.log('✅ [LeadsTable] Refresh button handlers attached');
+}
 
 updatePagination(start, end, total) {
     const startEl = document.getElementById('pagination-start');
