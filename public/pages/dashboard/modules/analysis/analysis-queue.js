@@ -678,7 +678,7 @@ renderEnhancedQueueItem(analysis) {
                         </div>
                     </div>
                     
-                    <!-- Actions -->
+<!-- Actions -->
                     <div class="flex items-center space-x-2">
                         ${analysis.estimatedTimeRemaining > 0 ? `
                             <div class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
@@ -692,14 +692,12 @@ renderEnhancedQueueItem(analysis) {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${analysis.isMinimized ? 'M19 9l-7 7-7-7' : 'M5 15l7-7 7 7'}"/>
                             </svg>
                         </button>
-                        ${isActive ? `
-                            <button onclick="analysisQueue.removeAnalysis('${analysis.id}')"
-                                    class="p-1 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors">
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
-                        ` : ''}
+                        <button onclick="analysisQueue.removeAnalysis('${analysis.id}')"
+                                class="p-1 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
                 
