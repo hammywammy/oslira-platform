@@ -127,16 +127,13 @@ return businesses;
 if (selectedBusiness) {
     this.stateManager.setState('selectedBusiness', selectedBusiness);
     
-    // Update auth manager with current business
     if (window.OsliraAuth) {
         window.OsliraAuth.business = selectedBusiness;
     }
     
     console.log('✅ [BusinessManager] Active business set:', selectedBusiness.business_name);
     
-    // Update sidebar business selector UI
-    this.updateSidebarBusinessSelector();
-    
+    // Emit event - listeners will handle UI updates
     this.eventBus.emit(DASHBOARD_EVENTS.BUSINESS_CHANGED, {
         business: selectedBusiness,
         businessId: selectedBusiness.id
