@@ -156,29 +156,125 @@ showAnalysisModal(prefillUsername = '') {
     }
 }
     
-    // Handle analysis type selection - EXACT FROM ORIGINAL
-    handleAnalysisTypeChange() {
-        const analysisType = document.getElementById('analysis-type')?.value;
-        const inputContainer = document.getElementById('input-field-container');
-        const profileInput = document.getElementById('username');
+handleAnalysisTypeChange() {
+    const analysisType = document.getElementById('analysis-type')?.value;
+    const inputContainer = document.getElementById('input-field-container');
+    const profileInput = document.getElementById('username');
+    
+    if (analysisType && inputContainer) {
+        inputContainer.style.display = 'block';
         
-        if (analysisType && inputContainer) {
-            inputContainer.style.display = 'block';
+        // Setup real-time validation listener
+        if (profileInput && !profileInput.dataset.validationSetup) {
+            profileInput.dataset.validationSetup = 'true';
             
-            // Focus on input field
-            setTimeout(() => {
-                if (profileInput) {
-                    profileInput.focus();
-                }
-            }, 100);
+            profileInput.addEventListener('input', () => {
+                this.validateUsernameField(profileInput);
+            });
+            
+            profileInput.addEventListener('blur', () => {
+                this.validateUsernameField(profileInput);
+            });
         }
         
-        // Update credit cost display
-        this.updateCreditCostDisplay(analysisType);
-        
-        // Update submit button
-        this.updateAnalysisSubmitButton(analysisType);
+        // Focus on input field
+        setTimeout(() => {
+            if (profileInput) {
+                profileInput.focus();
+            }
+        }, 100);
     }
+    
+    // Update credit cost display
+    this.updateCreditCostDisplay(analysisType);
+    
+    // Update submit button
+    this.updateAnalysisSubmitButton(analysisType);
+}
+
+validateUsernameField(input) {
+    if (!input || !input.value) {
+        input.classList.remove('field-invalid', 'border-red-500');
+        input.classList.remove('field-valid', 'border-green-500');
+        return;
+    }
+    
+    const username = input.value.trim();
+    const cleanUsername = username.replace(/^@/, '');
+    const validation = this.validateInstagramUsername(cleanUsername);
+    
+    if (validation.isValid) {
+        input.classList.remove('field-invalid', 'border-red-500');
+        input.classList.add('field-valid', 'border-green-500');
+        this.hideUsernameError();
+    } else {
+        input.classList.add('field-invalid', 'border-red-500');
+        input.classList.remove('field-valid', 'border-green-500');
+        this.showUsernameError(validation.error);
+    }
+}
+
+validateInstagramUsername(username) {
+    // Empty check
+    if (!username || username.length === 0) {
+        return { isValid: false, error: 'Username is required' };
+    }
+    
+    // Length check (1-30 characters)
+    if (username.length > 30) {
+        return { isValid: false, error: 'Username must be 30 characters or less' };
+    }
+    
+    // Character validation (letters, numbers, periods, underscores only)
+    const validCharsRegex = /^[a-zA-Z0-9._]+$/;
+    if (!validCharsRegex.test(username)) {
+        return { isValid: false, error: 'Username can only contain letters, numbers, periods (.), and underscores (_)' };
+    }
+    
+    // No leading dot
+    if (username.startsWith('.')) {
+        return { isValid: false, error: 'Username cannot start with a period' };
+    }
+    
+    // No trailing dot
+    if (username.endsWith('.')) {
+        return { isValid: false, error: 'Username cannot end with a period' };
+    }
+    
+    // No consecutive dots
+    if (username.includes('..')) {
+        return { isValid: false, error: 'Username cannot contain consecutive periods (..)' };
+    }
+    
+    return { isValid: true, error: null };
+}
+
+showUsernameError(message) {
+    const profileInput = document.getElementById('username');
+    if (!profileInput) return;
+    
+    // Remove existing error
+    const existingError = document.getElementById('username-validation-error');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    // Create new error message
+    const errorDiv = document.createElement('div');
+    errorDiv.id = 'username-validation-error';
+    errorDiv.className = 'text-sm text-red-600 mt-1';
+    errorDiv.textContent = message;
+    
+    // Insert after input
+    profileInput.parentNode.insertBefore(errorDiv, profileInput.nextSibling);
+}
+
+hideUsernameError() {
+    const existingError = document.getElementById('username-validation-error');
+    if (existingError) {
+        existingError.remove();
+    }
+}
     
     updateCreditCostDisplay(analysisType) {
         const costDisplay = document.getElementById('analysis-cost-display');
@@ -202,29 +298,36 @@ showAnalysisModal(prefillUsername = '') {
         }
     }
     
-    // Process analysis form submission
-    async processAnalysisForm(event) {
-        event.preventDefault();
+async processAnalysisForm(event) {
+    event.preventDefault();
+    
+    try {
+        console.log('🔍 [ModalManager] Processing analysis form...');
         
-        try {
-            console.log('🔍 [ModalManager] Processing analysis form...');
-            
-            // Get form data
-            const formData = new FormData(event.target);
-            const username = formData.get('username')?.trim();
-            const analysisType = formData.get('analysisType');
-            const businessId = formData.get('businessId');
-            
-            // Validate inputs
-            if (!username || !analysisType || !businessId) {
-                throw new Error('Please fill in all required fields');
+        // Get form data
+        const formData = new FormData(event.target);
+        const username = formData.get('username')?.trim();
+        const analysisType = formData.get('analysisType');
+        const businessId = formData.get('businessId');
+        
+        // Validate inputs
+        if (!username || !analysisType || !businessId) {
+            throw new Error('Please fill in all required fields');
+        }
+        
+        // Clean username
+        const cleanUsername = this.cleanUsername(username);
+        const validation = this.validateInstagramUsername(cleanUsername);
+        
+        if (!validation.isValid) {
+            // Show validation error on the field
+            const profileInput = document.getElementById('username');
+            if (profileInput) {
+                profileInput.classList.add('field-invalid', 'border-red-500');
+                this.showUsernameError(validation.error);
             }
-            
-            // Clean username
-            const cleanUsername = this.cleanUsername(username);
-            if (!this.isValidUsername(cleanUsername)) {
-                throw new Error('Please enter a valid Instagram username');
-            }
+            throw new Error(validation.error);
+        }
             
             // Close modal
             this.closeModal('analysisModal');
