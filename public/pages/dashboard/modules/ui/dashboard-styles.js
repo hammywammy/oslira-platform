@@ -4,6 +4,22 @@ class DashboardStyles {
     static getInlineStyles() {
         return `
 <style>
+
+/* Filter badge animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+}
     /* Custom gradient background */
     .gradient-bg {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
