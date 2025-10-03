@@ -499,6 +499,26 @@
   scrollbar-color: #d1d5db transparent;
 }
 
+/* Sidebar Logo Link */
+.sidebar-logo-link {
+    display: block;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.sidebar-logo-link:hover {
+    opacity: 0.85;
+}
+
+.sidebar-logo-link:hover .sidebar-logo-container {
+    background-color: rgba(99, 102, 241, 0.05);
+}
+
+.sidebar-logo-link:hover .sidebar-logo-text {
+    color: #6366f1;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 1024px) {
   .sidebar {
