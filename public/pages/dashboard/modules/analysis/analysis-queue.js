@@ -34,21 +34,21 @@ constructor(container) {
         
 this.analysisStages = {
     light: [
-        { text: "🔍 Scanning profile...", duration: 2250, color: "text-blue-500" },
+        { text: "🔍 Scanning profile...", duration: 6500, color: "text-blue-500" },
         { text: "📊 Analyzing engagement...", duration: 2750, color: "text-amber-500" },
         { text: "🎯 Calculating scores...", duration: 2500, color: "text-green-500" },
         { text: "✨ Finalizing results...", duration: 1500, color: "text-purple-500" }
     ],
     deep: [
-        { text: "🔍 Scanning @profile...", duration: 4000, color: "text-blue-500" },
-        { text: "📊 Deep engagement analysis...", duration: 4000, color: "text-amber-500" },
-        { text: "🎯 Advanced scoring...", duration: 4000, color: "text-green-500" },
+        { text: "🔍 Scanning @profile...", duration: 6500, color: "text-blue-500" },
+        { text: "📊 Deep engagement analysis...", duration: 5000, color: "text-amber-500" },
+        { text: "🎯 Advanced scoring...", duration: 5000, color: "text-green-500" },
         { text: "🤖 Generating insights...", duration: 4000, color: "text-purple-500" },
         { text: "✉️ Crafting outreach...", duration: 4000, color: "text-cyan-500" },
         { text: "✨ Finalizing results...", duration: 4000, color: "text-indigo-500" }
     ],
     xray: [
-        { text: "🔍 Deep profile scan...", duration: 4200, color: "text-blue-500" },
+        { text: "🔍 Deep profile scan...", duration: 6500, color: "text-blue-500" },
         { text: "📊 X-Ray engagement analysis...", duration: 4200, color: "text-amber-500" },
         { text: "🎯 Advanced scoring...", duration: 4200, color: "text-green-500" },
         { text: "🤖 Generating insights...", duration: 4200, color: "text-purple-500" },
@@ -256,7 +256,14 @@ updateAnalysis(analysisId, updates) {
     // Handle progress updates separately (visual layer only)
     if (updates.progress !== undefined) {
         // Store target progress without triggering renders
+        const oldTarget = analysis.targetProgress || 0;
         analysis.targetProgress = updates.progress;
+        
+        // Track when backend sends updates
+        if (updates.progress !== oldTarget) {
+            analysis.lastBackendUpdate = Date.now();
+            console.log(`📊 [ProgressAnimator] Backend update: ${oldTarget}% → ${updates.progress}%`);
+        }
         
         // Start independent progress animator if not running
         if (!this.progressAnimators.has(analysisId)) {
@@ -307,6 +314,13 @@ startProgressAnimator(analysisId) {
         analysis.targetProgress = 0;
     }
     
+    // Track timing for predictive progress
+    analysis.stageStartTime = Date.now();
+    analysis.stageStartProgress = 0;
+    analysis.lastBackendUpdate = Date.now();
+    
+    let lastFrameTime = Date.now();
+    
     // Animation loop using requestAnimationFrame
     const animate = () => {
         const currentAnalysis = this.activeAnalyses.get(analysisId);
@@ -316,18 +330,74 @@ startProgressAnimator(analysisId) {
             return;
         }
         
-        const target = currentAnalysis.targetProgress || 0;
-        const current = currentAnalysis.visualProgress || 0;
+        const now = Date.now();
+        const deltaTime = (now - lastFrameTime) / 1000; // Convert to seconds
+        lastFrameTime = now;
         
-        // Smooth interpolation - move 10% of the distance each frame
-        const diff = target - current;
-        const step = diff * 0.1;
+        const currentStage = currentAnalysis.currentStage || 0;
+        const stages = this.analysisStages[currentAnalysis.analysisType];
+        const stage = stages[currentStage];
         
-        // Update visual progress
-        if (Math.abs(diff) > 0.1) {
-            currentAnalysis.visualProgress = current + step;
+        if (!stage) {
+            // No stage info, fall back to simple interpolation
+            this.simpleProgressAnimation(currentAnalysis, analysisId);
+            const rafId = requestAnimationFrame(animate);
+            this.progressAnimators.set(analysisId, rafId);
+            return;
+        }
+        
+        // Calculate expected progress based on time
+        const stageElapsed = now - currentAnalysis.stageStartTime;
+        const stageDuration = stage.duration;
+        const progressPerStage = 100 / stages.length;
+        const stageBaseProgress = currentStage * progressPerStage;
+        
+        // Expected progress if we complete this stage on time
+        const timeRatio = Math.min(stageElapsed / stageDuration, 1);
+        const expectedProgress = stageBaseProgress + (timeRatio * progressPerStage);
+        
+        // Get backend target (what the server says we should be at)
+        const backendTarget = currentAnalysis.targetProgress || 0;
+        
+        // Calculate how far behind/ahead we are
+        const timeSinceBackendUpdate = now - currentAnalysis.lastBackendUpdate;
+        
+        // Adaptive speed: move faster when close to expected, slower when waiting for backend
+        let targetProgress;
+        
+        if (timeSinceBackendUpdate < 2000) {
+            // Recent backend update - trust it and smoothly approach it
+            targetProgress = backendTarget;
         } else {
-            currentAnalysis.visualProgress = target;
+            // No recent backend update - use time-based prediction but slow down
+            // Slow down factor increases with time since last update (asymptotic approach)
+            const slowdownFactor = Math.min(timeSinceBackendUpdate / 5000, 0.9); // Max 90% slowdown
+            
+            // Blend between expected progress and current position
+            targetProgress = currentAnalysis.visualProgress + 
+                           ((expectedProgress - currentAnalysis.visualProgress) * (1 - slowdownFactor));
+            
+            // Never go past backend target by more than 5%
+            if (backendTarget > 0 && targetProgress > backendTarget + 5) {
+                targetProgress = backendTarget + 5;
+            }
+        }
+        
+        // Smooth movement toward target
+        const diff = targetProgress - currentAnalysis.visualProgress;
+        const speed = 0.05; // 5% of distance per frame (60fps = smooth motion)
+        
+        // Always move forward, never backward (except when backend updates)
+        if (diff > 0 || Math.abs(diff) > 1) {
+            currentAnalysis.visualProgress += diff * speed;
+        } else {
+            // Tiny movements for smoothness
+            currentAnalysis.visualProgress += Math.max(0.01 * deltaTime * 60, 0); // Minimum forward motion
+        }
+        
+        // Cap at 99% until backend confirms 100%
+        if (backendTarget < 100) {
+            currentAnalysis.visualProgress = Math.min(currentAnalysis.visualProgress, 99);
         }
         
         // Update only the progress bar DOM element (no full render)
@@ -342,7 +412,23 @@ startProgressAnimator(analysisId) {
     const rafId = requestAnimationFrame(animate);
     this.progressAnimators.set(analysisId, rafId);
     
-    console.log(`🎬 [ProgressAnimator] Started for ${analysisId}`);
+    console.log(`🎬 [ProgressAnimator] Started predictive progress for ${analysisId}`);
+}
+
+simpleProgressAnimation(analysis, analysisId) {
+    // Fallback for when stage info is unavailable
+    const target = analysis.targetProgress || 0;
+    const current = analysis.visualProgress || 0;
+    const diff = target - current;
+    const step = diff * 0.08;
+    
+    if (Math.abs(diff) > 0.1) {
+        analysis.visualProgress = current + step;
+    } else {
+        analysis.visualProgress = target;
+    }
+    
+    this.updateProgressBarDOM(analysisId, analysis.visualProgress);
 }
 
 updateProgressBarDOM(analysisId, visualProgress) {
@@ -726,6 +812,10 @@ startStageBasedProgress(analysisId) {
         const stage = stages[currentStage];
         const progressPerStage = 100 / stages.length;
         const targetProgress = Math.round((currentStage + 1) * progressPerStage);
+        
+        // Track stage timing for predictive progress
+        analysis.stageStartTime = Date.now();
+        analysis.stageStartProgress = currentStage * progressPerStage;
         
         // Update stage info (no progress, that's handled by animator)
         this.updateAnalysis(analysisId, {
