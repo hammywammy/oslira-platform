@@ -140,22 +140,67 @@ class DashboardStyles {
     animation: scoreWave 3s ease-in-out infinite;
 }
 
-.score-wave-gradient-poor-high {
-    background: linear-gradient(90deg, #B91C1C, #DC2626, #EF4444, #F97316, #DC2626, #B91C1C);
-    background-size: 200% 100%;
-    animation: scoreWave 3s ease-in-out infinite;
+.score-wave-gradient-fair-highest {
+    background: linear-gradient(90deg, 
+        #84CC16,  /* lime-500 */
+        #BEF264,  /* lime-400 */
+        #D9F99D,  /* lime-300 */
+        #6EE7B7,  /* emerald-300 */
+        #5EEAD4,  /* teal-300 */
+        #2DD4BF,  /* teal-400 */
+        #5EEAD4,  /* teal-300 back */
+        #6EE7B7,  /* emerald-300 back */
+        #BEF264,  /* lime-400 back */
+        #84CC16   /* lime-500 back */
+    );
+    background-size: 300% 100%;
+    animation: scoreWave 4s ease-in-out infinite;
 }
 
-.score-wave-gradient-poor-mid {
-    background: linear-gradient(90deg, #991B1B, #B91C1C, #DC2626, #B91C1C, #991B1B);
-    background-size: 200% 100%;
-    animation: scoreWave 3s ease-in-out infinite;
+.score-wave-gradient-fair-high {
+    background: linear-gradient(90deg, 
+        #EAB308,  /* yellow-500 */
+        #FACC15,  /* yellow-400 */
+        #FDE047,  /* yellow-300 */
+        #BEF264,  /* lime-400 */
+        #A3E635,  /* lime-500 */
+        #BEF264,  /* lime-400 back */
+        #FDE047,  /* yellow-300 back */
+        #FACC15,  /* yellow-400 back */
+        #EAB308   /* yellow-500 back */
+    );
+    background-size: 300% 100%;
+    animation: scoreWave 4s ease-in-out infinite;
 }
 
-.score-wave-gradient-poor-low {
-    background: linear-gradient(90deg, #7F1D1D, #991B1B, #B91C1C, #991B1B, #7F1D1D);
-    background-size: 200% 100%;
-    animation: scoreWave 3s ease-in-out infinite;
+.score-wave-gradient-fair-mid {
+    background: linear-gradient(90deg, 
+        #F97316,  /* orange-500 */
+        #FB923C,  /* orange-400 */
+        #FBBF24,  /* amber-400 */
+        #FCD34D,  /* yellow-300 */
+        #FACC15,  /* yellow-400 */
+        #FCD34D,  /* yellow-300 back */
+        #FBBF24,  /* amber-400 back */
+        #FB923C,  /* orange-400 back */
+        #F97316   /* orange-500 back */
+    );
+    background-size: 300% 100%;
+    animation: scoreWave 4s ease-in-out infinite;
+}
+
+.score-wave-gradient-fair-low {
+    background: linear-gradient(90deg, 
+        #EA580C,  /* orange-600 */
+        #F97316,  /* orange-500 */
+        #FB923C,  /* orange-400 */
+        #FDBA74,  /* orange-300 */
+        #FB923C,  /* orange-400 back */
+        #F97316,  /* orange-500 back */
+        #EA580C   /* orange-600 back */
+    );
+    background-size: 300% 100%;
+    animation: scoreWave 4s ease-in-out infinite;
 }
     }
 }
