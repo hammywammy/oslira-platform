@@ -216,56 +216,24 @@ handleBusinessChange(event) {
     }
 }
 
-async updateUserInfo(user) {
-    try {
-        console.log('👤 [SidebarManager] Updating user info...', user?.email);
-        this.user = user;
-
-        // Update email
-        const emailElement = document.getElementById('sidebar-email');
-        if (emailElement && user?.email) {
-            emailElement.textContent = user.email;
-            console.log('✅ [SidebarManager] Email updated:', user.email);
-        } else {
-            console.warn('⚠️ [SidebarManager] Email element or user email missing', {
-                hasElement: !!emailElement,
-                hasEmail: !!user?.email
-            });
-        }
-
-            // Update user initial
-            const userInitialElement = document.getElementById('sidebar-user-initial');
-            if (userInitialElement && user?.email) {
-                userInitialElement.textContent = user.email.charAt(0).toUpperCase();
-            }
-
-            // Update subscription plan
-            const planElement = document.getElementById('sidebar-plan');
-            if (planElement) {
-                const planName = this.formatPlanName(user.subscription_plan || 'free');
-                planElement.textContent = planName;
-            }
-
-            // Update credits display
-            const creditsElement = document.getElementById('sidebar-credits');
-            if (creditsElement) {
-                const credits = user.credits || 0;
-                creditsElement.textContent = credits;
-                
-                // Add low credits warning
-                if (credits < 5) {
-                    creditsElement.classList.add('text-red-500');
-                } else {
-                    creditsElement.classList.remove('text-red-500');
-                }
-            }
-
-            console.log('✅ [SidebarManager] User info updated');
-            
-        } catch (error) {
-            console.error('❌ [SidebarManager] Failed to update user info:', error);
-        }
+updateUserInfo() {
+    const user = window.OsliraAuth?.user || this.auth?.user;
+    if (!user) {
+        console.warn('⚠️ [SidebarManager] No user available for info update');
+        return;
     }
+    
+    console.log('👤 [SidebarManager] Updating user info:', {
+        email: user.email,
+        credits: user.credits
+    });
+    
+    // Update credits display
+    const creditsElement = document.querySelector('#sidebar-credits');
+    if (creditsElement && user.credits !== undefined) {
+        creditsElement.textContent = user.credits;
+    }
+}
 
     setActiveMenuItem(pageId) {
         console.log(`🎯 [SidebarManager] Setting active menu item: ${pageId}`);
@@ -423,6 +391,11 @@ initializeSidebar() {
     
     // Set initial state
     this.updateSidebarState();
+
+    // After sidebar renders
+if (window.OsliraAuth?.user) {
+    this.updateUserInfo();
+}
     
     console.log('✅ [SidebarManager] Sidebar functionality initialized');
 }
