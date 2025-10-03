@@ -61,14 +61,16 @@ getScoreGradient(score) {
     }
     return 'from-teal-400 via-cyan-400 to-teal-400';
 } else if (score >= 31) {
-    // Medium: Amber/Orange with teal blend based on proximity to 51
+    // Medium: Orange → Yellow → Lime → Teal smooth transition
     const blendFactor = (score - 31) / 20; // 0 to 1 as score goes 31→51
-    if (blendFactor > 0.6) {
-        return 'from-orange-500 via-yellow-400 to-teal-300';
-    } else if (blendFactor > 0.3) {
-        return 'from-orange-600 via-orange-500 to-yellow-500';
+    if (blendFactor > 0.75) {
+        return 'from-lime-500 via-emerald-400 to-teal-400';
+    } else if (blendFactor > 0.5) {
+        return 'from-yellow-500 via-yellow-400 to-lime-400';
+    } else if (blendFactor > 0.25) {
+        return 'from-orange-500 via-amber-400 to-yellow-500';
     }
-    return 'from-orange-600 via-orange-500 to-orange-500';
+    return 'from-orange-600 via-orange-500 to-orange-400';
     } else {
         // Bad: Deep Red with orange blend based on proximity to 31
         const blendFactor = score / 30; // 0 to 1 as score goes 0→30
