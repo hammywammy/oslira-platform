@@ -57,13 +57,13 @@ async refreshStats() {
             }
             
             const businessId = currentBusiness.id;
-            const userId = this.osliraApp?.user?.id;
-            
-            if (!userId) {
-                console.warn('⚠️ [StatsCalculator] No user ID available');
-                this.updateStatsFromCachedData();
-                return;
-            }
+const userId = this.osliraAuth?.user?.id;
+
+if (!userId) {
+    console.log('⏳ [StatsCalculator] Waiting for authentication...');
+    this.updateStatsFromCachedData();
+    return;
+}
             
             // Check cache first
             const cached = this.getCachedStats();
