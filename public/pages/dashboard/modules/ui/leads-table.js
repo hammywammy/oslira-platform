@@ -25,13 +25,17 @@ class LeadsTable {
     <option>All Platforms</option>
     <option>Instagram</option>
 </select>
-                    <!-- Sort Dropdown -->
-                    <select id="sort-filter" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <option>Sort by: Recent</option>
-                        <option>Sort by: Score</option>
-                        <option>Sort by: Name</option>
-                        <option>Sort by: Followers</option>
-                    </select>
+<!-- Sort Dropdown -->
+<select id="sort-filter" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+    <option value="date-desc">Recent (newest → oldest)</option>
+    <option value="date-asc">Recent (oldest → newest)</option>
+    <option value="score-desc">Score (high → low)</option>
+    <option value="score-asc">Score (low → high)</option>
+    <option value="followers-desc">Followers (high → low)</option>
+    <option value="followers-asc">Followers (low → high)</option>
+    <option value="name-asc">Name (A → Z)</option>
+    <option value="name-desc">Name (Z → A)</option>
+</select>
                 </div>
             </div>
         </div>
@@ -57,13 +61,101 @@ class LeadsTable {
     }
 
 
-    updatePagination(start, end, total) {
-        const startEl = document.getElementById('pagination-start');
-        const totalEl = document.getElementById('pagination-total');
-        
-        if (startEl) startEl.textContent = `${start}-${end}`;
-        if (totalEl) totalEl.textContent = total;
+updatePagination(start, end, total) {
+    const startEl = document.getElementById('pagination-start');
+    const totalEl = document.getElementById('pagination-total');
+    
+    if (startEl) startEl.textContent = `${start}-${end}`;
+    if (totalEl) totalEl.textContent = total;
+}
+
+setupFilterHandlers() {
+    const stateManager = this.container.get('stateManager');
+    const leadRenderer = this.container.get('leadRenderer');
+    
+    // Platform filter handler
+    const platformFilter = document.getElementById('platform-filter');
+    if (platformFilter) {
+        platformFilter.addEventListener('change', (e) => {
+            const platformValue = e.target.value.toLowerCase();
+            const platform = platformValue === 'all platforms' ? 'all' : platformValue;
+            
+            console.log('🔍 [LeadsTable] Platform filter changed:', platform);
+            
+            // Get current leads
+            const allLeads = stateManager.getState('leads') || [];
+            
+            // Apply platform filter
+            const filteredLeads = platform === 'all' 
+                ? allLeads 
+                : allLeads.filter(lead => (lead.platform || '').toLowerCase() === platform);
+            
+            // Store filtered leads
+            stateManager.setState('filteredLeads', filteredLeads);
+            
+            // Apply current sort if exists
+            const sortValue = document.getElementById('sort-filter')?.value;
+            if (sortValue) {
+                this.applySorting(filteredLeads, sortValue);
+            } else {
+                // Display filtered leads
+                leadRenderer.displayLeads(filteredLeads);
+            }
+            
+            console.log(`✅ [LeadsTable] Platform filter applied: ${filteredLeads.length} leads`);
+        });
     }
+    
+    // Sort filter handler
+    const sortFilter = document.getElementById('sort-filter');
+    if (sortFilter) {
+        sortFilter.addEventListener('change', (e) => {
+            const sortValue = e.target.value;
+            console.log('🔽 [LeadsTable] Sort changed:', sortValue);
+            
+            // Get currently filtered leads or all leads
+            const leads = stateManager.getState('filteredLeads') || stateManager.getState('leads') || [];
+            
+            this.applySorting(leads, sortValue);
+        });
+    }
+    
+    console.log('✅ [LeadsTable] Filter handlers attached');
+}
+
+applySorting(leads, sortValue) {
+    const leadRenderer = this.container.get('leadRenderer');
+    const stateManager = this.container.get('stateManager');
+    
+    const [sortBy, sortOrder] = sortValue.split('-');
+    let sortedLeads = [...leads];
+    
+    switch (sortBy) {
+        case 'date':
+            sortedLeads = leadRenderer.sortLeads(sortedLeads, 'date', sortOrder);
+            break;
+        case 'score':
+            sortedLeads = leadRenderer.sortLeads(sortedLeads, 'score', sortOrder);
+            break;
+        case 'followers':
+            sortedLeads = leadRenderer.sortLeads(sortedLeads, 'followers', sortOrder);
+            break;
+        case 'name':
+            sortedLeads = leadRenderer.sortLeads(sortedLeads, 'username', sortOrder);
+            break;
+        default:
+            console.warn('Unknown sort type:', sortBy);
+            sortedLeads = leads;
+    }
+    
+    // Update state with sorted leads
+    stateManager.setState('filteredLeads', sortedLeads);
+    
+    // Display sorted leads
+    leadRenderer.displayLeads(sortedLeads);
+    
+    console.log(`✅ [LeadsTable] Sort applied: ${sortBy} (${sortOrder})`);
+}
 
 setupEventHandlers() {
         // Export dropdown handlers
