@@ -318,6 +318,7 @@ startProgressAnimator(analysisId) {
     analysis.stageStartTime = Date.now();
     analysis.stageStartProgress = 0;
     analysis.lastBackendUpdate = Date.now();
+    analysis.maxReachedProgress = 0; // Track highest progress reached (never go backward)
     
     let lastFrameTime = Date.now();
     
@@ -361,44 +362,81 @@ startProgressAnimator(analysisId) {
         
         // Calculate how far behind/ahead we are
         const timeSinceBackendUpdate = now - currentAnalysis.lastBackendUpdate;
+        const currentVisual = currentAnalysis.visualProgress || 0;
         
-        // Adaptive speed: move faster when close to expected, slower when waiting for backend
+        // Determine target progress with intelligent slowdown
         let targetProgress;
         
-        if (timeSinceBackendUpdate < 2000) {
-            // Recent backend update - trust it and smoothly approach it
+        if (timeSinceBackendUpdate < 1500) {
+            // Recent backend update - trust it
             targetProgress = backendTarget;
         } else {
-            // No recent backend update - use time-based prediction but slow down
-            // Slow down factor increases with time since last update (asymptotic approach)
-            const slowdownFactor = Math.min(timeSinceBackendUpdate / 5000, 0.9); // Max 90% slowdown
+            // No recent backend update - predict but be conservative
             
-            // Blend between expected progress and current position
-            targetProgress = currentAnalysis.visualProgress + 
-                           ((expectedProgress - currentAnalysis.visualProgress) * (1 - slowdownFactor));
+            // Calculate how far ahead we are of backend
+            const leadAmount = currentVisual - backendTarget;
             
-            // Never go past backend target by more than 5%
-            if (backendTarget > 0 && targetProgress > backendTarget + 5) {
-                targetProgress = backendTarget + 5;
+            if (leadAmount > 8) {
+                // Way too far ahead - aggressive slowdown (asymptotic approach)
+                const slowdownFactor = 0.95; // 95% slowdown
+                targetProgress = currentVisual + ((expectedProgress - currentVisual) * (1 - slowdownFactor));
+            } else if (leadAmount > 3) {
+                // Moderately ahead - medium slowdown
+                const slowdownFactor = Math.min((timeSinceBackendUpdate - 1500) / 4000, 0.85);
+                targetProgress = currentVisual + ((expectedProgress - currentVisual) * (1 - slowdownFactor));
+            } else {
+                // Close to backend or behind - normal prediction
+                const slowdownFactor = Math.min((timeSinceBackendUpdate - 1500) / 5000, 0.7);
+                targetProgress = currentVisual + ((expectedProgress - currentVisual) * (1 - slowdownFactor));
             }
         }
         
-        // Smooth movement toward target
-        const diff = targetProgress - currentAnalysis.visualProgress;
-        const speed = 0.05; // 5% of distance per frame (60fps = smooth motion)
+        // CRITICAL: Never decrease progress (no backward movement)
+        if (targetProgress < currentVisual) {
+            targetProgress = currentVisual;
+        }
         
-        // Always move forward, never backward (except when backend updates)
-        if (diff > 0 || Math.abs(diff) > 1) {
-            currentAnalysis.visualProgress += diff * speed;
+        // CRITICAL: Hard cap at 97% until backend confirms near completion
+        const isLastStage = currentStage >= stages.length - 1;
+        if (backendTarget < 95) {
+            targetProgress = Math.min(targetProgress, 97);
+        } else if (backendTarget < 98 && isLastStage) {
+            targetProgress = Math.min(targetProgress, 98);
+        } else if (backendTarget < 100) {
+            targetProgress = Math.min(targetProgress, 99);
+        }
+        
+        // Smooth movement toward target (very gradual)
+        const diff = targetProgress - currentVisual;
+        
+        let speed;
+        if (diff > 5) {
+            speed = 0.08; // Faster when far from target
+        } else if (diff > 1) {
+            speed = 0.03; // Medium speed when close
         } else {
-            // Tiny movements for smoothness
-            currentAnalysis.visualProgress += Math.max(0.01 * deltaTime * 60, 0); // Minimum forward motion
+            speed = 0.01; // Very slow when nearly there (creeping motion)
         }
         
-        // Cap at 99% until backend confirms 100%
-        if (backendTarget < 100) {
-            currentAnalysis.visualProgress = Math.min(currentAnalysis.visualProgress, 99);
+        // Calculate new visual progress
+        let newVisualProgress = currentVisual + (diff * speed);
+        
+        // Add tiny minimum forward motion to avoid stalling (except at caps)
+        if (targetProgress > currentVisual && diff < 0.5 && newVisualProgress < 97) {
+            newVisualProgress += 0.02 * deltaTime * 60; // Minimum creep
         }
+        
+        // Ensure we never go backward
+        newVisualProgress = Math.max(newVisualProgress, currentVisual);
+        
+        // Update max reached (monotonic increase only)
+        currentAnalysis.maxReachedProgress = Math.max(
+            currentAnalysis.maxReachedProgress || 0, 
+            newVisualProgress
+        );
+        
+        // Set the new visual progress
+        currentAnalysis.visualProgress = newVisualProgress;
         
         // Update only the progress bar DOM element (no full render)
         this.updateProgressBarDOM(analysisId, currentAnalysis.visualProgress);
@@ -414,18 +452,18 @@ startProgressAnimator(analysisId) {
     
     console.log(`🎬 [ProgressAnimator] Started predictive progress for ${analysisId}`);
 }
-
 simpleProgressAnimation(analysis, analysisId) {
     // Fallback for when stage info is unavailable
-    const target = analysis.targetProgress || 0;
+    const target = Math.min(analysis.targetProgress || 0, 97); // Cap at 97%
     const current = analysis.visualProgress || 0;
     const diff = target - current;
-    const step = diff * 0.08;
     
-    if (Math.abs(diff) > 0.1) {
-        analysis.visualProgress = current + step;
-    } else {
-        analysis.visualProgress = target;
+    // Only move forward, never backward
+    if (diff > 0.1) {
+        const step = diff * 0.05; // Slower, smoother
+        analysis.visualProgress = Math.min(current + step, 97);
+    } else if (diff > 0) {
+        analysis.visualProgress = current + 0.01; // Tiny forward creep
     }
     
     this.updateProgressBarDOM(analysisId, analysis.visualProgress);
