@@ -72,6 +72,91 @@ class DashboardStyles {
     .score-medium .score-fill { background: #fbbf24; }
     .score-low .score-fill { background: #ef4444; }
 </style>`;
+
+        /* Animated Wave Gradients for Score Bars */
+@keyframes scoreWave {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.score-wave-gradient-excellent {
+    background: linear-gradient(90deg, #6B21A8, #7E22CE, #9333EA, #A855F7, #7E22CE, #6B21A8);
+    background-size: 200% 100%;
+    animation: scoreWave 3s ease-in-out infinite;
+}
+
+.score-wave-gradient-good-high {
+    background: linear-gradient(90deg, #2563EB, #4F46E5, #7C3AED, #9333EA, #4F46E5, #2563EB);
+    background-size: 200% 100%;
+    animation: scoreWave 3s ease-in-out infinite;
+}
+
+.score-wave-gradient-good-mid {
+    background: linear-gradient(90deg, #2563EB, #3B82F6, #4F46E5, #6366F1, #3B82F6, #2563EB);
+    background-size: 200% 100%;
+    animation: scoreWave 3s ease-in-out infinite;
+}
+
+.score-wave-gradient-good-low {
+    background: linear-gradient(90deg, #1D4ED8, #2563EB, #3B82F6, #2563EB, #1D4ED8);
+    background-size: 200% 100%;
+    animation: scoreWave 3s ease-in-out infinite;
+}
+
+.score-wave-gradient-moderate-high {
+    background: linear-gradient(90deg, #14B8A6, #06B6D4, #0EA5E9, #3B82F6, #06B6D4, #14B8A6);
+    background-size: 200% 100%;
+    animation: scoreWave 3s ease-in-out infinite;
+}
+
+.score-wave-gradient-moderate-mid {
+    background: linear-gradient(90deg, #0D9488, #14B8A6, #2DD4BF, #22D3EE, #14B8A6, #0D9488);
+    background-size: 200% 100%;
+    animation: scoreWave 3s ease-in-out infinite;
+}
+
+.score-wave-gradient-moderate-low {
+    background: linear-gradient(90deg, #0F766E, #14B8A6, #2DD4BF, #5EEAD4, #14B8A6, #0F766E);
+    background-size: 200% 100%;
+    animation: scoreWave 3s ease-in-out infinite;
+}
+
+.score-wave-gradient-fair-high {
+    background: linear-gradient(90deg, #EAB308, #FCD34D, #FDE047, #A7F3D0, #FCD34D, #EAB308);
+    background-size: 200% 100%;
+    animation: scoreWave 3s ease-in-out infinite;
+}
+
+.score-wave-gradient-fair-mid {
+    background: linear-gradient(90deg, #EA580C, #F97316, #FB923C, #FBBF24, #F97316, #EA580C);
+    background-size: 200% 100%;
+    animation: scoreWave 3s ease-in-out infinite;
+}
+
+.score-wave-gradient-fair-low {
+    background: linear-gradient(90deg, #C2410C, #EA580C, #F97316, #EA580C, #C2410C);
+    background-size: 200% 100%;
+    animation: scoreWave 3s ease-in-out infinite;
+}
+
+.score-wave-gradient-poor-high {
+    background: linear-gradient(90deg, #B91C1C, #DC2626, #EF4444, #F97316, #DC2626, #B91C1C);
+    background-size: 200% 100%;
+    animation: scoreWave 3s ease-in-out infinite;
+}
+
+.score-wave-gradient-poor-mid {
+    background: linear-gradient(90deg, #991B1B, #B91C1C, #DC2626, #B91C1C, #991B1B);
+    background-size: 200% 100%;
+    animation: scoreWave 3s ease-in-out infinite;
+}
+
+.score-wave-gradient-poor-low {
+    background: linear-gradient(90deg, #7F1D1D, #991B1B, #B91C1C, #991B1B, #7F1D1D);
+    background-size: 200% 100%;
+    animation: scoreWave 3s ease-in-out infinite;
+}
     }
 }
 
