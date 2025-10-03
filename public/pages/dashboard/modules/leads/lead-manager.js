@@ -69,22 +69,22 @@ async loadDashboardData() {
             businessId: selectedBusinessId
         });
             
-            // Execute database query
-            const { data: leads, error: leadsError } = await this.supabase
-                .from('leads')
-                .select(`
-                  lead_id, username, display_name, profile_picture_url, bio_text,
-                  platform_type, follower_count, following_count, post_count,
-                  is_verified_account, profile_url, user_id, business_id,
-                  first_discovered_at, last_updated_at,
-                  runs(
-                    run_id, analysis_type, overall_score, niche_fit_score, 
-                    engagement_score, summary_text, confidence_level, created_at
-                  )
-                `)
-                .eq('user_id', user.id)
-                .eq('business_id', selectedBusinessId)
-                .order('created_at', { foreignTable: 'runs', ascending: false });
+const { data: leads, error: leadsError } = await this.supabase
+    .from('leads')
+    .select(`
+      lead_id, username, display_name, profile_picture_url, bio_text,
+      platform_type, follower_count, following_count, post_count,
+      is_verified_account, profile_url, user_id, business_id,
+      first_discovered_at, last_updated_at,
+      runs(
+        run_id, analysis_type, overall_score, niche_fit_score, 
+        engagement_score, summary_text, confidence_level, created_at
+      )
+    `)
+    .eq('user_id', user.id)
+    .eq('business_id', selectedBusinessId)
+    .order('last_updated_at', { ascending: false })
+    .order('created_at', { foreignTable: 'runs', ascending: false });
 
             if (leadsError) {
                 console.error('❌ [LeadManager] Leads query error:', leadsError);
@@ -103,28 +103,30 @@ async loadDashboardData() {
                         ? lead.runs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0]
                         : null;
                     
-                    return {
-                        // Map database fields to UI expected fields
-                        id: lead.lead_id,  // Critical: UI expects 'id' not 'lead_id'
-                        username: lead.username,
-                        display_name: lead.display_name,
-                        profile_picture_url: lead.profile_picture_url,
-                        bio_text: lead.bio_text,
-                        follower_count: lead.follower_count,
-                        following_count: lead.following_count,
-                        post_count: lead.post_count,
-                        is_verified_account: lead.is_verified_account,
-                        platform_type: lead.platform_type,
-                        profile_url: lead.profile_url,
-                        user_id: lead.user_id,
-                        business_id: lead.business_id,
-                        first_discovered_at: lead.first_discovered_at,
-                        
-// Backward compatibility fields
-profile_pic_url: lead.profile_picture_url,
-followers_count: lead.follower_count,
-platform: lead.platform_type || 'instagram',
-created_at: latestRun?.created_at || lead.first_discovered_at, // Use run date, fallback to lead date
+return {
+    // Map database fields to UI expected fields
+    id: lead.lead_id,
+    username: lead.username,
+    display_name: lead.display_name,
+    profile_picture_url: lead.profile_picture_url,
+    bio_text: lead.bio_text,
+    follower_count: lead.follower_count,
+    following_count: lead.following_count,
+    post_count: lead.post_count,
+    is_verified_account: lead.is_verified_account,
+    platform_type: lead.platform_type,
+    profile_url: lead.profile_url,
+    user_id: lead.user_id,
+    business_id: lead.business_id,
+    first_discovered_at: lead.first_discovered_at,
+    last_updated_at: lead.last_updated_at,
+    
+    // Backward compatibility fields
+    profile_pic_url: lead.profile_picture_url,
+    followers_count: lead.follower_count,
+    platform: lead.platform_type || 'instagram',
+    created_at: lead.last_updated_at || latestRun?.created_at || lead.first_discovered_at,
+    updated_at: lead.last_updated_at || latestRun?.created_at || lead.first_discovered_at,
                         
                         // Analysis data from runs table (via JOIN)
                         score: latestRun?.overall_score || 0,
