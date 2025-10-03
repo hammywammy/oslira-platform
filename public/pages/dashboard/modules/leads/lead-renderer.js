@@ -236,44 +236,59 @@ const getScoreConfig = (score) => {
         };
     }
     
-    if (scoreWithVariation >= 31) {
-        // Medium: Amber/Orange with smooth yellow/teal blend + animated wave
-        const blendFactor = (scoreWithVariation - 31) / 20;
-        if (blendFactor > 0.65) {
-            // Approaching teal - smooth transition
-            return {
-                class: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-                label: 'Fair',
-                color: 'yellow',
-                icon: '📈',
-                gradient: 'from-yellow-500 to-yellow-400',
-                barGradient: 'from-yellow-500 via-yellow-400 to-teal-300',
-                barClass: 'score-wave-gradient-fair-high',
-                borderColor: 'border-yellow-500'
-            };
-        } else if (blendFactor > 0.3) {
-            return {
-                class: 'bg-orange-100 text-orange-700 border-orange-200',
-                label: 'Fair',
-                color: 'orange',
-                icon: '📈',
-                gradient: 'from-orange-600 to-orange-500',
-                barGradient: 'from-orange-600 via-orange-500 to-yellow-500',
-                barClass: 'score-wave-gradient-fair-mid',
-                borderColor: 'border-orange-600'
-            };
-        }
+if (scoreWithVariation >= 31) {
+    // Medium: Orange → Yellow → Lime → Teal smooth transition
+    const blendFactor = (scoreWithVariation - 31) / 20;
+    
+    if (blendFactor > 0.75) {
+        // Score 46-50: Yellow-Lime transitioning to teal
+        return {
+            class: 'bg-lime-100 text-lime-800 border-lime-200',
+            label: 'Fair',
+            color: 'lime',
+            icon: '📈',
+            gradient: 'from-lime-500 to-teal-400',
+            barGradient: 'from-lime-500 via-emerald-400 to-teal-400',
+            barClass: 'score-wave-gradient-fair-highest',
+            borderColor: 'border-lime-500'
+        };
+    } else if (blendFactor > 0.5) {
+        // Score 41-45: Pure yellow zone
+        return {
+            class: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+            label: 'Fair',
+            color: 'yellow',
+            icon: '📈',
+            gradient: 'from-yellow-500 to-yellow-400',
+            barGradient: 'from-yellow-500 via-yellow-400 to-lime-400',
+            barClass: 'score-wave-gradient-fair-high',
+            borderColor: 'border-yellow-500'
+        };
+    } else if (blendFactor > 0.25) {
+        // Score 36-40: Orange to yellow
         return {
             class: 'bg-orange-100 text-orange-700 border-orange-200',
             label: 'Fair',
             color: 'orange',
             icon: '📈',
-            gradient: 'from-orange-600 to-orange-600',
-            barGradient: 'from-orange-600 via-orange-500 to-orange-500',
-            barClass: 'score-wave-gradient-fair-low',
-            borderColor: 'border-orange-600'
+            gradient: 'from-orange-500 to-yellow-500',
+            barGradient: 'from-orange-500 via-amber-400 to-yellow-500',
+            barClass: 'score-wave-gradient-fair-mid',
+            borderColor: 'border-orange-500'
         };
     }
+    // Score 31-35: Deep orange
+    return {
+        class: 'bg-orange-100 text-orange-800 border-orange-200',
+        label: 'Fair',
+        color: 'orange',
+        icon: '📈',
+        gradient: 'from-orange-600 to-orange-500',
+        barGradient: 'from-orange-600 via-orange-500 to-orange-400',
+        barClass: 'score-wave-gradient-fair-low',
+        borderColor: 'border-orange-600'
+    };
+}
     
     // Bad: Deep Red with orange blend (0-30) + animated wave
     const blendFactor = scoreWithVariation / 30;
