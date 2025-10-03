@@ -282,37 +282,37 @@ applySorting(leads, sortValue) {
 }
 
 setupEventHandlers() {
+    const stateManager = this.container.get('stateManager');
+    const leadRenderer = this.container.get('leadRenderer');
+    const leadManager = this.container.get('leadManager');
 
     window.toggleToolbarCopyDropdown = () => {
-    const dropdown = document.getElementById('toolbar-copy-dropdown');
-    if (dropdown) {
-        dropdown.classList.toggle('hidden');
-    }
-    const exportDropdown = document.getElementById('toolbar-export-dropdown');
-    if (exportDropdown) exportDropdown.classList.add('hidden');
-};
+        const dropdown = document.getElementById('toolbar-copy-dropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('hidden');
+        }
+        const exportDropdown = document.getElementById('toolbar-export-dropdown');
+        if (exportDropdown) exportDropdown.classList.add('hidden');
+    };
 
-window.toggleToolbarExportDropdown = () => {
-    const dropdown = document.getElementById('toolbar-export-dropdown');
-    if (dropdown) {
-        dropdown.classList.toggle('hidden');
-    }
-    const copyDropdown = document.getElementById('toolbar-copy-dropdown');
-    if (copyDropdown) copyDropdown.classList.add('hidden');
-};
+    window.toggleToolbarExportDropdown = () => {
+        const dropdown = document.getElementById('toolbar-export-dropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('hidden');
+        }
+        const copyDropdown = document.getElementById('toolbar-copy-dropdown');
+        if (copyDropdown) copyDropdown.classList.add('hidden');
+    };
 
-window.clearToolbarSelections = () => {
-    const stateManager = this.container.get('stateManager');
-    stateManager.setState('selectedLeads', new Set());
-    
-    document.querySelectorAll('.lead-checkbox').forEach(checkbox => {
-        checkbox.checked = false;
-    });
-    
-    this.updateBulkActionsBar(0);
-    this.updateBulkActionsToolbar(0);
-    this.updateSelectAllCheckbox();
-};
+    window.clearToolbarSelections = () => {
+        const selectedLeads = stateManager.getState('selectedLeads') || new Set();
+        stateManager.setState('selectedLeads', new Set());
+        this.updateBulkActionsBar(0);
+        this.updateBulkActionsToolbar(0);
+        this.updateSelectAllCheckbox();
+        leadRenderer.displayLeads();
+        console.log('🗑️ [LeadsTable] Cleared all selections');
+    };
         // Export dropdown handlers
         window.toggleExportDropdown = () => {
             const dropdown = document.getElementById('exportDropdown');
