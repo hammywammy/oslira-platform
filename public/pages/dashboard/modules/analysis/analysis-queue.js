@@ -17,20 +17,23 @@ constructor(container) {
         console.warn('⚠️ [EnhancedAnalysisQueue] No Supabase client from container, will use OsliraAuth fallback');
     }
         
-        // Queue configuration
-        this.activeAnalyses = new Map();
-        this.maxVisible = 5;
-        this.autoHideDelay = 12000; // Increased for better UX
-        
-        // Enhanced configuration
-        this.smoothProgressEnabled = true;
-        this.soundEnabled = false; // Can be toggled in settings
-        this.animationSpeed = 300;
-
-        // NEW: Independent progress animation system
+    // Queue configuration
+    this.activeAnalyses = new Map();
+    this.maxVisible = 5;
+    this.autoHideDelay = 12000; // Increased for better UX
+    
+    // Enhanced configuration
+    this.smoothProgressEnabled = true;
+    this.soundEnabled = false; // Can be toggled in settings
+    this.animationSpeed = 300;
+    
+    // NEW: Independent progress animation system
     this.progressAnimators = new Map(); // Store RAF animation loops per analysis
     this.lastProgressEvent = new Map(); // Throttle progress events
     this.renderThrottle = null; // Throttle non-progress renders
+    
+    // Setup event delegation for buttons
+    this.setupEventDelegation();
         
 this.analysisStages = {
     light: [
@@ -62,6 +65,30 @@ this.analysisStages = {
         
         console.log('🚀 [EnhancedAnalysisQueue] Initialized with dopamine features');
     }
+
+setupEventDelegation() {
+    // Event delegation for all queue buttons
+    document.addEventListener('click', (e) => {
+        const button = e.target.closest('[data-action]');
+        if (!button) return;
+        
+        const action = button.dataset.action;
+        const analysisId = button.dataset.analysisId;
+        
+        if (!analysisId) return;
+        
+        switch (action) {
+            case 'minimize':
+                this.toggleMinimize(analysisId);
+                break;
+            case 'remove':
+                this.removeAnalysis(analysisId);
+                break;
+        }
+    });
+    
+    console.log('✅ [AnalysisQueue] Event delegation setup complete');
+}
     
     async init() {
         this.eventBus.on('dashboard:cleanup', this.cleanup.bind(this));
@@ -686,13 +713,13 @@ renderEnhancedQueueItem(analysis) {
                             </div>
                         ` : ''}
                         <div class="text-xs text-gray-400">${timeText}</div>
-                        <button onclick="analysisQueue.toggleMinimize('${analysis.id}')"
+                        <button data-action="minimize" data-analysis-id="${analysis.id}"
                                 class="p-1 hover:bg-gray-100 rounded-md transition-colors">
                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${analysis.isMinimized ? 'M19 9l-7 7-7-7' : 'M5 15l7-7 7 7'}"/>
                             </svg>
                         </button>
-                        <button onclick="analysisQueue.removeAnalysis('${analysis.id}')"
+                        <button data-action="remove" data-analysis-id="${analysis.id}"
                                 class="p-1 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors">
                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -1400,12 +1427,11 @@ return { success: true, data: result };
 // GLOBAL SETUP AND EXPORT
 // ===============================================================================
 
-// Make available globally for onclick handlers
+// Make available globally
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = EnhancedAnalysisQueue;
+    module.exports = AnalysisQueue;
 } else {
     window.AnalysisQueue = AnalysisQueue;
-    
-    // Global function bindings for onclick handlers
-    window.analysisQueue = null; // Will be set by dashboard initialization
 }
+
+console.log('✅ [AnalysisQueue] Module loaded');
