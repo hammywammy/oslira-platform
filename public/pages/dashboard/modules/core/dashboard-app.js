@@ -103,10 +103,9 @@ DashboardEventSystem.setupHandlers(
             throw new Error(`AnalysisFunctions not loaded after ${maxAttempts} attempts. Check script loading order.`);
         });
         
-        // State manager depends on event bus
-        container.registerFactory('stateManager', (eventBus) => {
-            return new DashboardStateManager(eventBus);
-        }, ['eventBus']);
+container.registerFactory('stateManager', (eventBus) => {
+    return new window.DashboardStateManager(eventBus);
+}, ['eventBus']);
 
 // Register OsliraAuth as direct reference
 container.registerSingleton('osliraAuth', window.OsliraAuth);
