@@ -9,8 +9,7 @@ class AnalysisConfigs {
     }
 
 registerDefaultConfigs() {
-    // Light Analysis Configuration - No tabs
-// Light Analysis Configuration - WITH TABS (matching xray structure)
+    
 this.configs.set('light', {
     hasTabs: true,
     tabs: [
@@ -26,15 +25,11 @@ this.configs.set('light', {
             id: 'personality',
             label: 'Personality',
             components: [
-                'personalityOverview',
-                'behaviorPatterns',
-                'communicationStyle',
-                'motivationDrivers'
+                'personalityLockedLight'  // Show the locked card instead
             ]
         }
     ]
 });
-
     // Deep Analysis Configuration - WITH TABS  
     this.configs.set('deep', {
         hasTabs: true,
