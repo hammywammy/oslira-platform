@@ -288,31 +288,42 @@ window.removeUploadedFile = (event) => {
 };
     }
 
-    isValidUsername(username) {
-        // Check for valid Instagram username format
-        // Must be 1-30 characters, alphanumeric, periods, underscores only
-        const usernameRegex = /^[a-zA-Z0-9._]{1,30}$/;
-        
-        // Remove @ if present
-        const cleanUsername = username.replace(/^@/, '');
-        
-        // Check if it contains invalid characters
-        if (!usernameRegex.test(cleanUsername)) {
-            return false;
-        }
-        
-        // Check for consecutive periods (not allowed on Instagram)
-        if (cleanUsername.includes('..')) {
-            return false;
-        }
-        
-        // Check if it starts or ends with a period
-        if (cleanUsername.startsWith('.') || cleanUsername.endsWith('.')) {
-            return false;
-        }
-        
-        return true;
+isValidUsername(username) {
+    // Instagram username validation - comprehensive rules
+    // Remove @ if present
+    const cleanUsername = username.replace(/^@/, '');
+    
+    // Length check (1-30 characters)
+    if (cleanUsername.length === 0 || cleanUsername.length > 30) {
+        return false;
     }
+    
+    // Character validation (only letters, numbers, periods, underscores)
+    const validCharsRegex = /^[a-zA-Z0-9._]+$/;
+    if (!validCharsRegex.test(cleanUsername)) {
+        return false;
+    }
+    
+    // No leading dot
+    if (cleanUsername.startsWith('.')) {
+        return false;
+    }
+    
+    // No trailing dot
+    if (cleanUsername.endsWith('.')) {
+        return false;
+    }
+    
+    // No consecutive dots
+    if (cleanUsername.includes('..')) {
+        return false;
+    }
+    
+    // Note: Underscores CAN be consecutive and can appear anywhere (start/end/middle)
+    // This is explicitly allowed by Instagram
+    
+    return true;
+}
 
 parseCSVFile(file) {
     // Reset validation UI
