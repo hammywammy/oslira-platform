@@ -194,6 +194,47 @@ renderStats(stats) {
     console.log('✅ [StatsCalculator] Stats UI updated successfully');
 }
 
+    calculateStats(leads) {
+    console.log('🔢 [StatsCalculator] Calculating stats from lead data...');
+    
+    if (!leads || leads.length === 0) {
+        return this.getDefaultStats();
+    }
+    
+    // Get subscription data for credits
+    const planType = this.osliraAuth?.user?.plan_type || 'free';
+    const creditsRemaining = this.osliraAuth?.user?.credits || 0;
+    const planCredits = this.getPlanCredits(planType);
+    
+    const stats = {
+        // Credits
+        creditsRemaining,
+        planCredits,
+        creditsUsed: planCredits - creditsRemaining,
+        creditsPercentage: Math.round((creditsRemaining / planCredits) * 100),
+        
+        // Leads (from current loaded data, not monthly filtered)
+        totalLeads: leads.length,
+        leadsThisMonth: leads.length, // Will be overridden by refreshStats with actual monthly data
+        
+        // Average quality score
+        averageScore: this.calculateAverageScore(leads),
+        
+        // Premium leads (80+)
+        premiumLeads: leads.filter(lead => (lead.score || 0) >= 80).length,
+        
+        // Analysis type counts (for backwards compatibility)
+        deepAnalyses: leads.filter(lead => lead.analysis_type === 'deep').length,
+        lightAnalyses: leads.filter(lead => lead.analysis_type === 'light').length,
+        
+        lastUpdate: new Date().toISOString(),
+        calculatedFromLeads: true
+    };
+    
+    console.log('📊 [StatsCalculator] Stats calculated from leads:', stats);
+    return stats;
+}
+
     calculateGrowthRate(runs, days) {
     const now = new Date();
     const cutoffDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
@@ -480,7 +521,12 @@ generateInsights(statsData) {
             highValueLeads: 0,
             deepAnalyses: 0,
             lightAnalyses: 0,
-            creditsRemaining: this.osliraApp?.user?.credits || 0,
+            creditsRemaining: this.osliraAuth?.user?.credits || 0,
+planCredits: this.getPlanCredits(this.osliraAuth?.user?.plan_type || 'free'),
+creditsUsed: 0,
+creditsPercentage: 0,
+leadsThisMonth: 0,
+premiumLeads: 0,
             lastUpdate: new Date().toISOString()
         };
     }
