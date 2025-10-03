@@ -237,7 +237,17 @@ const DASHBOARD_EVENTS = {
     
     // Credits
     CREDITS_UPDATED: 'credits:updated',
-    CREDITS_INSUFFICIENT: 'credits:insufficient'
+    CREDITS_INSUFFICIENT: 'credits:insufficient',
+
+    DATA_REFRESH_COMPLETE: 'dashboard:data:refresh:complete',
+    DATA_LOADING_START: 'dashboard:data:loading:start',
+    DATA_LOADING_END: 'dashboard:data:loading:end',
+    ANALYSIS_QUEUE_UPDATE: 'analysis:queue:update',
+    BUSINESS_CHANGE_COMPLETE: 'business:change:complete',
+    BUSINESS_LIST_UPDATED: 'business:list:updated',
+    CONNECTION_STATUS_CHANGED: 'connection:status:changed',
+    AUTH_CHANGED: 'auth:changed',
+    UI_UPDATE: 'ui:update'
 };
 
 // Export for global use
