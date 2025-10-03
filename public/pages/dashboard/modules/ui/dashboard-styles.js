@@ -243,6 +243,7 @@ class DashboardStyles {
     transform: translateY(0);
 }
 
+/* Stronger table lines */
 .leads-table {
     border-collapse: separate;
     border-spacing: 0;
@@ -268,6 +269,19 @@ class DashboardStyles {
 .leads-table th:last-child,
 .leads-table td:last-child {
     border-right: none;
+}
+
+/* Center checkboxes in first column */
+.leads-table thead th:first-child {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    text-align: center !important;
+}
+
+.leads-table tbody td:first-child {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    text-align: center !important;
 }
 
 /* Checkbox smooth state changes */
