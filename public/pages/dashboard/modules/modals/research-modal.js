@@ -16,12 +16,10 @@ class ResearchModal {
         
         <div class="space-y-6">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Platform</label>
-                <select class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <option>Instagram</option>
-                    <option>LinkedIn</option>
-                    <option>Twitter</option>
-                </select>
+<label class="block text-sm font-medium text-gray-700 mb-2">Platform</label>
+<select class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
+    <option>Instagram</option>
+</select>
             </div>
             
             <div>
