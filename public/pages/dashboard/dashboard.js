@@ -126,9 +126,8 @@ class DashboardInitializer {
         
         if (window.SidebarManager) {
             try {
-                const sidebarManager = new window.SidebarManager();
-                await sidebarManager.init();
-                window.sidebar = sidebarManager;
+                // SidebarManager uses render() method, not init()
+                await window.sidebarManager.render('#sidebar-container');
                 console.log('✅ [Dashboard] Sidebar initialized successfully');
             } catch (error) {
                 console.error('❌ [Dashboard] Sidebar initialization failed:', error);
@@ -201,6 +200,142 @@ class DashboardInitializer {
                 }
             },
             
+            // Form Handlers
+            submitAnalysis: async () => {
+                console.log('🔍 [Dashboard] Global submitAnalysis called');
+                
+                const submitBtn = document.getElementById('analysis-submit-btn');
+                const analysisType = document.getElementById('analysis-type')?.value;
+                const username = document.getElementById('username')?.value;
+                
+                if (!analysisType) {
+                    window.dashboard.showAlert('Please select an analysis type', 'error');
+                    return;
+                }
+                
+                if (analysisType === 'profile' && !username?.trim()) {
+                    window.dashboard.showAlert('Please enter a username', 'error');
+                    return;
+                }
+                
+                let originalText = 'Start Analysis';
+                
+                try {
+                    if (submitBtn) {
+                        originalText = submitBtn.textContent;
+                        submitBtn.textContent = 'Processing...';
+                        submitBtn.disabled = true;
+                    }
+                    
+                    const config = await window.OsliraConfig.getConfig();
+                    const session = window.OsliraAuth.getCurrentSession();
+                    
+                    if (!session?.access_token) {
+                        throw new Error('Authentication required');
+                    }
+                    
+                    const response = await fetch(`${config.workerUrl}/analyze/single`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${session.access_token}`
+                        },
+                        body: JSON.stringify({
+                            username: username?.trim(),
+                            analysis_type: analysisType
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        window.dashboard.showAlert('Analysis started! Results will appear in your dashboard.', 'success');
+                        window.dashboard.closeModal('analysisModal');
+                        
+                        if (this.app?.refreshLeads) {
+                            setTimeout(() => this.app.refreshLeads(), 2000);
+                        }
+                    } else {
+                        const errorText = await response.text();
+                        throw new Error(errorText || `Server error: ${response.status}`);
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ [Dashboard] Analysis submission failed:', error);
+                    window.dashboard.showAlert(error.message || 'Analysis failed. Please try again.', 'error');
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                    }
+                }
+            },
+            
+            // Lead Management
+            deleteLead: (leadId) => {
+                console.log('🗑️ [Dashboard] Global deleteLead called with:', leadId);
+                try {
+                    if (this.app?.deleteLead) {
+                        return this.app.deleteLead(leadId);
+                    }
+                    console.warn('❌ [Dashboard] deleteLead not available in app');
+                } catch (error) {
+                    console.error('❌ [Dashboard] deleteLead failed:', error);
+                }
+            },
+            
+            selectLead: (checkbox) => {
+                try {
+                    if (this.app?.selectLead) {
+                        return this.app.selectLead(checkbox);
+                    }
+                } catch (error) {
+                    console.error('❌ [Dashboard] selectLead failed:', error);
+                }
+            },
+            
+            toggleAllLeads: (masterCheckbox) => {
+                try {
+                    if (this.app?.toggleAllLeads) {
+                        return this.app.toggleAllLeads(masterCheckbox);
+                    }
+                } catch (error) {
+                    console.error('❌ [Dashboard] toggleAllLeads failed:', error);
+                }
+            },
+            
+            // Filtering and Search
+            filterLeads: (filter) => {
+                try {
+                    if (this.app?.filterLeads) {
+                        return this.app.filterLeads(filter);
+                    }
+                } catch (error) {
+                    console.error('❌ [Dashboard] filterLeads failed:', error);
+                }
+            },
+            
+            searchLeads: (term) => {
+                try {
+                    if (this.app?.searchLeads) {
+                        return this.app.searchLeads(term);
+                    }
+                } catch (error) {
+                    console.error('❌ [Dashboard] searchLeads failed:', error);
+                }
+            },
+            
+            // Bulk Operations
+            processBulkUpload: () => {
+                console.log('📁 [Dashboard] Global processBulkUpload called');
+                try {
+                    if (this.app?.processBulkUpload) {
+                        return this.app.processBulkUpload();
+                    }
+                    console.warn('❌ [Dashboard] processBulkUpload not available in app');
+                } catch (error) {
+                    console.error('❌ [Dashboard] processBulkUpload failed:', error);
+                }
+            },
+            
             // Utility Methods
             showAlert: (message, type = 'info') => {
                 if (window.Alert) {
@@ -257,7 +392,28 @@ class DashboardInitializer {
                 if (this.app?.debug) {
                     return this.app.debug();
                 }
-            }
+            },
+            
+            debugDashboard: () => {
+                console.log('🐛 [Dashboard] Debug info:', {
+                    app: !!this.app,
+                    appMethods: this.app ? Object.keys(this.app) : [],
+                    container: !!this.app?.container,
+                    modules: this.app?.container ? {
+                        modalManager: !!this.app.container.get('modalManager'),
+                        businessManager: !!this.app.container.get('businessManager'),
+                        leadManager: !!this.app.container.get('leadManager')
+                    } : 'No container'
+                });
+                
+                if (this.app?.debug) {
+                    return this.app.debug();
+                }
+            },
+            
+            // Internal reference for advanced usage
+            _app: this.app,
+            _initializer: this
         };
         
         // Expose debugging utilities
