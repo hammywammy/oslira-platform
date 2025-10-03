@@ -638,52 +638,62 @@ const tableHTML = `
         return 'border-slate-300';
     }
 
-    formatDateProfessional(dateString) {
-        if (!dateString) return { date: 'Unknown', time: '' };
+formatDateProfessional(dateString) {
+    if (!dateString) return { date: 'Unknown', time: '' };
+    
+    try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        const diffSeconds = Math.floor(diffMs / 1000);
         
-        try {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-            const diffMinutes = Math.floor(diffMs / (1000 * 60));
-            
-            // Format date
-            let dateFormatted;
-            if (diffDays === 0) {
-                dateFormatted = 'Today';
-            } else if (diffDays === 1) {
-                dateFormatted = 'Yesterday';
-            } else if (diffDays < 7) {
-                dateFormatted = `${diffDays} days ago`;
-            } else {
-                dateFormatted = date.toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric' 
-                });
-            }
-            
-            // Format time
-            let timeFormatted;
-            if (diffMinutes < 60) {
-                timeFormatted = `${diffMinutes}m ago`;
-            } else if (diffHours < 24) {
-                timeFormatted = `${diffHours}h ago`;
-            } else {
-                timeFormatted = date.toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    hour12: true 
-                });
-            }
-            
-            return { date: dateFormatted, time: timeFormatted };
-        } catch (error) {
-            console.warn('⚠️ [LeadRenderer] Date formatting error:', error);
-            return { date: 'Invalid date', time: '' };
+        // Protect against future dates or negative values
+        if (diffMs < 0 || diffSeconds < 0) {
+            return { date: 'Just now', time: 'now' };
         }
+        
+        // Format date
+        let dateFormatted;
+        if (diffMinutes < 1) {
+            dateFormatted = 'Today';
+        } else if (diffDays === 0) {
+            dateFormatted = 'Today';
+        } else if (diffDays === 1) {
+            dateFormatted = 'Yesterday';
+        } else if (diffDays < 7) {
+            dateFormatted = `${diffDays} days ago`;
+        } else {
+            dateFormatted = date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+        
+        // Format time
+        let timeFormatted;
+        if (diffMinutes < 1) {
+            timeFormatted = 'now';
+        } else if (diffMinutes < 60) {
+            timeFormatted = `${diffMinutes}m ago`;
+        } else if (diffHours < 24) {
+            timeFormatted = `${diffHours}h ago`;
+        } else {
+            timeFormatted = date.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+            });
+        }
+        
+        return { date: dateFormatted, time: timeFormatted };
+    } catch (error) {
+        console.warn('⚠️ [LeadRenderer] Date formatting error:', error);
+        return { date: 'Invalid date', time: '' };
     }
+}
 
     formatNumber(num) {
         if (!num) return '0';
