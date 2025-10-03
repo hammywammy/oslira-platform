@@ -27,30 +27,35 @@ class AnalysisQueueStyles {
                 transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             }
 
-            /* Toggle Button (Always Visible) */
-            .queue-toggle-btn {
-                width: 32px;
-                height: 64px;
-                background: linear-gradient(135deg, #9333ea 0%, #7e22ce 50%, #6b21a8 100%);
-                border-radius: 8px 0 0 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                box-shadow: -2px 0 8px rgba(147, 51, 234, 0.3);
-                transition: all 0.3s ease;
-                position: relative;
-                z-index: 41;
-            }
+/* Toggle Button (Always Visible) */
+.queue-toggle-btn {
+    width: 32px;
+    height: 64px;
+    background: linear-gradient(135deg, #9333ea 0%, #7e22ce 50%, #6b21a8 100%);
+    border-radius: 8px 0 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: -2px 0 8px rgba(147, 51, 234, 0.3);
+    transition: all 0.3s ease;
+    position: absolute;
+    right: 360px;
+    z-index: 41;
+}
 
-            .queue-toggle-btn:hover {
-                background: linear-gradient(135deg, #a855f7 0%, #9333ea 50%, #7e22ce 100%);
-                box-shadow: -4px 0 12px rgba(147, 51, 234, 0.5);
-            }
+.queue-wrapper.collapsed .queue-toggle-btn {
+    right: 0;
+}
 
-            .queue-toggle-btn:active {
-                transform: scale(0.95);
-            }
+.queue-toggle-btn:hover {
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 50%, #7e22ce 100%);
+    box-shadow: -4px 0 12px rgba(147, 51, 234, 0.5);
+}
+
+.queue-toggle-btn:active {
+    transform: scale(0.95);
+}
 
             /* Queue Container */
             .queue-container {
