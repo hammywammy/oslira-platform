@@ -319,68 +319,99 @@ class AnalysisQueue {
     // ANALYSIS EXECUTION
     // ===============================================================================
 
-    async startSingleAnalysis(username, analysisType, businessId, requestData) {
-        console.log('🚀 [AnalysisQueue] Starting single analysis:', { username, analysisType, businessId });
+  async startSingleAnalysis(username, analysisType, businessId, requestData) {
+    console.log('🚀 [AnalysisQueue] Starting single analysis:', { username, analysisType, businessId });
 
-        if (!this.supabase) {
-            console.error('❌ [AnalysisQueue] No Supabase client available');
-            throw new Error('Database connection not configured');
-        }
+    if (!this.supabase) {
+        console.error('❌ [AnalysisQueue] No Supabase client available');
+        throw new Error('Database connection not configured');
+    }
 
-        let supabaseClient = this.supabase;
+    let supabaseClient = this.supabase;
 
-        if (!supabaseClient.supabaseUrl && window.OsliraAuth?.supabase) {
-            console.log('🔄 [AnalysisQueue] Getting fresh Supabase client from OsliraAuth');
-            supabaseClient = window.OsliraAuth.supabase;
+    if (!supabaseClient.supabaseUrl && window.OsliraAuth?.supabase) {
+        console.log('🔄 [AnalysisQueue] Getting fresh Supabase client from OsliraAuth');
+        supabaseClient = window.OsliraAuth.supabase;
 
-            if (!supabaseClient) {
-                throw new Error('Unable to get Supabase client from OsliraAuth');
-            }
-        }
-
-        const analysisId = this.addAnalysis(username, analysisType, businessId);
-
-        this.animator.startStageBasedProgress(analysisId);
-
-        try {
-            const { data, error } = await supabaseClient.functions.invoke('analyze-profile', {
-                body: requestData
-            });
-
-            if (error) throw error;
-
-            const result = data?.result || data;
-
-            if (result && !result.error) {
-                this.completeAnalysis(analysisId, true, 'Analysis completed!', result);
-
-                setTimeout(() => {
-                    this.eventBus.emit(window.DASHBOARD_EVENTS.DATA_REFRESH);
-                }, 1000);
-
-                return { success: true, analysisId, result };
-            } else {
-                console.error('❌ [AnalysisQueue] Analysis failed:', result.error);
-                this.completeAnalysis(analysisId, false, result.error || 'Analysis failed');
-                return { success: false, analysisId, error: result.error };
-            }
-
-        } catch (error) {
-            console.error('❌ [AnalysisQueue] Analysis exception:', error);
-
-            let errorMessage = 'Network error occurred';
-            if (error.message.includes('session')) {
-                errorMessage = 'Please refresh and log in again';
-            } else if (error.message.includes('timeout')) {
-                errorMessage = 'Analysis timed out - please try again';
-            } else if (error.message.includes('credits')) {
-                errorMessage = 'Insufficient credits for analysis';
-            }
-
-            this.completeAnalysis(analysisId, false, errorMessage);
-            return { success: false, analysisId, error: error.message };
+        if (!supabaseClient) {
+            throw new Error('Unable to get Supabase client from OsliraAuth');
         }
     }
+
+    const analysisId = this.addAnalysis(username, analysisType, businessId);
+    this.animator.startStageBasedProgress(analysisId);
+
+    try {
+        // Get worker URL
+        const workerUrl = window.OsliraConfig?.workerUrl || 
+                          window.OsliraEnv?.WORKER_URL || 
+                          'https://api.oslira.com';
+
+        // Get auth token
+        const session = await supabaseClient.auth.getSession();
+        const authToken = session?.data?.session?.access_token;
+
+        if (!authToken) {
+            throw new Error('No authentication token available');
+        }
+
+        console.log('📡 [AnalysisQueue] Calling worker:', workerUrl);
+
+        // Call Cloudflare Worker
+        const response = await fetch(`${workerUrl}/v1/analyze`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({
+                profile_url: `https://instagram.com/${requestData.username}`,
+                analysis_type: requestData.analysis_type,
+                business_id: requestData.business_id,
+                user_id: requestData.user_id
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+            throw new Error(errorData.error || `Analysis failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const result = data?.data || data;
+
+        if (result && data.success) {
+            this.completeAnalysis(analysisId, true, 'Analysis completed!', result);
+
+            setTimeout(() => {
+                this.eventBus.emit(window.DASHBOARD_EVENTS.DATA_REFRESH);
+            }, 1000);
+
+            return { success: true, analysisId, result };
+        } else {
+            console.error('❌ [AnalysisQueue] Analysis failed:', result?.error);
+            this.completeAnalysis(analysisId, false, result?.error || 'Analysis failed');
+            return { success: false, analysisId, error: result?.error };
+        }
+
+    } catch (error) {
+        console.error('❌ [AnalysisQueue] Analysis exception:', error);
+
+        let errorMessage = 'Network error occurred';
+        if (error.message.includes('session')) {
+            errorMessage = 'Please refresh and log in again';
+        } else if (error.message.includes('timeout')) {
+            errorMessage = 'Analysis timed out - please try again';
+        } else if (error.message.includes('credits')) {
+            errorMessage = 'Insufficient credits for analysis';
+        } else {
+            errorMessage = error.message;
+        }
+
+        this.completeAnalysis(analysisId, false, errorMessage);
+        return { success: false, analysisId, error: error.message };
+    }
+}
 
     async startBulkAnalysis(leads, analysisType, businessId) {
         console.log(`🚀 [AnalysisQueue] Starting bulk analysis: ${leads.length} leads (${analysisType})`);
