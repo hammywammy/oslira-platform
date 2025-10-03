@@ -13,7 +13,7 @@ renderTableContainer() {
 <div class="mb-8">
     <div class="glass-white rounded-2xl overflow-hidden">
         <!-- Table Header -->
-        <div class="p-6 pb-4 border-b border-gray-100">
+       <div class="p-6 pb-4 border-b border-gray-100" style="position: relative; z-index: 10;">
 <div class="flex items-center justify-between mb-4">
     <div>
         <h3 class="text-lg font-bold text-gray-800">Recent Lead Research</h3>
@@ -54,7 +54,7 @@ renderTableContainer() {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
         </svg>
     </button>
-    <div id="copy-dropdown" class="hidden absolute left-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-[100]">
+    <div id="copy-dropdown" class="hidden absolute left-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg" style="position: absolute; z-index: 20;">
             <button onclick="window.copySelectedAsFormat('csv')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg">
                 Copy as CSV
             </button>
@@ -73,7 +73,7 @@ renderTableContainer() {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
         </svg>
     </button>
-    <div id="export-dropdown" class="hidden absolute left-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-[100]">
+   <div id="export-dropdown" class="hidden absolute left-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg" style="position: absolute; z-index: 20;">
             <button onclick="window.exportSelectedAsFormat('csv')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg">
                 Export as CSV
             </button>
@@ -106,8 +106,8 @@ renderTableContainer() {
             </div>
         </div>
         
-        <!-- Table Content -->
-        <div class="leads-table-container overflow-x-auto">
+<!-- Table Content -->
+        <div class="leads-table-container overflow-x-auto" style="position: relative; z-index: 1;">
              <!-- Table will be dynamically created by lead-renderer.js -->
         </div>
         
