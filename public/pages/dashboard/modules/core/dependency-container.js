@@ -164,16 +164,12 @@ for (const factoryName of sortedFactories) {
         try {
             // Skip async factories that haven't been pre-resolved
             const factoryInfo = this.factories.get(factoryName);
-            if (!factoryInfo.instance) {
-                // Check if it's an async factory
-                const result = factoryInfo.factory();
-                if (result && typeof result.then === 'function') {
-                    console.warn(`⚠️ [DependencyContainer] Skipping async factory '${factoryName}' - should be pre-resolved`);
-                    continue;
-                }
-            }
-            
-            const instance = this.get(factoryName);
+const instance = this.get(factoryName);
+
+if (result && typeof result.then === 'function') {
+    console.warn(`⚠️ [DependencyContainer] Skipping async factory '${factoryName}'`);
+    continue;
+}
             
             // Call init method if it exists
             if (instance && typeof instance.init === 'function') {
