@@ -143,123 +143,123 @@ const getScoreConfig = (score) => {
     // Good (66-80): Deep Blue #1E3A8A
     // Excellent (81+): Rich Purple #6B21A8
     
-    if (score >= 81) {
-        // Excellent: Rich Purple
-        return {
-            class: 'bg-purple-100 text-purple-900 border-purple-200',
-            label: 'Excellent',
-            color: 'purple',
-            icon: '🌟',
-            gradient: 'from-purple-800 to-purple-700',
-            barGradient: 'from-purple-800 via-purple-700 to-purple-600',
-            borderColor: 'border-purple-800'
-        };
-    }
+if (score >= 81) {
+    // Excellent: Rich Purple
+    return {
+        class: 'bg-purple-100 text-purple-900 border-purple-200',
+        label: 'Excellent',
+        color: 'purple',
+        icon: '⭐',
+        gradient: 'from-purple-800 to-purple-700',
+        barGradient: 'from-purple-800 via-purple-700 to-purple-600',
+        borderColor: 'border-purple-800'
+    };
+}
     
-    if (score >= 66) {
-        // Good: Deep Blue with purple blend
-        const blendFactor = (score - 66) / 15;
-        if (blendFactor > 0.6) {
-            return {
-                class: 'bg-indigo-100 text-indigo-900 border-indigo-200',
-                label: 'Good',
-                color: 'indigo',
-                icon: '💎',
-                gradient: 'from-indigo-900 to-purple-700',
-                barGradient: 'from-indigo-900 via-indigo-800 to-purple-700',
-                borderColor: 'border-indigo-900'
-            };
-        } else if (blendFactor > 0.3) {
-            return {
-                class: 'bg-blue-100 text-blue-900 border-blue-200',
-                label: 'Good',
-                color: 'blue',
-                icon: '💎',
-                gradient: 'from-indigo-900 to-blue-800',
-                barGradient: 'from-indigo-900 via-blue-800 to-indigo-700',
-                borderColor: 'border-blue-900'
-            };
-        }
+if (score >= 66) {
+    // Good: Brighter Blue with purple blend
+    const blendFactor = (score - 66) / 15;
+    if (blendFactor > 0.6) {
         return {
-            class: 'bg-blue-100 text-blue-900 border-blue-200',
+            class: 'bg-blue-100 text-blue-800 border-blue-200',
             label: 'Good',
             color: 'blue',
             icon: '💎',
-            gradient: 'from-blue-900 to-indigo-900',
-            barGradient: 'from-blue-900 via-indigo-900 to-blue-800',
-            borderColor: 'border-blue-900'
+            gradient: 'from-blue-600 to-purple-600',
+            barGradient: 'from-blue-600 via-indigo-600 to-purple-600',
+            borderColor: 'border-blue-600'
         };
-    }
-    
-    if (score >= 51) {
-        // Upper Medium: Soft Teal with blue blend
-        const blendFactor = (score - 51) / 15;
-        if (blendFactor > 0.6) {
-            return {
-                class: 'bg-teal-100 text-teal-800 border-teal-200',
-                label: 'Moderate',
-                color: 'teal',
-                icon: '⚡',
-                gradient: 'from-teal-500 to-blue-700',
-                barGradient: 'from-teal-500 via-cyan-600 to-blue-700',
-                borderColor: 'border-teal-500'
-            };
-        } else if (blendFactor > 0.3) {
-            return {
-                class: 'bg-teal-100 text-teal-700 border-teal-200',
-                label: 'Moderate',
-                color: 'teal',
-                icon: '⚡',
-                gradient: 'from-teal-400 to-teal-500',
-                barGradient: 'from-teal-400 via-teal-500 to-cyan-500',
-                borderColor: 'border-teal-400'
-            };
-        }
+    } else if (blendFactor > 0.3) {
         return {
-            class: 'bg-cyan-100 text-cyan-700 border-cyan-200',
-            label: 'Moderate',
-            color: 'cyan',
-            icon: '⚡',
-            gradient: 'from-teal-400 to-cyan-400',
-            barGradient: 'from-teal-400 via-cyan-400 to-teal-500',
-            borderColor: 'border-cyan-400'
+            class: 'bg-blue-100 text-blue-800 border-blue-200',
+            label: 'Good',
+            color: 'blue',
+            icon: '💎',
+            gradient: 'from-blue-600 to-indigo-600',
+            barGradient: 'from-blue-600 via-blue-700 to-indigo-600',
+            borderColor: 'border-blue-600'
         };
     }
+    return {
+        class: 'bg-blue-100 text-blue-800 border-blue-200',
+        label: 'Good',
+        color: 'blue',
+        icon: '💎',
+        gradient: 'from-blue-600 to-blue-700',
+        barGradient: 'from-blue-600 via-blue-600 to-blue-700',
+        borderColor: 'border-blue-600'
+    };
+}
     
-    if (score >= 31) {
-        // Medium: Amber/Orange with teal blend
-        const blendFactor = (score - 31) / 20;
-        if (blendFactor > 0.6) {
-            return {
-                class: 'bg-orange-100 text-orange-800 border-orange-200',
-                label: 'Fair',
-                color: 'orange',
-                icon: '📊',
-                gradient: 'from-orange-500 to-teal-400',
-                barGradient: 'from-orange-500 via-yellow-500 to-teal-400',
-                borderColor: 'border-orange-500'
-            };
-        } else if (blendFactor > 0.3) {
-            return {
-                class: 'bg-orange-100 text-orange-700 border-orange-200',
-                label: 'Fair',
-                color: 'orange',
-                icon: '📊',
-                gradient: 'from-orange-600 to-orange-500',
-                barGradient: 'from-orange-600 via-orange-500 to-yellow-500',
-                borderColor: 'border-orange-600'
-            };
-        }
+if (score >= 51) {
+    // Upper Medium: Soft Teal with blue blend
+    const blendFactor = (score - 51) / 15;
+    if (blendFactor > 0.6) {
+        return {
+            class: 'bg-teal-100 text-teal-800 border-teal-200',
+            label: 'Moderate',
+            color: 'teal',
+            icon: '⚡',
+            gradient: 'from-teal-500 to-blue-600',
+            barGradient: 'from-teal-500 via-cyan-500 to-blue-600',
+            borderColor: 'border-teal-500'
+        };
+    } else if (blendFactor > 0.3) {
+        return {
+            class: 'bg-teal-100 text-teal-700 border-teal-200',
+            label: 'Moderate',
+            color: 'teal',
+            icon: '⚡',
+            gradient: 'from-teal-400 to-teal-500',
+            barGradient: 'from-teal-400 via-teal-500 to-cyan-400',
+            borderColor: 'border-teal-400'
+        };
+    }
+    return {
+        class: 'bg-teal-100 text-teal-700 border-teal-200',
+        label: 'Moderate',
+        color: 'teal',
+        icon: '⚡',
+        gradient: 'from-teal-400 to-cyan-400',
+        barGradient: 'from-teal-400 via-cyan-400 to-teal-400',
+        borderColor: 'border-teal-400'
+    };
+}
+
+if (score >= 31) {
+    // Medium: Amber/Orange with teal blend
+    const blendFactor = (score - 31) / 20;
+    if (blendFactor > 0.6) {
+        return {
+            class: 'bg-orange-100 text-orange-800 border-orange-200',
+            label: 'Fair',
+            color: 'orange',
+            icon: '📈',
+            gradient: 'from-orange-500 to-yellow-400',
+            barGradient: 'from-orange-500 via-yellow-400 to-teal-300',
+            borderColor: 'border-orange-500'
+        };
+    } else if (blendFactor > 0.3) {
         return {
             class: 'bg-orange-100 text-orange-700 border-orange-200',
             label: 'Fair',
             color: 'orange',
-            icon: '📊',
-            gradient: 'from-orange-600 to-orange-600',
-            barGradient: 'from-orange-600 via-orange-600 to-orange-500',
+            icon: '📈',
+            gradient: 'from-orange-600 to-orange-500',
+            barGradient: 'from-orange-600 via-orange-500 to-yellow-500',
             borderColor: 'border-orange-600'
         };
     }
+    return {
+        class: 'bg-orange-100 text-orange-700 border-orange-200',
+        label: 'Fair',
+        color: 'orange',
+        icon: '📈',
+        gradient: 'from-orange-600 to-orange-600',
+        barGradient: 'from-orange-600 via-orange-500 to-orange-500',
+        borderColor: 'border-orange-600'
+    };
+}
     
     // Bad: Deep Red with orange blend (0-30)
     const blendFactor = score / 30;
