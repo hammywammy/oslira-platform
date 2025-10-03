@@ -98,7 +98,7 @@ renderPerformanceMetrics() {
     return `
 <!-- Monthly Metrics -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <!-- Credits Used -->
+<!-- Credits Remaining -->
     <div class="glass-white rounded-2xl p-6 hover-lift">
         <div class="flex items-center justify-between mb-4">
             <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -106,15 +106,15 @@ renderPerformanceMetrics() {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                 </svg>
             </div>
-            <span class="text-xs text-gray-500">32% used</span>
+            <span id="credits-percent" class="text-xs text-gray-500">0% used</span>
         </div>
         <h3 class="text-2xl font-bold text-gray-800">
-            <span id="credits-used">3,247</span> / <span id="credits-total">10,000</span>
+            <span id="credits-used">300</span> / <span id="credits-total">300</span>
         </h3>
-        <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Credits this month</p>
+        <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Credits Remaining This Month</p>
     </div>
     
-    <!-- Leads Researched -->
+<!-- Leads Researched -->
     <div class="glass-white rounded-2xl p-6 hover-lift">
         <div class="flex items-center justify-between mb-4">
             <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -124,8 +124,8 @@ renderPerformanceMetrics() {
             </div>
             <span class="text-xs text-green-600 font-semibold">+23% from last month</span>
         </div>
-        <h3 class="text-2xl font-bold text-gray-800" id="leads-researched">156</h3>
-        <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Leads this month</p>
+        <h3 class="text-2xl font-bold text-gray-800" id="leads-researched">4</h3>
+        <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Leads Researched This Month</p>
     </div>
     
     <!-- Analysis Depth -->
@@ -144,17 +144,17 @@ renderPerformanceMetrics() {
         <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Avg quality score</p>
     </div>
     
-    <!-- High-Quality Leads -->
-    <div class="glass-white rounded-2xl p-6 hover-lift cursor-pointer" onclick="showHighQualityLeads()">
+<!-- Premium Leads -->
+    <div class="glass-white rounded-2xl p-6 hover-lift cursor-pointer" onclick="window.statsCards.showHighQualityLeads()">
         <div class="flex items-center justify-between mb-4">
             <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
                 <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
                 </svg>
             </div>
-            <span class="text-xs text-blue-600 font-semibold">VIEW LIST →</span>
+            <span class="text-xs text-blue-600 font-semibold cursor-pointer">VIEW</span>
         </div>
-        <h3 class="text-2xl font-bold text-gray-800" id="premium-leads">28</h3>
+        <h3 class="text-2xl font-bold text-gray-800" id="premium-leads">1</h3>
         <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Premium leads (80+)</p>
     </div>
 </div>`;
@@ -261,36 +261,41 @@ showSavedLists() {
 }
 
 showHighQualityLeads() {
-    console.log('⭐ Filtering premium leads');
+    console.log('⭐ Sorting table by high score to low score');
     
-    // Filter leads by score >= 80 (premium threshold)
-    const leads = this.stateManager.getState('allLeads') || [];
-    const premiumLeads = leads.filter(lead => (lead.score || 0) >= 80);
+    // Get all leads
+    const leads = this.stateManager.getState('leads') || [];
     
-    // Apply filter
-    this.stateManager.setState('filteredLeads', premiumLeads);
-    this.stateManager.setState('currentFilter', { type: 'premium', value: '80+' });
+    // Sort by score descending (high to low)
+    const sortedLeads = [...leads].sort((a, b) => (b.score || 0) - (a.score || 0));
     
-    // Update filter UI
-    const filterIndicator = document.getElementById('active-filter');
-    if (filterIndicator) {
-        filterIndicator.textContent = `Premium Leads (${premiumLeads.length})`;
-        filterIndicator.classList.remove('hidden');
+    // Update state with sorted leads
+    this.stateManager.setState('filteredLeads', sortedLeads);
+    
+    // Update sort dropdown to reflect the change
+    const sortFilter = document.getElementById('sort-filter');
+    if (sortFilter) {
+        sortFilter.value = 'score-desc';
     }
     
-    // Add premium filter button if not exists
-    this.addPremiumFilterButton();
+    // Display sorted leads
+    const leadRenderer = this.container.get('leadRenderer');
+    if (leadRenderer) {
+        leadRenderer.displayLeads(sortedLeads);
+    }
     
-    // Emit events
-    this.eventBus.emit('leads:filter-applied', { 
-        type: 'premium', 
-        count: premiumLeads.length 
+    // Emit event
+    this.eventBus.emit('leads:sorted', { 
+        type: 'score', 
+        order: 'desc',
+        count: sortedLeads.length 
     });
     
     // Auto-scroll to results
-    const leadsSection = document.getElementById('leads-section');
+    const leadsSection = document.getElementById('leads-section') || 
+                        document.querySelector('.leads-table-container');
     if (leadsSection) {
-        leadsSection.scrollIntoView({ behavior: 'smooth' });
+        leadsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 }
 
@@ -451,8 +456,15 @@ addPremiumFilterButton() {
 }
 }
 
+// Make StatsCards globally accessible for onclick handlers
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = StatsCards;
 } else {
     window.StatsCards = StatsCards;
+    // Initialize global instance when container is available
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.dashboardContainer) {
+            window.statsCards = window.dashboardContainer.get('statsCards');
+        }
+    });
 }
