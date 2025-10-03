@@ -112,9 +112,17 @@ if (window.BulkModal) {
 console.log('📊 [DashboardCore] Loading lead data...');
 const leadManager = container.get('leadManager');
 await leadManager.loadDashboardData();
+
+// Setup filter handlers after table is rendered and data is loaded
+console.log('🔧 [DashboardCore] Setting up filter handlers...');
+const leadsTable = container.get('leadsTable');
+if (leadsTable && leadsTable.setupFilterHandlers) {
+    leadsTable.setupFilterHandlers();
+    console.log('✅ [DashboardCore] Filter handlers initialized');
+}
             
-            console.log('✅ [DashboardCore] Initialization completed');
-            return true;
+console.log('✅ [DashboardCore] Initialization completed');
+return true;
             
         } catch (error) {
             console.error('❌ [DashboardCore] Initialization failed:', error);
