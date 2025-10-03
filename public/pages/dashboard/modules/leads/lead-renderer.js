@@ -107,12 +107,31 @@ if (!tableBody) {
             return;
         }
         
-        // Render leads with enhanced styling
-        const leadCards = leadsToDisplay.map(lead => this.createLeadCard(lead)).join('');
-        tableBody.innerHTML = leadCards;
-        
-        // Update counts
-        this.updateLeadCounts(leadsToDisplay.length, selectedLeads.size);
+// Store current scroll position
+const currentScroll = window.scrollY;
+
+// Render leads with enhanced styling
+const leadCards = leadsToDisplay.map(lead => this.createLeadCard(lead)).join('');
+tableBody.innerHTML = leadCards;
+
+// Restore scroll position immediately
+requestAnimationFrame(() => {
+    window.scrollTo(0, currentScroll);
+});
+
+// Update counts
+this.updateLeadCounts(leadsToDisplay.length, selectedLeads.size);
+
+// Update select-all checkbox state
+const leadsTable = this.container.get('leadsTable');
+if (leadsTable && leadsTable.updateSelectAllCheckbox) {
+    leadsTable.updateSelectAllCheckbox();
+}
+
+// Update bulk actions bar visibility
+if (leadsTable && leadsTable.updateBulkActionsBar) {
+    leadsTable.updateBulkActionsBar(selectedLeads.size);
+}
         
         // Update bulk actions visibility
         this.updateBulkActionsVisibility(selectedLeads.size > 0);
