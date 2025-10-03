@@ -279,13 +279,15 @@ updateUserInfo() {
         return `
             <div class="sidebar-container">
                 <!-- Header -->
-                <div class="sidebar-header">
-                    <div class="sidebar-logo-container">
-                        <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" 
-                             class="sidebar-logo-image">
-                        <div class="sidebar-logo-text">Oslira</div>
-                    </div>
-                </div>
+<div class="sidebar-header">
+    <a href="${window.OsliraEnv.getAppUrl('/dashboard')}" class="sidebar-logo-link">
+        <div class="sidebar-logo-container">
+            <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" 
+                 class="sidebar-logo-image">
+            <div class="sidebar-logo-text">Oslira</div>
+        </div>
+    </a>
+</div>
                 
                 <!-- Navigation -->
                 <nav class="sidebar-nav">
