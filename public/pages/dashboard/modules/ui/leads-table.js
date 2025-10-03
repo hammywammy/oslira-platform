@@ -23,8 +23,8 @@ renderTableContainer() {
             
 <!-- Filter Bar Below Header -->
 <div class="flex items-center space-x-3 pt-2">
- <!-- Bulk Actions (Hidden by default, takes left space when shown) -->
-<div id="bulk-actions-bar" class="hidden flex items-center space-x-2 flex-shrink-0">
+    <!-- Bulk Actions (Hidden by default, takes left space when shown) -->
+    <div id="bulk-actions-bar" class="hidden flex items-center space-x-2 flex-shrink-0">
     <button id="delete-selected-btn" onclick="window.deleteSelectedLeads()" 
             class="px-3 py-1.5 text-sm font-medium text-red-700 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
         Delete
@@ -69,8 +69,8 @@ renderTableContainer() {
     </div>
 </div>
                 
-    <!-- Right-side Filters - Always stay right -->
-    <div class="flex items-center space-x-3 ml-auto">
+<!-- Right-side Filters - Always stay right -->
+    <div class="flex items-center space-x-3" style="margin-left: auto;">
                     <!-- Platform Filter -->
                     <select id="platform-filter" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                         <option>All Platforms</option>
