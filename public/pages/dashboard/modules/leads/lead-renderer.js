@@ -613,7 +613,7 @@ const tableHTML = `
                 <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 160px;">Platform</th>
                 <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 240px;">Intelligence Score</th>
                 <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 180px;">Analysis Type</th>
-                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 140px;">Date Added</th>
+                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 140px;">Date Updated</th>
                 <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider" style="width: 140px;">Actions</th>
             </tr>
         </thead>
