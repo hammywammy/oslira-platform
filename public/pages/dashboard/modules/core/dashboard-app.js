@@ -100,7 +100,7 @@ class DashboardApp {
     
     /**
      * Setup dependency container with all required services
-     * All factories are SYNCHRONOUS - scripts already loaded by script-loader.js
+     * Uses DependencyReadiness to handle parallel script loading
      */
     setupDependencyContainer() {
         const container = new DependencyContainer();
@@ -113,74 +113,117 @@ class DashboardApp {
         // EventBus - Pure singleton, no dependencies
         container.registerSingleton('eventBus', new DashboardEventBus());
         
-        // StateManager - Depends on eventBus, synchronous factory
+        // StateManager - Depends on eventBus, must wait for class
         container.registerFactory('stateManager', (eventBus) => {
+            // Synchronous check - class should be loaded by now
+            if (!window.DashboardStateManager) {
+                throw new Error('DashboardStateManager not loaded');
+            }
             return new window.DashboardStateManager(eventBus);
         }, ['eventBus']);
         
         // OsliraAuth - Direct reference to global
         container.registerSingleton('osliraAuth', window.OsliraAuth);
         
-        // AnalysisFunctions - Synchronous, scripts already loaded
+        // AnalysisFunctions - Check class availability
         container.registerFactory('analysisFunctions', () => {
+            if (!window.AnalysisFunctions) {
+                throw new Error('AnalysisFunctions not loaded');
+            }
             return new window.AnalysisFunctions(container);
         }, []);
         
         // =========================================================================
-        // FEATURE MODULES - All synchronous factories
+        // FEATURE MODULES - With availability checks
         // =========================================================================
         console.log('📋 [DashboardApp] Registering feature modules...');
         
         container.registerFactory('leadManager', () => {
+            if (!window.LeadManager) {
+                throw new Error('LeadManager not loaded');
+            }
             return new window.LeadManager(container);
         }, []);
         
         container.registerFactory('realtimeManager', () => {
+            if (!window.RealtimeManager) {
+                throw new Error('RealtimeManager not loaded');
+            }
             return new window.RealtimeManager(container);
         }, []);
         
         container.registerFactory('businessManager', () => {
+            if (!window.BusinessManager) {
+                throw new Error('BusinessManager not loaded');
+            }
             return new window.BusinessManager(container);
         }, []);
         
         container.registerFactory('modalManager', () => {
+            if (!window.ModalManager) {
+                throw new Error('ModalManager not loaded');
+            }
             return new window.ModalManager(container);
         }, []);
         
         container.registerFactory('researchHandlers', () => {
+            if (!window.ResearchHandlers) {
+                throw new Error('ResearchHandlers not loaded');
+            }
             return new window.ResearchHandlers();
         }, []);
         
         container.registerFactory('analysisQueue', () => {
+            if (!window.AnalysisQueue) {
+                throw new Error('AnalysisQueue not loaded');
+            }
             return new window.AnalysisQueue(container);
         }, []);
         
         container.registerFactory('leadRenderer', () => {
+            if (!window.LeadRenderer) {
+                throw new Error('LeadRenderer not loaded');
+            }
             return new window.LeadRenderer(container);
         }, []);
         
         container.registerFactory('statsCalculator', () => {
+            if (!window.StatsCalculator) {
+                throw new Error('StatsCalculator not loaded');
+            }
             return new window.StatsCalculator(container);
         }, []);
         
         // =========================================================================
-        // UI COMPONENTS - All synchronous factories
+        // UI COMPONENTS - With availability checks
         // =========================================================================
         console.log('📋 [DashboardApp] Registering UI components...');
         
         container.registerFactory('dashboardHeader', () => {
+            if (!window.DashboardHeader) {
+                throw new Error('DashboardHeader not loaded');
+            }
             return new window.DashboardHeader(container);
         }, []);
         
         container.registerFactory('statsCards', () => {
+            if (!window.StatsCards) {
+                throw new Error('StatsCards not loaded');
+            }
             return new window.StatsCards(container);
         }, []);
         
         container.registerFactory('leadsTable', () => {
+            if (!window.LeadsTable) {
+                throw new Error('LeadsTable not loaded');
+            }
             return new window.LeadsTable(container);
         }, []);
         
         container.registerFactory('insightsPanel', () => {
+            if (!window.InsightsPanel) {
+                throw new Error('InsightsPanel not loaded');
+            }
             return new window.InsightsPanel(container);
         }, []);
         
