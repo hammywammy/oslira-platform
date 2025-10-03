@@ -255,18 +255,30 @@ resetConnectionState() {
         
         console.log('🔄 [RealtimeManager] Starting polling fallback...');
         
-this.pollingInterval = setInterval(() => {
+this.pollingInterval = setInterval(async () => {
     if (!document.hidden && !this.isRealtimeActive) {
-        // Only log every 5th poll to reduce spam
-        if (Date.now() % 150000 < 30000) { // Log roughly every 5 minutes
-            console.log('📊 [RealtimeManager] Polling for updates...');
+        // Silent background refresh - only log occasionally
+        if (Date.now() % 150000 < 30000) {
+            console.log('📊 [RealtimeManager] Background polling...');
         }
+        
+        // Get current state before refresh
+        const stateManager = this.container.get('stateManager');
+        const currentSelection = new Set(stateManager.getState('selectedLeads') || new Set());
+        const currentScroll = window.scrollY;
         
         // Emit refresh event
         this.eventBus.emit(DASHBOARD_EVENTS.DATA_REFRESH, {
             reason: 'polling',
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            preserveSelection: true,
+            currentSelection: currentSelection
         });
+        
+        // Restore scroll position after a brief delay
+        setTimeout(() => {
+            window.scrollTo(0, currentScroll);
+        }, 100);
     }
 }, this.pollingIntervalMs);
         
