@@ -587,5 +587,215 @@
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
   }
+
+  /* ============================================================================
+   USERNAME VALIDATION STYLES - Enhanced with Shake & Animations
+   ============================================================================ */
+
+/* Base validation states */
+.field-invalid {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2;
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both,
+               invalidPulse 0.8s ease-out;
+    transition: all 0.3s ease;
+}
+
+.field-valid {
+    border-color: #10b981 !important;
+    background-color: #f0fdf4;
+    animation: validGlow 0.6s ease-out;
+    transition: all 0.3s ease;
+}
+
+.border-red-500 {
+    border-color: #ef4444 !important;
+}
+
+.border-green-500 {
+    border-color: #10b981 !important;
+}
+
+/* Shake animation for invalid input */
+@keyframes shake {
+    10%, 90% {
+        transform: translateX(-2px);
+    }
+    20%, 80% {
+        transform: translateX(4px);
+    }
+    30%, 50%, 70% {
+        transform: translateX(-6px);
+    }
+    40%, 60% {
+        transform: translateX(6px);
+    }
+}
+
+/* Pulse effect for invalid state */
+@keyframes invalidPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+/* Glow effect for valid state */
+@keyframes validGlow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+/* Error message styles with slide-in animation */
+.username-validation-error {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    animation: slideInDown 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Success message styles */
+.username-validation-success {
+    color: #059669;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    animation: slideInDown 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Input focus states with smooth transitions */
+input[type="text"]:focus,
+input[type="text"]:focus-visible {
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+input[type="text"]:focus:not(.field-invalid):not(.field-valid) {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+input[type="text"].field-invalid:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+input[type="text"].field-valid:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Icon animations for validation messages */
+.validation-icon {
+    display: inline-block;
+    animation: iconBounce 0.5s ease-out;
+}
+
+@keyframes iconBounce {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    25% {
+        transform: translateY(-4px) scale(1.1);
+    }
+    50% {
+        transform: translateY(0) scale(1);
+    }
+    75% {
+        transform: translateY(-2px) scale(1.05);
+    }
+}
+
+/* Smooth color transitions */
+.field-invalid,
+.field-valid {
+    position: relative;
+}
+
+.field-invalid::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(45deg, #ef4444, #dc2626);
+    opacity: 0.15;
+    pointer-events: none;
+    animation: borderPulse 2s infinite;
+}
+
+.field-valid::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(45deg, #10b981, #059669);
+    opacity: 0.15;
+    pointer-events: none;
+    animation: borderPulse 2s infinite;
+}
+
+@keyframes borderPulse {
+    0%, 100% {
+        opacity: 0.15;
+    }
+    50% {
+        opacity: 0.25;
+    }
+}
+
+/* Remove animation on subsequent typing */
+input[type="text"].field-invalid:focus {
+    animation: none;
+}
+
+/* Smooth transitions for all input states */
+input[type="text"] {
+    transition: border-color 0.3s ease,
+                background-color 0.3s ease,
+                box-shadow 0.3s ease;
+}
+
+/* Icon styles for error/success indicators */
+.validation-message-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .username-validation-error,
+    .username-validation-success {
+        font-size: 0.8125rem;
+    }
+}   
    
 }
