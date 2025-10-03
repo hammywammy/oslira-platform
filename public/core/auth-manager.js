@@ -232,7 +232,9 @@ async loadUserBusinesses() {
     try {
         // Ensure user exists in database before loading businesses
         await this.ensureUserExists();
-        
+
+        // Fetch subscription data and enrich user object
+await this.enrichUserWithSubscription();
         // Enrich user object with database profile data
         await this.enrichUserProfile();
         
@@ -256,7 +258,41 @@ async loadUserBusinesses() {
         this.businessesLoaded = true; // Mark as loaded even on error
     }
 }
+
+    async enrichUserWithSubscription() {
+    if (!this.supabase || !this.user) {
+        return;
+    }
     
+    try {
+        const { data: subscription, error } = await this.supabase
+            .from('subscriptions')
+            .select('plan_type, credits_remaining, status')
+            .eq('user_id', this.user.id)
+            .eq('status', 'active')
+            .single();
+        
+        if (error && error.code !== 'PGRST116') {
+            console.warn('⚠️ [Auth] Could not load subscription:', error);
+            return;
+        }
+        
+        if (subscription) {
+            this.user.credits = subscription.credits_remaining;
+            this.user.plan_type = subscription.plan_type;
+            this.user.subscription_status = subscription.status;
+            console.log('✅ [Auth] User enriched with subscription data');
+        } else {
+            // No active subscription found - set defaults
+            this.user.credits = 0;
+            this.user.plan_type = 'free';
+            this.user.subscription_status = null;
+            console.warn('⚠️ [Auth] No active subscription found for user');
+        }
+    } catch (error) {
+        console.error('❌ [Auth] Error enriching user with subscription:', error);
+    }
+}
     // =============================================================================
     // AUTHENTICATION METHODS
     // =============================================================================
