@@ -440,20 +440,20 @@ const profilePicHtml = profilePicUrl
         `;
 
 return `
-    <tr class="table-row relative hover:bg-purple-50 hover:shadow-md transition-all duration-200 ${isSelected ? 'bg-blue-50/50' : ''} border-l-4 ${this.getRowAccentColor(score)} odd:bg-slate-25/20" 
+    <tr class="table-row hover:bg-gray-50 transition-all duration-200 ${isSelected ? 'bg-blue-50' : ''}" 
         data-lead-id="${lead.id}">
     
-   <!-- Hidden selection checkbox that appears on hover at far left -->
-<div class="absolute left-1 top-1/2 transform -translate-y-1/2 opacity-0 transition-all duration-200 z-20 checkbox-container">
+                <!-- Checkbox Column -->
+                <td class="pl-6 pr-2 py-4 border-r border-slate-100/60 text-center" style="width: 50px;">
                     <input type="checkbox" 
-                           class="lead-checkbox w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 bg-white shadow-md"
+                           class="lead-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                            data-lead-id="${lead.id}"
                            ${isSelected ? 'checked' : ''}
-                           onchange="dashboard.toggleLeadSelection && dashboard.toggleLeadSelection('${lead.id}', this.checked)">
-                </div>
+                           onchange="window.toggleLeadSelection && window.toggleLeadSelection('${lead.id}', this.checked)">
+                </td>
                 
                 <!-- Lead Profile - Wider column -->
-                <td class="pl-12 pr-6 py-4 border-r border-slate-100/60" style="width: 280px;">
+                <td class="pl-6 pr-6 py-4 border-r border-slate-100/60" style="width: 280px;">
                     <div class="flex items-center space-x-3">
                         <div class="flex-shrink-0 relative">
                             ${profilePicHtml}
@@ -580,23 +580,29 @@ return `
         
         console.log('🔧 [LeadRenderer] Creating enhanced table structure...');
         
-        const tableHTML = `
-            <table class="leads-table w-full border-separate border-spacing-0">
-                <thead class="bg-gradient-to-r from-slate-50 to-slate-100/80 backdrop-blur-sm sticky top-0 z-10">
-                    <tr class="border-b border-slate-200/60">
-                        <th class="pl-12 pr-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 280px;">Lead Profile</th>
-                        <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 160px;">Platform</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 240px;">Intelligence Score</th>
-                        <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 180px;">Analysis Type</th>
-                        <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 140px;">Date Added</th>
-                        <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider" style="width: 140px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="leads-table-body" class="divide-y divide-slate-200/60 bg-white">
-                    <!-- Leads will be populated by JavaScript -->
-                </tbody>
-            </table>
-        `;
+const tableHTML = `
+    <table class="leads-table w-full border-separate border-spacing-0">
+        <thead class="bg-gradient-to-r from-slate-50 to-slate-100/80 backdrop-blur-sm sticky top-0 z-10">
+            <tr class="border-b border-slate-200/60">
+                <th class="pl-6 pr-2 py-4 text-center border-r border-slate-200/40" style="width: 50px;">
+                    <input type="checkbox" 
+                           id="select-all-checkbox" 
+                           class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                           onchange="window.toggleAllLeadSelections && window.toggleAllLeadSelections(this.checked)">
+                </th>
+                <th class="pl-6 pr-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 280px;">Lead Profile</th>
+                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 160px;">Platform</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 240px;">Intelligence Score</th>
+                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 180px;">Analysis Type</th>
+                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 140px;">Date Added</th>
+                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider" style="width: 140px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="leads-table-body" class="divide-y divide-slate-200/60 bg-white">
+            <!-- Leads will be populated by JavaScript -->
+        </tbody>
+    </table>
+`;
         
         leadsContainer.innerHTML = tableHTML;
         console.log('✅ [LeadRenderer] Enhanced table structure created');
