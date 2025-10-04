@@ -701,14 +701,15 @@ if (typeof window.OsliraAPI.request !== 'function') {
 
             console.log('📤 [Onboarding] Creating business profile...');
             
-            const profileResponse = await fetch(`${workerUrl}/business-profiles`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify(formData)
-            });
+const profileResponse = await fetch(`${workerUrl}/business-profiles`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+        'apikey': window.OsliraEnv.SUPABASE_ANON_KEY
+    },
+    body: JSON.stringify(formData)
+});
             
             if (!profileResponse.ok) {
                 const errorText = await profileResponse.text();
@@ -738,18 +739,19 @@ if (typeof window.OsliraAPI.request !== 'function') {
             try {
                 setProgressStep(2, 0.3);
 
-                const contextResponse = await fetch(`${workerUrl}/v1/generate-business-context`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.access_token}`
-                    },
-                    body: JSON.stringify({
-                        business_data: formData,
-                        user_id: userId,
-                        request_type: 'onboarding'
-                    })
-                });
+const contextResponse = await fetch(`${workerUrl}/v1/generate-business-context`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+        'apikey': window.OsliraEnv.SUPABASE_ANON_KEY
+    },
+    body: JSON.stringify({
+        business_data: formData,
+        user_id: userId,
+        request_type: 'onboarding'
+    })
+});
 
                 setProgressStep(2, 0.7);
 
@@ -766,18 +768,19 @@ if (typeof window.OsliraAPI.request !== 'function') {
                         
                         setProgressStep(3, 0.2);
                         
-                        const updateResponse = await fetch(`${workerUrl}/business-profiles/${profileId}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${session.access_token}`
-                            },
-                            body: JSON.stringify({
-                                business_one_liner: contextResult.data.business_one_liner,
-                                business_context_pack: contextResult.data.business_context_pack,
-                                context_version: contextResult.data.context_version
-                            })
-                            });
+const updateResponse = await fetch(`${workerUrl}/business-profiles/${profileId}`, {
+    method: 'PUT',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+        'apikey': window.OsliraEnv.SUPABASE_ANON_KEY
+    },
+    body: JSON.stringify({
+        business_one_liner: contextResult.data.business_one_liner,
+        business_context_pack: contextResult.data.business_context_pack,
+        context_version: contextResult.data.context_version
+    })
+});
                         
                         setProgressStep(3, 0.5);
                         
