@@ -293,22 +293,26 @@ async enrichUserWithSubscription() {
     // AUTHENTICATION METHODS
     // =============================================================================
     
-    async signInWithGoogle() {
-        if (!this.supabase) {
-            throw new Error('Authentication not available');
+async signInWithGoogle() {
+    if (!this.supabase) {
+        throw new Error('Authentication not available');
+    }
+    
+    // Clear any existing session before starting new OAuth
+    console.log('🔐 [Auth] Clearing existing session before OAuth...');
+    await this.supabase.auth.signOut({ scope: 'local' });
+    
+    const config = await window.OsliraConfig.getConfig();
+    const redirectTo = config.authCallbackUrl || `${window.location.origin}/auth/callback`;
+    
+    console.log('🔐 [Auth] Starting Google OAuth, redirect:', redirectTo);
+    
+    const { data, error } = await this.supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: redirectTo
         }
-        
-        const config = await window.OsliraConfig.getConfig();
-        const redirectTo = config.authCallbackUrl || `${window.location.origin}/auth/callback`;
-        
-        console.log('🔐 [Auth] Starting Google OAuth, redirect:', redirectTo);
-        
-        const { data, error } = await this.supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: redirectTo
-            }
-        });
+    });
         
         if (error) {
             console.error('❌ [Auth] Google OAuth error:', error);
