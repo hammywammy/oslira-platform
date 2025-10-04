@@ -38,15 +38,18 @@
         }
     });
     
-    async function initialize() {
-        if (initialized) return;
-        
-        if (!window.OsliraAuth ) {
-            throw new Error('OsliraAuth  not available');
-        }
-        
-        await window.OsliraAuth .initialize();
-        const session = window.OsliraAuth .getCurrentSession();
+async function initialize() {
+    if (initialized) return;
+    
+    if (!window.OsliraAuth) {
+        throw new Error('OsliraAuth not available');
+    }
+    
+    // CRITICAL: Restore session from URL hash BEFORE initializing
+    await window.OsliraAuth.restoreSessionFromUrl();
+    
+    await window.OsliraAuth.initialize();
+    const session = window.OsliraAuth.getCurrentSession();
         
         if (!session || !session.user) {
             console.log('❌ [Onboarding] No valid session, redirecting to auth');
