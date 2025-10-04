@@ -52,13 +52,13 @@ this.configs.set('deep', {
                 'outreachMessage'
             ]
         },
-        {
-            id: 'analytics',
-            label: 'Analytics',
-            components: [
-                'contentEngagementIntel'
-            ]
-        },
+{
+    id: 'analytics',
+    label: 'Analytics',
+    components: [
+        'preProcessedMetrics'  // Already exists, uses pre_processed_metrics
+    ]
+},
         {
             id: 'personality',
             label: 'Personality',
@@ -92,13 +92,13 @@ this.configs.set('xray', {
                 'outreachMessage'
             ]
         },
-        {
-            id: 'analytics',
-            label: 'Analytics',
-            components: [
-                'contentEngagementIntel'
-            ]
-        },
+{
+    id: 'analytics',
+    label: 'Analytics',
+    components: [
+        'preProcessedMetrics'  // Already exists, uses pre_processed_metrics
+    ]
+},
         {
             id: 'personality',
             label: 'Personality',
