@@ -367,13 +367,7 @@ const { error: insertError } = await window.OsliraAuth.supabase
         id: user.id,
         email: user.email,
         full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
-        created_via: 'email',
-        phone_verified: true,
-        onboarding_completed: false,
-        credits: 25,  // ADD THIS LINE - initial 25 free credits
-        subscription_plan: 'free',  // ADD THIS LINE
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        created_via: 'email'
     }]);
         
     if (insertError) {
