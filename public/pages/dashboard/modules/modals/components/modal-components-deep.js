@@ -12,9 +12,11 @@
         return;
     }
 
-    const components = window.ModalComponents.prototype;
+    window._modalComponentExtensions = window._modalComponentExtensions || [];
+    
+    window._modalComponentExtensions.push(function() {
 
-components.registerComponent('sellingPoints', {
+this.registerComponent('sellingPoints', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return (analysisData?.selling_points && analysisData.selling_points.length > 0) ||
@@ -51,7 +53,7 @@ components.registerComponent('sellingPoints', {
 });
 
 // Update existing outreachMessage condition to check payload
-components.registerComponent('outreachMessage', {
+this.registerComponent('outreachMessage', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return analysisData?.outreach_message || payload?.outreach_message;
@@ -99,7 +101,7 @@ components.registerComponent('outreachMessage', {
         // ===============================================================================
         // REASONS COMPONENT (If needed for specific analysis types)
         // ===============================================================================
-        components.registerComponent('reasons', {
+        this.registerComponent('reasons', {
             condition: (lead, analysisData) => analysisData?.reasons && analysisData.reasons.length > 0,
             render: (lead, analysisData) => `
                 <!-- Reasons Section -->
@@ -129,7 +131,7 @@ components.registerComponent('outreachMessage', {
         // ===============================================================================
         // AUDIENCE INSIGHTS COMPONENT
         // ===============================================================================
-        components.registerComponent('audienceInsights', {
+        this.registerComponent('audienceInsights', {
             condition: (lead, analysisData) => analysisData?.audience_insights,
             render: (lead, analysisData) => `
                 <!-- Audience Insights -->
@@ -153,7 +155,7 @@ components.registerComponent('outreachMessage', {
 
 
 // 1. DEEP SUMMARY COMPONENT (NEW - matches your styling)
-components.registerComponent('deepSummary', {
+this.registerComponent('deepSummary', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return lead.analysis_type === 'deep' && payload.deep_summary;
@@ -185,7 +187,7 @@ components.registerComponent('deepSummary', {
 
 
 // 3. AUDIENCE INSIGHTS ENHANCED (NEW - your existing one is good, this adds payload support)
-components.registerComponent('payloadAudienceInsights', {
+this.registerComponent('payloadAudienceInsights', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return lead.analysis_type === 'deep' && payload.audience_insights;
@@ -214,7 +216,7 @@ components.registerComponent('payloadAudienceInsights', {
 });
 
 // LATEST POSTS COMPONENT (for when data exists)
-components.registerComponent('latestPosts', {
+this.registerComponent('latestPosts', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return lead.analysis_type === 'deep' && payload.latest_posts && payload.latest_posts.length > 0;
@@ -244,7 +246,7 @@ components.registerComponent('latestPosts', {
     }
 });
 
-    components.registerComponent('personalityOverview', {
+    this.registerComponent('personalityOverview', {
             render: (lead, analysisData) => `
                 <div class="personality-overview bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
                     <h3 class="text-xl font-bold text-purple-800 mb-4 flex items-center">
@@ -267,7 +269,7 @@ components.registerComponent('latestPosts', {
             `
         });
 
-        components.registerComponent('behaviorPatterns', {
+        this.registerComponent('behaviorPatterns', {
             render: (lead, analysisData) => `
                 <div class="behavior-patterns bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 mt-6">
                     <h3 class="text-xl font-bold text-blue-800 mb-4 flex items-center">
@@ -281,7 +283,7 @@ components.registerComponent('latestPosts', {
             `
         });
 
-        components.registerComponent('communicationStyle', {
+        this.registerComponent('communicationStyle', {
             render: (lead, analysisData) => `
                 <div class="communication-style bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 mt-6">
                     <h3 class="text-xl font-bold text-green-800 mb-4 flex items-center">
@@ -295,7 +297,7 @@ components.registerComponent('latestPosts', {
             `
         });
 
-        components.registerComponent('motivationDrivers', {
+        this.registerComponent('motivationDrivers', {
             render: (lead, analysisData) => `
                 <div class="motivation-drivers bg-gradient-to-br from-yellow-50 to-orange-50 p-6 rounded-xl border border-yellow-200 mt-6">
                     <h3 class="text-xl font-bold text-yellow-800 mb-4 flex items-center">
@@ -313,7 +315,7 @@ components.registerComponent('latestPosts', {
 // QUICK SUMMARY COMPONENT (Top of Analysis Tab)
 // ===============================================================================
 
-components.registerComponent('quickSummary', {
+this.registerComponent('quickSummary', {
     condition: (lead, analysisData) => {
         return analysisData && (analysisData.quick_summary || lead.quick_summary);
     },
@@ -336,4 +338,5 @@ components.registerComponent('quickSummary', {
     }
 });
 
+}); // Close extension function
 })();
