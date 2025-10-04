@@ -153,11 +153,14 @@ console.log('✅ [ResearchHandlers] Username validation passed');
             }
 
 const apiPayload = {
+    username: cleanUsername,  // ✅ ADD THIS LINE
     profile_url: `https://instagram.com/${cleanUsername}`,
     analysis_type: analysisType,
     business_id: business.id,
     user_id: session.user.id
 };
+
+console.log('🚀 [ResearchHandlers] API payload prepared:', apiPayload);
 
 console.log('🚀 [ResearchHandlers] API payload prepared:', apiPayload);
 
