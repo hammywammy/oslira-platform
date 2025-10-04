@@ -431,13 +431,17 @@ const data = await response.json();
 const result = data?.data || data;
 
 // Check for 404 status (profile not found)
-if (response.status === 404 || data.error?.includes('does not exist') || data.error?.includes('not found')) {
-    console.warn('⚠️ [AnalysisQueue] Profile not found:', data.error);
-    this.completeAnalysis(
-        analysisId, 
-        false, 
-        data.error || 'User does not exist. 1 token has been charged.'
-    );
+if (response.status === 404) {
+    console.warn('⚠️ [AnalysisQueue] Profile not found (404)');
+    const errorMsg = data.error || 'User does not exist. 1 token has been charged.';
+    this.completeAnalysis(analysisId, false, errorMsg);
+    return { success: false, analysisId, error: errorMsg };
+}
+
+// Check error message content
+if (data.error && (data.error.includes('does not exist') || data.error.includes('not found'))) {
+    console.warn('⚠️ [AnalysisQueue] Profile not found via error message');
+    this.completeAnalysis(analysisId, false, data.error);
     return { success: false, analysisId, error: data.error };
 }
 
@@ -451,11 +455,7 @@ if (result && data.success) {
     return { success: true, analysisId, result };
 } else {
     console.error('❌ [AnalysisQueue] Analysis failed:', result?.error || data.error);
-    this.completeAnalysis(
-        analysisId, 
-        false, 
-        result?.error || data.error || 'Analysis failed'
-    );
+    this.completeAnalysis(analysisId, false, result?.error || data.error || 'Analysis failed');
     return { success: false, analysisId, error: result?.error || data.error };
 }
 
