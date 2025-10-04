@@ -22,6 +22,7 @@
 
     <!-- Auth Container -->
     <div class="auth-container">
+        <!-- Header -->
         <div class="auth-header">
             <div class="auth-logo">
                 <img src="/assets/images/oslira-logo.png" alt="Oslira" class="auth-logo-img">
@@ -30,7 +31,7 @@
             <p id="auth-subtitle" class="auth-subtitle">Get 25 free credits for lead analyses, then upgrade for more access to AI-powered lead generation.</p>
         </div>
 
-        <!-- Google Sign In -->
+        <!-- Google Sign In Button -->
         <div id="auth-options" class="auth-step active">
             <button type="button" class="auth-method primary" id="google-signin-btn">
                 <div class="auth-icon">
@@ -58,33 +59,48 @@
         </div>
     </div>
 
+    <!-- Scripts -->
     <script src="/core/script-loader.js"></script>
     <script>
+        // Show content immediately
         document.body.style.visibility = 'visible';
         
+        // Set legal links dynamically after env loads
         function setLegalLinks() {
             if (!window.OsliraEnv || !window.OsliraEnv.rootDomain) {
                 setTimeout(setLegalLinks, 100);
                 return;
             }
             
+            console.log('🔗 [Auth] Setting legal links with root domain:', window.OsliraEnv.rootDomain);
+            
             document.querySelectorAll('[data-legal-link]').forEach(link => {
                 const type = link.getAttribute('data-legal-link');
                 let targetUrl;
                 
-                if (type === 'terms') targetUrl = window.OsliraEnv.getLegalUrl('terms');
-                else if (type === 'privacy') targetUrl = window.OsliraEnv.getLegalUrl('privacy');
-                else if (type === 'contact') targetUrl = window.OsliraEnv.getContactUrl('');
+                if (type === 'terms') {
+                    targetUrl = window.OsliraEnv.getLegalUrl('terms');
+                } else if (type === 'privacy') {
+                    targetUrl = window.OsliraEnv.getLegalUrl('privacy');
+                } else if (type === 'contact') {
+                    targetUrl = window.OsliraEnv.getContactUrl('');
+                }
                 
-                if (targetUrl) link.href = targetUrl;
+                if (targetUrl) {
+                    link.href = targetUrl;
+                    console.log(`✅ [Auth] Set ${type} link to:`, targetUrl);
+                }
             });
         }
         
+        // Wait for env manager to initialize
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', setLegalLinks);
         } else {
             setLegalLinks();
         }
+        
+        console.log('🔐 [Auth] Simple auth page loaded');
     </script>
 </body>
 </html>
