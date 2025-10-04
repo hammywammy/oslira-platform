@@ -393,6 +393,11 @@ async restoreSessionFromUrl() {
         // Clear hash from URL immediately
         history.replaceState(null, '', window.location.pathname);
         
+        // CRITICAL: Initialize Supabase if not already done
+        if (!this.supabase) {
+            await this.initializeSupabase();
+        }
+        
         // Restore session in Supabase
         const { error } = await this.supabase.auth.setSession({
             access_token: tokens.access_token,
