@@ -419,6 +419,11 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
             analysisData.pre_processed_metrics = payload.pre_processed_metrics;
             console.log('✅ [LeadManager] Pre-processed metrics attached:', payload.pre_processed_metrics);
         }
+
+        if (payload.personality_profile) {
+    analysisData.personality_profile = payload.personality_profile;
+    console.log('✅ [LeadManager] Personality profile attached:', payload.personality_profile);
+}
         
         // Legacy compatibility for older fields
         analysisData.audience_quality = 'Medium'; // Default since not in new format
