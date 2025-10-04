@@ -6,9 +6,12 @@
 // Extends ModalComponents from core
 // Registers all deep-analysis-specific components
 
-(function() {
-    if (typeof window.ModalComponents === 'undefined') {
-        console.error('❌ ModalComponents core not loaded');
+(async function() {
+    // Wait for ModalComponents to be ready
+    try {
+        await window.DependencyReadiness.waitForDependency('ModalComponents');
+    } catch (error) {
+        console.error('❌ [modal-components-deep] ModalComponents core not loaded:', error);
         return;
     }
 
