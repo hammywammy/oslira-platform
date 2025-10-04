@@ -227,12 +227,8 @@ async loadUserBusinesses() {
     }
     
     try {
-        // Ensure user exists in database before loading businesses
-        await this.ensureUserExists();
-
-        // Fetch subscription data and enrich user object
-await this.enrichUserWithSubscription();
-
+        // User already created during callback - just enrich
+        await this.enrichUserWithSubscription();
         
         const { data: businesses, error } = await this.supabase
             .from('business_profiles')
@@ -241,17 +237,17 @@ await this.enrichUserWithSubscription();
             
         if (error) {
             console.error('❌ [Auth] Failed to load businesses:', error);
-            this.businessesLoaded = true; // Mark as loaded even on error
+            this.businessesLoaded = true;
             return;
         }
         
         this.businesses = businesses || [];
-        this.businessesLoaded = true; // NEW - Mark as loaded
+        this.businessesLoaded = true;
         console.log(`📊 [Auth] Loaded ${this.businesses.length} business profiles`);
         
     } catch (error) {
         console.error('❌ [Auth] Error loading businesses:', error);
-        this.businessesLoaded = true; // Mark as loaded even on error
+        this.businessesLoaded = true;
     }
 }
 
@@ -326,45 +322,52 @@ async signInWithGoogle() {
     // OAUTH CALLBACK HANDLING
     // =============================================================================
     
-    async handleCallback() {
-        if (!this.supabase) {
-            throw new Error('Authentication not available');
-        }
+   async handleCallback() {
+    if (!this.supabase) {
+        throw new Error('Authentication not available');
+    }
+    
+    console.log('🔐 [Auth] Processing OAuth callback...');
+    
+    try {
+        const { data, error } = await this.supabase.auth.getSession();
         
-        console.log('🔐 [Auth] Processing OAuth callback...');
-        
-        try {
-            const { data, error } = await this.supabase.auth.getSession();
-            
-            if (error) {
-                console.error('❌ [Auth] Callback session error:', error);
-                throw error;
-            }
-            
-            if (data.session) {
-                console.log('✅ [Auth] Callback successful, user authenticated');
-                
-                // Check if user needs onboarding
-                const needsOnboarding = await this.checkOnboardingStatus();
-                
-// Build redirect URL using app subdomain
-const rootDomain = window.location.hostname.replace(/^(auth|app|admin|legal|contact|status|www)\./, '');
-const appUrl = window.OsliraEnv.getAppUrl(needsOnboarding ? '/onboarding' : '/dashboard');
-
-return {
-    session: data.session,
-    redirectTo: appUrl
-};
-            } else {
-                throw new Error('No session found in callback');
-            }
-            
-        } catch (error) {
-            console.error('❌ [Auth] Callback processing failed:', error);
+        if (error) {
+            console.error('❌ [Auth] Callback session error:', error);
             throw error;
         }
+        
+        if (data.session) {
+            console.log('✅ [Auth] Callback successful, user authenticated');
+            
+            // CRITICAL: Create user record immediately after OAuth
+            await this.ensureUserExists();
+            console.log('✅ [Auth] User record ensured in database');
+            
+            // THEN check onboarding status
+            const needsOnboarding = await this.checkOnboardingStatus();
+            
+            const rootDomain = window.location.hostname.replace(/^(auth|app|admin|legal|contact|status|www)\./, '');
+            const appUrl = window.OsliraEnv.getAppUrl(needsOnboarding ? '/onboarding' : '/dashboard');
+            
+            console.log('🔐 [Auth] Redirecting to:', appUrl);
+            
+            return {
+                session: data.session,
+                user: data.session.user,
+                needsOnboarding,
+                redirectTo: appUrl
+            };
+        } else {
+            console.log('❌ [Auth] No valid session found');
+            throw new Error('No valid session found after authentication');
+        }
+        
+    } catch (error) {
+        console.error('❌ [Auth] Callback processing failed:', error);
+        throw error;
     }
-
+}
     // =============================================================================
 // CROSS-SUBDOMAIN SESSION RESTORATION
 // =============================================================================
