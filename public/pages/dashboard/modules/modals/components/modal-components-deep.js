@@ -268,29 +268,7 @@ this.registerComponent('latestPosts', {
     }
 });
 
-    this.registerComponent('personalityOverview', {
-            render: (lead, analysisData) => `
-                <div class="personality-overview bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
-                    <h3 class="text-xl font-bold text-purple-800 mb-4 flex items-center">
-                        <span class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm mr-3">🧠</span>
-                        Personality Overview
-                    </h3>
-                    <div class="text-gray-600">
-                        <p class="mb-3">Advanced personality analysis coming soon in this tab.</p>
-                        <div class="bg-white p-4 rounded-lg border border-purple-100">
-                            <p class="text-sm text-purple-600 font-medium">Future Features:</p>
-                            <ul class="text-sm text-gray-600 mt-2 space-y-1">
-                                <li>• DISC Personality Assessment</li>
-                                <li>• Communication Preferences</li>
-                                <li>• Behavioral Patterns</li>
-                                <li>• Motivation Drivers</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            `
-        });
-
+    
         this.registerComponent('behaviorPatterns', {
             render: (lead, analysisData) => `
                 <div class="behavior-patterns bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 mt-6">
