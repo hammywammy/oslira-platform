@@ -120,7 +120,7 @@ class AnalysisQueueRenderer {
 </div>
     </div>
     
-    ${!analysis.isMinimized ? `
+${!analysis.isMinimized ? `
         <!-- Progress Section -->
         ${isActive ? `
             <div class="space-y-3">
@@ -152,27 +152,28 @@ class AnalysisQueueRenderer {
             </div>
         ` : ''}
         
-${isFailed ? `
-    <div class="mt-3 p-3 bg-red-50 rounded-lg border border-red-200">
-        <div class="flex items-start justify-between">
-            <div class="flex-1">
-                <div class="flex items-center space-x-2 mb-1">
-                    <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                    </svg>
-                    <span class="text-sm font-semibold text-red-800">Failed</span>
+        ${isFailed ? `
+            <div class="mt-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-sm font-semibold text-red-800">Failed</span>
+                        </div>
+                        <p class="text-xs text-red-700 mt-1">${analysis.message || 'Analysis failed'}</p>
+                    </div>
+                    ${!analysis.message?.includes('does not exist') && !analysis.message?.includes('not found') ? `
+                        <button onclick="analysisQueue.retryAnalysis('${analysis.id}')"
+                                class="ml-2 px-3 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex-shrink-0">
+                            Retry
+                        </button>
+                    ` : ''}
                 </div>
-                <p class="text-xs text-red-700 mt-1">${analysis.message || 'Analysis failed'}</p>
             </div>
-            ${!analysis.message?.includes('does not exist') && !analysis.message?.includes('not found') ? `
-                <button onclick="analysisQueue.retryAnalysis('${analysis.id}')"
-                        class="ml-2 px-3 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex-shrink-0">
-                    Retry
-                </button>
-            ` : ''}
-        </div>
-    </div>
-` : ''}
+        ` : ''}
+    ` : ''}
 </div>
         `;
     }
