@@ -399,20 +399,26 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
             engagement_rate: 0
         };
         
-// X-Ray analysis fields
-if (payload.copywriter_profile) {
-    analysisData.copywriter_profile = payload.copywriter_profile;
-}
-if (payload.commercial_intelligence) {
-    analysisData.commercial_intelligence = payload.commercial_intelligence;
-}
-if (payload.persuasion_strategy) {
-    analysisData.persuasion_strategy = payload.persuasion_strategy;
-}
-// Add X-Ray deep_summary
-if (payload.deep_summary) {
-    analysisData.deep_summary = payload.deep_summary;
-}
+        // X-Ray analysis fields
+        if (payload.copywriter_profile) {
+            analysisData.copywriter_profile = payload.copywriter_profile;
+        }
+        if (payload.commercial_intelligence) {
+            analysisData.commercial_intelligence = payload.commercial_intelligence;
+        }
+        if (payload.persuasion_strategy) {
+            analysisData.persuasion_strategy = payload.persuasion_strategy;
+        }
+        // Add X-Ray deep_summary
+        if (payload.deep_summary) {
+            analysisData.deep_summary = payload.deep_summary;
+        }
+        
+        // CRITICAL FIX: Add pre_processed_metrics to analysisData
+        if (payload.pre_processed_metrics) {
+            analysisData.pre_processed_metrics = payload.pre_processed_metrics;
+            console.log('✅ [LeadManager] Pre-processed metrics attached:', payload.pre_processed_metrics);
+        }
         
         // Legacy compatibility for older fields
         analysisData.audience_quality = 'Medium'; // Default since not in new format
