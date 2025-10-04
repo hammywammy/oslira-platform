@@ -38,11 +38,11 @@ this.configs.set('deep', {
     id: 'analysis',
     label: 'Analysis',
     components: [
-        'quickSummary',               // NEW: At very top
-        'reasons',                     // Why this lead matters
-        'payloadAudienceInsights',    // Audience intelligence
-        'sellingPoints',               // Key selling points
-        'deepSummary'                  // Deep analysis summary at bottom
+        'quickSummary',
+        'reasons',
+        'payloadAudienceInsights',
+        'sellingPoints',
+        'deepSummary'
     ]
 },
         {
@@ -56,7 +56,7 @@ this.configs.set('deep', {
     id: 'analytics',
     label: 'Analytics',
     components: [
-        'preProcessedMetrics'  // Already exists, uses pre_processed_metrics
+        'contentEngagementIntel'
     ]
 },
         {
@@ -96,7 +96,7 @@ this.configs.set('xray', {
     id: 'analytics',
     label: 'Analytics',
     components: [
-        'preProcessedMetrics'  // Already exists, uses pre_processed_metrics
+        'contentEngagementIntel'
     ]
 },
         {
