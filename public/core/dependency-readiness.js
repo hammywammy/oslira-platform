@@ -125,4 +125,8 @@ window.DependencyReadiness.registerCheck('ResearchHandlers', () => {
     return typeof window.ResearchHandlers === 'function';
 });
 
+window.DependencyReadiness.registerCheck('ModalComponents', () => {
+    return typeof window.ModalComponents === 'function';
+});
+
 console.log('✅ [DependencyReadiness] Module loaded with registered checks');
