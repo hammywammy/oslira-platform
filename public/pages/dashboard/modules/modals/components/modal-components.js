@@ -876,6 +876,117 @@ this.registerComponent('latestPosts', {
     }
 });
 
+     // ===============================================================================
+// PRE-PROCESSED METRICS COMPONENT (Deep + X-Ray Analytics Tab)
+// ===============================================================================
+this.registerComponent('preProcessedMetrics', {
+    condition: (lead, analysisData) => {
+        const payload = this.getPayloadData(lead, analysisData);
+        return (lead.analysis_type === 'xray' || lead.analysis_type === 'deep') && 
+               payload.pre_processed_metrics;
+    },
+    render: (lead, analysisData) => {
+        const payload = this.getPayloadData(lead, analysisData);
+        const metrics = payload.pre_processed_metrics;
+        
+        if (!metrics) return '';
+        
+        const engagement = metrics.engagement || {};
+        const content = metrics.content || {};
+        const posting = metrics.posting || {};
+        
+        return `
+            <div class="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-cyan-50 to-blue-100 p-8 shadow-2xl border border-cyan-200/50 hover-3d shimmer-effect stagger-reveal" style="animation-delay: 0.6s;">
+                <div class="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full opacity-30 group-hover:scale-150 transition-transform duration-1000" style="animation: float 4s ease-in-out infinite;"></div>
+                <div class="absolute bottom-8 left-8 w-6 h-6 bg-gradient-to-br from-blue-400 to-cyan-500 rotate-45 opacity-20 group-hover:rotate-180 transition-transform duration-1000" style="animation: float 3s ease-in-out infinite; animation-delay: 1s;"></div>
+                
+                <div class="relative z-10">
+                    <div class="flex items-center space-x-4 mb-6">
+                        <div class="p-4 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-3xl shadow-xl group-hover:rotate-12 transition-transform duration-500">
+                            <svg class="w-8 h-8 text-white subtle-icon-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">Content & Engagement Intelligence</h3>
+                    </div>
+                    
+                    <!-- Engagement Metrics -->
+                    ${engagement.engagementRate ? `
+                    <div class="mb-6">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                            <span class="w-2 h-2 bg-cyan-500 rounded-full mr-3"></span>
+                            Engagement Performance
+                        </h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                <div class="text-sm text-gray-600 mb-1">Engagement Rate</div>
+                                <div class="text-2xl font-bold text-cyan-600">${engagement.engagementRate}%</div>
+                            </div>
+                            <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                <div class="text-sm text-gray-600 mb-1">Avg Likes</div>
+                                <div class="text-2xl font-bold text-cyan-600">${engagement.avgLikes?.toLocaleString() || 0}</div>
+                            </div>
+                            <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                <div class="text-sm text-gray-600 mb-1">Avg Comments</div>
+                                <div class="text-2xl font-bold text-cyan-600">${engagement.avgComments?.toLocaleString() || 0}</div>
+                            </div>
+                            <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                <div class="text-sm text-gray-600 mb-1">Quality Score</div>
+                                <div class="text-2xl font-bold text-cyan-600">${engagement.qualityScore || 0}</div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Content Intelligence -->
+                    ${content.contentThemes ? `
+                    <div class="mb-6">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                            <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
+                            Content Analysis
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                <div class="text-sm text-gray-600 mb-1">Top Themes</div>
+                                <div class="text-lg font-bold text-purple-600">${content.contentThemes}</div>
+                            </div>
+                            <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                <div class="text-sm text-gray-600 mb-1">Caption Style</div>
+                                <div class="text-lg font-bold text-purple-600 capitalize">${content.captionStyle}</div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Posting Patterns -->
+                    ${posting.postsPerWeek !== undefined ? `
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                            <span class="w-2 h-2 bg-teal-500 rounded-full mr-3"></span>
+                            Posting Behavior
+                        </h4>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                <div class="text-sm text-gray-600 mb-1">Posts Per Week</div>
+                                <div class="text-2xl font-bold text-teal-600">${posting.postsPerWeek.toFixed(1)}</div>
+                            </div>
+                            <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                <div class="text-sm text-gray-600 mb-1">Consistency</div>
+                                <div class="text-2xl font-bold text-teal-600 capitalize">${posting.consistencyLevel}</div>
+                            </div>
+                            <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20 col-span-2 md:col-span-1">
+                                <div class="text-sm text-gray-600 mb-1">Velocity</div>
+                                <div class="text-2xl font-bold text-teal-600 capitalize">${posting.postingVelocity}</div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+});   
+
         // ===============================================================================
 // X-RAY COMPONENTS - Copywriter Profile
 // ===============================================================================
