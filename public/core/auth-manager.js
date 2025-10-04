@@ -198,10 +198,7 @@ const userData = {
     id: this.user.id,
     email: this.user.email,
     full_name: this.user.user_metadata?.full_name || this.user.user_metadata?.name,
-    created_via: this.user.app_metadata?.provider || 'email',
-    onboarding_completed: false,
-    credits: 25,  // ADD THIS LINE - initial 25 free credits
-    subscription_plan: 'free'  // ADD THIS LINE
+    created_via: this.user.app_metadata?.provider || 'email'
 };
             
             const { error: createError } = await this.supabase
@@ -258,7 +255,7 @@ await this.enrichUserWithSubscription();
     }
 }
 
-    async enrichUserWithSubscription() {
+async enrichUserWithSubscription() {
     if (!this.supabase || !this.user) {
         return;
     }
@@ -282,11 +279,11 @@ await this.enrichUserWithSubscription();
             this.user.subscription_status = subscription.status;
             console.log('✅ [Auth] User enriched with subscription data');
         } else {
-            // No active subscription found - set defaults
+            // No subscription yet - this is normal before onboarding completion
             this.user.credits = 0;
-            this.user.plan_type = 'free';
-            this.user.subscription_status = null;
-            console.warn('⚠️ [Auth] No active subscription found for user');
+            this.user.plan_type = null;
+            this.user.subscription_status = 'pending';
+            console.log('ℹ️ [Auth] No subscription found - user has not completed onboarding yet');
         }
     } catch (error) {
         console.error('❌ [Auth] Error enriching user with subscription:', error);
