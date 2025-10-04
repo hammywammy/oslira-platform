@@ -34,19 +34,17 @@ this.configs.set('light', {
 this.configs.set('deep', {
     hasTabs: true,
     tabs: [
-        {
-            id: 'analysis',
-            label: 'Analysis',
-            components: [
-                'deepSummary',
-                'sellingPoints',
-                'engagementBreakdown',
-                'payloadAudienceInsights',
-                'reasons',
-                'latestPosts',
-                'aiSummary'
-            ]
-        },
+{
+    id: 'analysis',
+    label: 'Analysis',
+    components: [
+        'quickSummary',               // NEW: At very top
+        'reasons',                     // Why this lead matters
+        'payloadAudienceInsights',    // Audience intelligence
+        'sellingPoints',               // Key selling points
+        'deepSummary'                  // Deep analysis summary at bottom
+    ]
+},
         {
             id: 'outreach',
             label: 'Outreach',
