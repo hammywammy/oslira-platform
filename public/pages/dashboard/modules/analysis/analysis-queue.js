@@ -430,19 +430,26 @@ cancelAnalysis(analysisId) {
 const data = await response.json();
 const result = data?.data || data;
 
-// Check for 404 status (profile not found)
-if (response.status === 404) {
-    console.warn('⚠️ [AnalysisQueue] Profile not found (404)');
+console.log('📥 [AnalysisQueue] Response data:', { 
+    status: response.status, 
+    success: data.success, 
+    error: data.error,
+    hasResult: !!result 
+});
+
+// Check for profile not found errors (backend returns 400 with specific error messages)
+const isProfileNotFound = 
+    !data.success && 
+    data.error && 
+    (data.error.includes('does not exist') || 
+     data.error.includes('not found') || 
+     data.error.includes('Profile scraping failed: Instagram profile not found'));
+
+if (isProfileNotFound) {
+    console.warn('⚠️ [AnalysisQueue] Profile not found');
     const errorMsg = data.error || 'User does not exist. 1 token has been charged.';
     this.completeAnalysis(analysisId, false, errorMsg);
     return { success: false, analysisId, error: errorMsg };
-}
-
-// Check error message content
-if (data.error && (data.error.includes('does not exist') || data.error.includes('not found'))) {
-    console.warn('⚠️ [AnalysisQueue] Profile not found via error message');
-    this.completeAnalysis(analysisId, false, data.error);
-    return { success: false, analysisId, error: data.error };
 }
 
 if (result && data.success) {
@@ -458,7 +465,6 @@ if (result && data.success) {
     this.completeAnalysis(analysisId, false, result?.error || data.error || 'Analysis failed');
     return { success: false, analysisId, error: result?.error || data.error };
 }
-
     } catch (error) {
         console.error('❌ [AnalysisQueue] Analysis exception:', error);
 
