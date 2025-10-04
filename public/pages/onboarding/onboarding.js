@@ -41,12 +41,12 @@
     async function initialize() {
         if (initialized) return;
         
-        if (!window.SimpleAuth) {
-            throw new Error('SimpleAuth not available');
+        if (!window.OsliraAuth ) {
+            throw new Error('OsliraAuth  not available');
         }
         
-        await window.SimpleAuth.initialize();
-        const session = window.SimpleAuth.getCurrentSession();
+        await window.OsliraAuth .initialize();
+        const session = window.OsliraAuth .getCurrentSession();
         
         if (!session || !session.user) {
             console.log('❌ [Onboarding] No valid session, redirecting to auth');
@@ -55,7 +55,7 @@
         }
         
         user = session.user;
-        supabase = window.SimpleAuth.supabase;
+        supabase = window.OsliraAuth .supabase;
         
         console.log('✅ [Onboarding] User authenticated:', user.email);
 
