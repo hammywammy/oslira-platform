@@ -120,11 +120,7 @@ window.addEventListener('oslira:scripts:loaded', async () => {
     try {
         console.log('🔐 [Callback] Scripts loaded, processing OAuth callback...');
         
-        // CRITICAL: Clear any existing session first
-        if (window.OsliraAuth?.supabase) {
-            console.log('🔐 [Callback] Clearing old session before processing callback...');
-            await window.OsliraAuth.supabase.auth.signOut({ scope: 'local' });
-        }
+        // DO NOT clear session here - OAuth callback needs to read it
         
         updateStatus('Processing authentication...');
         
