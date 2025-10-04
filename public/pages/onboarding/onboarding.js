@@ -804,17 +804,33 @@ if (typeof window.OsliraAPI.request !== 'function') {
                 setProgressStep(2, 1.0);
             }
             
-            setProgressStep(3, 0.7);
-            updateSubmissionMessage('Completing setup...');
+setProgressStep(3, 0.7);
+updateSubmissionMessage('Completing setup...');
 
-            const { error: updateUserError } = await authSystem.supabase
-                .from('users')
-                .update({ onboarding_completed: true })
-                .eq('id', user.id);
-                
-            if (updateUserError) {
-                console.warn('⚠️ [Onboarding] Failed to update user status:', updateUserError);
-            }
+// Mark onboarding as complete
+const { error: updateUserError } = await authSystem.supabase
+    .from('users')
+    .update({ onboarding_completed: true })
+    .eq('id', user.id);
+    
+if (updateUserError) {
+    console.warn('⚠️ [Onboarding] Failed to update user status:', updateUserError);
+}
+
+// Create subscription record (everything else handled by database defaults/triggers)
+console.log('💳 [Onboarding] Creating subscription record...');
+const { error: subscriptionError } = await authSystem.supabase
+    .from('subscriptions')
+    .insert({
+        user_id: user.id
+    });
+
+if (subscriptionError) {
+    console.error('❌ [Onboarding] Failed to create subscription:', subscriptionError);
+    throw new Error('Failed to initialize subscription. Please contact support.');
+}
+
+console.log('✅ [Onboarding] Subscription record created');
             
             setProgressStep(3, 1.0);
             updateSubmissionMessage('Setup complete! Redirecting...');
