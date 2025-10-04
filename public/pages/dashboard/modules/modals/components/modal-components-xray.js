@@ -14,7 +14,7 @@
 
     const components = window.ModalComponents.prototype
 
-this.registerComponent('copywriterProfile', {
+components.registerComponent('copywriterProfile', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return lead.analysis_type === 'xray' && payload.copywriter_profile;
@@ -101,7 +101,7 @@ this.registerComponent('copywriterProfile', {
 // X-RAY COMPONENTS - Commercial Intelligence
 // ===============================================================================
 
-this.registerComponent('commercialIntelligence', {
+components.registerComponent('commercialIntelligence', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return lead.analysis_type === 'xray' && payload.commercial_intelligence;
@@ -190,7 +190,7 @@ this.registerComponent('commercialIntelligence', {
 // X-RAY COMPONENTS - Persuasion Strategy
 // ===============================================================================
 
-this.registerComponent('persuasionStrategy', {
+components.registerComponent('persuasionStrategy', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return lead.analysis_type === 'xray' && payload.persuasion_strategy;
