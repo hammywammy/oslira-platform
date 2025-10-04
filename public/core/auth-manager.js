@@ -184,11 +184,11 @@ async handleSessionChange(session) {
     
     try {
         // Check if user exists
-        const { data: existingUser, error: fetchError } = await this.supabase
-            .from('users')
-            .select('id')
-            .eq('id', this.user.id)
-            .single();
+const { data: existingUser, error: fetchError } = await this.supabase
+    .from('users')
+    .select('id')
+    .eq('id', this.user.id)
+    .maybeSingle();
             
         if (fetchError && fetchError.code === 'PGRST116') {
             // User doesn't exist, create them
@@ -266,9 +266,9 @@ async enrichUserWithSubscription() {
             .select('plan_type, credits_remaining, status')
             .eq('user_id', this.user.id)
             .eq('status', 'active')
-            .single();
+            .maybeSingle(); // Changed from .single()
         
-        if (error && error.code !== 'PGRST116') {
+        if (error) {
             console.warn('⚠️ [Auth] Could not load subscription:', error);
             return;
         }
