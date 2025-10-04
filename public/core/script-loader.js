@@ -41,6 +41,7 @@ this.coreScripts = [
 '/pages/dashboard/modules/modals/components/modal-components-core.js',
 '/pages/dashboard/modules/modals/components/modal-components-deep.js',
 '/pages/dashboard/modules/modals/components/modal-components-xray.js',
+                    '/pages/dashboard/modules/modals/components/modal-components-personality.js',
                     '/pages/dashboard/modules/modals/configs/analysis-configs.js', 
                     '/pages/dashboard/modules/modals/modal-builder.js',
 '/pages/dashboard/modules/analysis/analysis-functions.js',
