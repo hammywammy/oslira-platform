@@ -1162,6 +1162,263 @@ this.registerComponent('persuasionStrategy', {
 });
 
         // ===============================================================================
+        // CONTENT & ENGAGEMENT INTELLIGENCE COMPONENT
+        // ===============================================================================
+
+        this.registerComponent('contentEngagementIntel', {
+            condition: (lead, analysisData) => {
+                const payload = this.getPayloadData(lead, analysisData);
+                return (lead.analysis_type === 'xray' || lead.analysis_type === 'deep') && 
+                       payload.pre_processed_metrics;
+            },
+            render: (lead, analysisData) => {
+                const payload = this.getPayloadData(lead, analysisData);
+                const metrics = payload.pre_processed_metrics;
+                
+                if (!metrics) return '';
+                
+                const engagement = metrics.engagement || {};
+                const content = metrics.content || {};
+                const posting = metrics.posting || {};
+                
+                return `
+                    <div class="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-cyan-50 to-blue-100 p-8 shadow-2xl border border-cyan-200/50 hover-3d shimmer-effect stagger-reveal" style="animation-delay: 0.6s;">
+                        <div class="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full opacity-30 group-hover:scale-150 transition-transform duration-1000" style="animation: float 4s ease-in-out infinite;"></div>
+                        <div class="absolute bottom-8 left-8 w-6 h-6 bg-gradient-to-br from-blue-400 to-cyan-500 rotate-45 opacity-20 group-hover:rotate-180 transition-transform duration-1000" style="animation: float 3s ease-in-out infinite; animation-delay: 1s;"></div>
+                        
+                        <div class="relative z-10">
+                            <div class="flex items-center space-x-4 mb-6">
+                                <div class="p-4 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-3xl shadow-xl group-hover:rotate-12 transition-transform duration-500">
+                                    <svg class="w-8 h-8 text-white subtle-icon-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">Content & Engagement Intelligence</h3>
+                            </div>
+                            
+                            <!-- Engagement Metrics -->
+                            ${engagement.engagementRate ? `
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                    <span class="w-2 h-2 bg-cyan-500 rounded-full mr-3"></span>
+                                    Engagement Performance
+                                </h4>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Engagement Rate</div>
+                                        <div class="text-2xl font-bold text-cyan-600">${engagement.engagementRate}%</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Avg Likes</div>
+                                        <div class="text-2xl font-bold text-cyan-600">${engagement.avgLikes?.toLocaleString() || 0}</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Avg Comments</div>
+                                        <div class="text-2xl font-bold text-cyan-600">${engagement.avgComments?.toLocaleString() || 0}</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Posts Analyzed</div>
+                                        <div class="text-2xl font-bold text-cyan-600">${engagement.postsAnalyzed || 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            <!-- Video Performance -->
+                            ${engagement.videoPerformance ? `
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                    <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
+                                    Video Performance
+                                </h4>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Avg Views</div>
+                                        <div class="text-2xl font-bold text-purple-600">${engagement.videoPerformance.avgViews?.toLocaleString() || 0}</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Video Count</div>
+                                        <div class="text-2xl font-bold text-purple-600">${engagement.videoPerformance.videoCount || 0}</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Avg Engagement</div>
+                                        <div class="text-2xl font-bold text-purple-600">${engagement.videoPerformance.avgEngagement?.toLocaleString() || 0}</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">View:Engage Ratio</div>
+                                        <div class="text-2xl font-bold text-purple-600">${engagement.videoPerformance.viewToEngagementRatio}%</div>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            <!-- Format Distribution -->
+                            ${engagement.formatDistribution ? `
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                    <span class="w-2 h-2 bg-indigo-500 rounded-full mr-3"></span>
+                                    Content Format Mix
+                                </h4>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Images</div>
+                                        <div class="text-2xl font-bold text-indigo-600">${engagement.formatDistribution.imageCount || 0}</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Videos</div>
+                                        <div class="text-2xl font-bold text-indigo-600">${engagement.formatDistribution.videoCount || 0}</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Carousels</div>
+                                        <div class="text-2xl font-bold text-indigo-600">${engagement.formatDistribution.sidecarCount || 0}</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Primary Format</div>
+                                        <div class="text-lg font-bold text-indigo-600 capitalize">${engagement.formatDistribution.primaryFormat || 'mixed'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            <!-- Content Themes & Strategy -->
+                            ${content.contentThemes ? `
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                    <span class="w-2 h-2 bg-emerald-500 rounded-full mr-3"></span>
+                                    Content Strategy
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-2">Content Themes</div>
+                                        <div class="text-gray-800 font-medium">${content.contentThemes}</div>
+                                    </div>
+                                    ${content.captionStyle ? `
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-2">Caption Style</div>
+                                        <div class="text-gray-800 font-medium capitalize">${content.captionStyle}</div>
+                                    </div>
+                                    ` : ''}
+                                    ${content.avgCaptionLength ? `
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Avg Caption Length</div>
+                                        <div class="text-2xl font-bold text-emerald-600">${content.avgCaptionLength} chars</div>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            <!-- Hashtags & Location -->
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                    <span class="w-2 h-2 bg-rose-500 rounded-full mr-3"></span>
+                                    Hashtags & Geo-Tagging
+                                </h4>
+                                <div class="grid grid-cols-1 gap-3">
+                                    ${content.topHashtags && content.topHashtags.length > 0 ? `
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-2">Top Hashtags</div>
+                                        <div class="flex flex-wrap gap-2">
+                                            ${content.topHashtags.slice(0, 8).map(tag => `
+                                                <span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-sm font-medium">#${tag}</span>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                    ${content.locationData && content.locationData.usesLocations ? `
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-2">Location Usage</div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-gray-800 font-medium">${content.locationData.locationCount} unique locations</span>
+                                            ${content.locationData.topLocations && content.locationData.topLocations.length > 0 ? `
+                                            <div class="flex flex-wrap gap-2">
+                                                ${content.locationData.topLocations.slice(0, 3).map(loc => `
+                                                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">📍 ${loc}</span>
+                                                `).join('')}
+                                            </div>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            
+                            <!-- Collaboration Signals -->
+                            ${content.collaborationSignals && content.collaborationSignals.taggedAccountsCount > 0 ? `
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                    <span class="w-2 h-2 bg-amber-500 rounded-full mr-3"></span>
+                                    Collaboration Activity
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Tagged Accounts</div>
+                                        <div class="text-2xl font-bold text-amber-600">${content.collaborationSignals.taggedAccountsCount}</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Collab Frequency</div>
+                                        <div class="text-2xl font-bold text-amber-600">${(content.collaborationSignals.collaborationFrequency * 100).toFixed(0)}%</div>
+                                    </div>
+                                    ${content.collaborationSignals.topCollaborators && content.collaborationSignals.topCollaborators.length > 0 ? `
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20 col-span-full md:col-span-1">
+                                        <div class="text-sm text-gray-600 mb-2">Top Collaborators</div>
+                                        <div class="flex flex-wrap gap-1">
+                                            ${content.collaborationSignals.topCollaborators.slice(0, 3).map(collab => `
+                                                <span class="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full">@${collab}</span>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            <!-- Posting Patterns -->
+                            ${posting.postsPerWeek ? `
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                    <span class="w-2 h-2 bg-teal-500 rounded-full mr-3"></span>
+                                    Posting Patterns
+                                </h4>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Posts/Week</div>
+                                        <div class="text-2xl font-bold text-teal-600">${posting.postsPerWeek.toFixed(1)}</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Consistency</div>
+                                        <div class="text-lg font-bold text-teal-600 capitalize">${posting.consistencyLevel}</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Last Posted</div>
+                                        <div class="text-2xl font-bold text-teal-600">${posting.daysSinceLastPost}d ago</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Recent Posts (30d)</div>
+                                        <div class="text-2xl font-bold text-teal-600">${posting.recentPostsLast30Days}</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Velocity</div>
+                                        <div class="text-lg font-bold text-teal-600 capitalize">${posting.postingVelocity}</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                                        <div class="text-sm text-gray-600 mb-1">Consistency Score</div>
+                                        <div class="text-2xl font-bold text-teal-600">${posting.consistencyScore}/100</div>
+                                    </div>
+                                    <div class="p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20 col-span-2">
+                                        <div class="text-sm text-gray-600 mb-1">Avg Days Between Posts</div>
+                                        <div class="text-2xl font-bold text-teal-600">${posting.avgDaysBetweenPosts.toFixed(1)} days</div>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        // ===============================================================================
         // TAB SYSTEM COMPONENTS
         // ===============================================================================
         
