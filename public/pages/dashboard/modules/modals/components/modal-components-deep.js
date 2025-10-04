@@ -7,6 +7,25 @@
 // Registers all deep-analysis-specific components
 
 (async function() {
+
+        if (!window.DependencyReadiness) {
+        await new Promise(resolve => {
+            const checkInterval = setInterval(() => {
+                if (window.DependencyReadiness) {
+                    clearInterval(checkInterval);
+                    console.log('✅ [modal-components-deep] DependencyReadiness loaded');
+                    resolve();
+                }
+            }, 50);
+            
+            // Timeout after 10 seconds
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                console.error('❌ [modal-components-deep] DependencyReadiness timeout');
+                resolve();
+            }, 10000);
+        });
+    }
     // Wait for ModalComponents to be ready
     try {
         await window.DependencyReadiness.waitForDependency('ModalComponents');
@@ -17,7 +36,7 @@
 
     window._modalComponentExtensions = window._modalComponentExtensions || [];
     
-    window._modalComponentExtensions.push(function() {
+window._modalComponentExtensions.push(function() {
 
 this.registerComponent('sellingPoints', {
     condition: (lead, analysisData) => {
