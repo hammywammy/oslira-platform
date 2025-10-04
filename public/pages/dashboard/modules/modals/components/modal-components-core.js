@@ -4,10 +4,11 @@
 // ===============================================================================
 
 class ModalComponents {
-  constructor() {
-    this.components = new Map();
-    this.registerDefaultComponents();
-  }
+constructor() {
+  this.components = new Map();
+  this.registerDefaultComponents();
+  this.loadExtensionComponents();
+}
 
   // ===============================================================================
   // CORE COMPONENT REGISTRATION
@@ -837,6 +838,15 @@ const tabContents = tabs.map((tab, index) => {
         
         
 } // Close registerDefaultComponents()
+
+  loadExtensionComponents() {
+    if (window._modalComponentExtensions) {
+      window._modalComponentExtensions.forEach(extension => {
+        extension.call(this);
+      });
+    }
+  }
+
 } // Close ModalComponents class
 
 // Export
