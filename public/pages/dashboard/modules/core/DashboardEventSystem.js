@@ -231,7 +231,7 @@ eventBus.on(DASHBOARD_EVENTS.ANALYSIS_COMPLETED, async (data) => {
         // Update error state
         stateManager.setState('lastError', {
             source,
-            message: error.message,
+            message: error?.message || String(error),
             timestamp: Date.now()
         });
         
