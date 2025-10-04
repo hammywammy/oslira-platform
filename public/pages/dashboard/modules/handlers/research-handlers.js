@@ -152,15 +152,24 @@ console.log('✅ [ResearchHandlers] Username validation passed');
                 return;
             }
 
-            // 6. PREPARE API PAYLOAD
-            const apiPayload = {
-                profile_url: `https://instagram.com/${cleanUsername}`,
-                analysis_type: analysisType,
-                business_id: business.id,
-                user_id: session.user.id
-            };
+const apiPayload = {
+    profile_url: `https://instagram.com/${cleanUsername}`,
+    analysis_type: analysisType,
+    business_id: business.id,
+    user_id: session.user.id
+};
 
-            console.log('🚀 [ResearchHandlers] API payload prepared:', apiPayload);
+console.log('🚀 [ResearchHandlers] API payload prepared:', apiPayload);
+
+// ✅ ADD THIS DEBUG BLOCK
+console.log('🔍 [ResearchHandlers] Payload validation:', {
+    cleanUsername,
+    cleanUsernameType: typeof cleanUsername,
+    cleanUsernameLength: cleanUsername?.length,
+    profile_url: apiPayload.profile_url,
+    hasHttps: apiPayload.profile_url?.includes('https://'),
+    hasInstagram: apiPayload.profile_url?.includes('instagram.com/')
+});
 
             // 7. TRY ENHANCED QUEUE SYSTEM FIRST
             console.log('🎯 [ResearchHandlers] Attempting to use enhanced analysis queue...');
