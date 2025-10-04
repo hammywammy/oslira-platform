@@ -76,7 +76,7 @@ const { data: leads, error: leadsError } = await this.supabase
       platform_type, follower_count, following_count, post_count,
       is_verified_account, profile_url, user_id, business_id,
       first_discovered_at, last_updated_at,
-      runs(
+      runs!runs_lead_id_fkey(
         run_id, analysis_type, overall_score, niche_fit_score, 
         engagement_score, summary_text, confidence_level, created_at
       )
@@ -304,36 +304,36 @@ async waitForSupabaseClient(timeout = 3000) {
             if (!user) throw new Error('No authenticated user');
             
             // Fetch from new 3-table structure
-            const { data: leadData, error: leadError } = await this.supabase
-                .from('leads')
-                .select(`
-                    lead_id,
-                    username,
-                    display_name,
-                    profile_picture_url,
-                    bio_text,
-                    external_website_url,
-                    follower_count,
-                    following_count,
-                    post_count,
-                    is_verified_account,
-                    is_private_account,
-                    is_business_account,
-                    platform_type,
-                    profile_url,
-                    first_discovered_at,
-                    runs(
-                        run_id,
-                        analysis_type,
-                        overall_score,
-                        niche_fit_score,
-                        engagement_score,
-                        summary_text,
-                        confidence_level,
-                        created_at,
-                        payloads(analysis_data)
-                    )
-                `)
+const { data: leadData, error: leadError } = await this.supabase
+    .from('leads')
+    .select(`
+        lead_id,
+        username,
+        display_name,
+        profile_picture_url,
+        bio_text,
+        external_website_url,
+        follower_count,
+        following_count,
+        post_count,
+        is_verified_account,
+        is_private_account,
+        is_business_account,
+        platform_type,
+        profile_url,
+        first_discovered_at,
+        runs!runs_lead_id_fkey(
+            run_id,
+            analysis_type,
+            overall_score,
+            niche_fit_score,
+            engagement_score,
+            summary_text,
+            confidence_level,
+            created_at,
+            payloads(analysis_data)
+        )
+    `)
                 .eq('lead_id', leadId)
                 .eq('user_id', user.id)
                 .order('created_at', { foreignTable: 'runs', ascending: false })
