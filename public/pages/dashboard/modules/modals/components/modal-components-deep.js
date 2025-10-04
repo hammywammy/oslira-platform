@@ -14,7 +14,7 @@
 
     const components = window.ModalComponents.prototype;
 
-this.registerComponent('sellingPoints', {
+components.registerComponent('sellingPoints', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return (analysisData?.selling_points && analysisData.selling_points.length > 0) ||
@@ -51,7 +51,7 @@ this.registerComponent('sellingPoints', {
 });
 
 // Update existing outreachMessage condition to check payload
-this.registerComponent('outreachMessage', {
+components.registerComponent('outreachMessage', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return analysisData?.outreach_message || payload?.outreach_message;
@@ -99,7 +99,7 @@ this.registerComponent('outreachMessage', {
         // ===============================================================================
         // REASONS COMPONENT (If needed for specific analysis types)
         // ===============================================================================
-        this.registerComponent('reasons', {
+        components.registerComponent('reasons', {
             condition: (lead, analysisData) => analysisData?.reasons && analysisData.reasons.length > 0,
             render: (lead, analysisData) => `
                 <!-- Reasons Section -->
@@ -129,7 +129,7 @@ this.registerComponent('outreachMessage', {
         // ===============================================================================
         // AUDIENCE INSIGHTS COMPONENT
         // ===============================================================================
-        this.registerComponent('audienceInsights', {
+        components.registerComponent('audienceInsights', {
             condition: (lead, analysisData) => analysisData?.audience_insights,
             render: (lead, analysisData) => `
                 <!-- Audience Insights -->
@@ -153,7 +153,7 @@ this.registerComponent('outreachMessage', {
 
 
 // 1. DEEP SUMMARY COMPONENT (NEW - matches your styling)
-this.registerComponent('deepSummary', {
+components.registerComponent('deepSummary', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return lead.analysis_type === 'deep' && payload.deep_summary;
@@ -185,7 +185,7 @@ this.registerComponent('deepSummary', {
 
 
 // 3. AUDIENCE INSIGHTS ENHANCED (NEW - your existing one is good, this adds payload support)
-this.registerComponent('payloadAudienceInsights', {
+components.registerComponent('payloadAudienceInsights', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return lead.analysis_type === 'deep' && payload.audience_insights;
@@ -214,7 +214,7 @@ this.registerComponent('payloadAudienceInsights', {
 });
 
 // LATEST POSTS COMPONENT (for when data exists)
-this.registerComponent('latestPosts', {
+components.registerComponent('latestPosts', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return lead.analysis_type === 'deep' && payload.latest_posts && payload.latest_posts.length > 0;
@@ -244,7 +244,7 @@ this.registerComponent('latestPosts', {
     }
 });
 
-    this.registerComponent('personalityOverview', {
+    components.registerComponent('personalityOverview', {
             render: (lead, analysisData) => `
                 <div class="personality-overview bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
                     <h3 class="text-xl font-bold text-purple-800 mb-4 flex items-center">
@@ -267,7 +267,7 @@ this.registerComponent('latestPosts', {
             `
         });
 
-        this.registerComponent('behaviorPatterns', {
+        components.registerComponent('behaviorPatterns', {
             render: (lead, analysisData) => `
                 <div class="behavior-patterns bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 mt-6">
                     <h3 class="text-xl font-bold text-blue-800 mb-4 flex items-center">
@@ -281,7 +281,7 @@ this.registerComponent('latestPosts', {
             `
         });
 
-        this.registerComponent('communicationStyle', {
+        components.registerComponent('communicationStyle', {
             render: (lead, analysisData) => `
                 <div class="communication-style bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 mt-6">
                     <h3 class="text-xl font-bold text-green-800 mb-4 flex items-center">
@@ -295,7 +295,7 @@ this.registerComponent('latestPosts', {
             `
         });
 
-        this.registerComponent('motivationDrivers', {
+        components.registerComponent('motivationDrivers', {
             render: (lead, analysisData) => `
                 <div class="motivation-drivers bg-gradient-to-br from-yellow-50 to-orange-50 p-6 rounded-xl border border-yellow-200 mt-6">
                     <h3 class="text-xl font-bold text-yellow-800 mb-4 flex items-center">
@@ -313,7 +313,7 @@ this.registerComponent('latestPosts', {
 // QUICK SUMMARY COMPONENT (Top of Analysis Tab)
 // ===============================================================================
 
-this.registerComponent('quickSummary', {
+components.registerComponent('quickSummary', {
     condition: (lead, analysisData) => {
         return analysisData && (analysisData.quick_summary || lead.quick_summary);
     },
