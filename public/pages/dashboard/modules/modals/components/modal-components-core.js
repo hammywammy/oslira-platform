@@ -560,15 +560,20 @@ this.registerComponent('tabbedContainer', {
         }
         });
 
-   this.registerComponent('contentEngagementIntel', {
-            condition: (lead, analysisData) => {
-                const payload = this.getPayloadData(lead, analysisData);
-                return (lead.analysis_type === 'xray' || lead.analysis_type === 'deep') && 
-                       payload.pre_processed_metrics;
-            },
-            render: (lead, analysisData) => {
-                const payload = this.getPayloadData(lead, analysisData);
-                const metrics = payload.pre_processed_metrics;
+this.registerComponent('contentEngagementIntel', {
+    condition: (lead, analysisData) => {
+        const payload = this.getPayloadData(lead, analysisData);
+        console.log('🔍 [contentEngagementIntel] Checking condition:', { 
+            analysisType: lead.analysis_type, 
+            hasMetrics: !!payload?.pre_processed_metrics,
+            payload: payload 
+        });
+        return (lead.analysis_type === 'xray' || lead.analysis_type === 'deep') && 
+               payload?.pre_processed_metrics;
+    },
+    render: (lead, analysisData) => {
+        const payload = this.getPayloadData(lead, analysisData);
+        const metrics = payload?.pre_processed_metrics;
                 
                 if (!metrics) return '';
                 
