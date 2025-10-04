@@ -12,9 +12,11 @@
         return;
     }
 
-    const components = window.ModalComponents.prototype
+    window._modalComponentExtensions = window._modalComponentExtensions || [];
+    
+    window._modalComponentExtensions.push(function() {
 
-components.registerComponent('copywriterProfile', {
+this.registerComponent('copywriterProfile', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return lead.analysis_type === 'xray' && payload.copywriter_profile;
@@ -101,7 +103,7 @@ components.registerComponent('copywriterProfile', {
 // X-RAY COMPONENTS - Commercial Intelligence
 // ===============================================================================
 
-components.registerComponent('commercialIntelligence', {
+this.registerComponent('commercialIntelligence', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return lead.analysis_type === 'xray' && payload.commercial_intelligence;
@@ -190,7 +192,7 @@ components.registerComponent('commercialIntelligence', {
 // X-RAY COMPONENTS - Persuasion Strategy
 // ===============================================================================
 
-components.registerComponent('persuasionStrategy', {
+this.registerComponent('persuasionStrategy', {
     condition: (lead, analysisData) => {
         const payload = this.getPayloadData(lead, analysisData);
         return lead.analysis_type === 'xray' && payload.persuasion_strategy;
@@ -255,5 +257,5 @@ components.registerComponent('persuasionStrategy', {
     }
 });
 
-
+}); // Close extension function
 })();
