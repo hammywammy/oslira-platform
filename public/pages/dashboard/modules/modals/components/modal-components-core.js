@@ -181,9 +181,8 @@ return isDeepAnalysis ?
             label : btn.textContent.trim()
           }));
 
-      if (tabs.length > 0) {
-        const tabSystem =
-            window.TabSystem.create('modalContent', tabs, tabs[0].id);
+if (tabs.length > 0) {
+    const tabSystem = window.TabSystem.create('modalContent', tabs, tabs[0].id);
         console.log('✅ [ModalComponents] Tab system initialized');
       }
     }
@@ -392,73 +391,51 @@ const isDeepAnalysis = lead.analysis_type === 'deep' || lead.analysis_type === '
                         </div>
                     </div>
                     
-                    <style>
-                        .tab-button {
-background:
-  transparent;
-color:
-# 6b7280;
-border:
-  none;
-cursor:
-  pointer;
-                        }
-                        
-                        .tab-button:hover {
-background:
-  rgba(59, 130, 246, 0.1);
-color:
-# 3b82f6;
-                        }
-                        
-                        .tab-button.active {
-background:
-  linear - gradient(135deg, #3b82f6, #8b5cf6);
-color:
-  white;
-  box - shadow : 0 4px 12px rgba(59, 130, 246, 0.3);
-                        }
-                        
-                        .tab-button:focus {
-outline:
-  2px solid #3b82f6;
-  outline - offset : 2px;
-                        }
-                    </style>
+<style>
+    .tab-button {
+        background: transparent;
+        color: #6b7280;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .tab-button:hover {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+    
+    .tab-button.active {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: white;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .tab-button:focus {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+    }
+</style>
                 `;
       }
       });
 
-        this.registerComponent('tabbedContainer', {
-            render: (lead, analysisData, tabs, components) => {
-                if (!tabs || tabs.length <= 1) {
-                    // No tabs - render components directly
-                    return components.join('');
+this.registerComponent('tabbedContainer', {
+    render: (lead, analysisData, tabs, components) => {
+        if (!tabs || tabs.length <= 1) {
+            // No tabs - render components directly
+            return components.join('');
         }
 
-const tabContents = tabs.map((tab, index) => {
-                  const tabComponents = components[tab.id] || [];
-                  const isActive = index === 0;
+        const tabContents = tabs.map((tab, index) => {
+            const tabComponents = components[tab.id] || [];
+            const isActive = index === 0;
 
-                  return ` < div id = "tab-content-${tab.id}" class
-                  = "tab-content" role = "tabpanel" aria - labelledby =
-                      "tab-${tab.id}" style =
-                          "display: ${isActive ? 'block' : 'none'}; opacity: "
-                          + "${isActive ? '1' : '0'}; transform: "
-                          + "translateY(0); transition: all 0.3s ease;"
-                      > ${tabComponents.join('')} < / div >
-                    `;
-                }).join('');
+            return `<div id="tab-content-${tab.id}" class="tab-content" role="tabpanel" aria-labelledby="tab-${tab.id}" style="display: ${isActive ? 'block' : 'none'}; opacity: ${isActive ? '1' : '0'}; transform: translateY(0); transition: all 0.3s ease;">${tabComponents.join('')}</div>`;
+        }).join('');
 
-        return ` < div class
-        = "tabbed-container" > ${this.getComponent('tabNavigation')
-                                     .render(lead, analysisData, tabs)}
-            < div class
-        = "tab-content-wrapper" style =
-            "margin-top: 32px;" > ${tabContents} < / div > </ div>
-`;
-        }
-        });
+        return `<div class="tabbed-container">${this.getComponent('tabNavigation').render(lead, analysisData, tabs)}<div class="tab-content-wrapper" style="margin-top: 32px;">${tabContents}</div></div>`;
+    }
+});
 
       this.registerComponent('lightAnalysisNotice', {
     render: (lead, analysisData) => {
