@@ -806,7 +806,7 @@ this.registerComponent('deepSummary', {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Deep Analysis Insights</h3>
+                        <h3 class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Deep Analysis Summary</h3>
                     </div>
                     <p class="text-gray-700 leading-relaxed text-lg font-light">${payload.deep_summary}</p>
                 </div>
@@ -815,46 +815,6 @@ this.registerComponent('deepSummary', {
     }
 });
 
-// 2. ENHANCED ENGAGEMENT BREAKDOWN (NEW - using your metrics style)
-this.registerComponent('engagementBreakdown', {
-    condition: (lead, analysisData) => {
-        const payload = this.getPayloadData(lead, analysisData);
-        return lead.analysis_type === 'deep' && payload.engagement_breakdown;
-    },
-    render: (lead, analysisData) => {
-        const payload = this.getPayloadData(lead, analysisData);
-        const metrics = payload.engagement_breakdown || {};
-        
-        return `
-            <!-- Enhanced Engagement Breakdown matching your metrics grid style -->
-            <div class="group rounded-3xl bg-gradient-to-br from-pink-50 to-rose-100 p-8 shadow-2xl border border-pink-200/50 hover-3d shimmer-effect stagger-reveal" style="animation-delay: 0.6s;">
-                <div class="flex items-center space-x-4 mb-6">
-                    <div class="p-4 bg-gradient-to-br from-pink-500 to-rose-600 rounded-3xl shadow-xl group-hover:rotate-12 transition-transform duration-500">
-                        <svg class="w-8 h-8 text-white subtle-icon-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">Detailed Engagement Metrics</h3>
-                </div>
-                
-                <div class="grid grid-cols-3 gap-6">
-                    <div class="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-pink-200/50 hover-3d transition-all duration-300">
-                        <div class="text-3xl font-bold text-pink-700 count-up" data-target="${metrics.avg_likes || 0}">0</div>
-                        <div class="text-sm text-pink-600/80 mt-2">Average Likes</div>
-                    </div>
-                    <div class="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-pink-200/50 hover-3d transition-all duration-300">
-                        <div class="text-3xl font-bold text-pink-700 count-up" data-target="${metrics.avg_comments || 0}">0</div>
-                        <div class="text-sm text-pink-600/80 mt-2">Average Comments</div>
-                    </div>
-                    <div class="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-pink-200/50 hover-3d transition-all duration-300">
-                        <div class="text-3xl font-bold text-pink-700 count-up" data-target="${Math.round(metrics.engagement_rate || 0)}">0</div>
-                        <div class="text-sm text-pink-600/80 mt-2">Engagement Rate %</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-});
 
 // 3. AUDIENCE INSIGHTS ENHANCED (NEW - your existing one is good, this adds payload support)
 this.registerComponent('payloadAudienceInsights', {
@@ -1574,6 +1534,33 @@ return `
                 </div>
             `
         });
+
+        // ===============================================================================
+// QUICK SUMMARY COMPONENT (Top of Analysis Tab)
+// ===============================================================================
+
+this.registerComponent('quickSummary', {
+    condition: (lead, analysisData) => {
+        return analysisData && (analysisData.quick_summary || lead.quick_summary);
+    },
+    render: (lead, analysisData) => {
+        const quickSummary = analysisData?.quick_summary || lead.quick_summary || 'No summary available';
+        
+        return `
+            <div class="group rounded-3xl bg-gradient-to-br from-blue-50 to-indigo-100 p-8 shadow-2xl border border-blue-200/50 hover-3d shimmer-effect stagger-reveal" style="animation-delay: 0.1s;">
+                <div class="flex items-center space-x-4 mb-4">
+                    <div class="p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl shadow-xl group-hover:rotate-12 transition-transform duration-500">
+                        <svg class="w-8 h-8 text-white subtle-icon-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Quick Summary</h3>
+                </div>
+                <p class="text-lg text-gray-700 leading-relaxed">${quickSummary}</p>
+            </div>
+        `;
+    }
+});
     }
 
     // ===============================================================================
