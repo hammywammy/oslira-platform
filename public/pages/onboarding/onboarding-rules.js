@@ -239,7 +239,7 @@ const validPattern = /^[a-zA-Z0-9\s]+$/;
     }
     
 isValidStep(stepNumber) {
-    return stepNumber >= 0 && stepNumber <= this.TOTAL_STEPS;
+    return stepNumber >= 1 && stepNumber <= this.TOTAL_STEPS;
 }
 }
 
