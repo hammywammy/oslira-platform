@@ -184,23 +184,22 @@ async handleSessionChange(session) {
     
     try {
         // Check if user exists
-        const { data: existingUser, error: fetchError } = await this.supabase
-            .from('users')
-            .select('id')
-            .eq('id', this.user.id)
-            .single();
+const { data: existingUser, error: fetchError } = await this.supabase
+    .from('users')
+    .select('id')
+    .eq('id', this.user.id)
+    .maybeSingle();
             
         if (fetchError && fetchError.code === 'PGRST116') {
             // User doesn't exist, create them
             console.log('🔧 [Auth] Creating user record for authenticated user...');
             
-            const userData = {
-                id: this.user.id,
-                email: this.user.email,
-                full_name: this.user.user_metadata?.full_name || this.user.user_metadata?.name,
-                created_via: this.user.app_metadata?.provider || 'email',
-                onboarding_completed: false
-            };
+const userData = {
+    id: this.user.id,
+    email: this.user.email,
+    full_name: this.user.user_metadata?.full_name || this.user.user_metadata?.name,
+    created_via: this.user.app_metadata?.provider || 'email'
+};
             
             const { error: createError } = await this.supabase
                 .from('users')
@@ -221,16 +220,15 @@ async handleSessionChange(session) {
         throw error;
     }
 }
-    
 async loadUserBusinesses() {
     if (!this.supabase || !this.user) {
-        this.businessesLoaded = true; // Mark as loaded even if skipped
+        this.businessesLoaded = true;
         return;
     }
     
     try {
-        // Ensure user exists in database before loading businesses
-        await this.ensureUserExists();
+        // User already created during callback - just enrich
+        await this.enrichUserWithSubscription();
         
         const { data: businesses, error } = await this.supabase
             .from('business_profiles')
@@ -239,122 +237,81 @@ async loadUserBusinesses() {
             
         if (error) {
             console.error('❌ [Auth] Failed to load businesses:', error);
-            this.businessesLoaded = true; // Mark as loaded even on error
+            this.businessesLoaded = true;
             return;
         }
         
         this.businesses = businesses || [];
-        this.businessesLoaded = true; // NEW - Mark as loaded
+        this.businessesLoaded = true;
         console.log(`📊 [Auth] Loaded ${this.businesses.length} business profiles`);
         
     } catch (error) {
         console.error('❌ [Auth] Error loading businesses:', error);
-        this.businessesLoaded = true; // Mark as loaded even on error
+        this.businessesLoaded = true;
     }
 }
+
+async enrichUserWithSubscription() {
+    if (!this.supabase || !this.user) {
+        return;
+    }
     
+    try {
+        const { data: subscription, error } = await this.supabase
+            .from('subscriptions')
+            .select('plan_type, credits_remaining, status')
+            .eq('user_id', this.user.id)
+            .eq('status', 'active')
+            .maybeSingle(); // Changed from .single()
+        
+        if (error) {
+            console.warn('⚠️ [Auth] Could not load subscription:', error);
+            return;
+        }
+        
+        if (subscription) {
+            this.user.credits = subscription.credits_remaining;
+            this.user.plan_type = subscription.plan_type;
+            this.user.subscription_status = subscription.status;
+            console.log('✅ [Auth] User enriched with subscription data');
+        } else {
+            // No subscription yet - this is normal before onboarding completion
+            this.user.credits = 0;
+            this.user.plan_type = null;
+            this.user.subscription_status = 'pending';
+            console.log('ℹ️ [Auth] No subscription found - user has not completed onboarding yet');
+        }
+    } catch (error) {
+        console.error('❌ [Auth] Error enriching user with subscription:', error);
+    }
+}
     // =============================================================================
     // AUTHENTICATION METHODS
     // =============================================================================
     
-    async signInWithGoogle() {
-        if (!this.supabase) {
-            throw new Error('Authentication not available');
+async signInWithGoogle() {
+    if (!this.supabase) {
+        throw new Error('Authentication not available');
+    }
+    
+    // Clear any existing session before starting new OAuth
+    console.log('🔐 [Auth] Clearing existing session before OAuth...');
+    await this.supabase.auth.signOut({ scope: 'local' });
+    
+    const config = await window.OsliraConfig.getConfig();
+    const redirectTo = config.authCallbackUrl || `${window.location.origin}/auth/callback`;
+    
+    console.log('🔐 [Auth] Starting Google OAuth, redirect:', redirectTo);
+    
+    const { data, error } = await this.supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: redirectTo
         }
-        
-        const config = await window.OsliraConfig.getConfig();
-        const redirectTo = config.authCallbackUrl || `${window.location.origin}/auth/callback`;
-        
-        console.log('🔐 [Auth] Starting Google OAuth, redirect:', redirectTo);
-        
-        const { data, error } = await this.supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: redirectTo
-            }
-        });
+    });
         
         if (error) {
             console.error('❌ [Auth] Google OAuth error:', error);
-            throw error;
-        }
-        
-        return data;
-    }
-    
-    async signInWithEmail(email, password) {
-        if (!this.supabase) {
-            throw new Error('Authentication not available');
-        }
-        
-        console.log('🔐 [Auth] Signing in with email:', email);
-        
-        const { data, error } = await this.supabase.auth.signInWithPassword({
-            email,
-            password
-        });
-        
-        if (error) {
-            console.error('❌ [Auth] Email sign-in error:', error);
-            throw error;
-        }
-        
-        return data;
-    }
-    
-    async signUpWithEmail(email, password, username) {
-        if (!this.supabase) {
-            throw new Error('Authentication not available');
-        }
-        
-        console.log('🔐 [Auth] Signing up with email:', email);
-        
-        const { data, error } = await this.supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                data: {
-                    username: username
-                }
-            }
-        });
-        
-        if (error) {
-            console.error('❌ [Auth] Email sign-up error:', error);
-            throw error;
-        }
-        
-        return data;
-    }
-    
-    async signOut() {
-        if (!this.supabase) {
-            throw new Error('Authentication not available');
-        }
-        
-        console.log('🔐 [Auth] Signing out...');
-        
-        const { error } = await this.supabase.auth.signOut();
-        
-        if (error) {
-            console.error('❌ [Auth] Sign-out error:', error);
-            throw error;
-        }
-        
-        return true;
-    }
-    
-    async resetPassword(email) {
-        if (!this.supabase) {
-            throw new Error('Authentication not available');
-        }
-        
-        console.log('🔐 [Auth] Sending password reset to:', email);
-        
-        const { data, error } = await this.supabase.auth.resetPasswordForEmail(email);
-        
-        if (error) {
-            console.error('❌ [Auth] Password reset error:', error);
             throw error;
         }
         
@@ -365,40 +322,105 @@ async loadUserBusinesses() {
     // OAUTH CALLBACK HANDLING
     // =============================================================================
     
-    async handleCallback() {
-        if (!this.supabase) {
-            throw new Error('Authentication not available');
-        }
+   async handleCallback() {
+    if (!this.supabase) {
+        throw new Error('Authentication not available');
+    }
+    
+    console.log('🔐 [Auth] Processing OAuth callback...');
+    
+    try {
+        const { data, error } = await this.supabase.auth.getSession();
         
-        console.log('🔐 [Auth] Processing OAuth callback...');
-        
-        try {
-            const { data, error } = await this.supabase.auth.getSession();
-            
-            if (error) {
-                console.error('❌ [Auth] Callback session error:', error);
-                throw error;
-            }
-            
-            if (data.session) {
-                console.log('✅ [Auth] Callback successful, user authenticated');
-                
-                // Check if user needs onboarding
-                const needsOnboarding = await this.checkOnboardingStatus();
-                
-                return {
-                    session: data.session,
-                    redirectTo: needsOnboarding ? '/onboarding' : '/dashboard'
-                };
-            } else {
-                throw new Error('No session found in callback');
-            }
-            
-        } catch (error) {
-            console.error('❌ [Auth] Callback processing failed:', error);
+        if (error) {
+            console.error('❌ [Auth] Callback session error:', error);
             throw error;
         }
+        
+        if (data.session) {
+            console.log('✅ [Auth] Callback successful, user authenticated');
+            
+            // CRITICAL: Create user record immediately after OAuth
+            await this.ensureUserExists();
+            console.log('✅ [Auth] User record ensured in database');
+            
+            // THEN check onboarding status
+            const needsOnboarding = await this.checkOnboardingStatus();
+            
+            const rootDomain = window.location.hostname.replace(/^(auth|app|admin|legal|contact|status|www)\./, '');
+            const appUrl = window.OsliraEnv.getAppUrl(needsOnboarding ? '/onboarding' : '/dashboard');
+            
+            console.log('🔐 [Auth] Redirecting to:', appUrl);
+            
+            return {
+                session: data.session,
+                user: data.session.user,
+                needsOnboarding,
+                redirectTo: appUrl
+            };
+        } else {
+            console.log('❌ [Auth] No valid session found');
+            throw new Error('No valid session found after authentication');
+        }
+        
+    } catch (error) {
+        console.error('❌ [Auth] Callback processing failed:', error);
+        throw error;
     }
+}
+    // =============================================================================
+// CROSS-SUBDOMAIN SESSION RESTORATION
+// =============================================================================
+
+/**
+ * Check URL hash for auth tokens and restore session if present
+ * This enables session transfer across subdomains
+ * Call this BEFORE initialize() on any authenticated page
+ */
+async restoreSessionFromUrl() {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const authToken = hashParams.get('auth');
+
+    if (!authToken) {
+        return false; // No token in URL
+    }
+
+    console.log('🔐 [Auth] Found auth token in URL, restoring session...');
+    
+    try {
+        const tokens = JSON.parse(atob(authToken));
+        
+        // Clear hash from URL immediately
+        history.replaceState(null, '', window.location.pathname);
+        
+        // CRITICAL: Initialize Supabase if not already done
+        if (!this.supabase) {
+            await this.initializeSupabase();
+        }
+        
+        // Restore session in Supabase
+        const { error } = await this.supabase.auth.setSession({
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token
+        });
+        
+        if (error) {
+            console.error('❌ [Auth] Failed to restore session:', error);
+            return false;
+        }
+        
+        console.log('✅ [Auth] Session restored from URL');
+        
+        // Wait for session to propagate
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        return true;
+        
+    } catch (error) {
+        console.error('❌ [Auth] Session transfer failed:', error);
+        return false;
+    }
+}
     
     async checkOnboardingStatus() {
         if (!this.supabase || !this.user) {
@@ -474,7 +496,7 @@ async loadUserBusinesses() {
         
         if (!this.isAuthenticated()) {
             console.log('🚫 [Auth] Authentication required, redirecting...');
-            window.location.href = '/auth';
+            window.location.href = window.OsliraEnv.getAuthUrl();
             return false;
         }
         
@@ -487,7 +509,7 @@ async loadUserBusinesses() {
         const needsOnboarding = await this.checkOnboardingStatus();
         if (needsOnboarding) {
             console.log('📝 [Auth] Onboarding required, redirecting...');
-            window.location.href = '/onboarding';
+            window.location.href = window.OsliraEnv.getAppUrl('/onboarding');
             return false;
         }
         

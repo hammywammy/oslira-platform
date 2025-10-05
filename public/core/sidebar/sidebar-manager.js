@@ -216,57 +216,42 @@ handleBusinessChange(event) {
     }
 }
 
-async updateUserInfo(user) {
-    try {
-        console.log('👤 [SidebarManager] Updating user info...', user?.email);
-        this.user = user;
-
-        // Update email
-        const emailElement = document.getElementById('sidebar-email');
-        if (emailElement && user?.email) {
-            emailElement.textContent = user.email;
-            console.log('✅ [SidebarManager] Email updated:', user.email);
-        } else {
-            console.warn('⚠️ [SidebarManager] Email element or user email missing', {
-                hasElement: !!emailElement,
-                hasEmail: !!user?.email
-            });
-        }
-
-            // Update user initial
-            const userInitialElement = document.getElementById('sidebar-user-initial');
-            if (userInitialElement && user?.email) {
-                userInitialElement.textContent = user.email.charAt(0).toUpperCase();
-            }
-
-            // Update subscription plan
-            const planElement = document.getElementById('sidebar-plan');
-            if (planElement) {
-                const planName = this.formatPlanName(user.subscription_plan || 'free');
-                planElement.textContent = planName;
-            }
-
-            // Update credits display
-            const creditsElement = document.getElementById('sidebar-credits');
-            if (creditsElement) {
-                const credits = user.credits || 0;
-                creditsElement.textContent = credits;
-                
-                // Add low credits warning
-                if (credits < 5) {
-                    creditsElement.classList.add('text-red-500');
-                } else {
-                    creditsElement.classList.remove('text-red-500');
-                }
-            }
-
-            console.log('✅ [SidebarManager] User info updated');
-            
-        } catch (error) {
-            console.error('❌ [SidebarManager] Failed to update user info:', error);
-        }
+updateUserInfo() {
+    const user = window.OsliraAuth?.user;
+    if (!user) {
+        console.warn('⚠️ [SidebarManager] No user available for info update');
+        return;
     }
-
+    
+    console.log('👤 [SidebarManager] Updating user info:', {
+        email: user.email,
+        credits: user.credits,
+        plan: user.plan_type
+    });
+    
+    // Update email
+    const emailElement = document.getElementById('sidebar-email');
+    if (emailElement && user.email) {
+        emailElement.textContent = user.email;
+    }
+    
+    // Update plan
+    const planElement = document.getElementById('sidebar-plan');
+    if (planElement && user.plan_type) {
+        const planNames = {
+            'free': 'Free Plan',
+            'starter': 'Starter Plan',
+            'pro': 'Pro Plan'
+        };
+        planElement.textContent = planNames[user.plan_type] || 'Free Plan';
+    }
+    
+    // Update credits
+    const creditsElement = document.getElementById('sidebar-credits');
+    if (creditsElement) {
+        creditsElement.textContent = user.credits !== undefined ? user.credits.toLocaleString() : '--';
+    }
+}
     setActiveMenuItem(pageId) {
         console.log(`🎯 [SidebarManager] Setting active menu item: ${pageId}`);
         
@@ -294,13 +279,12 @@ async updateUserInfo(user) {
         return `
             <div class="sidebar-container">
                 <!-- Header -->
-                <div class="sidebar-header">
-                    <div class="sidebar-logo-container">
-                        <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" 
-                             class="sidebar-logo-image">
-                        <div class="sidebar-logo-text">Oslira</div>
-                    </div>
-                </div>
+<div class="sidebar-header">
+    <a href="${window.OsliraEnv.getMarketingUrl()}" class="sidebar-logo-link">
+        <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" class="sidebar-logo-image">
+        <span class="sidebar-logo-text home-logo">Oslira</span>
+    </a>
+</div>
                 
                 <!-- Navigation -->
                 <nav class="sidebar-nav">
@@ -308,15 +292,15 @@ async updateUserInfo(user) {
                     <div class="nav-section">
                         <h4 class="nav-section-header">Main</h4>
                         <div class="nav-items">
-                            <a href="/dashboard" data-page="dashboard" data-tooltip="Dashboard" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/dashboard')}" data-page="dashboard" data-tooltip="Dashboard" class="nav-item">
                                 <span class="nav-icon">📊</span>
                                 <span class="nav-text">Dashboard</span>
                             </a>
-                            <a href="/leads" data-page="leads" data-tooltip="Lead Research" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/leads')}" data-page="leads" data-tooltip="Lead Research" class="nav-item">
                                 <span class="nav-icon">🔍</span>
                                 <span class="nav-text">Lead Research</span>
                             </a>
-                            <a href="/analytics" data-page="analytics" data-tooltip="Analytics" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/analytics')}" data-page="analytics" data-tooltip="Analytics" class="nav-item">
                                 <span class="nav-icon">📈</span>
                                 <span class="nav-text">Analytics</span>
                             </a>
@@ -327,11 +311,11 @@ async updateUserInfo(user) {
                     <div class="nav-section">
                         <h4 class="nav-section-header">Tools</h4>
                         <div class="nav-items">
-                            <a href="/campaigns" data-page="campaigns" data-tooltip="Campaigns" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/campaigns')}" data-page="campaigns" data-tooltip="Campaigns" class="nav-item">
                                 <span class="nav-icon">🎯</span>
                                 <span class="nav-text">Campaigns</span>
                             </a>
-                            <a href="/automations" data-page="automations" data-tooltip="Automations" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/automations')}" data-page="automations" data-tooltip="Automations" class="nav-item">
                                 <span class="nav-icon">⚡</span>
                                 <span class="nav-text">Automations</span>
                             </a>
@@ -342,11 +326,11 @@ async updateUserInfo(user) {
                     <div class="nav-section">
                         <h4 class="nav-section-header">Account</h4>
                         <div class="nav-items">
-                        <a href="/subscription" data-page="Subscription" data-tooltip="Subscription" class="nav-item">
+                        <a href="${window.OsliraEnv.getAppUrl('/subscription')}" data-page="Subscription" data-tooltip="Subscription" class="nav-item">
                                 <span class="nav-icon">💳</span>
                                 <span class="nav-text">Subscription</span>
                             </a>
-                            <a href="/settings" data-page="settings" data-tooltip="Settings" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/settings')}" data-page="settings" data-tooltip="Settings" class="nav-item">
                                 <span class="nav-icon">⚙️</span>
                                 <span class="nav-text">Settings</span>
                             </a>
@@ -423,6 +407,11 @@ initializeSidebar() {
     
     // Set initial state
     this.updateSidebarState();
+
+    // After sidebar renders
+if (window.OsliraAuth?.user) {
+    this.updateUserInfo();
+}
     
     console.log('✅ [SidebarManager] Sidebar functionality initialized');
 }
@@ -668,15 +657,14 @@ setBusinessManager(businessManager) {
     // =========================================================================
 // USER DATA INTEGRATION
 // =========================================================================
-
 initializeUserIntegration() {
     console.log('👤 [SidebarManager] Initializing user integration...');
     
-    // Wait for OsliraApp to be available and update user info
+    // Poll for OsliraAuth user data (primary source)
     const waitForUserData = setInterval(() => {
-        if (window.OsliraApp?.user) {
+        if (window.OsliraAuth?.user) {
             clearInterval(waitForUserData);
-            this.updateUserInfo(window.OsliraApp.user);
+            this.updateUserInfo();
             console.log('✅ [SidebarManager] User integration initialized');
         }
     }, 100);

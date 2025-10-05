@@ -41,7 +41,7 @@ class HomeHandlers {
       const isLoggedIn = localStorage.getItem('oslira_token');
       if (isLoggedIn) {
         console.log('🔀 [HomeHandlers] User logged in, redirecting to dashboard');
-        window.location.href = '/dashboard';
+        window.location.href = window.OsliraEnv.getAppUrl('/dashboard');
         return;
       }
       
@@ -458,7 +458,7 @@ if (!result.success && result.error) {
     if (window.HomeState) {
       window.HomeState.trackConversionEvent('anonymous_conversion_attempt');
     }
-    window.location.href = '/auth';
+    window.location.href = window.OsliraEnv.getAuthUrl();
   }
 }
 

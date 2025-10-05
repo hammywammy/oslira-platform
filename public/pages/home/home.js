@@ -17,13 +17,41 @@ const conversionState = {
   timeOnPage: 0,
   scrollDepth: 0
 };
-
-// EMERGENCY: Execute immediately since DOM is already loaded
+// Initialize header dynamically
+async function initializeHeader() {
+  try {
+    console.log('🧭 [Home] Initializing header...');
+    
+    // Wait for HeaderManager to load
+    let retries = 0;
+    while (!window.HeaderManager && retries < 50) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      retries++;
+    }
+    
+    if (!window.HeaderManager) {
+      throw new Error('HeaderManager not loaded after 5 seconds');
+    }
+    
+    // Render header
+    const headerManager = new window.HeaderManager();
+    headerManager.render('home-header-container', {
+      type: 'home'
+    });
+    
+    console.log('✅ [Home] Header initialized successfully');
+  } catch (error) {
+    console.error('❌ [Home] Header initialization failed:', error);
+  }
+}
 async function initializeHomePage() {
   console.log("🚀🚀🚀 EMERGENCY: Initializing home page IMMEDIATELY");
   
   // Prevent auto-redirect by blocking simple-app initialization
   window.preventSimpleAppInit = true;
+  
+  // Initialize header FIRST
+  await initializeHeader();
   
   await initializeApp();
   setupEventListeners();
@@ -479,7 +507,7 @@ function setupMobileStickyCA() {
   if (mobileBtn) {
     mobileBtn.addEventListener('click', () => {
       trackConversionEvent('mobile_cta_clicked');
-      window.location.href = '/auth';
+      window.location.href = window.OsliraEnv.getAuthUrl();
     });
   }
 }

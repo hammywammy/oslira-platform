@@ -58,21 +58,30 @@ class ResearchHandlers {
                 analysisType: analysisType
             });
             
-            // 2. BASIC VALIDATION
-            if (!username) {
-                console.error('❌ No username entered');
-                this.showUsernameError(usernameInput, 'Please enter a username');
-                return;
-            }
+// 2. BASIC VALIDATION
+if (!username) {
+    console.error('❌ No username entered');
+    this.showUsernameError(usernameInput, 'Please enter a username');
+    return;
+}
 
-            // Clear any previous error
-            this.clearUsernameError(usernameInput);
-            
-            // Clean username
-            const cleanUsername = username.replace(/^@/, '').replace(/.*instagram\.com\//, '').replace(/\/$/, '');
-            console.log('✅ [ResearchHandlers] Clean username:', cleanUsername);
-            
-            // 3. GET SUPABASE SESSION
+// Clear any previous error
+this.clearUsernameError(usernameInput);
+
+// Clean username
+const cleanUsername = username.replace(/^@/, '').replace(/.*instagram\.com\//, '').replace(/\/$/, '');
+console.log('✅ [ResearchHandlers] Clean username:', cleanUsername);
+
+// VALIDATE INSTAGRAM USERNAME
+const validation = this.validateInstagramUsername(cleanUsername);
+if (!validation.isValid) {
+    console.error('❌ [ResearchHandlers] Invalid username:', validation.error);
+    this.showUsernameError(usernameInput, validation.error);
+    return;
+}
+console.log('✅ [ResearchHandlers] Username validation passed');
+
+// 3. GET SUPABASE SESSION
             console.log('🔐 [ResearchHandlers] Getting Supabase session...');
             
             let supabaseClient;
@@ -143,15 +152,27 @@ class ResearchHandlers {
                 return;
             }
 
-            // 6. PREPARE API PAYLOAD
-            const apiPayload = {
-                profile_url: `https://instagram.com/${cleanUsername}`,
-                analysis_type: analysisType,
-                business_id: business.id,
-                user_id: session.user.id
-            };
+const apiPayload = {
+    username: cleanUsername,  // ✅ ADD THIS LINE
+    profile_url: `https://instagram.com/${cleanUsername}`,
+    analysis_type: analysisType,
+    business_id: business.id,
+    user_id: session.user.id
+};
 
-            console.log('🚀 [ResearchHandlers] API payload prepared:', apiPayload);
+console.log('🚀 [ResearchHandlers] API payload prepared:', apiPayload);
+
+console.log('🚀 [ResearchHandlers] API payload prepared:', apiPayload);
+
+// ✅ ADD THIS DEBUG BLOCK
+console.log('🔍 [ResearchHandlers] Payload validation:', {
+    cleanUsername,
+    cleanUsernameType: typeof cleanUsername,
+    cleanUsernameLength: cleanUsername?.length,
+    profile_url: apiPayload.profile_url,
+    hasHttps: apiPayload.profile_url?.includes('https://'),
+    hasInstagram: apiPayload.profile_url?.includes('instagram.com/')
+});
 
             // 7. TRY ENHANCED QUEUE SYSTEM FIRST
             console.log('🎯 [ResearchHandlers] Attempting to use enhanced analysis queue...');
@@ -287,35 +308,78 @@ console.log('✅ [ResearchHandlers] API success:', result);
         }
     }
 
-    showUsernameError(usernameInput, message) {
-        const usernameContainer = usernameInput.parentElement;
-        let errorDiv = usernameContainer.querySelector('.username-error');
-        
-        if (!errorDiv) {
-            errorDiv = document.createElement('div');
-            errorDiv.className = 'username-error text-red-500 text-sm mt-1';
-            usernameContainer.appendChild(errorDiv);
-        }
-        
-        errorDiv.textContent = message;
-        
-        // Shake animation
-        usernameInput.style.animation = 'shake 0.5s ease-in-out';
-        usernameInput.style.borderColor = '#ef4444';
-        
-        setTimeout(() => {
-            usernameInput.style.animation = '';
-            usernameInput.style.borderColor = '';
-        }, 500);
+validateInstagramUsername(username) {
+    // Empty check
+    if (!username || username.length === 0) {
+        return { isValid: false, error: 'Username is required' };
     }
+    
+    // Length check (1-30 characters)
+    if (username.length > 30) {
+        return { isValid: false, error: 'Username must be 30 characters or less' };
+    }
+    
+    // Character validation (letters, numbers, periods, underscores only)
+    const validCharsRegex = /^[a-zA-Z0-9._]+$/;
+    if (!validCharsRegex.test(username)) {
+        return { isValid: false, error: 'Username can only contain letters, numbers, periods (.), and underscores (_)' };
+    }
+    
+    // No leading dot
+    if (username.startsWith('.')) {
+        return { isValid: false, error: 'Username cannot start with a period' };
+    }
+    
+    // No trailing dot
+    if (username.endsWith('.')) {
+        return { isValid: false, error: 'Username cannot end with a period' };
+    }
+    
+    // No consecutive dots
+    if (username.includes('..')) {
+        return { isValid: false, error: 'Username cannot contain consecutive periods (..)' };
+    }
+    
+    return { isValid: true, error: null };
+}
 
-    clearUsernameError(usernameInput) {
-        const usernameContainer = usernameInput.parentElement;
-        const errorDiv = usernameContainer.querySelector('.username-error');
-        if (errorDiv) {
-            errorDiv.remove();
-        }
+showUsernameError(usernameInput, message) {
+    if (!usernameInput) return;
+    
+    const usernameContainer = usernameInput.parentElement;
+    let errorDiv = usernameContainer.querySelector('.username-error');
+    
+    if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.className = 'username-validation-error';
+        errorDiv.innerHTML = `
+            <svg class="validation-message-icon validation-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px; display: inline-block; margin-right: 8px; vertical-align: middle;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span></span>
+        `;
+        usernameContainer.appendChild(errorDiv);
     }
+    
+    errorDiv.querySelector('span').textContent = message;
+    
+    // Add validation classes with shake animation
+    usernameInput.classList.add('field-invalid', 'border-red-500');
+    usernameInput.classList.remove('field-valid', 'border-green-500');
+}
+
+clearUsernameError(usernameInput) {
+    if (!usernameInput) return;
+    
+    const usernameContainer = usernameInput.parentElement;
+    const errorDiv = usernameContainer.querySelector('.username-error, .username-validation-error');
+    if (errorDiv) {
+        errorDiv.remove();
+    }
+    
+    // Remove validation classes
+    usernameInput.classList.remove('field-invalid', 'border-red-500', 'field-valid', 'border-green-500');
+}
 }
 
 if (typeof module !== 'undefined' && module.exports) {

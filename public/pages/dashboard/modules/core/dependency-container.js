@@ -66,40 +66,91 @@ registerSingleton(name, instance) {
     register(name, instance) {
         return this.registerSingleton(name, instance);
     }
+
+    /**
+ * Resolve dependencies for a factory
+ */
+resolveDependencies(dependencies) {
+    return dependencies.map(dep => {
+        if (!this.has(dep)) {
+            throw new Error(`Dependency '${dep}' not registered. Available: ${Array.from(this.dependencies.keys()).concat(Array.from(this.factories.keys())).join(', ')}`);
+        }
+        
+        // If it's a singleton, return it directly
+        if (this.singletons.has(dep)) {
+            return this.singletons.get(dep);
+        }
+        
+        // If it's a regular dependency, return it
+        if (this.dependencies.has(dep)) {
+            return this.dependencies.get(dep);
+        }
+        
+        // If it's a factory, instantiate it (recursive call to get)
+        return this.get(dep);
+    });
+}
     
     /**
      * Get dependency instance
      */
-get(name) {
-    // Check if it's a factory
-    if (this.factories.has(name)) {
-        const factoryInfo = this.factories.get(name);
-        
-        // Create instance if not already created
-        if (!factoryInfo.instance) {
-            const deps = factoryInfo.dependencies.map(dep => this.get(dep));
-            const result = factoryInfo.factory(...deps);
-            
-            // Handle async factories
-            if (result && typeof result.then === 'function') {
-                throw new Error(`Async factory '${name}' must be resolved before use. Use getAsync() or ensure factory is pre-resolved.`);
-            }
-            
-            factoryInfo.instance = result;
-            console.log(`🏗️ [DependencyContainer] Factory instance created: ${name}`);
-        }
-        
-        return factoryInfo.instance;
+get(name, retryCount = 0) {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 100;
+    
+    // Priority 1: Check singletons first
+    if (this.singletons.has(name)) {
+        return this.singletons.get(name);
     }
-        
-        // Check regular dependencies
-        if (this.dependencies.has(name)) {
-            return this.dependencies.get(name);
+    
+    // Priority 2: Check dependencies map
+    if (this.dependencies.has(name)) {
+        return this.dependencies.get(name);
+    }
+    
+    // Priority 3: Check if factory has already created instance
+    const factoryInfo = this.factories.get(name);
+    if (factoryInfo) {
+        if (factoryInfo.instance) {
+            console.log(`♻️ [DependencyContainer] Returning cached factory instance: ${name}`);
+            return factoryInfo.instance;
         }
-        
-        throw new Error(`Dependency '${name}' not found. Available: ${Array.from(this.dependencies.keys()).join(', ')}`);
+    } else {
+        throw new Error(`Dependency '${name}' not registered. Available: ${Array.from(this.dependencies.keys()).concat(Array.from(this.factories.keys())).join(', ')}`);
     }
 
+    // Priority 4: Create new instance if none exists
+    const resolvedDeps = this.resolveDependencies(factoryInfo.dependencies);
+
+    try {
+        console.log(`🏗️ [DependencyContainer] Factory instance created: ${name}`);
+        const instance = factoryInfo.factory(...resolvedDeps);
+        
+        // CRITICAL: Store instance in ALL THREE locations
+        factoryInfo.instance = instance;
+        this.dependencies.set(name, instance);
+        this.singletons.set(name, instance);
+        
+        console.log(`💾 [DependencyContainer] Instance cached: ${name}`);
+        
+        return instance;
+        
+    } catch (error) {
+        // Retry logic for race conditions
+        if (retryCount < MAX_RETRIES && error.message.includes('not loaded')) {
+            console.warn(`⚠️ [DependencyContainer] Retry ${retryCount + 1}/${MAX_RETRIES} for ${name}`);
+            
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve(this.get(name, retryCount + 1));
+                }, RETRY_DELAY * (retryCount + 1));
+            });
+        }
+        
+        console.error(`❌ [DependencyContainer] Failed to create ${name}:`, error);
+        throw error;
+    }
+}
     /**
  * Get dependency instance (async version for async factories)
  */
@@ -143,69 +194,64 @@ async getAsync(name) {
     /**
      * Initialize all dependencies in correct order
      */
-    async initialize() {
-        if (this.initialized) {
-            console.log('⚠️ [DependencyContainer] Already initialized');
-            return;
-        }
-        
-        console.log('🔄 [DependencyContainer] Starting initialization...');
-        
-        // Get dependency graph for factories
-        const factoryNames = Array.from(this.factories.keys());
-        const sortedFactories = this.topologicalSort(factoryNames);
-        
-// Initialize factories in dependency order
-for (const factoryName of sortedFactories) {
-    if (!this.factories.get(factoryName).instance) {
-        try {
-            // Skip async factories that haven't been pre-resolved
-            const factoryInfo = this.factories.get(factoryName);
-            if (!factoryInfo.instance) {
-                // Check if it's an async factory
-                const result = factoryInfo.factory();
-                if (result && typeof result.then === 'function') {
-                    console.warn(`⚠️ [DependencyContainer] Skipping async factory '${factoryName}' - should be pre-resolved`);
-                    continue;
-                }
-            }
-            
-            const instance = this.get(factoryName);
-            
-            // Call init method if it exists
-            if (instance && typeof instance.init === 'function') {
-                console.log(`🔧 [DependencyContainer] Initializing: ${factoryName}`);
-                await instance.init();
-            }
-            
-            this.initializationOrder.push(factoryName);
-        } catch (error) {
-            console.error(`❌ [DependencyContainer] Failed to initialize ${factoryName}:`, error);
-            // Don't throw for non-critical failures
-            if (factoryName === 'analysisFunctions' || factoryName === 'supabase') {
-                throw error; // Critical dependencies
-            }
-        }
+async initialize() {
+    if (this.initialized) {
+        console.log('⚠️ [DependencyContainer] Already initialized');
+        return;
     }
-}
+    
+    console.log('🔄 [DependencyContainer] Starting initialization...');
+    
+    const factoryNames = Array.from(this.factories.keys());
+    const sortedFactories = this.topologicalSort(factoryNames);
+    
+    // Initialize factories in dependency order
+    for (const factoryName of sortedFactories) {
+        const factoryInfo = this.factories.get(factoryName);
         
-        // Initialize singletons that have init methods
-        for (const [name, instance] of this.singletons.entries()) {
-            if (instance && typeof instance.init === 'function') {
-                try {
-                    console.log(`🔧 [DependencyContainer] Initializing singleton: ${name}`);
+        if (!factoryInfo.instance) {
+            try {
+                // Get/create instance - this also stores it
+                const instance = await this.get(factoryName);
+                
+                // Ensure it's stored in factoryInfo
+                factoryInfo.instance = instance;
+                
+                // Call init method if it exists
+                if (instance && typeof instance.init === 'function') {
+                    console.log(`🔧 [DependencyContainer] Initializing: ${factoryName}`);
                     await instance.init();
-                } catch (error) {
-                    console.error(`❌ [DependencyContainer] Failed to initialize singleton ${name}:`, error);
+                }
+                
+                this.initializationOrder.push(factoryName);
+            } catch (error) {
+                console.error(`❌ [DependencyContainer] Failed to initialize ${factoryName}:`, error);
+                
+                // Critical dependencies must succeed
+                if (factoryName === 'analysisFunctions' || factoryName === 'supabase') {
                     throw error;
                 }
             }
         }
-        
-        this.initialized = true;
-        console.log('✅ [DependencyContainer] Initialization completed');
-        console.log('📋 [DependencyContainer] Initialization order:', this.initializationOrder);
     }
+    
+    // Initialize singletons that have init methods
+    for (const [name, instance] of this.singletons.entries()) {
+        if (instance && typeof instance.init === 'function') {
+            try {
+                console.log(`🔧 [DependencyContainer] Initializing singleton: ${name}`);
+                await instance.init();
+            } catch (error) {
+                console.error(`❌ [DependencyContainer] Failed to initialize singleton ${name}:`, error);
+                throw error;
+            }
+        }
+    }
+    
+    this.initialized = true;
+    console.log('✅ [DependencyContainer] Initialization completed');
+    console.log('📋 [DependencyContainer] Initialization order:', this.initializationOrder);
+}
     
     /**
      * Cleanup all dependencies

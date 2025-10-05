@@ -15,18 +15,25 @@ class LeadRenderer {
         // Cache for rendered elements
         this.renderCache = new Map();
         this.dateFormatCache = new Map();
+
+        // Pagination state
+this.currentPage = 1;
+this.leadsPerPage = 10;
         
         console.log('🚀 [LeadRenderer] Enhanced version initialized');
     }
     
-    async init() {
-        // Listen to data changes for re-rendering
-        this.stateManager.subscribe('leads', this.handleLeadsChanged.bind(this));
-        this.stateManager.subscribe('filteredLeads', this.handleFilteredLeadsChanged.bind(this));
-        this.stateManager.subscribe('selectedLeads', this.handleSelectionChanged.bind(this));
-        
-        console.log('✅ [LeadRenderer] Event listeners initialized');
-    }
+async init() {
+    // Listen to data changes for re-rendering
+    this.stateManager.subscribe('leads', this.handleLeadsChanged.bind(this));
+    this.stateManager.subscribe('filteredLeads', this.handleFilteredLeadsChanged.bind(this));
+    this.stateManager.subscribe('selectedLeads', this.handleSelectionChanged.bind(this));
+    
+    // Make available globally for pagination
+    window.leadRenderer = this;
+    
+    console.log('✅ [LeadRenderer] Event listeners initialized');
+}
     
     // ===============================================================================
     // EVENT HANDLERS
@@ -44,10 +51,11 @@ handleLeadsChanged(leads) {
     }, 50);
 }
     
-    handleFilteredLeadsChanged(filteredLeads) {
-        console.log('🔄 [LeadRenderer] Filtered leads changed, re-rendering');
-        this.displayLeads(filteredLeads);
-    }
+handleFilteredLeadsChanged(filteredLeads) {
+    console.log('🔄 [LeadRenderer] Filtered leads changed, resetting to page 1');
+    this.currentPage = 1; // Reset to first page on filter change
+    this.displayLeads(filteredLeads);
+}
     
     handleSelectionChanged(selectedLeads) {
         console.log('🔄 [LeadRenderer] Selection changed, updating UI');
@@ -92,27 +100,59 @@ if (!tableBody) {
     tableBody = newTableBody; // Now this works
 }
     
-    console.log(`🎨 [LeadRenderer] Displaying ${leadsToDisplay?.length || 0} leads with enhanced styling`);
-        
-        // Show loading state if needed
-        if (this.stateManager.getState('isLoading')) {
-            this.renderLoadingState(tableBody);
-            return;
-        }
-        
-        // Handle empty state
-        if (leadsToDisplay.length === 0) {
-            this.renderEmptyState(tableBody);
-            this.updateLeadCounts(0, 0);
-            return;
-        }
-        
-        // Render leads with enhanced styling
-        const leadCards = leadsToDisplay.map(lead => this.createLeadCard(lead)).join('');
-        tableBody.innerHTML = leadCards;
-        
-        // Update counts
-        this.updateLeadCounts(leadsToDisplay.length, selectedLeads.size);
+console.log(`🎨 [LeadRenderer] Displaying ${leadsToDisplay?.length || 0} leads with enhanced styling`);
+    
+    // Show loading state if needed
+    if (this.stateManager.getState('isLoading')) {
+        this.renderLoadingState(tableBody);
+        return;
+    }
+    
+    // Handle empty state
+    if (leadsToDisplay.length === 0) {
+        this.renderEmptyState(tableBody);
+        this.updateLeadCounts(0, 0);
+        this.renderPagination(0, 0);
+        return;
+    }
+
+// Calculate pagination
+const totalLeads = leadsToDisplay.length;
+const totalPages = Math.ceil(totalLeads / this.leadsPerPage);
+const startIndex = (this.currentPage - 1) * this.leadsPerPage;
+const endIndex = Math.min(startIndex + this.leadsPerPage, totalLeads);
+const paginatedLeads = leadsToDisplay.slice(startIndex, endIndex);
+
+console.log(`📄 [LeadRenderer] Page ${this.currentPage}/${totalPages}: Showing ${startIndex + 1}-${endIndex} of ${totalLeads}`);
+    
+// Store current scroll position
+const currentScroll = window.scrollY;
+
+// Render paginated leads
+const leadCards = paginatedLeads.map(lead => this.createLeadCard(lead)).join('');
+tableBody.innerHTML = leadCards;
+
+// Render pagination controls
+this.renderPagination(totalLeads, totalPages);
+
+// Restore scroll position immediately
+requestAnimationFrame(() => {
+    window.scrollTo(0, currentScroll);
+});
+
+// Update counts
+this.updateLeadCounts(leadsToDisplay.length, selectedLeads.size);
+
+// Update select-all checkbox state
+const leadsTable = this.container.get('leadsTable');
+if (leadsTable && leadsTable.updateSelectAllCheckbox) {
+    leadsTable.updateSelectAllCheckbox();
+}
+
+// Update bulk actions bar visibility
+if (leadsTable && leadsTable.updateBulkActionsBar) {
+    leadsTable.updateBulkActionsBar(selectedLeads.size);
+}
         
         // Update bulk actions visibility
         this.updateBulkActionsVisibility(selectedLeads.size > 0);
@@ -135,45 +175,197 @@ if (!tableBody) {
         const isSelected = selectedLeads.has(lead.id);
         const score = lead.score || 0;
         
-        // Enhanced score configuration
-        const getScoreConfig = (score) => {
-            if (score >= 90) return { 
-                class: 'bg-emerald-100 text-emerald-800 border-emerald-200', 
-                label: 'Excellent', 
-                color: 'emerald',
-                icon: '🌟',
-                gradient: 'from-emerald-500 to-emerald-600',
-                barGradient: 'from-emerald-400 via-emerald-500 to-emerald-600',
-                borderColor: 'border-emerald-500'
-            };
-            if (score >= 75) return { 
-                class: 'bg-blue-100 text-blue-800 border-blue-200', 
-                label: 'Strong', 
-                color: 'blue',
-                icon: '💪',
-                gradient: 'from-blue-500 to-blue-600',
-                barGradient: 'from-blue-400 via-blue-500 to-blue-600',
-                borderColor: 'border-blue-500'
-            };
-            if (score >= 60) return { 
-                class: 'bg-amber-100 text-amber-800 border-amber-200', 
-                label: 'Moderate', 
-                color: 'amber',
-                icon: '⚡',
-                gradient: 'from-amber-500 to-orange-500',
-                barGradient: 'from-amber-400 via-amber-500 to-orange-500',
-                borderColor: 'border-amber-500'
-            };
-            return { 
-                class: 'bg-slate-100 text-slate-600 border-slate-200', 
-                label: 'Low', 
-                color: 'slate',
-                icon: '📊',
-                gradient: 'from-slate-400 to-slate-500',
-                barGradient: 'from-slate-300 via-slate-400 to-slate-500',
-                borderColor: 'border-slate-400'
-            };
+const getScoreConfig = (score) => {
+    // Add subtle variation even at exact thresholds to avoid static colors
+    const scoreWithVariation = score + (Math.random() * 2 - 1); // ±1 variation
+    
+    // Unified color system with animated wave gradients for ALL scores
+    // Bad (0-30): Deep Red #B22222
+    // Medium (31-50): Amber/Orange #FF8C00
+    // Upper Medium (51-65): Soft Teal #40E0D0
+    // Good (66-80): Bright Blue #3B82F6
+    // Excellent (81+): Rich Purple #6B21A8
+    
+    if (scoreWithVariation >= 81) {
+        // Excellent: Rich Purple with animated wave
+        return {
+            class: 'bg-purple-100 text-purple-900 border-purple-200',
+            label: 'Excellent',
+            color: 'purple',
+            icon: '⭐',
+            gradient: 'from-purple-800 to-purple-700',
+            barGradient: 'from-purple-800 via-purple-700 to-purple-600',
+            barClass: 'score-wave-gradient-excellent',
+            borderColor: 'border-purple-800'
         };
+    }
+    
+    if (scoreWithVariation >= 66) {
+        // Good: Brighter Blue with purple blend + animated wave
+        const blendFactor = (scoreWithVariation - 66) / 15;
+        if (blendFactor > 0.6) {
+            return {
+                class: 'bg-blue-100 text-blue-800 border-blue-200',
+                label: 'Good',
+                color: 'blue',
+                icon: '💎',
+                gradient: 'from-blue-600 to-purple-600',
+                barGradient: 'from-blue-600 via-indigo-600 to-purple-600',
+                barClass: 'score-wave-gradient-good-high',
+                borderColor: 'border-blue-600'
+            };
+        } else if (blendFactor > 0.3) {
+            return {
+                class: 'bg-blue-100 text-blue-800 border-blue-200',
+                label: 'Good',
+                color: 'blue',
+                icon: '💎',
+                gradient: 'from-blue-600 to-indigo-600',
+                barGradient: 'from-blue-600 via-blue-700 to-indigo-600',
+                barClass: 'score-wave-gradient-good-mid',
+                borderColor: 'border-blue-600'
+            };
+        }
+        return {
+            class: 'bg-blue-100 text-blue-800 border-blue-200',
+            label: 'Good',
+            color: 'blue',
+            icon: '💎',
+            gradient: 'from-blue-600 to-blue-700',
+            barGradient: 'from-blue-600 via-blue-600 to-blue-700',
+            barClass: 'score-wave-gradient-good-low',
+            borderColor: 'border-blue-600'
+        };
+    }
+    
+    if (scoreWithVariation >= 51) {
+        // Upper Medium: Soft Teal with blue blend + animated wave
+        const blendFactor = (scoreWithVariation - 51) / 15;
+        if (blendFactor > 0.6) {
+            return {
+                class: 'bg-teal-100 text-teal-800 border-teal-200',
+                label: 'Moderate',
+                color: 'teal',
+                icon: '⚡',
+                gradient: 'from-teal-500 to-blue-600',
+                barGradient: 'from-teal-500 via-cyan-500 to-blue-600',
+                barClass: 'score-wave-gradient-moderate-high',
+                borderColor: 'border-teal-500'
+            };
+        } else if (blendFactor > 0.3) {
+            return {
+                class: 'bg-teal-100 text-teal-700 border-teal-200',
+                label: 'Moderate',
+                color: 'teal',
+                icon: '⚡',
+                gradient: 'from-teal-400 to-teal-500',
+                barGradient: 'from-teal-400 via-teal-500 to-cyan-400',
+                barClass: 'score-wave-gradient-moderate-mid',
+                borderColor: 'border-teal-400'
+            };
+        }
+        return {
+            class: 'bg-teal-100 text-teal-700 border-teal-200',
+            label: 'Moderate',
+            color: 'teal',
+            icon: '⚡',
+            gradient: 'from-teal-400 to-cyan-400',
+            barGradient: 'from-teal-400 via-cyan-400 to-teal-400',
+            barClass: 'score-wave-gradient-moderate-low',
+            borderColor: 'border-teal-400'
+        };
+    }
+    
+if (scoreWithVariation >= 31) {
+    // Medium: Orange → Yellow → Lime → Teal smooth transition
+    const blendFactor = (scoreWithVariation - 31) / 20;
+    
+    if (blendFactor > 0.75) {
+        // Score 46-50: Yellow-Lime transitioning to teal
+        return {
+            class: 'bg-lime-100 text-lime-800 border-lime-200',
+            label: 'Fair',
+            color: 'lime',
+            icon: '📈',
+            gradient: 'from-lime-500 to-teal-400',
+            barGradient: 'from-lime-500 via-emerald-400 to-teal-400',
+            barClass: 'score-wave-gradient-fair-highest',
+            borderColor: 'border-lime-500'
+        };
+    } else if (blendFactor > 0.5) {
+        // Score 41-45: Pure yellow zone
+        return {
+            class: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+            label: 'Fair',
+            color: 'yellow',
+            icon: '📈',
+            gradient: 'from-yellow-500 to-yellow-400',
+            barGradient: 'from-yellow-500 via-yellow-400 to-lime-400',
+            barClass: 'score-wave-gradient-fair-high',
+            borderColor: 'border-yellow-500'
+        };
+    } else if (blendFactor > 0.25) {
+        // Score 36-40: Orange to yellow
+        return {
+            class: 'bg-orange-100 text-orange-700 border-orange-200',
+            label: 'Fair',
+            color: 'orange',
+            icon: '📈',
+            gradient: 'from-orange-500 to-yellow-500',
+            barGradient: 'from-orange-500 via-amber-400 to-yellow-500',
+            barClass: 'score-wave-gradient-fair-mid',
+            borderColor: 'border-orange-500'
+        };
+    }
+    // Score 31-35: Deep orange
+    return {
+        class: 'bg-orange-100 text-orange-800 border-orange-200',
+        label: 'Fair',
+        color: 'orange',
+        icon: '📈',
+        gradient: 'from-orange-600 to-orange-500',
+        barGradient: 'from-orange-600 via-orange-500 to-orange-400',
+        barClass: 'score-wave-gradient-fair-low',
+        borderColor: 'border-orange-600'
+    };
+}
+    
+    // Bad: Deep Red with orange blend (0-30) + animated wave
+    const blendFactor = scoreWithVariation / 30;
+    if (blendFactor > 0.6) {
+        return {
+            class: 'bg-red-100 text-red-800 border-red-200',
+            label: 'Poor',
+            color: 'red',
+            icon: '⚠️',
+            gradient: 'from-red-700 to-orange-600',
+            barGradient: 'from-red-700 via-red-600 to-orange-600',
+            barClass: 'score-wave-gradient-poor-high',
+            borderColor: 'border-red-700'
+        };
+    } else if (blendFactor > 0.3) {
+        return {
+            class: 'bg-red-100 text-red-800 border-red-200',
+            label: 'Poor',
+            color: 'red',
+            icon: '⚠️',
+            gradient: 'from-red-700 to-red-600',
+            barGradient: 'from-red-700 via-red-700 to-red-600',
+            barClass: 'score-wave-gradient-poor-mid',
+            borderColor: 'border-red-700'
+        };
+    }
+    return {
+        class: 'bg-red-100 text-red-900 border-red-200',
+        label: 'Poor',
+        color: 'red',
+        icon: '⚠️',
+        gradient: 'from-red-800 to-red-700',
+        barGradient: 'from-red-800 via-red-700 to-red-700',
+        barClass: 'score-wave-gradient-poor-low',
+        borderColor: 'border-red-800'
+    };
+};
         
         const scoreConfig = getScoreConfig(score);
         
@@ -288,20 +480,20 @@ const profilePicHtml = profilePicUrl
         `;
 
 return `
-    <tr class="table-row relative hover:bg-purple-50 hover:shadow-md transition-all duration-200 ${isSelected ? 'bg-blue-50/50' : ''} border-l-4 ${this.getRowAccentColor(score)} odd:bg-slate-25/20" 
+    <tr class="table-row hover:bg-gray-50 transition-all duration-200 ${isSelected ? 'bg-blue-50' : ''}" 
         data-lead-id="${lead.id}">
     
-   <!-- Hidden selection checkbox that appears on hover at far left -->
-<div class="absolute left-1 top-1/2 transform -translate-y-1/2 opacity-0 transition-all duration-200 z-20 checkbox-container">
+                <!-- Checkbox Column -->
+                <td class="pl-6 pr-2 py-4 border-r border-slate-100/60 text-center" style="width: 50px;">
                     <input type="checkbox" 
-                           class="lead-checkbox w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 bg-white shadow-md"
+                           class="lead-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                            data-lead-id="${lead.id}"
                            ${isSelected ? 'checked' : ''}
-                           onchange="dashboard.toggleLeadSelection && dashboard.toggleLeadSelection('${lead.id}', this.checked)">
-                </div>
+                           onchange="window.toggleLeadSelection && window.toggleLeadSelection('${lead.id}', this.checked)">
+                </td>
                 
                 <!-- Lead Profile - Wider column -->
-                <td class="pl-12 pr-6 py-4 border-r border-slate-100/60" style="width: 280px;">
+                <td class="pl-6 pr-6 py-4 border-r border-slate-100/60" style="width: 280px;">
                     <div class="flex items-center space-x-3">
                         <div class="flex-shrink-0 relative">
                             ${profilePicHtml}
@@ -356,15 +548,15 @@ return `
                             </div>
                         </div>
                         
-                        <!-- Enhanced progress bar with glow effect -->
-                        <div class="relative">
-                            <div class="w-full bg-slate-100 rounded-full h-3 shadow-inner">
-                                <div class="bg-gradient-to-r ${scoreConfig.barGradient} h-3 rounded-full transition-all duration-500 ease-out shadow-sm relative overflow-hidden" 
-                                     style="width: ${score}%">
-                                    <!-- Animated shine effect -->
-                                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 animate-shimmer"></div>
-                                </div>
-                            </div>
+<!-- Enhanced progress bar with animated wave gradient -->
+<div class="relative">
+    <div class="w-full bg-slate-100 rounded-full h-3 shadow-inner">
+        <div class="bg-gradient-to-r ${scoreConfig.barGradient} ${scoreConfig.barClass} h-3 rounded-full transition-all duration-500 ease-out shadow-sm relative overflow-hidden" 
+             style="width: ${score}%">
+            <!-- Animated wave shine effect -->
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 animate-shimmer"></div>
+        </div>
+    </div>
                             <!-- Score indicator dot -->
                             <div class="absolute top-1/2 transform -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md border-2 ${scoreConfig.borderColor} transition-all duration-300"
                                  style="left: calc(${score}% - 8px)"></div>
@@ -428,23 +620,29 @@ return `
         
         console.log('🔧 [LeadRenderer] Creating enhanced table structure...');
         
-        const tableHTML = `
-            <table class="leads-table w-full border-separate border-spacing-0">
-                <thead class="bg-gradient-to-r from-slate-50 to-slate-100/80 backdrop-blur-sm sticky top-0 z-10">
-                    <tr class="border-b border-slate-200/60">
-                        <th class="pl-12 pr-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 280px;">Lead Profile</th>
-                        <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 160px;">Platform</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 240px;">Intelligence Score</th>
-                        <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 180px;">Analysis Type</th>
-                        <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 140px;">Date Added</th>
-                        <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider" style="width: 140px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="leads-table-body" class="divide-y divide-slate-200/60 bg-white">
-                    <!-- Leads will be populated by JavaScript -->
-                </tbody>
-            </table>
-        `;
+const tableHTML = `
+    <table class="leads-table w-full border-separate border-spacing-0">
+        <thead class="bg-gradient-to-r from-slate-50 to-slate-100/80 backdrop-blur-sm sticky top-0 z-10">
+            <tr class="border-b border-slate-200/60">
+                <th class="pl-6 pr-2 py-4 text-center border-r border-slate-200/40" style="width: 50px;">
+                    <input type="checkbox" 
+                           id="select-all-checkbox" 
+                           class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                           onchange="window.toggleAllLeadSelections && window.toggleAllLeadSelections(this.checked)">
+                </th>
+                <th class="pl-6 pr-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 280px;">Lead Profile</th>
+                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 160px;">Platform</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 240px;">Intelligence Score</th>
+                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 180px;">Analysis Type</th>
+                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider border-r border-slate-200/40" style="width: 140px;">Date Updated</th>
+                <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider" style="width: 140px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="leads-table-body" class="divide-y divide-slate-200/60 bg-white">
+            <!-- Leads will be populated by JavaScript -->
+        </tbody>
+    </table>
+`;
         
         leadsContainer.innerHTML = tableHTML;
         console.log('✅ [LeadRenderer] Enhanced table structure created');
@@ -461,52 +659,62 @@ return `
         return 'border-slate-300';
     }
 
-    formatDateProfessional(dateString) {
-        if (!dateString) return { date: 'Unknown', time: '' };
+formatDateProfessional(dateString) {
+    if (!dateString) return { date: 'Unknown', time: '' };
+    
+    try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        const diffSeconds = Math.floor(diffMs / 1000);
         
-        try {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-            const diffMinutes = Math.floor(diffMs / (1000 * 60));
-            
-            // Format date
-            let dateFormatted;
-            if (diffDays === 0) {
-                dateFormatted = 'Today';
-            } else if (diffDays === 1) {
-                dateFormatted = 'Yesterday';
-            } else if (diffDays < 7) {
-                dateFormatted = `${diffDays} days ago`;
-            } else {
-                dateFormatted = date.toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric' 
-                });
-            }
-            
-            // Format time
-            let timeFormatted;
-            if (diffMinutes < 60) {
-                timeFormatted = `${diffMinutes}m ago`;
-            } else if (diffHours < 24) {
-                timeFormatted = `${diffHours}h ago`;
-            } else {
-                timeFormatted = date.toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    hour12: true 
-                });
-            }
-            
-            return { date: dateFormatted, time: timeFormatted };
-        } catch (error) {
-            console.warn('⚠️ [LeadRenderer] Date formatting error:', error);
-            return { date: 'Invalid date', time: '' };
+        // Protect against future dates or negative values
+        if (diffMs < 0 || diffSeconds < 0) {
+            return { date: 'Just now', time: 'now' };
         }
+        
+        // Format date
+        let dateFormatted;
+        if (diffMinutes < 1) {
+            dateFormatted = 'Today';
+        } else if (diffDays === 0) {
+            dateFormatted = 'Today';
+        } else if (diffDays === 1) {
+            dateFormatted = 'Yesterday';
+        } else if (diffDays < 7) {
+            dateFormatted = `${diffDays} days ago`;
+        } else {
+            dateFormatted = date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+        
+        // Format time
+        let timeFormatted;
+        if (diffMinutes < 1) {
+            timeFormatted = 'now';
+        } else if (diffMinutes < 60) {
+            timeFormatted = `${diffMinutes}m ago`;
+        } else if (diffHours < 24) {
+            timeFormatted = `${diffHours}h ago`;
+        } else {
+            timeFormatted = date.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+            });
+        }
+        
+        return { date: dateFormatted, time: timeFormatted };
+    } catch (error) {
+        console.warn('⚠️ [LeadRenderer] Date formatting error:', error);
+        return { date: 'Invalid date', time: '' };
     }
+}
 
     formatNumber(num) {
         if (!num) return '0';
@@ -566,6 +774,116 @@ return `
             }
         }
     }
+
+    renderPagination(totalLeads, totalPages) {
+    const paginationStart = document.getElementById('pagination-start');
+    const paginationTotal = document.getElementById('pagination-total');
+    const paginationControls = document.getElementById('pagination-controls');
+    
+    if (!paginationStart || !paginationTotal || !paginationControls) return;
+    
+    // Update count display
+    const startIndex = (this.currentPage - 1) * this.leadsPerPage + 1;
+    const endIndex = Math.min(this.currentPage * this.leadsPerPage, totalLeads);
+    
+    paginationStart.textContent = totalLeads > 0 ? `${startIndex}-${endIndex}` : '0';
+    paginationTotal.textContent = totalLeads;
+    
+    // Clear existing controls
+    paginationControls.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+    
+    // Build pagination buttons
+    let paginationHTML = '';
+    
+    // Previous button
+    paginationHTML += `
+        <button 
+            onclick="window.leadRenderer.goToPage(${this.currentPage - 1})"
+            ${this.currentPage === 1 ? 'disabled' : ''}
+            class="px-3 py-1 text-sm border border-gray-300 rounded-lg ${this.currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}"
+        >
+            Previous
+        </button>
+    `;
+    
+    // Page number buttons - show current, prev, next, first, and last
+    const pagesToShow = [];
+    
+    // Always show first page
+    if (this.currentPage > 2) {
+        pagesToShow.push(1);
+        if (this.currentPage > 3) {
+            pagesToShow.push('...');
+        }
+    }
+    
+    // Show previous, current, and next page
+    for (let i = Math.max(1, this.currentPage - 1); i <= Math.min(totalPages, this.currentPage + 1); i++) {
+        pagesToShow.push(i);
+    }
+    
+    // Always show last page
+    if (this.currentPage < totalPages - 1) {
+        if (this.currentPage < totalPages - 2) {
+            pagesToShow.push('...');
+        }
+        pagesToShow.push(totalPages);
+    }
+    
+    pagesToShow.forEach(page => {
+        if (page === '...') {
+            paginationHTML += `
+                <span class="px-3 py-1 text-sm text-gray-400">...</span>
+            `;
+        } else {
+            paginationHTML += `
+                <button 
+                    onclick="window.leadRenderer.goToPage(${page})"
+                    class="px-3 py-1 text-sm border rounded-lg ${page === this.currentPage ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}"
+                >
+                    ${page}
+                </button>
+            `;
+        }
+    });
+    
+    // Next button
+    paginationHTML += `
+        <button 
+            onclick="window.leadRenderer.goToPage(${this.currentPage + 1})"
+            ${this.currentPage === totalPages ? 'disabled' : ''}
+            class="px-3 py-1 text-sm border border-gray-300 rounded-lg ${this.currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}"
+        >
+            Next
+        </button>
+    `;
+    
+    paginationControls.innerHTML = paginationHTML;
+}
+
+goToPage(pageNumber) {
+    const leadsToDisplay = this.stateManager.getState('visibleLeads') || 
+                          this.stateManager.getState('filteredLeads') || 
+                          this.stateManager.getState('leads') || [];
+    
+    const totalPages = Math.ceil(leadsToDisplay.length / this.leadsPerPage);
+    
+    if (pageNumber < 1 || pageNumber > totalPages) return;
+    
+    this.currentPage = pageNumber;
+    
+    // Scroll to top of table
+    const tableContainer = document.querySelector('.leads-table-container');
+    if (tableContainer) {
+        tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    this.displayLeads();
+    
+    console.log(`📄 [LeadRenderer] Navigated to page ${pageNumber}/${totalPages}`);
+}
 
     updateSelectionUI() {
         const selectedLeads = this.stateManager.getState('selectedLeads') || new Set();
@@ -1020,4 +1338,9 @@ if (typeof module !== 'undefined' && module.exports) {
 } else if (typeof window !== 'undefined') {
     window.LeadRenderer = LeadRenderer;
     console.log('✅ [LeadRenderer] Enhanced renderer class available globally');
+}
+
+// Make leadRenderer available globally for pagination buttons
+if (typeof window !== 'undefined') {
+    window.leadRenderer = null; // Will be set after initialization
 }

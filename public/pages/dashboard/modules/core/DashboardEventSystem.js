@@ -25,21 +25,21 @@ class DashboardEventSystem {
      */
     static setupDataEvents(eventBus, container) {
         // Data refresh requests
-        eventBus.on(window.DASHBOARD_EVENTS.DATA_REFRESH, async (data) => {
-            console.log('🔄 [DashboardEventSystem] Data refresh requested:', data.reason);
-            
-            try {
-                const leadManager = container.get('leadManager');
-                await leadManager.loadDashboardData();
+eventBus.on(DASHBOARD_EVENTS.LOADING_START, async (data) => {  // ← Add async
+    console.log('🔄 [DashboardEventSystem] Data refresh requested:', data.reason);
+    
+    try {
+        const leadManager = container.get('leadManager');
+        await leadManager.loadDashboardData();
                 
-                eventBus.emit(window.DASHBOARD_EVENTS.DATA_REFRESH_COMPLETE, {
+                eventBus.emit(DASHBOARD_EVENTS.DATA_REFRESH_COMPLETE, {
                     reason: data.reason,
                     timestamp: Date.now()
                 });
                 
             } catch (error) {
                 console.error('❌ [DashboardEventSystem] Data refresh failed:', error);
-                eventBus.emit(window.DASHBOARD_EVENTS.DATA_ERROR, {
+                eventBus.emit(DASHBOARD_EVENTS.DATA_ERROR, {
                     source: 'data_refresh',
                     error,
                     timestamp: Date.now()
@@ -48,13 +48,13 @@ class DashboardEventSystem {
         });
         
         // Data loading events
-        eventBus.on(window.DASHBOARD_EVENTS.DATA_LOADING_START, (data) => {
+        eventBus.on(DASHBOARD_EVENTS.BUSINESS_CHANGED, async (data) => {  // ← Already async, good
             const stateManager = container.get('stateManager');
             stateManager.setState('isLoading', true);
             stateManager.setState('loadingMessage', data.message || 'Loading...');
         });
         
-        eventBus.on(window.DASHBOARD_EVENTS.DATA_LOADING_END, () => {
+        eventBus.on(DASHBOARD_EVENTS.DATA_LOADING_END, () => {
             const stateManager = container.get('stateManager');
             stateManager.setState('isLoading', false);
         });
@@ -65,7 +65,7 @@ class DashboardEventSystem {
      */
     static setupAnalysisEvents(eventBus, container) {
         // Analysis completed - refresh data
-eventBus.on(window.DASHBOARD_EVENTS.ANALYSIS_COMPLETED, async (data) => {
+eventBus.on(DASHBOARD_EVENTS.ANALYSIS_COMPLETED, async (data) => {
     console.log('🎯 [DashboardEventSystem] Analysis completed:', data.username || data.analysis?.username);
             
             try {
@@ -78,14 +78,14 @@ eventBus.on(window.DASHBOARD_EVENTS.ANALYSIS_COMPLETED, async (data) => {
                 await statsCalculator.refreshStats();
                 
                 // Notify UI
-                eventBus.emit(window.DASHBOARD_EVENTS.UI_UPDATE, {
+                eventBus.emit(DASHBOARD_EVENTS.UI_UPDATE, {
                     type: 'analysis_complete',
                     username: data.username
                 });
                 
             } catch (error) {
                 console.error('❌ [DashboardEventSystem] Post-analysis refresh failed:', error);
-                eventBus.emit(window.DASHBOARD_EVENTS.DATA_ERROR, {
+                eventBus.emit(DASHBOARD_EVENTS.DATA_ERROR, {
                     source: 'analysis_completion',
                     error,
                     context: data
@@ -94,7 +94,7 @@ eventBus.on(window.DASHBOARD_EVENTS.ANALYSIS_COMPLETED, async (data) => {
         });
         
         // Analysis queue updates
-        eventBus.on(window.DASHBOARD_EVENTS.ANALYSIS_QUEUE_UPDATE, (data) => {
+        eventBus.on(DASHBOARD_EVENTS.ANALYSIS_QUEUE_UPDATE, (data) => {
             const stateManager = container.get('stateManager');
             stateManager.setState('analysisQueue', data.queue);
             stateManager.setState('analysisInProgress', data.inProgress);
@@ -106,7 +106,7 @@ eventBus.on(window.DASHBOARD_EVENTS.ANALYSIS_COMPLETED, async (data) => {
      */
     static setupBusinessEvents(eventBus, container) {
         // Business changed - reload all business-dependent data
-        eventBus.on(window.DASHBOARD_EVENTS.BUSINESS_CHANGED, async (data) => {
+        eventBus.on(DASHBOARD_EVENTS.BUSINESS_CHANGED, async (data) => {
             console.log('🏢 [DashboardEventSystem] Business changed:', data.businessId);
             
             try {
@@ -126,14 +126,14 @@ eventBus.on(window.DASHBOARD_EVENTS.ANALYSIS_COMPLETED, async (data) => {
                 const realtimeManager = container.get('realtimeManager');
                 await realtimeManager.updateSubscription(data.businessId);
                 
-                eventBus.emit(window.DASHBOARD_EVENTS.BUSINESS_CHANGE_COMPLETE, {
+                eventBus.emit(DASHBOARD_EVENTS.BUSINESS_CHANGE_COMPLETE, {
                     businessId: data.businessId,
                     timestamp: Date.now()
                 });
                 
             } catch (error) {
                 console.error('❌ [DashboardEventSystem] Business change failed:', error);
-                eventBus.emit(window.DASHBOARD_EVENTS.DATA_ERROR, {
+                eventBus.emit(DASHBOARD_EVENTS.DATA_ERROR, {
                     source: 'business_change',
                     error,
                     context: data
@@ -142,7 +142,7 @@ eventBus.on(window.DASHBOARD_EVENTS.ANALYSIS_COMPLETED, async (data) => {
         });
         
         // Business list updated
-        eventBus.on(window.DASHBOARD_EVENTS.BUSINESS_LIST_UPDATED, (data) => {
+        eventBus.on(DASHBOARD_EVENTS.BUSINESS_LIST_UPDATED, (data) => {
             const stateManager = container.get('stateManager');
             stateManager.setState('businesses', data.businesses);
         });
@@ -153,26 +153,26 @@ eventBus.on(window.DASHBOARD_EVENTS.ANALYSIS_COMPLETED, async (data) => {
      */
     static setupErrorEvents(eventBus, container) {
         // Global error handler
-        eventBus.on(window.DASHBOARD_EVENTS.ERROR, (errorData) => {
+        eventBus.on(DASHBOARD_EVENTS.ERROR, (errorData) => {
             console.log('🚨 [DashboardEventSystem] Global error:', errorData);
             this.handleGlobalError(errorData, container);
         });
         
         // Data errors
-        eventBus.on(window.DASHBOARD_EVENTS.DATA_ERROR, (errorData) => {
+        eventBus.on(DASHBOARD_EVENTS.DATA_ERROR, (errorData) => {
             console.log('📊 [DashboardEventSystem] Data error:', errorData);
             this.handleDataError(errorData, container);
         });
         
         // Connection status changes
-        eventBus.on(window.DASHBOARD_EVENTS.CONNECTION_STATUS_CHANGED, (data) => {
+        eventBus.on(DASHBOARD_EVENTS.CONNECTION_STATUS_CHANGED, (data) => {
             const stateManager = container.get('stateManager');
             stateManager.setState('connectionStatus', data.status);
             stateManager.setState('lastConnectionUpdate', Date.now());
         });
         
         // Auth state changes
-        eventBus.on(window.DASHBOARD_EVENTS.AUTH_CHANGED, async (data) => {
+        eventBus.on(DASHBOARD_EVENTS.AUTH_CHANGED, async (data) => {
             console.log('🔐 [DashboardEventSystem] Auth state changed:', data.status);
             
             if (data.status === 'signed_out') {
@@ -186,7 +186,7 @@ eventBus.on(window.DASHBOARD_EVENTS.ANALYSIS_COMPLETED, async (data) => {
                 });
                 
                 // Redirect to auth
-                window.location.href = '/auth';
+                window.location.href = window.OsliraEnv.getAuthUrl();
             }
         });
     }
@@ -231,7 +231,7 @@ eventBus.on(window.DASHBOARD_EVENTS.ANALYSIS_COMPLETED, async (data) => {
         // Update error state
         stateManager.setState('lastError', {
             source,
-            message: error.message,
+            message: error?.message || String(error),
             timestamp: Date.now()
         });
         

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign up for Oslira - AI Lead Generation</title>
-    <meta name="description" content="Start your free trial with Oslira. Get 25 free lead analyses, then upgrade for unlimited access to AI-powered lead generation.">
+    <meta name="description" content="Start your free trial with Oslira. Get 25 free credits for lead analyses, then upgrade for more access to AI-powered lead generation.">
     <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
     
     <!-- Tailwind CSS -->
@@ -36,10 +36,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
-            <h3 class="auth-success-title">Check your email!</h3>
-            <p class="auth-success-message">We've sent you a magic link to sign in.</p>
+            <h3 class="auth-success-title">Success!</h3>
+            <p class="auth-success-message">Redirecting you now...</p>
             <div class="auth-success-details">
-                <span id="success-message">Click the link in your email to complete sign in.</span>
+                <span id="success-message">Please wait...</span>
             </div>
         </div>
 
@@ -50,10 +50,10 @@
                 <span class="auth-logo-text">Oslira</span>
             </div>
             <h1 id="auth-title" class="auth-title">Start your free trial</h1>
-            <p id="auth-subtitle" class="auth-subtitle">Get 25 free lead analyses, then upgrade for unlimited access</p>
+            <p id="auth-subtitle" class="auth-subtitle">Get 25 free credits for lead analyses, then upgrade for more access to AI-powered lead generation.</p>
         </div>
 
-        <!-- Auth Options -->
+        <!-- Google Sign In (Only Auth Option) -->
         <div id="auth-options" class="auth-step active">
             <button type="button" class="auth-method primary" id="google-signin-btn">
                 <div class="auth-icon">
@@ -66,86 +66,6 @@
                 </div>
                 Continue with Google
             </button>
-            
-            <div class="auth-divider">
-                <span class="auth-divider-text">or</span>
-            </div>
-            
-            <button type="button" class="auth-method secondary" id="email-continue-btn">
-                Continue with email
-            </button>
-        </div>
-
-        <!-- Email Input Step -->
-        <div id="email-input-step" class="auth-step">
-            <form id="email-form">
-                <div class="auth-form-group">
-                    <label for="auth-email" class="auth-form-label">Email address</label>
-                    <input 
-                        type="email" 
-                        id="auth-email" 
-                        name="email" 
-                        class="auth-form-input" 
-                        placeholder="Enter your email"
-                        required
-                        autocomplete="email"
-                    >
-                    <div class="auth-error-message" id="email-error" style="display: none;">
-                        <span id="email-error-message"></span>
-                    </div>
-                </div>
-
-                <div class="auth-form-group">
-                    <button type="submit" class="auth-button primary" id="email-submit-btn">
-                        Continue with email
-                    </button>
-                </div>
-
-                <div class="auth-form-group">
-                    <button type="button" class="auth-button secondary" id="back-to-options-btn">
-                        Back to options
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Password Input Step -->
-        <div id="password-input-step" class="auth-step">
-            <form id="password-form">
-                <div class="auth-form-group">
-                    <label for="auth-password" class="auth-form-label">Password</label>
-                    <input 
-                        type="password" 
-                        id="auth-password" 
-                        name="password" 
-                        class="auth-form-input" 
-                        placeholder="Enter your password"
-                        required
-                        autocomplete="current-password"
-                    >
-                    <div class="auth-error-message" id="password-error" style="display: none;">
-                        <span id="password-error-message"></span>
-                    </div>
-                </div>
-
-                <div class="auth-form-group">
-                    <button type="submit" class="auth-button primary" id="password-submit-btn">
-                        Sign in
-                    </button>
-                </div>
-
-                <div class="auth-form-group">
-                    <button type="button" class="auth-link" id="forgot-password-btn">
-                        Forgot your password?
-                    </button>
-                </div>
-
-                <div class="auth-form-group">
-                    <button type="button" class="auth-button secondary" id="back-to-email-btn">
-                        Back to email
-                    </button>
-                </div>
-            </form>
         </div>
 
         <!-- Footer -->
@@ -154,21 +74,53 @@
                 By continuing, you agree to our Terms of Service and Privacy Policy.
             </p>
             <div class="auth-links">
-                <a href="/footer/terms" class="auth-link">Terms of Service</a>
-                <a href="/footer/privacy" class="auth-link">Privacy Policy</a>
-                <a href="/footer/help" class="auth-link">Help Center</a>
+                <a href="#" data-legal-link="terms" class="auth-link">Terms of Service</a>
+                <a href="#" data-legal-link="privacy" class="auth-link">Privacy Policy</a>
+                <a href="#" data-legal-link="contact" class="auth-link">Contact Center</a>
             </div>
         </div>
     </div>
 
-    <!-- Simple script to show page immediately -->
-    <script>
-        // Show content immediately
-        document.body.style.visibility = 'visible';
+<script>
+    // Show content immediately
+    document.body.style.visibility = 'visible';
+    
+    // Set legal links dynamically after env loads
+    function setLegalLinks() {
+        if (!window.OsliraEnv || !window.OsliraEnv.rootDomain) {
+            setTimeout(setLegalLinks, 100);
+            return;
+        }
         
-        // The existing auth.js will handle all functionality
-        // We just need to provide the DOM elements it expects
-        console.log('🔐 [Auth] Simple auth page loaded');
-    </script>
+        console.log('🔗 [Auth] Setting legal links with root domain:', window.OsliraEnv.rootDomain);
+        
+        document.querySelectorAll('[data-legal-link]').forEach(link => {
+            const type = link.getAttribute('data-legal-link');
+            let targetUrl;
+            
+            if (type === 'terms') {
+                targetUrl = window.OsliraEnv.getLegalUrl('terms');
+            } else if (type === 'privacy') {
+                targetUrl = window.OsliraEnv.getLegalUrl('privacy');
+            } else if (type === 'contact') {
+                targetUrl = window.OsliraEnv.getContactUrl('');
+            }
+            
+            if (targetUrl) {
+                link.href = targetUrl;
+                console.log(`✅ [Auth] Set ${type} link to:`, targetUrl);
+            }
+        });
+    }
+    
+    // Wait for env manager to initialize
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setLegalLinks);
+    } else {
+        setLegalLinks();
+    }
+    
+    console.log('🔐 [Auth] Simple auth page loaded');
+</script>
 </body>
 </html>

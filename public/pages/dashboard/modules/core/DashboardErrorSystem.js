@@ -99,7 +99,7 @@ class DashboardErrorSystem {
         
         // Redirect to auth page
         setTimeout(() => {
-            window.location.href = '/auth?error=session_expired';
+            window.location.href = window.OsliraEnv.getAuthUrl() + '?error=session_expired';
         }, 2000);
         
         this.showUserMessage('Session expired. Redirecting to login...', 'warning');
@@ -220,46 +220,46 @@ class DashboardErrorSystem {
     /**
      * Get error action buttons
      */
-    static getErrorActions(errorType) {
-        const actions = {
-            AUTH_ERROR: `
-                <button onclick="window.location.href='/auth'" class="btn btn-primary">
-                    Go to Login
-                </button>
-            `,
-            NETWORK_ERROR: `
-                <button onclick="window.location.reload()" class="btn btn-primary">
-                    Retry
-                </button>
-                <button onclick="DashboardErrorSystem.checkConnection()" class="btn btn-secondary">
-                    Check Connection
-                </button>
-            `,
-            DEPENDENCY_ERROR: `
-                <button onclick="window.location.reload()" class="btn btn-primary">
-                    Refresh Page
-                </button>
-            `,
-            SCHEMA_ERROR: `
-                <button onclick="window.location.reload()" class="btn btn-primary">
-                    Refresh
-                </button>
-                <button onclick="window.location.href='/'" class="btn btn-secondary">
-                    Go Home
-                </button>
-            `,
-            GENERIC_ERROR: `
-                <button onclick="window.location.reload()" class="btn btn-primary">
-                    Refresh Page
-                </button>
-                <button onclick="window.location.href='/'" class="btn btn-secondary">
-                    Go Home
-                </button>
-            `
-        };
-        
-        return actions[errorType] || actions.GENERIC_ERROR;
-    }
+static getErrorActions(errorType) {
+    const actions = {
+        AUTH_ERROR: `
+            <button onclick="window.location.href=window.OsliraEnv.getAuthUrl()" class="btn btn-primary">
+                Go to Login
+            </button>
+        `,
+        NETWORK_ERROR: `
+            <button onclick="window.location.reload()" class="btn btn-primary">
+                Retry
+            </button>
+            <button onclick="DashboardErrorSystem.checkConnection()" class="btn btn-secondary">
+                Check Connection
+            </button>
+        `,
+        DEPENDENCY_ERROR: `
+            <button onclick="window.location.reload()" class="btn btn-primary">
+                Refresh Page
+            </button>
+        `,
+        SCHEMA_ERROR: `
+            <button onclick="window.location.reload()" class="btn btn-primary">
+                Refresh
+            </button>
+            <button onclick="window.location.href=window.OsliraEnv.getMarketingUrl()" class="btn btn-secondary">
+                Go Home
+            </button>
+        `,
+        GENERIC_ERROR: `
+            <button onclick="window.location.reload()" class="btn btn-primary">
+                Refresh Page
+            </button>
+            <button onclick="window.location.href=window.OsliraEnv.getMarketingUrl()" class="btn btn-secondary">
+                Go Home
+            </button>
+        `
+    };
+
+    return actions[errorType] || actions.GENERIC_ERROR;
+}
     
     /**
      * Show user notification for runtime errors

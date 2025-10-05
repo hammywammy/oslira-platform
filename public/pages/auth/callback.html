@@ -116,21 +116,18 @@
             }, delay);
         }
         
-        // Process callback when scripts are loaded
-     // Process callback when scripts are loaded
 window.addEventListener('oslira:scripts:loaded', async () => {
     try {
         console.log('🔐 [Callback] Scripts loaded, processing OAuth callback...');
         
-        // Update status
+        // DO NOT clear session here - OAuth callback needs to read it
+        
         updateStatus('Processing authentication...');
         
-        // Wait for auth system to be ready
         if (!window.OsliraAuth) {
             throw new Error('Auth system not available');
         }
         
-        // Wait for auth system to fully initialize
         await window.OsliraAuth.waitForAuth();
         
         // Check for OAuth callback parameters in URL
@@ -152,10 +149,19 @@ if (result && result.session) {
     
     updateStatus('Sign-in successful! Redirecting...');
     
-    // Redirect based on auth manager's recommendation
-    setTimeout(() => {
-        window.location.href = result.redirectTo;
-    }, 1000);
+// CRITICAL: Pass tokens via URL hash (survives cross-subdomain redirect)
+const tokenData = btoa(JSON.stringify({
+    access_token: result.session.access_token,
+    refresh_token: result.session.refresh_token
+}));
+
+console.log('🔐 [Callback] Redirecting with embedded auth tokens');
+
+// Redirect with tokens in hash
+setTimeout(() => {
+    window.location.href = `${result.redirectTo}#auth=${tokenData}`;
+}, 500);
+    
 } else {
     console.log('❌ [Callback] No valid session found');
     throw new Error('No valid session found after authentication');
@@ -184,7 +190,7 @@ if (result && result.session) {
         // Setup retry button
         document.getElementById('retry-btn').addEventListener('click', () => {
             console.log('🔐 [Callback] Retry button clicked, redirecting to auth');
-            window.location.href = '/auth';
+            window.location.href = window.OsliraEnv.getAuthUrl();
         });
         
         // Check for specific error parameters in URL

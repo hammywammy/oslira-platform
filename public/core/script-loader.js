@@ -27,6 +27,7 @@ this.coreScripts = [
         this.pageConfigs = {
             'dashboard': {
                 scripts: [
+                    '/core/dependency-readiness.js',
                     '/core/api-client.js',
                     '/core/sidebar/sidebar-manager.js',
                     '/pages/dashboard/modules/core/DashboardCore.js',
@@ -37,12 +38,20 @@ this.coreScripts = [
                     '/pages/dashboard/modules/core/event-bus.js',
                     '/pages/dashboard/modules/core/state-manager.js',
                     '/pages/dashboard/modules/modals/components/tab-system.js',
-                    '/pages/dashboard/modules/modals/components/modal-components.js',
+'/pages/dashboard/modules/modals/components/modal-components-core.js',
+'/pages/dashboard/modules/modals/components/modal-components-deep.js',
+'/pages/dashboard/modules/modals/components/modal-components-xray.js',
+                    '/pages/dashboard/modules/modals/components/modal-components-personality.js',
                     '/pages/dashboard/modules/modals/configs/analysis-configs.js', 
                     '/pages/dashboard/modules/modals/modal-builder.js',
-                    '/pages/dashboard/modules/analysis/analysis-functions.js',
-                    '/pages/dashboard/modules/analysis/analysis-modal.js',
-                    '/pages/dashboard/modules/analysis/analysis-queue.js',
+'/pages/dashboard/modules/analysis/analysis-functions.js',
+'/pages/dashboard/modules/analysis/analysis-modal.js',
+'/pages/dashboard/modules/analysis/analysis-queue-styles.js',
+'/pages/dashboard/modules/analysis/analysis-queue-renderer.js',
+'/pages/dashboard/modules/analysis/analysis-queue-animator.js',
+'/pages/dashboard/modules/analysis/analysis-queue.js',
+                    '/pages/dashboard/modules/ui/filter-modal.js',
+                    
                     '/pages/dashboard/modules/bulk/bulk-upload.js',
                     '/pages/dashboard/modules/business/business-manager.js',
                     '/pages/dashboard/modules/handlers/lead-analysis-handlers.js',
@@ -65,16 +74,11 @@ this.coreScripts = [
                 enableTailwind: true
             },
             
-            'home': {
-                scripts: [
-                    '/core/api-client.js',
-                    '/pages/home/homeHandlers.js',
-                    '/pages/home/home.js',
-                    '/core/footer/footer-manager.js'
-                ],
-                requiresAuth: false,
-                enableTailwind: true
-            },
+'home': {
+    scripts: ['/core/header/header-manager.js', '/pages/home/homeHandlers.js', '/pages/home/home.js', '/core/footer/footer-manager.js'],
+    requiresAuth: false,
+    enableTailwind: true
+},
             
             'onboarding': {
                 scripts: [

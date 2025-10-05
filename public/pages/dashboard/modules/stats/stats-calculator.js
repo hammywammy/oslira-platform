@@ -36,10 +36,20 @@ class StatsCalculator {
     // ===============================================================================
     // MAIN STATS CALCULATION - EXTRACTED FROM dashboard.js lines 900-1200
     // ===============================================================================
-    
-    // EXTRACTED FROM dashboard.js lines 900-1050
+// Plan credit limits
+getPlanCredits(planType) {
+    const planCredits = {
+        'free': 25,
+        'starter': 100,
+        'pro': 300,
+        'agency': 1000,
+        'enterprise': 5000
+    };
+    return planCredits[planType] || 25;
+}
+
+// EXTRACTED FROM dashboard.js lines 900-1050
 async refreshStats() {
-    // Debounce to prevent multiple rapid calculations
     if (this.statsRefreshTimeout) {
         clearTimeout(this.statsRefreshTimeout);
     }
@@ -48,7 +58,6 @@ async refreshStats() {
         try {
             console.log('📊 [StatsCalculator] Updating dashboard stats with database queries...');
             
-            // Get current business
             const currentBusiness = this.stateManager.getState('selectedBusiness');
             if (!currentBusiness) {
                 console.log('⏭️ [StatsCalculator] No business selected, using default stats');
@@ -57,33 +66,188 @@ async refreshStats() {
             }
             
             const businessId = currentBusiness.id;
-            const userId = this.osliraApp?.user?.id;
+            const userId = this.osliraAuth?.user?.id;
             
             if (!userId) {
-                console.warn('⚠️ [StatsCalculator] No user ID available');
+                console.log('⏳ [StatsCalculator] Waiting for authentication...');
                 this.updateStatsFromCachedData();
                 return;
             }
             
-            // Check cache first
-            const cached = this.getCachedStats();
-            if (cached && cached.businessId === businessId) {
-                console.log('📊 [StatsCalculator] Using cached stats');
-                this.renderStats(cached);
-                return;
-            }
+            // Get subscription data
+            const planType = this.osliraAuth?.user?.plan_type || 'free';
+            const creditsRemaining = this.osliraAuth?.user?.credits || 0;
+            const planCredits = this.getPlanCredits(planType);
             
-            // Continue with rest of existing function...
-            // [Keep all the existing database query logic here]
+            // Calculate leads from current month
+            const leadsThisMonth = await this.getLeadsThisMonth(userId, businessId);
+            
+            // Get all leads for other stats
+            const allLeads = this.stateManager.getState('leads') || [];
+            
+            const stats = {
+                // Credits this month: remaining / plan total
+                creditsRemaining,
+                planCredits,
+                creditsUsed: planCredits - creditsRemaining,
+                creditsPercentage: Math.round((creditsRemaining / planCredits) * 100),
+                
+                // Leads this month
+                leadsThisMonth: leadsThisMonth.length,
+                
+                // Average quality score
+                averageScore: this.calculateAverageScore(allLeads),
+                
+                // Premium leads (80+)
+                premiumLeads: allLeads.filter(lead => (lead.score || 0) >= 80).length,
+                
+                lastUpdate: new Date().toISOString()
+            };
+            
+            this.renderStats(stats);
+            this.stateManager.setState('stats', stats);
             
         } catch (error) {
-            console.error('❌ [StatsCalculator] Error updating dashboard stats:', error);
+            console.error('❌ [StatsCalculator] Failed to refresh stats:', error);
             this.updateStatsFromCachedData();
-            throw error;
-        } finally {
-            this.statsRefreshTimeout = null;
         }
-    }, 250);
+    }, 300);
+}
+
+async getLeadsThisMonth(userId, businessId) {
+    try {
+        // Get first day of current month
+        const now = new Date();
+        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        const { data, error } = await this.supabase
+            .from('leads')
+            .select('lead_id, username, first_discovered_at')
+            .eq('user_id', userId)
+            .eq('business_id', businessId)
+            .gte('first_discovered_at', firstDayOfMonth.toISOString());
+        
+        if (error) throw error;
+        return data || [];
+    } catch (error) {
+        console.error('❌ [StatsCalculator] Failed to get leads this month:', error);
+        return [];
+    }
+}
+
+calculateAverageScore(leads) {
+    if (!leads || leads.length === 0) return 0;
+    
+    const scoresWithValues = leads.filter(lead => lead.score != null && lead.score > 0);
+    if (scoresWithValues.length === 0) return 0;
+    
+    return Math.round(
+        scoresWithValues.reduce((sum, lead) => sum + lead.score, 0) / scoresWithValues.length
+    );
+}
+
+renderStats(stats) {
+    console.log('🎨 [StatsCalculator] Rendering stats to UI:', stats);
+    
+// Credits this month - show remaining credits and dynamic percentage
+const creditsUsedEl = document.getElementById('credits-used');
+const creditsTotalEl = document.getElementById('credits-total');
+const creditsPercentEl = document.getElementById('credits-percent');
+
+if (creditsUsedEl) creditsUsedEl.textContent = stats.creditsRemaining || 0;
+if (creditsTotalEl) creditsTotalEl.textContent = this.formatNumber(stats.planCredits);
+if (creditsPercentEl) {
+    const remaining = stats.creditsRemaining || 0;
+    const total = stats.planCredits || 1;
+    const used = total - remaining;
+    
+    // Show 0% if more credits than started with
+    if (remaining >= total) {
+        creditsPercentEl.textContent = '0% used';
+    } else {
+        // Calculate percentage to 1 decimal
+        const percentage = ((used / total) * 100).toFixed(1);
+        creditsPercentEl.textContent = `${percentage}% used`;
+    }
+}
+    
+    // Leads researched this month
+    const leadsResearchedEl = document.getElementById('leads-researched');
+    if (leadsResearchedEl) leadsResearchedEl.textContent = stats.leadsThisMonth || 0;
+    
+// Average quality score with updated thresholds: 0-30 poor, 31-50 low, 51-70 good, 71+ excellent
+    const avgQualityEl = document.getElementById('avg-quality');
+    const avgQualityContainer = avgQualityEl?.closest('.glass-white');
+    if (avgQualityEl) {
+        avgQualityEl.textContent = stats.averageScore || 0;
+        
+        // Update status indicator with new scoring factors
+        const statusIndicator = avgQualityContainer?.querySelector('.text-xs.font-semibold');
+        if (statusIndicator) {
+            const score = stats.averageScore || 0;
+            
+            if (score >= 71) {
+                statusIndicator.textContent = 'EXCELLENT';
+                statusIndicator.className = 'text-xs text-green-600 font-semibold';
+            } else if (score >= 51) {
+                statusIndicator.textContent = 'GOOD';
+                statusIndicator.className = 'text-xs text-blue-600 font-semibold';
+            } else if (score >= 31) {
+                statusIndicator.textContent = 'LOW';
+                statusIndicator.className = 'text-xs text-yellow-600 font-semibold';
+            } else {
+                statusIndicator.textContent = 'POOR';
+                statusIndicator.className = 'text-xs text-red-600 font-semibold';
+            }
+        }
+    }
+    
+    // Premium leads
+    const premiumLeadsEl = document.getElementById('premium-leads');
+    if (premiumLeadsEl) premiumLeadsEl.textContent = stats.premiumLeads || 0;
+    
+    console.log('✅ [StatsCalculator] Stats UI updated successfully');
+}
+
+    calculateStats(leads) {
+    console.log('🔢 [StatsCalculator] Calculating stats from lead data...');
+    
+    if (!leads || leads.length === 0) {
+        return this.getDefaultStats();
+    }
+    
+    // Get subscription data for credits
+    const planType = this.osliraAuth?.user?.plan_type || 'free';
+    const creditsRemaining = this.osliraAuth?.user?.credits || 0;
+    const planCredits = this.getPlanCredits(planType);
+    
+    const stats = {
+        // Credits
+        creditsRemaining,
+        planCredits,
+        creditsUsed: planCredits - creditsRemaining,
+        creditsPercentage: Math.round((creditsRemaining / planCredits) * 100),
+        
+        // Leads (from current loaded data, not monthly filtered)
+        totalLeads: leads.length,
+        leadsThisMonth: leads.length, // Will be overridden by refreshStats with actual monthly data
+        
+        // Average quality score
+        averageScore: this.calculateAverageScore(leads),
+        
+        // Premium leads (80+)
+        premiumLeads: leads.filter(lead => (lead.score || 0) >= 80).length,
+        
+        // Analysis type counts (for backwards compatibility)
+        deepAnalyses: leads.filter(lead => lead.analysis_type === 'deep').length,
+        lightAnalyses: leads.filter(lead => lead.analysis_type === 'light').length,
+        
+        lastUpdate: new Date().toISOString(),
+        calculatedFromLeads: true
+    };
+    
+    console.log('📊 [StatsCalculator] Stats calculated from leads:', stats);
+    return stats;
 }
 
     calculateGrowthRate(runs, days) {
@@ -102,108 +266,6 @@ async refreshStats() {
     
     return Math.round(((recentRuns.length - previousPeriodRuns.length) / previousPeriodRuns.length) * 100);
 }
-    
-    // EXTRACTED FROM dashboard.js lines 1100-1200
-    calculateStats(leads) {
-        console.log('🔢 [StatsCalculator] Calculating stats from lead data...');
-        
-        if (!leads || leads.length === 0) {
-            return this.getDefaultStats();
-        }
-        
-        // Calculate from leads array
-        const totalLeads = leads.length;
-        
-        // Calculate average score
-        const scoresWithValues = leads.filter(lead => lead.score != null && lead.score > 0);
-        const avgScore = scoresWithValues.length > 0
-            ? Math.round(scoresWithValues.reduce((sum, lead) => sum + lead.score, 0) / scoresWithValues.length)
-            : 0;
-            
-        // High-value leads (score >= 80)
-        const highValueLeads = leads.filter(lead => (lead.score || 0) >= 80).length;
-        
-        // Analysis type counts
-        const deepAnalyses = leads.filter(lead => lead.analysis_type === 'deep').length;
-        const lightAnalyses = leads.filter(lead => lead.analysis_type === 'light').length;
-        
-        // Get user credits
-        const userCredits = this.osliraApp?.user?.credits || 0;
-        
-        const stats = {
-            totalLeads,
-            averageScore: avgScore,
-            highValueLeads,
-            deepAnalyses,
-            lightAnalyses,
-            creditsRemaining: userCredits,
-            lastUpdate: new Date().toISOString(),
-            calculatedFromLeads: true
-        };
-        
-        console.log('📊 [StatsCalculator] Stats calculated from leads:', stats);
-        return stats;
-    }
-    
-    // ===============================================================================
-    // STATS RENDERING - EXTRACTED FROM dashboard.js lines 7000-7400
-    // ===============================================================================
-    
-    // EXTRACTED FROM dashboard.js lines 7000-7200
-    renderStats(stats) {
-        console.log('🎨 [StatsCalculator] Rendering stats to UI:', stats);
-        
-        // Update total leads
-        const totalLeadsEl = document.getElementById('total-leads');
-        if (totalLeadsEl) {
-            totalLeadsEl.textContent = this.formatNumber(stats.totalLeads);
-        }
-        
-        // Update average score with color coding
-        const avgScoreEl = document.getElementById('average-score');
-        if (avgScoreEl) {
-            avgScoreEl.textContent = `${stats.averageScore}%`;
-            avgScoreEl.className = this.getScoreClass(stats.averageScore);
-        }
-        
-        // Update high-value leads
-        const highValueEl = document.getElementById('high-value-leads');
-        if (highValueEl) {
-            highValueEl.textContent = this.formatNumber(stats.highValueLeads);
-        }
-        
-        // Update high-value percentage
-        const highValuePercentEl = document.getElementById('high-value-percent');
-        if (highValuePercentEl) {
-            const percentage = stats.totalLeads > 0 
-                ? Math.round((stats.highValueLeads / stats.totalLeads) * 100)
-                : 0;
-            highValuePercentEl.textContent = `${percentage}%`;
-        }
-        
-        // Update analysis counts
-        const deepAnalysesEl = document.getElementById('deep-analyses-count');
-        if (deepAnalysesEl) {
-            deepAnalysesEl.textContent = this.formatNumber(stats.deepAnalyses);
-        }
-        
-        const lightAnalysesEl = document.getElementById('light-analyses-count');
-        if (lightAnalysesEl) {
-            lightAnalysesEl.textContent = this.formatNumber(stats.lightAnalyses);
-        }
-        
-        // Update credits
-        this.updateCreditsDisplay(stats.creditsRemaining);
-        
-        // Update last refresh time
-        const lastUpdateEl = document.getElementById('last-stats-update');
-        if (lastUpdateEl && stats.lastUpdate) {
-            const updateTime = new Date(stats.lastUpdate);
-            lastUpdateEl.textContent = `Updated ${this.formatTimeAgo(updateTime)}`;
-        }
-        
-        console.log('✅ [StatsCalculator] Stats UI updated successfully');
-    }
     
     // EXTRACTED FROM dashboard.js lines 7250-7400
     updateStatsUI(stats) {
@@ -474,7 +536,12 @@ generateInsights(statsData) {
             highValueLeads: 0,
             deepAnalyses: 0,
             lightAnalyses: 0,
-            creditsRemaining: this.osliraApp?.user?.credits || 0,
+            creditsRemaining: this.osliraAuth?.user?.credits || 0,
+planCredits: this.getPlanCredits(this.osliraAuth?.user?.plan_type || 'free'),
+creditsUsed: 0,
+creditsPercentage: 0,
+leadsThisMonth: 0,
+premiumLeads: 0,
             lastUpdate: new Date().toISOString()
         };
     }

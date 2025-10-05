@@ -1,4 +1,4 @@
-// ===============================================================================
+    // ===============================================================================
 // ANALYSIS TYPE CONFIGURATIONS - Define what components each type uses
 // ===============================================================================
 
@@ -9,73 +9,108 @@ class AnalysisConfigs {
     }
 
 registerDefaultConfigs() {
-    // Light Analysis Configuration - No tabs
-    this.configs.set('light', {
-        hasTabs: false,
-        components: [
-            'heroHeader',
-            'aiSummary',
-            'lightAnalysisNotice'
-        ]
-    });
+    
+this.configs.set('light', {
+    hasTabs: true,
+    tabs: [
+        {
+            id: 'analysis',
+            label: 'Analysis',
+            components: [
+                'aiSummary',
+                'lightAnalysisNotice'
+            ]
+        },
+        {
+            id: 'personality',
+            label: 'Personality',
+            components: [
+                'personalityLockedLight'  // Show the locked card instead
+            ]
+        }
+    ]
+});
+    
+this.configs.set('deep', {
+    hasTabs: true,
+    tabs: [
+{
+    id: 'analysis',
+    label: 'Analysis',
+    components: [
+        'quickSummary',
+        'reasons',
+        'payloadAudienceInsights',
+        'sellingPoints',
+        'deepSummary'
+    ]
+},
+        {
+            id: 'outreach',
+            label: 'Outreach',
+            components: [
+                'outreachMessage'
+            ]
+        },
+{
+    id: 'analytics',
+    label: 'Analytics',
+    components: [
+        'contentEngagementIntel'
+    ]
+},
+        {
+            id: 'personality',
+            label: 'Personality',
+            components: [
+                'personalityOverview',
+                'behaviorPatterns',
+                'communicationStyle',
+                'motivationDrivers'
+            ]
+        }
+    ]
+});
 
-    // Deep Analysis Configuration - WITH TABS  
-    this.configs.set('deep', {
-        hasTabs: true,
-        tabs: [
-            {
-                id: 'analysis',
-                label: 'Analysis',
-                components: [
-                    'deepSummary',          // New - shows deep_summary
-                    'sellingPoints',        // Existing - shows selling_points from payload
-                    'outreachMessage',      // Existing - shows outreach_message from payload
-                    'engagementBreakdown',  // New - shows engagement metrics
-                    'payloadAudienceInsights', // New - shows audience_insights 
-                    'reasons',              // Existing - shows reasons array
-                    'latestPosts',          // New - shows latest_posts (when available)
-                    'aiSummary'             // Existing fallback
-                ]
-            },
-            {
-                id: 'personality',
-                label: 'Personality',
-                components: [
-                    'personalityOverview',
-                    'behaviorPatterns',
-                    'communicationStyle',
-                    'motivationDrivers'
-                ]
-            }
-        ]
-    });
-
-    // X-Ray Analysis Configuration - WITH TABS
-    this.configs.set('xray', {
-        hasTabs: true,
-        tabs: [
-            {
-                id: 'analysis',
-                label: 'Analysis',
-                components: [
-                    'copywriterProfile',
-                    'commercialIntelligence', 
-                    'persuasionStrategy',
-                    'aiSummary'
-                ]
-            },
-            {
-                id: 'personality',
-                label: 'Personality',
-                components: [
-                    'personalityOverview',
-                    'behaviorPatterns',
-                    'communicationStyle',
-                    'motivationDrivers'
-                ]
-            }
-        ]
-    });
+this.configs.set('xray', {
+    hasTabs: true,
+    tabs: [
+        {
+            id: 'analysis',
+            label: 'Analysis',
+            components: [
+                'copywriterProfile',
+                'commercialIntelligence',
+                'persuasionStrategy',
+                'aiSummary'
+            ]
+        },
+        {
+            id: 'outreach',
+            label: 'Outreach',
+            components: [
+                'outreachMessage'
+            ]
+        },
+{
+    id: 'analytics',
+    label: 'Analytics',
+    components: [
+        'contentEngagementIntel'
+    ]
+},
+        {
+            id: 'personality',
+            label: 'Personality',
+            components: [
+                'personalityOverview',
+                'behaviorPatterns',
+                'communicationStyle',
+                'motivationDrivers'
+            ]
+        }
+    ]
+});
 }
 
     getConfig(analysisType) {

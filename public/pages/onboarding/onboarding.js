@@ -38,24 +38,27 @@
         }
     });
     
-    async function initialize() {
-        if (initialized) return;
-        
-        if (!window.SimpleAuth) {
-            throw new Error('SimpleAuth not available');
-        }
-        
-        await window.SimpleAuth.initialize();
-        const session = window.SimpleAuth.getCurrentSession();
+async function initialize() {
+    if (initialized) return;
+    
+    if (!window.OsliraAuth) {
+        throw new Error('OsliraAuth not available');
+    }
+    
+    // CRITICAL: Restore session from URL hash BEFORE initializing
+    await window.OsliraAuth.restoreSessionFromUrl();
+    
+    await window.OsliraAuth.initialize();
+    const session = window.OsliraAuth.getCurrentSession();
         
         if (!session || !session.user) {
             console.log('❌ [Onboarding] No valid session, redirecting to auth');
-            window.location.href = '/auth';
+            window.location.href = window.OsliraEnv.getAuthUrl();
             return;
         }
         
         user = session.user;
-        supabase = window.SimpleAuth.supabase;
+        supabase = window.OsliraAuth .supabase;
         
         console.log('✅ [Onboarding] User authenticated:', user.email);
 
@@ -701,14 +704,15 @@ if (typeof window.OsliraAPI.request !== 'function') {
 
             console.log('📤 [Onboarding] Creating business profile...');
             
-            const profileResponse = await fetch(`${workerUrl}/business-profiles`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify(formData)
-            });
+const profileResponse = await fetch(`${workerUrl}/business-profiles`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+        'apikey': window.OsliraEnv.SUPABASE_ANON_KEY
+    },
+    body: JSON.stringify(formData)
+});
             
             if (!profileResponse.ok) {
                 const errorText = await profileResponse.text();
@@ -738,18 +742,19 @@ if (typeof window.OsliraAPI.request !== 'function') {
             try {
                 setProgressStep(2, 0.3);
 
-                const contextResponse = await fetch(`${workerUrl}/v1/generate-business-context`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.access_token}`
-                    },
-                    body: JSON.stringify({
-                        business_data: formData,
-                        user_id: userId,
-                        request_type: 'onboarding'
-                    })
-                });
+const contextResponse = await fetch(`${workerUrl}/v1/generate-business-context`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+        'apikey': window.OsliraEnv.SUPABASE_ANON_KEY
+    },
+    body: JSON.stringify({
+        business_data: formData,
+        user_id: userId,
+        request_type: 'onboarding'
+    })
+});
 
                 setProgressStep(2, 0.7);
 
@@ -766,18 +771,19 @@ if (typeof window.OsliraAPI.request !== 'function') {
                         
                         setProgressStep(3, 0.2);
                         
-                        const updateResponse = await fetch(`${workerUrl}/business-profiles/${profileId}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${session.access_token}`
-                            },
-                            body: JSON.stringify({
-                                business_one_liner: contextResult.data.business_one_liner,
-                                business_context_pack: contextResult.data.business_context_pack,
-                                context_version: contextResult.data.context_version
-                            })
-                            });
+const updateResponse = await fetch(`${workerUrl}/business-profiles/${profileId}`, {
+    method: 'PUT',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+        'apikey': window.OsliraEnv.SUPABASE_ANON_KEY
+    },
+    body: JSON.stringify({
+        business_one_liner: contextResult.data.business_one_liner,
+        business_context_pack: contextResult.data.business_context_pack,
+        context_version: contextResult.data.context_version
+    })
+});
                         
                         setProgressStep(3, 0.5);
                         
@@ -804,17 +810,33 @@ if (typeof window.OsliraAPI.request !== 'function') {
                 setProgressStep(2, 1.0);
             }
             
-            setProgressStep(3, 0.7);
-            updateSubmissionMessage('Completing setup...');
+setProgressStep(3, 0.7);
+updateSubmissionMessage('Completing setup...');
 
-            const { error: updateUserError } = await authSystem.supabase
-                .from('users')
-                .update({ onboarding_completed: true })
-                .eq('id', user.id);
-                
-            if (updateUserError) {
-                console.warn('⚠️ [Onboarding] Failed to update user status:', updateUserError);
-            }
+// Mark onboarding as complete
+const { error: updateUserError } = await authSystem.supabase
+    .from('users')
+    .update({ onboarding_completed: true })
+    .eq('id', user.id);
+    
+if (updateUserError) {
+    console.warn('⚠️ [Onboarding] Failed to update user status:', updateUserError);
+}
+
+// Create subscription record (everything else handled by database defaults/triggers)
+console.log('💳 [Onboarding] Creating subscription record...');
+const { error: subscriptionError } = await authSystem.supabase
+    .from('subscriptions')
+    .insert({
+        user_id: user.id
+    });
+
+if (subscriptionError) {
+    console.error('❌ [Onboarding] Failed to create subscription:', subscriptionError);
+    throw new Error('Failed to initialize subscription. Please contact support.');
+}
+
+console.log('✅ [Onboarding] Subscription record created');
             
             setProgressStep(3, 1.0);
             updateSubmissionMessage('Setup complete! Redirecting...');
@@ -822,7 +844,7 @@ if (typeof window.OsliraAPI.request !== 'function') {
             console.log('✅ [Onboarding] Onboarding complete, redirecting...');
             
             setTimeout(() => {
-                window.location.href = '/dashboard/';
+                window.location.href = window.OsliraEnv.getAppUrl('/dashboard');
             }, 1000);
             
         } catch (error) {
@@ -851,7 +873,7 @@ if (typeof window.OsliraAPI.request !== 'function') {
             
             if (error.message.includes('Authentication') || error.message.includes('Invalid signature')) {
                 setTimeout(() => {
-                    window.location.href = '/auth';
+                    window.location.href = window.OsliraEnv.getAuthUrl();
                 }, 3000);
             }
         }

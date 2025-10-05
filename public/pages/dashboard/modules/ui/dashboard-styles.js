@@ -4,6 +4,22 @@ class DashboardStyles {
     static getInlineStyles() {
         return `
 <style>
+
+/* Filter badge animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+}
     /* Custom gradient background */
     .gradient-bg {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -31,6 +47,8 @@ class DashboardStyles {
     /* Hover effects */
     .hover-lift {
         transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
     }
     
     .hover-lift:hover {
@@ -46,13 +64,6 @@ class DashboardStyles {
     @keyframes countUp {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
-    }
-
-    
-    /* Ensure priority cards don't interfere */
-    .hover-lift {
-        position: relative;
-        z-index: 1;
     }
     
     /* Score Bar */
@@ -71,6 +82,277 @@ class DashboardStyles {
     .score-high .score-fill { background: #10b981; }
     .score-medium .score-fill { background: #fbbf24; }
     .score-low .score-fill { background: #ef4444; }
+    
+    /* Animated Wave Gradients for Score Bars */
+    @keyframes scoreWave {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .score-wave-gradient-excellent {
+        background: linear-gradient(90deg, #6B21A8, #7E22CE, #9333EA, #A855F7, #7E22CE, #6B21A8);
+        background-size: 200% 100%;
+        animation: scoreWave 3s ease-in-out infinite;
+    }
+
+    .score-wave-gradient-good-high {
+        background: linear-gradient(90deg, #2563EB, #4F46E5, #7C3AED, #9333EA, #4F46E5, #2563EB);
+        background-size: 200% 100%;
+        animation: scoreWave 3s ease-in-out infinite;
+    }
+
+    .score-wave-gradient-good-mid {
+        background: linear-gradient(90deg, #2563EB, #3B82F6, #4F46E5, #6366F1, #3B82F6, #2563EB);
+        background-size: 200% 100%;
+        animation: scoreWave 3s ease-in-out infinite;
+    }
+
+    .score-wave-gradient-good-low {
+        background: linear-gradient(90deg, #1D4ED8, #2563EB, #3B82F6, #2563EB, #1D4ED8);
+        background-size: 200% 100%;
+        animation: scoreWave 3s ease-in-out infinite;
+    }
+
+    .score-wave-gradient-moderate-high {
+        background: linear-gradient(90deg, #14B8A6, #06B6D4, #0EA5E9, #3B82F6, #06B6D4, #14B8A6);
+        background-size: 200% 100%;
+        animation: scoreWave 3s ease-in-out infinite;
+    }
+
+    .score-wave-gradient-moderate-mid {
+        background: linear-gradient(90deg, #0D9488, #14B8A6, #2DD4BF, #22D3EE, #14B8A6, #0D9488);
+        background-size: 200% 100%;
+        animation: scoreWave 3s ease-in-out infinite;
+    }
+
+    .score-wave-gradient-moderate-low {
+        background: linear-gradient(90deg, #0F766E, #14B8A6, #2DD4BF, #5EEAD4, #14B8A6, #0F766E);
+        background-size: 200% 100%;
+        animation: scoreWave 3s ease-in-out infinite;
+    }
+
+    .score-wave-gradient-fair-highest {
+        background: linear-gradient(90deg, 
+            #84CC16,  /* lime-500 */
+            #BEF264,  /* lime-400 */
+            #D9F99D,  /* lime-300 */
+            #6EE7B7,  /* emerald-300 */
+            #5EEAD4,  /* teal-300 */
+            #2DD4BF,  /* teal-400 */
+            #5EEAD4,  /* teal-300 back */
+            #6EE7B7,  /* emerald-300 back */
+            #BEF264,  /* lime-400 back */
+            #84CC16   /* lime-500 back */
+        );
+        background-size: 300% 100%;
+        animation: scoreWave 4s ease-in-out infinite;
+    }
+
+    .score-wave-gradient-fair-high {
+        background: linear-gradient(90deg, 
+            #EAB308,  /* yellow-500 */
+            #FACC15,  /* yellow-400 */
+            #FDE047,  /* yellow-300 */
+            #BEF264,  /* lime-400 */
+            #A3E635,  /* lime-500 */
+            #BEF264,  /* lime-400 back */
+            #FDE047,  /* yellow-300 back */
+            #FACC15,  /* yellow-400 back */
+            #EAB308   /* yellow-500 back */
+        );
+        background-size: 300% 100%;
+        animation: scoreWave 4s ease-in-out infinite;
+    }
+
+    .score-wave-gradient-fair-mid {
+        background: linear-gradient(90deg, 
+            #F97316,  /* orange-500 */
+            #FB923C,  /* orange-400 */
+            #FBBF24,  /* amber-400 */
+            #FCD34D,  /* yellow-300 */
+            #FACC15,  /* yellow-400 */
+            #FCD34D,  /* yellow-300 back */
+            #FBBF24,  /* amber-400 back */
+            #FB923C,  /* orange-400 back */
+            #F97316   /* orange-500 back */
+        );
+        background-size: 300% 100%;
+        animation: scoreWave 4s ease-in-out infinite;
+    }
+
+    .score-wave-gradient-fair-low {
+        background: linear-gradient(90deg, 
+            #EA580C,  /* orange-600 */
+            #F97316,  /* orange-500 */
+            #FB923C,  /* orange-400 */
+            #FDBA74,  /* orange-300 */
+            #FB923C,  /* orange-400 back */
+            #F97316,  /* orange-500 back */
+            #EA580C   /* orange-600 back */
+        );
+        background-size: 300% 100%;
+        animation: scoreWave 4s ease-in-out infinite;
+    }
+
+    .score-wave-gradient-poor-high {
+        background: linear-gradient(90deg, #B91C1C, #DC2626, #EF4444, #F97316, #DC2626, #B91C1C);
+        background-size: 200% 100%;
+        animation: scoreWave 3s ease-in-out infinite;
+    }
+
+    .score-wave-gradient-poor-mid {
+        background: linear-gradient(90deg, #991B1B, #B91C1C, #DC2626, #B91C1C, #991B1B);
+        background-size: 200% 100%;
+        animation: scoreWave 3s ease-in-out infinite;
+    }
+
+    .score-wave-gradient-poor-low {
+        background: linear-gradient(90deg, #7F1D1D, #991B1B, #B91C1C, #991B1B, #7F1D1D);
+        background-size: 200% 100%;
+        animation: scoreWave 3s ease-in-out infinite;
+    }
+
+    /* ============================================================================
+   DASHBOARD SMOOTH TRANSITIONS & ANIMATIONS
+   ============================================================================ */
+
+/* Smooth table refresh transitions */
+.leads-table tbody {
+    transition: opacity 0.2s ease-in-out;
+}
+
+.leads-table tbody.refreshing {
+    opacity: 0.7;
+}
+
+/* Bulk actions bar smooth slide-in */
+#bulk-actions-bar {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: left center;
+}
+
+#bulk-actions-bar.hidden {
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+}
+
+#bulk-actions-bar:not(.hidden) {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Stronger table lines */
+.leads-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.leads-table thead th {
+    border-bottom: 2px solid #cbd5e1 !important;
+}
+
+.leads-table tbody tr {
+    border-bottom: 1.5px solid #e2e8f0 !important;
+}
+
+.leads-table tbody tr:hover {
+    border-bottom-color: #cbd5e1 !important;
+}
+
+.leads-table th,
+.leads-table td {
+    border-right: 1.5px solid #e2e8f0;
+}
+
+.leads-table th:last-child,
+.leads-table td:last-child {
+    border-right: none;
+}
+
+/* Center checkboxes in first column */
+.leads-table thead th:first-child {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    text-align: center !important;
+}
+
+.leads-table tbody td:first-child {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    text-align: center !important;
+}
+
+/* Checkbox smooth state changes */
+.lead-checkbox {
+    transition: all 0.15s ease;
+}
+
+.lead-checkbox:checked {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+/* Select-all checkbox indeterminate state */
+#select-all-checkbox:indeterminate {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 8h8'/%3e%3c/svg%3e");
+}
+
+/* Selected row highlight */
+tr[data-lead-id].bg-blue-50 {
+    transition: background-color 0.2s ease;
+}
+
+/* Prevent layout shift */
+.flex-shrink-0 {
+    flex-shrink: 0 !important;
+}
+
+/* Dropdown smooth animations */
+#copy-dropdown,
+#export-dropdown {
+    animation: dropdownSlideIn 0.2s ease-out;
+}
+
+@keyframes dropdownSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Button hover states */
+#bulk-actions-bar button {
+    transition: all 0.2s ease;
+}
+
+#bulk-actions-bar button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+#bulk-actions-bar button:active {
+    transform: translateY(0);
+}
+
+/* Smooth scroll behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Loading state for buttons */
+button[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
 </style>`;
     }
 }

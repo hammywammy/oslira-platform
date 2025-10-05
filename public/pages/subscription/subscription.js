@@ -1,4 +1,4 @@
-// =============================================================================
+ // =============================================================================
 // SUBSCRIPTION PAGE - WITH CONFIG WAIT
 // =============================================================================
 
@@ -32,10 +32,13 @@ async function initializeSubscriptionPage() {
         await window.OsliraEnv.ready();
         console.log('✅ [Subscription] Config ready, proceeding with initialization');
         
+        // CRITICAL: Restore session from URL if present (centralized)
+        await window.OsliraAuth.restoreSessionFromUrl();
+        
         // Get authenticated user from auth-manager
         if (!window.OsliraAuth?.user) {
             console.error('❌ [Subscription] No authenticated user');
-            window.location.href = '/auth';
+            window.location.href = window.OsliraEnv.getAuthUrl();
             return;
         }
         
@@ -389,7 +392,7 @@ async function handleLogout(e) {
         }
         
         console.log('✅ [Subscription] Logged out successfully');
-        window.location.href = '/';
+        window.location.href = window.OsliraEnv.getMarketingUrl(); 
         
     } catch (error) {
         console.error('❌ [Subscription] Logout failed:', error);
@@ -601,8 +604,11 @@ function setupAuthStateMonitoring() {
         subscriptionState.supabase.auth.onAuthStateChange((event, session) => {
             console.log('🔐 [Subscription] Auth state change:', event);
             
-            if (event === 'SIGNED_OUT') {
-                window.location.href = '/auth';
+            // CRITICAL: Only redirect on explicit sign out, not transient state changes
+            if (event === 'SIGNED_OUT' && !session && subscriptionState.currentSession) {
+                // Only redirect if we HAD a session and now it's explicitly gone
+                console.log('🚪 [Subscription] User signed out, redirecting...');
+                window.location.href = window.OsliraEnv.getAuthUrl();
             } else if (event === 'SIGNED_IN' && session) {
                 subscriptionState.currentSession = session;
                 subscriptionState.currentUser = session.user;

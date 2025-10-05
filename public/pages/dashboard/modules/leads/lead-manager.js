@@ -69,22 +69,22 @@ async loadDashboardData() {
             businessId: selectedBusinessId
         });
             
-            // Execute database query
-            const { data: leads, error: leadsError } = await this.supabase
-                .from('leads')
-                .select(`
-                  lead_id, username, display_name, profile_picture_url, bio_text,
-                  platform_type, follower_count, following_count, post_count,
-                  is_verified_account, profile_url, user_id, business_id,
-                  first_discovered_at, last_updated_at,
-                  runs(
-                    run_id, analysis_type, overall_score, niche_fit_score, 
-                    engagement_score, summary_text, confidence_level, created_at
-                  )
-                `)
-                .eq('user_id', user.id)
-                .eq('business_id', selectedBusinessId)
-                .order('created_at', { foreignTable: 'runs', ascending: false });
+const { data: leads, error: leadsError } = await this.supabase
+    .from('leads')
+    .select(`
+      lead_id, username, display_name, profile_picture_url, bio_text,
+      platform_type, follower_count, following_count, post_count,
+      is_verified_account, profile_url, user_id, business_id,
+      first_discovered_at, last_updated_at,
+      runs!runs_lead_id_fkey(
+        run_id, analysis_type, overall_score, niche_fit_score, 
+        engagement_score, summary_text, confidence_level, created_at
+      )
+    `)
+    .eq('user_id', user.id)
+    .eq('business_id', selectedBusinessId)
+    .order('last_updated_at', { ascending: false })
+    .order('created_at', { foreignTable: 'runs', ascending: false });
 
             if (leadsError) {
                 console.error('❌ [LeadManager] Leads query error:', leadsError);
@@ -103,28 +103,30 @@ async loadDashboardData() {
                         ? lead.runs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0]
                         : null;
                     
-                    return {
-                        // Map database fields to UI expected fields
-                        id: lead.lead_id,  // Critical: UI expects 'id' not 'lead_id'
-                        username: lead.username,
-                        display_name: lead.display_name,
-                        profile_picture_url: lead.profile_picture_url,
-                        bio_text: lead.bio_text,
-                        follower_count: lead.follower_count,
-                        following_count: lead.following_count,
-                        post_count: lead.post_count,
-                        is_verified_account: lead.is_verified_account,
-                        platform_type: lead.platform_type,
-                        profile_url: lead.profile_url,
-                        user_id: lead.user_id,
-                        business_id: lead.business_id,
-                        first_discovered_at: lead.first_discovered_at,
-                        
-// Backward compatibility fields
-profile_pic_url: lead.profile_picture_url,
-followers_count: lead.follower_count,
-platform: lead.platform_type || 'instagram',
-created_at: latestRun?.created_at || lead.first_discovered_at, // Use run date, fallback to lead date
+return {
+    // Map database fields to UI expected fields
+    id: lead.lead_id,
+    username: lead.username,
+    display_name: lead.display_name,
+    profile_picture_url: lead.profile_picture_url,
+    bio_text: lead.bio_text,
+    follower_count: lead.follower_count,
+    following_count: lead.following_count,
+    post_count: lead.post_count,
+    is_verified_account: lead.is_verified_account,
+    platform_type: lead.platform_type,
+    profile_url: lead.profile_url,
+    user_id: lead.user_id,
+    business_id: lead.business_id,
+    first_discovered_at: lead.first_discovered_at,
+    last_updated_at: lead.last_updated_at,
+    
+    // Backward compatibility fields
+    profile_pic_url: lead.profile_picture_url,
+    followers_count: lead.follower_count,
+    platform: lead.platform_type || 'instagram',
+    created_at: lead.last_updated_at || latestRun?.created_at || lead.first_discovered_at,
+    updated_at: lead.last_updated_at || latestRun?.created_at || lead.first_discovered_at,
                         
                         // Analysis data from runs table (via JOIN)
                         score: latestRun?.overall_score || 0,
@@ -148,17 +150,26 @@ created_at: latestRun?.created_at || lead.first_discovered_at, // Use run date, 
                 aboutToCallBatchUpdate: true
             });
 
-            // Update application state
-            this.stateManager.batchUpdate({
-                'leads': enrichedLeads,
-                'allLeads': enrichedLeads, 
-                'filteredLeads': enrichedLeads
-            });
+// Preserve existing selection during refresh
+const existingSelection = this.stateManager.getState('selectedLeads') || new Set();
+const validSelection = new Set();
 
-            console.log('🔍 [DEBUG] State update completed');
+// Only keep selections for leads that still exist
+enrichedLeads.forEach(lead => {
+    if (existingSelection.has(lead.id)) {
+        validSelection.add(lead.id);
+    }
+});
 
-            // Clear selection
-            this.stateManager.setState('selectedLeads', new Set());
+// Update application state
+this.stateManager.batchUpdate({
+    'leads': enrichedLeads,
+    'allLeads': enrichedLeads, 
+    'filteredLeads': enrichedLeads,
+    'selectedLeads': validSelection
+});
+
+console.log('🔍 [DEBUG] State update completed with preserved selection:', validSelection.size);
 
             // Cache the data
             this.dataCache.set('leads', enrichedLeads);
@@ -276,6 +287,8 @@ async waitForSupabaseClient(timeout = 3000) {
         checkSupabase();
     });
 }
+
+    
     // ===============================================================================
     // LEAD DETAILS
     // ===============================================================================
@@ -291,36 +304,36 @@ async waitForSupabaseClient(timeout = 3000) {
             if (!user) throw new Error('No authenticated user');
             
             // Fetch from new 3-table structure
-            const { data: leadData, error: leadError } = await this.supabase
-                .from('leads')
-                .select(`
-                    lead_id,
-                    username,
-                    display_name,
-                    profile_picture_url,
-                    bio_text,
-                    external_website_url,
-                    follower_count,
-                    following_count,
-                    post_count,
-                    is_verified_account,
-                    is_private_account,
-                    is_business_account,
-                    platform_type,
-                    profile_url,
-                    first_discovered_at,
-                    runs(
-                        run_id,
-                        analysis_type,
-                        overall_score,
-                        niche_fit_score,
-                        engagement_score,
-                        summary_text,
-                        confidence_level,
-                        created_at,
-                        payloads(analysis_data)
-                    )
-                `)
+const { data: leadData, error: leadError } = await this.supabase
+    .from('leads')
+    .select(`
+        lead_id,
+        username,
+        display_name,
+        profile_picture_url,
+        bio_text,
+        external_website_url,
+        follower_count,
+        following_count,
+        post_count,
+        is_verified_account,
+        is_private_account,
+        is_business_account,
+        platform_type,
+        profile_url,
+        first_discovered_at,
+        runs!runs_lead_id_fkey(
+            run_id,
+            analysis_type,
+            overall_score,
+            niche_fit_score,
+            engagement_score,
+            summary_text,
+            confidence_level,
+            created_at,
+            payloads(analysis_data)
+        )
+    `)
                 .eq('lead_id', leadId)
                 .eq('user_id', user.id)
                 .order('created_at', { foreignTable: 'runs', ascending: false })
@@ -386,7 +399,7 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
             engagement_rate: 0
         };
         
-        // X-Ray analysis fields - ADD THIS SECTION
+        // X-Ray analysis fields
         if (payload.copywriter_profile) {
             analysisData.copywriter_profile = payload.copywriter_profile;
         }
@@ -396,6 +409,21 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
         if (payload.persuasion_strategy) {
             analysisData.persuasion_strategy = payload.persuasion_strategy;
         }
+        // Add X-Ray deep_summary
+        if (payload.deep_summary) {
+            analysisData.deep_summary = payload.deep_summary;
+        }
+        
+        // CRITICAL FIX: Add pre_processed_metrics to analysisData
+        if (payload.pre_processed_metrics) {
+            analysisData.pre_processed_metrics = payload.pre_processed_metrics;
+            console.log('✅ [LeadManager] Pre-processed metrics attached:', payload.pre_processed_metrics);
+        }
+
+        if (payload.personality_profile) {
+    analysisData.personality_profile = payload.personality_profile;
+    console.log('✅ [LeadManager] Personality profile attached:', payload.personality_profile);
+}
         
         // Legacy compatibility for older fields
         analysisData.audience_quality = 'Medium'; // Default since not in new format
@@ -751,6 +779,34 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
         this.clearData();
         this.dataCache.clear();
     }
+    /**
+ * Refresh table with animation
+ */
+async refreshWithAnimation() {
+    console.log('🔄 [LeadManager] Manual refresh triggered');
+    
+    // Trigger animation
+    const tableContainer = document.getElementById('leads-table-container');
+    if (tableContainer) {
+        tableContainer.style.transition = 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        tableContainer.style.opacity = '0';
+        
+        // Wait for fade out
+        await new Promise(resolve => setTimeout(resolve, 400));
+    }
+    
+    // Reload data
+    await this.loadDashboardData();
+    
+    // Fade back in
+    if (tableContainer) {
+        setTimeout(() => {
+            tableContainer.style.opacity = '1';
+        }, 50);
+    }
+    
+    console.log('✅ [LeadManager] Refresh complete');
+}
 }
 
 // Export for global use

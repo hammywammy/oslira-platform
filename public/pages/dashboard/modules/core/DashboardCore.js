@@ -108,13 +108,52 @@ if (window.BulkModal) {
     console.warn('⚠️ [DashboardCore] BulkModal class not found');
 }
 
+// Initialize and populate FilterModal
+console.log('🔧 [DashboardCore] Populating FilterModal...');
+if (window.FilterModal) {
+    const filterModal = new window.FilterModal(container);
+    const modalHTML = filterModal.renderModal();
+    const modalContainer = document.getElementById('filter-modal-container');
+    if (modalContainer) {
+        modalContainer.innerHTML = modalHTML;
+        filterModal.setupEventHandlers();
+        console.log('✅ [DashboardCore] FilterModal populated with content');
+    } else {
+        console.warn('⚠️ [DashboardCore] #filter-modal-container not found');
+    }
+} else {
+    console.warn('⚠️ [DashboardCore] FilterModal class not found');
+}
+
 // Load lead data after UI and renderer are ready
 console.log('📊 [DashboardCore] Loading lead data...');
 const leadManager = container.get('leadManager');
 await leadManager.loadDashboardData();
+
+// Setup filter handlers after table is rendered and data is loaded
+console.log('🔧 [DashboardCore] Setting up filter handlers...');
+const leadsTable = container.get('leadsTable');
+if (leadsTable && leadsTable.setupFilterHandlers) {
+    leadsTable.setupFilterHandlers();
+    console.log('✅ [DashboardCore] Filter handlers initialized');
+}
+
+// Setup selection handlers
+console.log('🔧 [DashboardCore] Setting up selection handlers...');
+if (leadsTable && leadsTable.setupSelectionHandlers) {
+    leadsTable.setupSelectionHandlers();
+    console.log('✅ [DashboardCore] Selection handlers initialized');
+}
+
+// Setup event handlers (toolbar buttons, dropdowns, etc.)
+console.log('🔧 [DashboardCore] Setting up event handlers...');
+if (leadsTable && leadsTable.setupEventHandlers) {
+    leadsTable.setupEventHandlers();
+    console.log('✅ [DashboardCore] Event handlers initialized');
+}
             
-            console.log('✅ [DashboardCore] Initialization completed');
-            return true;
+console.log('✅ [DashboardCore] Initialization completed');
+return true;
             
         } catch (error) {
             console.error('❌ [DashboardCore] Initialization failed:', error);
@@ -179,13 +218,17 @@ static async renderDashboardUI(container) {
             }
         }
         
-        const leadsTable = container.get('leadsTable');
-        if (leadsTable && leadsTable.renderTableContainer) {
-            const leadsSection = document.getElementById('leads-section');
-            if (leadsSection) {
-                leadsSection.innerHTML = leadsTable.renderTableContainer();
-            }
+const leadsTable = container.get('leadsTable');
+if (leadsTable && leadsTable.renderTableContainer) {
+    const leadsSection = document.getElementById('leads-section');
+    if (leadsSection) {
+        leadsSection.innerHTML = leadsTable.renderTableContainer();
+        // Setup refresh button after rendering
+        if (leadsTable.setupRefreshButton) {
+            leadsTable.setupRefreshButton();
         }
+    }
+}
         
         const insightsPanel = container.get('insightsPanel');
         if (insightsPanel && insightsPanel.renderInsightsPanel) {
