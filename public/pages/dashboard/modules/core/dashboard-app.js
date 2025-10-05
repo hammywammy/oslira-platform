@@ -220,12 +220,19 @@ class DashboardApp {
             return new window.LeadsTable(container);
         }, []);
         
-        container.registerFactory('insightsPanel', () => {
-            if (!window.InsightsPanel) {
-                throw new Error('InsightsPanel not loaded');
-            }
-            return new window.InsightsPanel(container);
-        }, []);
+container.registerFactory('insightsPanel', () => {
+    if (!window.InsightsPanel) {
+        throw new Error('InsightsPanel not loaded');
+    }
+    return new window.InsightsPanel(container);
+}, []);
+
+container.registerFactory('tipOfDay', () => {
+    if (!window.TipOfDay) {
+        throw new Error('TipOfDay not loaded');
+    }
+    return new window.TipOfDay(container);
+}, []);
         
         console.log('✅ [DashboardApp] All dependencies registered');
         return container;
