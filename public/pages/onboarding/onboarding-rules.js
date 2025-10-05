@@ -3,35 +3,38 @@
 // =============================================================================
 
 class OnboardingRules {
-    constructor() {
-        this.TOTAL_STEPS = 7;
-        
-this.STEP_FIELDS = {
-    1: ['company-name', 'industry', 'company-size', 'website'],
-    2: ['primary-objective', 'monthly-lead-goal'],
-    3: ['challenges'],
-    4: ['target-description', 'target-size'],
-    5: ['communication', 'communication-tone'],
-    6: ['team-size', 'campaign-manager'],
-    7: []
-};
-        
-this.VALIDATION_RULES = {
-    'company-name': { required: true, minLength: 2 },
-    'industry': { required: true },
-    'industry-other': { required: true, maxLength: 30 },
-    'company-size': { required: true },
-    'website': { required: false },
-    'primary-objective': { required: true },
-    'challenges': { required: true },
-    'target-description': { required: true, minLength: 10 },
-    'target-size': { required: true },
-    'communication': { required: true },
-    'communication-tone': { required: true },
-    'monthly-lead-goal': { required: true },
-    'team-size': { required: true },
-    'campaign-manager': { required: true }
-};
+constructor() {
+    this.TOTAL_STEPS = 8; // Changed from 7
+    
+    this.STEP_FIELDS = {
+        0: ['signature-name'],
+        1: ['company-name', 'industry', 'company-size', 'website'],
+        2: ['primary-objective', 'monthly-lead-goal'],
+        3: ['challenges'],
+        4: ['target-description', 'target-size'],
+        5: ['communication', 'communication-tone'],
+        6: ['team-size', 'campaign-manager'],
+        7: []
+    };
+    
+    this.VALIDATION_RULES = {
+        'signature-name': { required: true, minLength: 2 },
+        'company-name': { required: true, minLength: 2 },
+        'industry': { required: true },
+        'industry-other': { required: true, maxLength: 30 },
+        'signature-name': { min: 2, max: 50,  reason: 'Name used in outreach signatures'},
+        'company-size': { required: true },
+        'website': { required: false },
+        'primary-objective': { required: true },
+        'challenges': { required: true },
+        'target-description': { required: true, minLength: 10 },
+        'target-size': { required: true },
+        'communication': { required: true },
+        'communication-tone': { required: true },
+        'monthly-lead-goal': { required: true },
+        'team-size': { required: true },
+        'campaign-manager': { required: true }
+    };
         
 this.CHARACTER_LIMITS = {
             'business-name': {
@@ -58,13 +61,7 @@ this.CHARACTER_LIMITS = {
                 min: 0,  // Optional field
                 max: 800,
                 reason: 'Detailed success outcomes for AI summary generation'
-            },
-'phone-number': {
-                min: 0,
-                max: 20,
-                reason: 'Phone number without country code'
-            }
-        };
+            };
         
         // Business niche to CTA mapping for smart defaults
         this.CTA_DEFAULTS = {
@@ -83,7 +80,6 @@ this.CHARACTER_LIMITS = {
         // Field validation patterns
         this.VALIDATION_PATTERNS = {
             'business-name': /^[a-zA-Z0-9\s\-'&\.]+$/,
-            'phone-number': /^\+?[\d\s\-()]{10,}$/,
             'email': /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         };
     }
@@ -163,20 +159,6 @@ const validPattern = /^[a-zA-Z0-9\s]+$/;
         return { valid: true, message: '' };
     }
     
-    validatePhoneNumber(phone) {
-        if (!phone || phone.trim().length === 0) {
-            return { valid: true, message: '' }; // Phone is optional
-        }
-        
-        const cleaned = phone.replace(/\D/g, '');
-        
-        if (cleaned.length < 10 || cleaned.length > 15) {
-            return { valid: false, message: 'Please enter a valid phone number (10-15 digits)' };
-        }
-        
-        return { valid: true, message: '' };
-    }
-    
     // =============================================================================
     // CHARACTER LIMIT VALIDATION
     // =============================================================================
@@ -246,44 +228,15 @@ const validPattern = /^[a-zA-Z0-9\s]+$/;
     // =============================================================================
     // UTILITY FUNCTIONS
     // =============================================================================
-    
-    sanitizePhoneNumber(phone) {
-        if (!phone) return '';
-        
-        // Remove all non-numeric characters except + for international
-        const cleaned = phone.replace(/[^\d+]/g, '');
-        
-        // Validate international format
-        if (cleaned.startsWith('+')) {
-            return cleaned.length <= 16 ? cleaned : cleaned.substring(0, 16);
-        }
-        
-        // Domestic format - remove leading 1 if present
-        const domesticCleaned = cleaned.replace(/^1/, '');
-        return domesticCleaned.length <= 10 ? domesticCleaned : domesticCleaned.substring(0, 10);
-    }
-    
-    formatPhoneNumber(phone) {
-        const cleaned = phone.replace(/\D/g, '');
-        
-        if (cleaned.length <= 10) {
-            if (cleaned.length >= 6) {
-                return cleaned.replace(/(\d{3})(\d{3})(\d{0,4})/, '($1) $2-$3');
-            } else if (cleaned.length >= 3) {
-                return cleaned.replace(/(\d{3})(\d{0,3})/, '($1) $2');
-            }
-        }
-        
-        return phone;
-    }
+
     
     getTotalSteps() {
         return this.TOTAL_STEPS;
     }
     
-    isValidStep(stepNumber) {
-        return stepNumber >= 1 && stepNumber <= this.TOTAL_STEPS;
-    }
+isValidStep(stepNumber) {
+    return stepNumber >= 0 && stepNumber <= this.TOTAL_STEPS;
+}
 }
 
 // Export to window for non-module usage
