@@ -165,10 +165,34 @@ async handleSessionChange(session) {
     if (this.user) {
         console.log('👤 [Auth] User authenticated:', this.user.email);
         
+        // Load signature_name from users table
+        await this.loadUserProfile();
+        
         // Load businesses in background WITHOUT blocking
         this.loadUserBusinesses().catch(err => {
             console.warn('⚠️ [Auth] Background business load failed:', err);
         });
+    }
+}
+
+/**
+ * Load user profile data including signature_name
+ */
+async loadUserProfile() {
+    try {
+        const { data, error } = await this.supabase
+            .from('users')
+            .select('signature_name, full_name')
+            .eq('id', this.user.id)
+            .single();
+        
+        if (!error && data) {
+            // Merge profile data into user object
+            this.user.signature_name = data.signature_name;
+            this.user.full_name = data.full_name;
+        }
+    } catch (err) {
+        console.warn('⚠️ [Auth] Failed to load user profile:', err);
     }
 }
     
