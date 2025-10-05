@@ -25,17 +25,88 @@ class DashboardHeader {
     }
 
     /**
+ * Get personalized greeting with daily rotation
+ */
+getPersonalizedGreeting() {
+    try {
+        // Get user's signature name from database (via OsliraAuth)
+        const userName = this.getUserSignatureName();
+        
+        // Get today's greeting using day-of-year rotation
+        const greeting = this.getDailyGreeting();
+        
+        // Replace {name} placeholder with actual name
+        return greeting.replace('{name}', userName);
+        
+    } catch (error) {
+        console.warn('⚠️ [DashboardHeader] Greeting generation failed:', error);
+        return 'Comprehensive view of all lead management activities with AI-driven insights';
+    }
+}
+
+/**
+ * Get user's signature name from database
+ */
+getUserSignatureName() {
+    try {
+        // Access user data from OsliraAuth
+        const user = window.OsliraAuth?.user;
+        
+        if (!user) {
+            return 'there'; // Fallback if no user
+        }
+        
+        // Priority: signature_name > full_name > email username
+        const signatureName = user.signature_name 
+            || user.full_name 
+            || user.user_metadata?.full_name
+            || user.email?.split('@')[0];
+        
+        return signatureName || 'there';
+        
+    } catch (error) {
+        console.warn('⚠️ [DashboardHeader] Could not get user name:', error);
+        return 'there';
+    }
+}
+
+/**
+ * Get today's greeting using day-of-year rotation
+ */
+getDailyGreeting() {
+    if (!window.DASHBOARD_GREETINGS || !window.DASHBOARD_GREETINGS.length) {
+        console.warn('⚠️ [DashboardHeader] Greetings data not loaded');
+        return 'Welcome back {name}! Let\'s get to work.';
+    }
+    
+    // Calculate day of year (1-365/366)
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const diff = now - start;
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
+    
+    // Rotate through greetings array
+    const greetings = window.DASHBOARD_GREETINGS;
+    const index = dayOfYear % greetings.length;
+    
+    return greetings[index];
+}
+
+    /**
      * Render the complete header HTML
      */
-    renderHeader() {
-        return `
+renderHeader() {
+    const greeting = this.getPersonalizedGreeting();
+    
+    return `
 <div class="pt-6 px-6 pb-6">
     <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 p-6" style="position: relative; overflow: visible; z-index: 10;">
         <div class="flex items-center justify-between">
             <!-- Dashboard Title -->
             <div>
                 <h1 class="text-2xl font-bold text-gray-800 mb-1">AI-Powered Lead Research Dashboard</h1>
-                <p class="text-gray-600">Comprehensive view of all lead management activities with AI-driven insights</p>
+                <p class="text-gray-600" id="dashboard-greeting">${greeting}</p>
             </div>
             
             <!-- Right Actions -->
