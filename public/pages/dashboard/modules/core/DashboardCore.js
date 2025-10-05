@@ -230,12 +230,19 @@ if (leadsTable && leadsTable.renderTableContainer) {
     }
 }
         
-        const insightsPanel = container.get('insightsPanel');
-        if (insightsPanel && insightsPanel.renderInsightsPanel) {
-            document.getElementById('insights-panel').innerHTML = insightsPanel.renderInsightsPanel();
-        }
+const insightsPanel = container.get('insightsPanel');
+if (insightsPanel && insightsPanel.renderInsightsPanel) {
+    document.getElementById('insights-panel').innerHTML = insightsPanel.renderInsightsPanel();
+}
 
-        const stylesContainer = document.getElementById('dynamic-styles');
+const tipOfDay = container.get('tipOfDay');
+if (tipOfDay && tipOfDay.renderTip) {
+    document.getElementById('tip-of-day').innerHTML = tipOfDay.renderTip();
+    // Make globally accessible for carousel navigation
+    window.tipOfDay = tipOfDay;
+}
+
+const stylesContainer = document.getElementById('dynamic-styles');
         if (stylesContainer && window.DashboardStyles) {
             stylesContainer.innerHTML = window.DashboardStyles.getInlineStyles();
         }
