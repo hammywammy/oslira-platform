@@ -114,20 +114,20 @@ if (typeof window.OsliraAPI.request !== 'function') {
     // UI MANAGEMENT
     // =============================================================================
     
-    function showOnboardingForm() {
-        hideElement('loading-state');
-        hideElement('error-state');  
-        showElement('onboarding-form');
-        document.body.style.visibility = 'visible';
-        
-        currentStep = 1;
-showStep(0);
-updateNavigationButtons();
-prefillUserData();
-prefillSignatureName(); // ✅ ADD THIS
-        
-        console.log('[Onboarding] Onboarding form displayed, starting at step 0');
-    }
+function showOnboardingForm() {
+    hideElement('loading-state');
+    hideElement('error-state');  
+    showElement('onboarding-form');
+    document.body.style.visibility = 'visible';
+    
+    currentStep = 1;
+    showStep(1);  // ✅ CORRECT
+    updateNavigationButtons();
+    prefillUserData();
+    prefillSignatureName();
+    
+    console.log('[Onboarding] Onboarding form displayed, starting at step 1');
+}
     
     function showError(message) {
         hideElement('loading-state');
@@ -425,21 +425,21 @@ function getFieldValue(fieldId) {
     // PROGRESS TRACKING (keeping all your existing progress tracking code)
     // =============================================================================
     
-    let progressTracker = {
-        startTime: null,
-        currentProgress: 0,
-        targetProgress: 0,
-        estimatedDuration: 25000,
-        actualElapsed: 0,
-        smoothingInterval: null,
-        currentStep: 1,
-        steps: [
-            { name: 'Validating form data', weight: 5 },
-            { name: 'Creating business profile', weight: 15 },
-            { name: 'Generating AI insights', weight: 60 },
-            { name: 'Finalizing setup', weight: 20 }
-        ]
-    };
+let progressTracker = {
+    startTime: null,
+    currentProgress: 0,
+    targetProgress: 0,
+    estimatedDuration: 25000,
+    actualElapsed: 0,
+    smoothingInterval: null,
+    currentStep: 0,  // ✅ CORRECT - progress steps are 0-indexed
+    steps: [
+        { name: 'Validating form data', weight: 5 },
+        { name: 'Creating business profile', weight: 15 },
+        { name: 'Generating AI insights', weight: 60 },
+        { name: 'Finalizing setup', weight: 20 }
+    ]
+};
 
     function showSubmissionProgress() {
         const onboardingForm = document.getElementById('onboarding-form');
