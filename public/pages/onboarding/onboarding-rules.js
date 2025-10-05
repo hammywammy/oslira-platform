@@ -4,19 +4,16 @@
 
 class OnboardingRules {
     constructor() {
-        this.TOTAL_STEPS = 10;
+        this.TOTAL_STEPS = 7;
         
 this.STEP_FIELDS = {
     1: ['company-name', 'industry', 'company-size', 'website'],
-    2: ['primary-objective'],
+    2: ['primary-objective', 'monthly-lead-goal'],
     3: ['challenges'],
     4: ['target-description', 'target-size'],
     5: ['communication', 'communication-tone'],
-    6: ['budget', 'monthly-lead-goal'],
-    7: ['team-size', 'campaign-manager'],
-    8: ['integrations'],
-    9: ['phone-number', 'sms-opt-in'],
-    10: []
+    6: ['team-size', 'campaign-manager'],
+    7: []
 };
         
 this.VALIDATION_RULES = {
@@ -31,13 +28,9 @@ this.VALIDATION_RULES = {
     'target-size': { required: true },
     'communication': { required: true },
     'communication-tone': { required: true },
-    'budget': { required: true },
     'monthly-lead-goal': { required: true },
     'team-size': { required: true },
-    'campaign-manager': { required: true },
-    'integrations': { required: false },
-    'phone-number': { required: false },
-    'sms-opt-in': { required: false }
+    'campaign-manager': { required: true }
 };
         
 this.CHARACTER_LIMITS = {
