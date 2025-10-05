@@ -68,6 +68,9 @@ this.coreScripts = [
                     '/pages/dashboard/modules/ui/insights-panel.js',
                     '/pages/dashboard/modules/ui/leads-table.js',
                     '/pages/dashboard/modules/ui/modal-manager.js',
+                    '/pages/dashboard/modules/ui/tip-of-day.js',
+                    '/pages/dashboard/modules/utils/dashboard-greetings.js',
+                    '/pages/dashboard/modules/utils/daily-tips.js',
                     '/pages/dashboard/dashboard.js'
                 ],
                 requiresAuth: true,
