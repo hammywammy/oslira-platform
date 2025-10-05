@@ -82,7 +82,7 @@ if (typeof window.OsliraAPI.request !== 'function') {
         console.log('✅ [Onboarding] Initialization complete');
     }
 
-    async function prefillSignatureName() {
+  async function prefillSignatureName() {
     try {
         const authSystem = window.OsliraAuth || window.SimpleAuth;
         if (!authSystem?.supabase) return;
@@ -103,7 +103,13 @@ if (typeof window.OsliraAPI.request !== 'function') {
 
         const signatureInput = document.getElementById('signature-name');
         if (signatureInput && !signatureInput.value) {
-            signatureInput.value = firstName; // ✅ Uses first name only
+            signatureInput.value = firstName;
+            
+            // Update character counter for pre-filled value
+            if (validator && validator.updateCharacterCounter) {
+                validator.updateCharacterCounter('signature-name');
+            }
+            
             console.log('✅ [Onboarding] Pre-filled signature name (first name only) from user profile');
         }
     } catch (error) {
