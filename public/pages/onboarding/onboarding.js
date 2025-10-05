@@ -8,7 +8,7 @@
     let initialized = false;
     let user = null;
     let supabase = null;
-    let currentStep = 0;
+    let currentStep = 1;
     let rules = null;
     let validator = null;
     let totalSteps = 8;
@@ -120,7 +120,7 @@ if (typeof window.OsliraAPI.request !== 'function') {
         showElement('onboarding-form');
         document.body.style.visibility = 'visible';
         
-        currentStep = 0;
+        currentStep = 1;
 showStep(0);
 updateNavigationButtons();
 prefillUserData();
@@ -160,7 +160,7 @@ prefillSignatureName(); // ✅ ADD THIS
         const skipButton = document.getElementById('skip-btn');
         
         if (prevButton) {
-            prevButton.style.display = currentStep > 0 ? 'inline-flex' : 'none';
+            prevButton.style.display = currentStep > 1 ? 'inline-flex' : 'none';
         }
         
 if (skipButton) {
@@ -229,7 +229,7 @@ if (skipButton) {
     }
     
     function prevStep() {
-        if (currentStep > 0) {
+        if (currentStep > 1) {
             validator.clearAllErrors();
             
             const currentStepElement = document.getElementById(`step-${currentStep}`);
@@ -432,7 +432,7 @@ function getFieldValue(fieldId) {
         estimatedDuration: 25000,
         actualElapsed: 0,
         smoothingInterval: null,
-        currentStep: 0,
+        currentStep: 1,
         steps: [
             { name: 'Validating form data', weight: 5 },
             { name: 'Creating business profile', weight: 15 },
