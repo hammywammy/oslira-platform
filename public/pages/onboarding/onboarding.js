@@ -8,10 +8,10 @@
     let initialized = false;
     let user = null;
     let supabase = null;
-    let currentStep = 1;
+    let currentStep = 0;
     let rules = null;
     let validator = null;
-    let totalSteps = null;
+    let totalSteps = 8;
     
     // =============================================================================
     // INITIALIZATION
@@ -81,7 +81,35 @@ if (typeof window.OsliraAPI.request !== 'function') {
         initialized = true;
         console.log('✅ [Onboarding] Initialization complete');
     }
-    
+
+    async function prefillSignatureName() {
+    try {
+        const authSystem = window.OsliraAuth || window.SimpleAuth;
+        if (!authSystem?.supabase) return;
+
+        const { data: { session } } = await authSystem.supabase.auth.getSession();
+        if (!session) return;
+
+        const { data: userData, error } = await authSystem.supabase
+            .from('users')
+            .select('full_name')
+            .eq('id', session.user.id)
+            .single();
+
+        if (error || !userData?.full_name) return;
+
+        // Extract first name only
+        const firstName = userData.full_name.split(' ')[0].trim();
+
+        const signatureInput = document.getElementById('signature-name');
+        if (signatureInput && !signatureInput.value) {
+            signatureInput.value = firstName; // ✅ Uses first name only
+            console.log('✅ [Onboarding] Pre-filled signature name (first name only) from user profile');
+        }
+    } catch (error) {
+        console.warn('⚠️ [Onboarding] Could not prefill signature name:', error);
+    }
+}
     // =============================================================================
     // UI MANAGEMENT
     // =============================================================================
@@ -92,12 +120,13 @@ if (typeof window.OsliraAPI.request !== 'function') {
         showElement('onboarding-form');
         document.body.style.visibility = 'visible';
         
-        currentStep = 1;
-        showStep(1);
-        updateNavigationButtons();
-        prefillUserData();
+        currentStep = 0;
+showStep(0);
+updateNavigationButtons();
+prefillUserData();
+prefillSignatureName(); // ✅ ADD THIS
         
-        console.log('[Onboarding] Onboarding form displayed, starting at step 1');
+        console.log('[Onboarding] Onboarding form displayed, starting at step 0');
     }
     
     function showError(message) {
@@ -131,16 +160,12 @@ if (typeof window.OsliraAPI.request !== 'function') {
         const skipButton = document.getElementById('skip-btn');
         
         if (prevButton) {
-            prevButton.style.display = currentStep > 1 ? 'inline-flex' : 'none';
+            prevButton.style.display = currentStep > 0 ? 'inline-flex' : 'none';
         }
         
-        if (skipButton) {
-            if (currentStep === 8 || currentStep === 9) {
-                skipButton.style.display = 'inline-flex';
-            } else {
-                skipButton.style.display = 'none';
-            }
-        }
+if (skipButton) {
+    skipButton.style.display = 'none'; // No skippable steps anymore
+}
         
         if (currentStep === totalSteps) {
             if (nextButton) nextButton.style.display = 'none';
@@ -148,23 +173,6 @@ if (typeof window.OsliraAPI.request !== 'function') {
         } else {
             if (nextButton) nextButton.style.display = 'inline-flex';
             if (submitButton) submitButton.style.display = 'none';
-        }
-
-        if (currentStep === 10) {
-            const nextText = document.getElementById('next-text');
-            if (nextText) nextText.textContent = 'Continue';
-            if (submitButton) {
-                submitButton.innerHTML = `
-                    <span class="onboarding-btn-content">
-                        <i class="fas fa-arrow-right mr-3"></i>
-                        Continue to Dashboard
-                        <i class="onboarding-btn-arrow group-hover:translate-x-1 fas fa-arrow-right ml-3"></i>
-                    </span>
-                `;
-            }
-        } else if (currentStep === 9) {
-            const nextText = document.getElementById('next-text');
-            if (nextText) nextText.textContent = 'Continue';
         }
         
         console.log(`[Onboarding] Navigation buttons updated for step ${currentStep}/${totalSteps}`);
@@ -190,7 +198,7 @@ if (typeof window.OsliraAPI.request !== 'function') {
     function showStep(stepNumber) {
         console.log(`[Onboarding] Showing step ${stepNumber}`);
         
-        for (let i = 1; i <= totalSteps; i++) {
+        for (let i = 0; i <= totalSteps; i++) {
             const step = document.getElementById(`step-${i}`);
             if (step) {
                 step.classList.remove('active');
@@ -221,7 +229,7 @@ if (typeof window.OsliraAPI.request !== 'function') {
     }
     
     function prevStep() {
-        if (currentStep > 1) {
+        if (currentStep > 0) {
             validator.clearAllErrors();
             
             const currentStepElement = document.getElementById(`step-${currentStep}`);
@@ -270,10 +278,15 @@ if (typeof window.OsliraAPI.request !== 'function') {
     // DATA COLLECTION & UTILITIES
     // =============================================================================
     
-    function getFieldValue(fieldId) {
-        console.log(`[Onboarding] Getting field value for: ${fieldId}`);
-        
-        if (fieldId === 'primary-objective') {
+function getFieldValue(fieldId) {
+    console.log(`[Onboarding] Getting field value for: ${fieldId}`);
+    
+    if (fieldId === 'signature-name') {
+        const field = document.getElementById('signature-name');
+        return field ? field.value.trim() : '';
+    }
+    
+    if (fieldId === 'primary-objective') {
             const radioButton = document.querySelector('input[name="primary-objective"]:checked');
             const value = radioButton ? radioButton.value : '';
             console.log(`[Onboarding] primary-objective value: ${value}`);
@@ -300,11 +313,6 @@ if (typeof window.OsliraAPI.request !== 'function') {
         if (fieldId === 'industry-other') {
             const input = document.getElementById('industry-other');
             return input ? input.value.trim() : '';
-        }
-        
-        if (fieldId === 'budget') {
-            const radioButton = document.querySelector('input[name="budget"]:checked');
-            return radioButton ? radioButton.value : '';
         }
         
         if (fieldId === 'communication-tone') {
@@ -335,21 +343,6 @@ if (typeof window.OsliraAPI.request !== 'function') {
         if (fieldId === 'communication') {
             const checkboxes = document.querySelectorAll('input[name="communication"]:checked');
             return Array.from(checkboxes).map(cb => cb.value);
-        }
-        
-        if (fieldId === 'integrations') {
-            const checkboxes = document.querySelectorAll('input[name="integrations"]:checked');
-            return Array.from(checkboxes).map(cb => cb.value);
-        }
-
-        if (fieldId === 'phone-number') {
-            const field = document.getElementById('phone-number');
-            return field ? field.value.trim() : '';
-        }
-
-        if (fieldId === 'sms-opt-in') {
-            const checkbox = document.querySelector('input[name="sms-opt-in"]:checked');
-            return checkbox ? checkbox.value : '';
         }
 
         if (fieldId === 'website') {
@@ -656,27 +649,37 @@ if (typeof window.OsliraAPI.request !== 'function') {
                 hasToken: !!session.access_token
             });
 
-            setProgressStep(1, 0.1);
+setProgressStep(1, 0.1);
 
-            const formData = {
-                business_name: getFieldValue('company-name'),
-                business_niche: getFieldValue('industry'), 
-                target_audience: getFieldValue('target-description'),
-                company_size: getFieldValue('company-size'),
-                website: getFieldValue('website'),
-                budget: getFieldValue('budget'),
-                monthly_lead_goal: getFieldValue('monthly-lead-goal') ? 
-                    parseInt(getFieldValue('monthly-lead-goal')) : null,
-                primary_objective: getFieldValue('primary-objective'),
-                communication_style: getFieldValue('communication-tone') || null,
-                team_size: getFieldValue('team-size'),
-                campaign_manager: getFieldValue('campaign-manager'),
-                challenges: Array.isArray(getFieldValue('challenges')) ? 
-                    getFieldValue('challenges') : [],
-                integrations: Array.isArray(getFieldValue('integrations')) ? 
-                    getFieldValue('integrations') : [],
-                target_problems: Array.isArray(getFieldValue('challenges')) && getFieldValue('challenges').length > 0 ? 
-                    'Main challenges: ' + getFieldValue('challenges').join(', ') : null,
+// Save signature name to users table
+const signatureName = getFieldValue('signature-name');
+const { error: nameUpdateError } = await authSystem.supabase
+    .from('users')
+    .update({ signature_name: signatureName })
+    .eq('id', user.id);
+
+if (nameUpdateError) {
+    console.error('❌ [Onboarding] Failed to save signature name:', nameUpdateError);
+}
+
+const formData = {
+    business_name: getFieldValue('company-name'),
+    business_niche: getFieldValue('industry'), 
+    target_audience: getFieldValue('target-description'),
+    company_size: getFieldValue('company-size'),
+    website: getFieldValue('website'),
+    monthly_lead_goal: getFieldValue('monthly-lead-goal') ? 
+        parseInt(getFieldValue('monthly-lead-goal')) : null,
+    primary_objective: getFieldValue('primary-objective'),
+    communication_style: getFieldValue('communication-tone') || null,
+    team_size: getFieldValue('team-size'),
+    campaign_manager: getFieldValue('campaign-manager'),
+    challenges: Array.isArray(getFieldValue('challenges')) ? 
+        getFieldValue('challenges') : [],
+    target_company_sizes: Array.isArray(getFieldValue('target-size')) ? 
+        getFieldValue('target-size') : [],
+    target_problems: Array.isArray(getFieldValue('challenges')) && getFieldValue('challenges').length > 0 ? 
+        'Main challenges: ' + getFieldValue('challenges').join(', ') : null,
                 value_proposition: 'Value proposition to be refined during campaign setup',
                 message_example: getFieldValue('communication-tone') ? 
                     `Sample message using ${getFieldValue('communication-tone')} communication style - to be generated by AI` : null,
