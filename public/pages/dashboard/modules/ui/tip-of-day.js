@@ -8,65 +8,67 @@ class TipOfDay {
     /**
      * Render carousel with navigation
      */
-    renderTip() {
-        const tips = this.dailyTips;
-        
-        return `
-<!-- Tip of the Day Carousel -->
+renderTip() {
+    const tips = this.dailyTips;
+    
+    return `
+<!-- Tip of the Day Carousel - Redesigned -->
 <div class="px-6 pb-6">
-    <div class="glass-white rounded-2xl p-5 border-l-4 border-indigo-400 relative">
-        <div class="flex items-start space-x-3">
-            <div class="flex-shrink-0">
-                <svg class="w-5 h-5 text-indigo-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="relative bg-gradient-to-br from-indigo-50/50 via-blue-50/30 to-purple-50/50 backdrop-blur-sm rounded-2xl p-6 border border-indigo-100/50">
+        <!-- Tip Content -->
+        <div class="flex items-start space-x-4 mb-4">
+            <div class="flex-shrink-0 mt-1">
+                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                 </svg>
             </div>
             
-            <!-- Tip Content with Fade Transition -->
-            <div class="flex-1 min-h-[3rem] relative">
+            <!-- Text Content with Better Typography -->
+            <div class="flex-1 min-h-[4rem]">
                 <div id="tip-carousel-content" class="transition-opacity duration-300">
-                    <p class="text-sm text-gray-700 font-light leading-relaxed">
-                        <span class="font-medium text-gray-800">Tip of the day:</span> <span id="tip-text">${tips[0]}</span>
+                    <p class="text-base leading-relaxed text-gray-700">
+                        <span class="font-semibold text-indigo-600">Tip of the day:</span> 
+                        <span id="tip-text" class="font-normal">${tips[0]}</span>
                     </p>
                 </div>
             </div>
+        </div>
+        
+        <!-- Navigation Controls - Bottom Center -->
+        <div class="flex items-center justify-center space-x-3 pt-2 border-t border-indigo-100/50">
+            <!-- Previous Button -->
+            <button 
+                onclick="window.tipOfDay.prevTip()" 
+                class="p-2 rounded-lg hover:bg-indigo-100/50 transition-colors group"
+                aria-label="Previous tip"
+            >
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
             
-            <!-- Navigation Controls -->
-            <div class="flex items-center space-x-2 flex-shrink-0">
-                <!-- Previous Button -->
-                <button 
-                    onclick="window.tipOfDay.prevTip()" 
-                    class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors group"
-                    aria-label="Previous tip"
-                >
-                    <svg class="w-4 h-4 text-gray-400 group-hover:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                    </svg>
-                </button>
-                
-                <!-- Dot Indicators -->
-                <div class="flex items-center space-x-1.5 px-2">
-                    ${tips.map((_, i) => `
-                        <button 
-                            onclick="window.tipOfDay.goToTip(${i})"
-                            class="tip-dot ${i === 0 ? 'tip-dot-active' : ''} transition-all duration-300"
-                            data-tip-index="${i}"
-                            aria-label="Go to tip ${i + 1}"
-                        ></button>
-                    `).join('')}
-                </div>
-                
-                <!-- Next Button -->
-                <button 
-                    onclick="window.tipOfDay.nextTip()" 
-                    class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors group"
-                    aria-label="Next tip"
-                >
-                    <svg class="w-4 h-4 text-gray-400 group-hover:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </button>
+            <!-- Dot Indicators -->
+            <div class="flex items-center space-x-2 px-4">
+                ${tips.map((_, i) => `
+                    <button 
+                        onclick="window.tipOfDay.goToTip(${i})"
+                        class="tip-dot ${i === 0 ? 'tip-dot-active' : ''} transition-all duration-300"
+                        data-tip-index="${i}"
+                        aria-label="Go to tip ${i + 1}"
+                    ></button>
+                `).join('')}
             </div>
+            
+            <!-- Next Button -->
+            <button 
+                onclick="window.tipOfDay.nextTip()" 
+                class="p-2 rounded-lg hover:bg-indigo-100/50 transition-colors group"
+                aria-label="Next tip"
+            >
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
         </div>
     </div>
 </div>
@@ -74,8 +76,8 @@ class TipOfDay {
 <style>
 /* Carousel Dot Indicators */
 .tip-dot {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background-color: #cbd5e1;
     border: none;
@@ -84,12 +86,12 @@ class TipOfDay {
 }
 
 .tip-dot-active {
-    width: 20px;
-    border-radius: 3px;
+    width: 24px;
+    border-radius: 4px;
     background-color: #6366f1;
 }
 
-.tip-dot:hover {
+.tip-dot:hover:not(.tip-dot-active) {
     background-color: #94a3b8;
 }
 
@@ -101,8 +103,15 @@ class TipOfDay {
 .tip-fade-in {
     opacity: 1;
 }
+
+/* Ensure text wraps properly on long tips */
+#tip-text {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
 </style>`;
-    }
+}
 
     /**
      * Get 3 random tips seeded by day (same 3 tips all day)
