@@ -65,7 +65,7 @@ this.CHARACTER_LIMITS = {
                 min: 0,  // Optional field
                 max: 800,
                 reason: 'Detailed success outcomes for AI summary generation'
-            }
+            }};
         
         // Business niche to CTA mapping for smart defaults
         this.CTA_DEFAULTS = {
