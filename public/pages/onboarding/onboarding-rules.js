@@ -17,12 +17,11 @@ constructor() {
         7: []
     };
     
-    this.VALIDATION_RULES = {
-        'signature-name': { required: true, minLength: 2 },
-        'company-name': { required: true, minLength: 2 },
-        'industry': { required: true },
-        'industry-other': { required: true, maxLength: 30 },
-        'signature-name': { min: 2, max: 50,  reason: 'Name used in outreach signatures'},
+this.VALIDATION_RULES = {
+    'signature-name': { required: true, minLength: 2 },
+    'company-name': { required: true, minLength: 2 },
+    'industry': { required: true },
+    'industry-other': { required: true, maxLength: 30 },
         'company-size': { required: true },
         'website': { required: false },
         'primary-objective': { required: true },
@@ -37,11 +36,16 @@ constructor() {
     };
         
 this.CHARACTER_LIMITS = {
-            'business-name': {
-                min: 2,
-                max: 100,
-                reason: 'Business names are typically 2-100 characters'
-            },
+    'signature-name': {
+        min: 2,
+        max: 50,
+        reason: 'Name used in outreach signatures'
+    },
+    'business-name': {
+        min: 2,
+        max: 100,
+        reason: 'Business names are typically 2-100 characters'
+    },
             'industry-other': {
                 min: 2,
                 max: 30,
@@ -61,7 +65,7 @@ this.CHARACTER_LIMITS = {
                 min: 0,  // Optional field
                 max: 800,
                 reason: 'Detailed success outcomes for AI summary generation'
-            };
+            }
         
         // Business niche to CTA mapping for smart defaults
         this.CTA_DEFAULTS = {
