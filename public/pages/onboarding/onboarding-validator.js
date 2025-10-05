@@ -400,24 +400,22 @@ if (!processedValue || processedValue.trim().length === 0) continue;
     }
     
 validateBusinessLogic(fieldId, value) {
-        switch (fieldId) {
-            case 'company-name':
-                return this.rules.validateBusinessName(value);
-                
-            case 'success-outcome':
-                return this.rules.validateSuccessOutcome(value);
-                
-            case 'communication-style':
-            case 'communication-tone':
-                return this.rules.validateCommunicationStyle(value);
-                
-            case 'phone-number':
-                return this.rules.validatePhoneNumber(value);
-                
-            default:
-                return { valid: true, message: '' };
-        }
+    switch (fieldId) {
+        case 'signature-name':
+        case 'company-name':
+            return this.rules.validateBusinessName(value);
+            
+        case 'success-outcome':
+            return this.rules.validateSuccessOutcome(value);
+            
+        case 'communication-style':
+        case 'communication-tone':
+            return this.rules.validateCommunicationStyle(value);
+            
+        default:
+            return { valid: true, message: '' };
     }
+}
     
     // =============================================================================
     // FORM DATA VALIDATION
