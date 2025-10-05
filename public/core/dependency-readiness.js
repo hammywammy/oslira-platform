@@ -129,4 +129,8 @@ window.DependencyReadiness.registerCheck('ModalComponents', () => {
     return typeof window.ModalComponents === 'function';
 });
 
+window.DependencyReadiness.registerCheck('TipOfDay', () => {
+    return typeof window.TipOfDay === 'function';
+});
+
 console.log('✅ [DependencyReadiness] Module loaded with registered checks');
