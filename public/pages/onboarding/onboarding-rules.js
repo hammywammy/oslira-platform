@@ -4,17 +4,17 @@
 
 class OnboardingRules {
 constructor() {
-    this.TOTAL_STEPS = 8; // Changed from 7
+    this.TOTAL_STEPS = 8;
     
     this.STEP_FIELDS = {
-        0: ['signature-name'],
-        1: ['company-name', 'industry', 'company-size', 'website'],
-        2: ['primary-objective', 'monthly-lead-goal'],
-        3: ['challenges'],
-        4: ['target-description', 'target-size'],
-        5: ['communication', 'communication-tone'],
-        6: ['team-size', 'campaign-manager'],
-        7: []
+        1: ['signature-name'],
+        2: ['company-name', 'industry', 'company-size', 'website'],
+        3: ['primary-objective', 'monthly-lead-goal'],
+        4: ['challenges'],
+        5: ['target-description', 'target-size'],
+        6: ['communication', 'communication-tone'],
+        7: ['team-size', 'campaign-manager'],
+        8: []
     };
     
 this.VALIDATION_RULES = {
