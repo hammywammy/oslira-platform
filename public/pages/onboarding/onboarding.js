@@ -198,7 +198,7 @@ if (skipButton) {
     function showStep(stepNumber) {
         console.log(`[Onboarding] Showing step ${stepNumber}`);
         
-        for (let i = 0; i <= totalSteps; i++) {
+        for (let i = 1; i <= totalSteps; i++) {
             const step = document.getElementById(`step-${i}`);
             if (step) {
                 step.classList.remove('active');
@@ -552,7 +552,7 @@ function getFieldValue(fieldId) {
         
         let targetProgress = 0;
         
-        for (let i = 0; i < stepIndex; i++) {
+        for (let i = 1; i < stepIndex; i++) {
             targetProgress += progressTracker.steps[i].weight;
         }
         
