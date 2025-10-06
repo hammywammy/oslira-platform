@@ -43,7 +43,7 @@ class RevenueSection {
 async loadData() {
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-const session = await window.OsliraAuth.getSession();
+const session = window.OsliraAuth.getCurrentSession();
 const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/revenue`, {
