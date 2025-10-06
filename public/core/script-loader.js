@@ -159,12 +159,6 @@ this.coreScripts = [
                 enableTailwind: true
             },
             
-            'admin': {
-                scripts: ['/pages/admin/admin.js'],
-                requiresAuth: true,
-                enableTailwind: true
-            },
-            
             'about': {
                 scripts: ['/core/footer/footer-manager.js', '/core/header/header-manager.js'],
                 requiresAuth: false,
