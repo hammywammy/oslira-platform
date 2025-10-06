@@ -21,38 +21,32 @@ constructor() {
     // INITIALIZATION
     // =============================================================================
     
-    async initialize() {
-        if (this.isLoaded) {
-            return true;
-        }
-        
-        console.log('🔐 [Auth] Initializing authentication system...');
-        
-        try {
-            // Wait for configuration to be ready
-            await this.waitForConfig();
-            
-            // Initialize Supabase
-            await this.initializeSupabase();
-            
-            // Get current session
-            await this.loadCurrentSession();
-            
-            // Set up auth state listener
-            this.setupAuthListener();
-            
-            this.isLoaded = true;
-            console.log('✅ [Auth] Authentication system initialized');
-            
-            return true;
-            
-        } catch (error) {
-            console.error('❌ [Auth] Initialization failed:', error);
-            this.isLoaded = true; // Mark as loaded even if failed, to prevent infinite retries
-            return false;
-        }
+  async initialize() {
+    if (this.isLoaded) {
+        return true;
     }
     
+    console.log('🔐 [Auth] Initializing authentication system...');
+    
+    try {
+        await this.waitForConfig();
+        await this.initializeSupabase();
+        
+        // CRITICAL FIX: Check URL hash BEFORE loading stored session
+        const restoredFromUrl = await this.restoreSessionFromUrl();
+        
+        if (!restoredFromUrl) {
+            // Only load stored session if URL didn't provide one
+            await this.loadCurrentSession();
+        }
+        
+        this.setupAuthListener();
+        
+        this.isLoaded = true;
+        console.log('✅ [Auth] Authentication system initialized');
+        return true;
+    }
+}
     async waitForConfig() {
         // Wait for config to be available
         let retries = 0;
