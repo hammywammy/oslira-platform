@@ -604,10 +604,6 @@ resetFileInput() {
     }
 
 async processBulkAnalysis() {
-    // Close modal immediately on submit
-    const bulkModal = document.getElementById('bulkModal');
-    if (bulkModal) bulkModal.remove();
-    
     try {
         const analysisType = document.querySelector('input[name="bulkAnalysisType"]:checked')?.value || this.analysisType || 'light';
         const businessId = this.stateManager?.getState('selectedBusiness')?.id;
@@ -629,6 +625,12 @@ async processBulkAnalysis() {
             businessId
         });
 
+        // ✅ CLOSE MODAL PROPERLY (don't remove it)
+        const modalManager = this.container.get('modalManager');
+        if (modalManager) {
+            modalManager.closeModal('bulkModal');
+        }
+
         // Get analysis queue
         const analysisQueue = this.container.get('analysisQueue');
         if (!analysisQueue) {
@@ -641,25 +643,14 @@ async processBulkAnalysis() {
             platform: 'instagram'
         }));
         
-        // Start bulk analysis with correct parameters: (leads, analysisType, businessId)
+        // Start bulk analysis
         await analysisQueue.startBulkAnalysis(
             leads,           // Array of lead objects
             analysisType,    // 'light', 'deep', or 'xray'
             businessId       // Business profile ID
         );
         
-        // Close modal
-        const modalManager = this.container.get('modalManager');
-        if (modalManager) {
-            modalManager.closeModal('bulkModal');
-        } else {
-            const modal = document.querySelector('#bulkModal > div');
-            if (modal) {
-                modal.classList.add('hidden');
-            }
-        }
-        
-        // Reset modal state
+        // Reset modal state for next use
         this.resetModal();
         
         console.log('✅ [BulkModal] Bulk analysis started successfully');
