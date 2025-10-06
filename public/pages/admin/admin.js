@@ -60,15 +60,15 @@ class AdminCore {
     // PASSWORD AUTHENTICATION
     // =========================================================================
     
-    async verifyAdminPassword() {
-        console.log('🔐 [AdminCore] Starting password verification...');
-        
-        // Check if already verified in this session
-        const SESSION_KEY = 'admin_auth_' + btoa(window.location.hostname).slice(0, 8);
-        const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 hours
-        
-        try {
-            const authData = localStorage.getItem(SESSION_KEY);
+async verifyAdminPassword() {
+    console.log('🔐 [AdminCore] Starting password verification...');
+    
+    // Check if already verified in this session
+    const SESSION_KEY = 'admin_auth_' + btoa(window.location.hostname).slice(0, 8);
+    const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 hours
+    
+    try {
+        const authData = sessionStorage.getItem(SESSION_KEY); // Changed from localStorage
             if (authData) {
                 const parsed = JSON.parse(authData);
                 const isExpired = Date.now() - parsed.timestamp > SESSION_DURATION;
@@ -160,12 +160,12 @@ class AdminCore {
                     const result = await response.json();
                     
                     if (result.success && result.data?.valid) {
-                        // Save session
-                        const timestamp = Date.now();
-                        localStorage.setItem(sessionKey, JSON.stringify({
-                            verified: true,
-                            timestamp
-                        }));
+// Save session
+const timestamp = Date.now();
+sessionStorage.setItem(sessionKey, JSON.stringify({
+    verified: true,
+    timestamp
+}));
                         
                         // Remove overlay
                         overlay.remove();
@@ -234,26 +234,21 @@ initializeEventBus() {
 async initializeSidebar() {
     console.log('📐 [AdminCore] Initializing sidebar...');
     
-    // Wait for AdminSidebarManager with retry logic
-    let retries = 0;
-    const maxRetries = 50; // 5 seconds (50 * 100ms)
-    
-    while (!window.AdminSidebarManager && retries < maxRetries) {
-        console.log(`⏳ [AdminCore] Waiting for AdminSidebarManager... (${retries}/${maxRetries})`);
-        await new Promise(resolve => setTimeout(resolve, 100));
-        retries++;
+    // Use global instance like dashboard does
+    if (window.adminSidebarManager) {
+        try {
+            // Sidebar renders itself into the body (no container needed for admin)
+            await window.adminSidebarManager.initialize();
+            this.sidebarManager = window.adminSidebarManager;
+            console.log('✅ [AdminCore] Sidebar initialized successfully');
+        } catch (error) {
+            console.error('❌ [AdminCore] Sidebar initialization failed:', error);
+            throw error;
+        }
+    } else {
+        console.error('❌ [AdminCore] adminSidebarManager not available');
+        throw new Error('AdminSidebarManager not loaded');
     }
-    
-    if (!window.AdminSidebarManager) {
-        console.error('❌ [AdminCore] AdminSidebarManager not loaded after timeout');
-        throw new Error('AdminSidebarManager not loaded after timeout');
-    }
-    
-    console.log('✅ [AdminCore] AdminSidebarManager found, initializing...');
-    this.sidebarManager = new window.AdminSidebarManager();
-    await this.sidebarManager.initialize();
-    
-    console.log('✅ [AdminCore] Sidebar initialized successfully');
 }
     
     // =========================================================================
