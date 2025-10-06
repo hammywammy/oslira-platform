@@ -59,16 +59,10 @@ class AdminCore {
 async verifyAdminAccess() {
     console.log('🔐 [AdminCore] Verifying admin access...');
     
-    // admin-guard.js already verified everything, so just log
+    // Guard already verified everything, just check flag
     if (!window.ADMIN_AUTHORIZED) {
         console.warn('⚠️ [AdminCore] ADMIN_AUTHORIZED flag not set - guard may not have run');
-    }
-    
-    // Double-check auth is still valid
-    if (!window.OsliraAuth?.isAuthenticated()) {
-        console.log('🚫 [AdminCore] Auth session expired');
-        window.location.href = window.OsliraEnv.getAuthUrl();
-        throw new Error('Authentication required');
+        throw new Error('Admin guard did not authorize access');
     }
     
     console.log('✅ [AdminCore] Admin access verified');
