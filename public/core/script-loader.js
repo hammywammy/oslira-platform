@@ -459,54 +459,54 @@ try {
     // =============================================================================
     
 async loadScript(name, src) {
-    // Check if already loaded by checking for script tag in DOM
+    // FIRST: Check DOM for existing script
     const existingScript = document.querySelector(`script[src="${src}"]`);
     if (existingScript) {
-        console.log(`✅ [ScriptLoader] ${name} already loaded, skipping`);
+        console.log(`✅ [ScriptLoader] ${name} already loaded in DOM, skipping`);
         this.loadedScripts.add(name);
         return;
     }
-
+    
     if (this.loadedScripts.has(name)) {
         return;
     }
-        
-        if (this.loadingPromises.has(name)) {
-            return this.loadingPromises.get(name);
-        }
-        
-        if (this.failedScripts.has(name)) {
-            console.warn(`⚠️ [ScriptLoader] Skipping previously failed script: ${name}`);
-            return;
-        }
-        
-        console.log(`📦 [ScriptLoader] Loading script: ${name} from ${src}`);
-        
-        const promise = new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = src;
-            script.async = true;
-            
-            script.onload = () => {
-                console.log(`✅ [ScriptLoader] ${name} loaded successfully`);
-                this.loadedScripts.add(name);
-                this.loadingPromises.delete(name);
-                resolve();
-            };
-            
-            script.onerror = () => {
-                console.error(`❌ [ScriptLoader] Failed to load ${name} from ${src}`);
-                this.failedScripts.add(name);
-                this.loadingPromises.delete(name);
-                reject(new Error(`Failed to load script: ${name}`));
-            };
-            
-            document.head.appendChild(script);
-        });
-        
-        this.loadingPromises.set(name, promise);
-        return promise;
+    
+    if (this.loadingPromises.has(name)) {
+        return this.loadingPromises.get(name);
     }
+    
+    if (this.failedScripts.has(name)) {
+        console.warn(`⚠️ [ScriptLoader] Skipping previously failed script: ${name}`);
+        return;
+    }
+    
+    console.log(`📦 [ScriptLoader] Loading script: ${name} from ${src}`);
+    
+    const promise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        
+        script.onload = () => {
+            console.log(`✅ [ScriptLoader] ${name} loaded successfully`);
+            this.loadedScripts.add(name);
+            this.loadingPromises.delete(name);
+            resolve();
+        };
+        
+        script.onerror = () => {
+            console.error(`❌ [ScriptLoader] Failed to load ${name} from ${src}`);
+            this.failedScripts.add(name);
+            this.loadingPromises.delete(name);
+            reject(new Error(`Failed to load script: ${name}`));
+        };
+        
+        document.head.appendChild(script);
+    });
+    
+    this.loadingPromises.set(name, promise);
+    return promise;
+}
     
     async loadStylesheet(name, href) {
         if (this.loadedScripts.has(name)) {
