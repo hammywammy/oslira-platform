@@ -83,6 +83,29 @@ this.coreScripts = [
     requiresAuth: false,
     enableTailwind: true
 },
+
+'admin': {
+    scripts: [
+        // Core dependencies
+        '/core/dependency-readiness.js',
+        '/core/api-client.js',
+        
+        // Admin-specific sidebar
+        '/core/adminsidebar/sidebar-manager.js',
+        
+        // Admin core controller
+        '/pages/admin/admin.js',
+        
+        // Section modules (order matters - load in sequence)
+        '/pages/admin/sections/overview-section.js',
+        '/pages/admin/sections/users-section.js',
+        '/pages/admin/sections/businesses-section.js',
+        '/pages/admin/sections/revenue-section.js',
+        '/pages/admin/sections/remaining-sections.js' // Contains Usage, System, and Leads
+    ],
+    requiresAuth: true,
+    enableTailwind: true
+},
             
             'onboarding': {
                 scripts: [
