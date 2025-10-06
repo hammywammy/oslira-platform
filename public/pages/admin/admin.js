@@ -98,16 +98,25 @@ async verifyAdminAccess() {
     // SIDEBAR
     // =========================================================================
     
-    async initializeSidebar() {
-        if (!window.AdminSidebarManager) {
-            throw new Error('AdminSidebarManager not loaded');
-        }
-        
-        this.sidebarManager = new window.AdminSidebarManager();
-        await this.sidebarManager.initialize();
-        
-        console.log('✅ [AdminCore] Sidebar initialized');
+async initializeSidebar() {
+    console.log('📐 [AdminCore] Initializing sidebar...');
+    
+    // Wait for sidebar script to load
+    let attempts = 0;
+    while (!window.AdminSidebarManager && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
     }
+    
+    if (!window.AdminSidebarManager) {
+        throw new Error('AdminSidebarManager not loaded after timeout');
+    }
+    
+    this.sidebarManager = new window.AdminSidebarManager();
+    await this.sidebarManager.initialize();
+    
+    console.log('✅ [AdminCore] Sidebar initialized');
+}
     
     // =========================================================================
     // SECTIONS
