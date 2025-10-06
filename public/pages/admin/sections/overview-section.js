@@ -42,7 +42,15 @@ class OverviewSection {
     
     async loadData() {
         try {
-            const response = await window.OsliraAPI.get('/admin/overview');
+const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+const token = window.OsliraAuth.getSession()?.access_token;
+const response = await fetch(`${apiUrl}/admin/overview`, {
+    headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    }
+});
+const data = await response.json();
             
             if (!response.success) {
                 throw new Error(response.error || 'Failed to load overview data');
