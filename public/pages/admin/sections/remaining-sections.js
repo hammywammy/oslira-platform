@@ -36,22 +36,36 @@ class UsageSection {
         this.attachEventListeners();
     }
     
-    async loadData() {
-        try {
-            const response = await window.OsliraAPI.get(`/admin/usage?range=${this.range}&groupBy=${this.groupBy}`);
-            
-            if (!response.success) {
-                throw new Error(response.error || 'Failed to load usage data');
+async loadData() {
+    try {
+        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const token = window.OsliraAuth.getSession()?.access_token;
+        
+        const response = await fetch(`${apiUrl}/admin/usage?range=${this.range}&groupBy=${this.groupBy}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-            
-            this.data = response.data;
-            console.log('✅ [UsageSection] Data loaded');
-            
-        } catch (error) {
-            console.error('❌ [UsageSection] Data loading failed:', error);
-            throw error;
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
         }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to load usage data');
+        }
+
+        this.data = result.data;
+        console.log('✅ [UsageSection] Data loaded');
+
+    } catch (error) {
+        console.error('❌ [UsageSection] Data loading failed:', error);
+        throw error;
     }
+}
     
     render() {
         if (!this.container) return;
@@ -208,22 +222,37 @@ class SystemSection {
         this.render();
     }
     
-    async loadData() {
-        try {
-            const response = await window.OsliraAPI.get('/admin/system');
-            
-            if (!response.success) {
-                throw new Error(response.error || 'Failed to load system data');
+async loadData() {
+    try {
+        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const token = window.OsliraAuth.getSession()?.access_token;
+        
+        const response = await fetch(`${apiUrl}/admin/system`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-            
-            this.data = response.data;
-            console.log('✅ [SystemSection] Data loaded');
-            
-        } catch (error) {
-            console.error('❌ [SystemSection] Data loading failed:', error);
-            throw error;
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
         }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to load system data');
+        }
+
+        this.data = result.data;
+        console.log('✅ [SystemSection] Data loaded');
+
+    } catch (error) {
+        console.error('❌ [SystemSection] Data loading failed:', error);
+        throw error;
     }
+}
+
     
     render() {
         if (!this.container) return;
@@ -368,22 +397,36 @@ class LeadsSection {
         this.render();
     }
     
-    async loadData() {
-        try {
-            const response = await window.OsliraAPI.get('/admin/leads');
-            
-            if (!response.success) {
-                throw new Error(response.error || 'Failed to load leads data');
+  async loadData() {
+    try {
+        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const token = window.OsliraAuth.getSession()?.access_token;
+        
+        const response = await fetch(`${apiUrl}/admin/leads`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-            
-            this.data = response.data;
-            console.log('✅ [LeadsSection] Data loaded');
-            
-        } catch (error) {
-            console.error('❌ [LeadsSection] Data loading failed:', error);
-            throw error;
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
         }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to load leads data');
+        }
+
+        this.data = result.data;
+        console.log('✅ [LeadsSection] Data loaded');
+
+    } catch (error) {
+        console.error('❌ [LeadsSection] Data loading failed:', error);
+        throw error;
     }
+}
     
     render() {
         if (!this.container) return;
