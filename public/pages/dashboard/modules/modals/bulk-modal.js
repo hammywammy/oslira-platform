@@ -258,21 +258,31 @@ class BulkModal {
             }
         };
 
-        // Modal controls
-        window.openBulkModal = () => {
-            const modal = document.querySelector('#bulkModal > div');
-            if (modal) {
-                modal.classList.remove('hidden');
-            }
-        };
+// Modal controls - delegate to ModalManager
+window.openBulkModal = () => {
+    console.log('🔘 [BulkModal] Global openBulkModal called');
+    const modalManager = window.dashboard?.container?.get('modalManager');
+    if (modalManager) {
+        modalManager.openModal('bulkModal');
+    } else {
+        console.error('❌ ModalManager not available');
+    }
+};
 
-        window.closeBulkModal = () => {
-            const modal = document.querySelector('#bulkModal > div');
-            if (modal) {
-                modal.classList.add('hidden');
-                self.resetModal();
-            }
-        };
+window.closeBulkModal = () => {
+    console.log('🔘 [BulkModal] Global closeBulkModal called');
+    const modalManager = window.dashboard?.container?.get('modalManager');
+    if (modalManager) {
+        modalManager.closeModal('bulkModal');
+    } else {
+        // Fallback if ModalManager not available
+        const modal = document.getElementById('bulkModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+    }
+};
 
         window.submitBulkAnalysis = (event) => {
             event.preventDefault();
