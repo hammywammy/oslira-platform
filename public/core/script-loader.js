@@ -86,22 +86,25 @@ this.coreScripts = [
 
 'admin': {
     scripts: [
-        // Core dependencies
+        // Core dependencies FIRST
         '/core/dependency-readiness.js',
         '/core/api-client.js',
         
-        // Admin-specific sidebar
+        // Event bus for admin
+        '/pages/admin/admin-event-bus.js',
+        
+        // Admin-specific sidebar (MUST load before admin.js)
         '/core/adminsidebar/sidebar-manager.js',
         
-        // Admin core controller
-        '/pages/admin/admin.js',
-        
-        // Section modules (order matters - load in sequence)
+        // Section modules (MUST load before admin.js)
         '/pages/admin/sections/overview-section.js',
         '/pages/admin/sections/users-section.js',
         '/pages/admin/sections/businesses-section.js',
         '/pages/admin/sections/revenue-section.js',
-        '/pages/admin/sections/remaining-sections.js' // Contains Usage, System, and Leads
+        '/pages/admin/sections/remaining-sections.js',
+        
+        // Admin core controller LAST (orchestrator)
+        '/pages/admin/admin.js'
     ],
     requiresAuth: true,
     enableTailwind: true
