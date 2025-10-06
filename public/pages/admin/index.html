@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - OSLIRA</title>
+    
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="/assets/css/tailwind.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+    
+    <!-- Page-specific metadata -->
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="OSLIRA Admin Panel - Platform Management">
+</head>
+<body class="admin-page">
+    <!-- Skip Navigation -->
+    <a href="#admin-main-content" class="skip-nav">Skip to main content</a>
+    
+    <!-- Sidebar will be injected here by AdminSidebarManager -->
+    
+    <!-- Main Content Area -->
+    <main id="admin-main-content" class="admin-main-content">
+        <!-- Background -->
+        <div class="admin-gradient-bg"></div>
+        
+        <!-- Content Container -->
+        <div id="admin-content-container" class="admin-content-container">
+            <!-- Loading State -->
+            <div id="admin-loading" class="admin-loading-state">
+                <div class="loading-spinner"></div>
+                <p class="text-slate-600 mt-4">Loading admin panel...</p>
+            </div>
+            
+            <!-- Error State -->
+            <div id="admin-error" class="admin-error-state hidden">
+                <div class="error-icon">⚠️</div>
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Something went wrong</h2>
+                <p class="text-slate-600 mb-4" id="admin-error-message"></p>
+                <button onclick="location.reload()" class="btn-primary">Reload Page</button>
+            </div>
+            
+            <!-- Dynamic Section Content Renders Here -->
+            <div id="admin-section-content" class="admin-section-content hidden">
+                <!-- Sections dynamically render here -->
+            </div>
+        </div>
+    </main>
+    
+    <!-- Toast Notifications Container -->
+    <div id="admin-toast-container" class="admin-toast-container"></div>
+    
+    <!-- Global Modals Container -->
+    <div id="admin-modals-container"></div>
+    
+    <!-- Core Scripts (loaded via script-loader) -->
+    <script>
+        // Set page identifier for script loader
+        window.OSLIRA_PAGE = 'admin';
+        
+        // Basic error boundary
+        window.addEventListener('error', (event) => {
+            console.error('❌ [Admin] Global error:', event.error);
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('❌ [Admin] Unhandled promise rejection:', event.reason);
+        });
+    </script>
+    
+    <!-- Script loader will handle all module loading -->
+    <script src="/core/env-manager.js"></script>
+    <script src="/core/script-loader.js"></script>
+</body>
+</html>
