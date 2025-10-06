@@ -106,7 +106,7 @@ initPageDetection() {
         '/auth/callback': 'auth-callback',
         
         // ============= ADMIN SUBDOMAIN (admin.oslira.com) =============
-        '/admin': 'admin',
+        '/app/admin': 'admin',
         
         // ============= MARKETING/FOOTER PAGES (oslira.com/footer/*) =============
         '/footer/about': 'about',
@@ -212,15 +212,15 @@ initPageDetection() {
         return `https://auth.${this.rootDomain}${cleanPath}`;
     }
     
-    /**
-     * Get admin subdomain URL
-     * @param {string} path - Path without leading slash
-     * @returns {string} Full URL to admin subdomain
-     */
-    getAdminUrl(path = '') {
-        const cleanPath = path.startsWith('/') ? path : `/${path}`;
-        return `https://admin.${this.rootDomain}${cleanPath}`;
-    }
+/**
+ * Get admin URL (now under app subdomain)
+ * @param {string} path - Path without leading slash
+ * @returns {string} Full URL to admin under app subdomain
+ */
+getAdminUrl(path = '') {
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `https://app.${this.rootDomain}/admin${cleanPath}`;
+}
     
     /**
      * Get marketing (root domain) URL
@@ -288,10 +288,13 @@ initPageDetection() {
     // STEP 4: Root path detection (use subdomain context)
     if (this.pathname === '/' || this.pathname === '' || this.pathname === '/index.html') {
         // Subdomain determines which root page
-        switch(subdomain) {
-            case 'auth': return 'auth';
-            case 'app': return 'dashboard';
-            case 'admin': return 'admin';
+switch(subdomain) {
+    case 'auth': return 'auth';
+    case 'app': {
+        // Check if path is /admin to route to admin page
+        if (this.pathname.startsWith('/admin')) return 'admin';
+        return 'dashboard';
+    }
             case 'legal': return 'privacy';
             case 'contact': return 'contact-hub';
             case 'status': return 'status';
