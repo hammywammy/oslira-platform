@@ -40,22 +40,36 @@ class RevenueSection {
     // DATA LOADING
     // =========================================================================
     
-    async loadData() {
-        try {
-            const response = await window.OsliraAPI.get('/admin/revenue');
-            
-            if (!response.success) {
-                throw new Error(response.error || 'Failed to load revenue data');
+async loadData() {
+    try {
+        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const token = window.OsliraAuth.getSession()?.access_token;
+        
+        const response = await fetch(`${apiUrl}/admin/revenue`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-            
-            this.data = response.data;
-            console.log('✅ [RevenueSection] Data loaded:', this.data);
-            
-        } catch (error) {
-            console.error('❌ [RevenueSection] Data loading failed:', error);
-            throw error;
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
         }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to load revenue data');
+        }
+
+        this.data = result.data;
+        console.log('✅ [RevenueSection] Data loaded:', this.data);
+
+    } catch (error) {
+        console.error('❌ [RevenueSection] Data loading failed:', error);
+        throw error;
     }
+}
     
     // =========================================================================
     // RENDERING
