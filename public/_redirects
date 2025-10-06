@@ -29,16 +29,15 @@ https://app.oslira.com/automations         /pages/automations/index.html    200
 https://app.oslira.org/automations         /pages/automations/index.html    200
 https://app.oslira.com/onboarding          /pages/onboarding/index.html     200
 https://app.oslira.org/onboarding          /pages/onboarding/index.html     200
-https://app.oslira.com/*                   /pages/dashboard/:splat          200
-https://app.oslira.org/*                   /pages/dashboard/:splat          200
 
-# =============================================================================
-# ADMIN ROUTES - NOW UNDER app.oslira.{com|org}/admin/*
-# =============================================================================
+# Admin routes under app subdomain (MUST come before catch-all)
 https://app.oslira.com/admin               /pages/admin/index.html          200
 https://app.oslira.org/admin               /pages/admin/index.html          200
 https://app.oslira.com/admin/*             /pages/admin/:splat              200
 https://app.oslira.org/admin/*             /pages/admin/:splat              200
+
+https://app.oslira.com/*                   /pages/dashboard/:splat          200
+https://app.oslira.org/*                   /pages/dashboard/:splat          200
 
 # =============================================================================
 # SUBDOMAIN: auth.oslira.{com|org}
