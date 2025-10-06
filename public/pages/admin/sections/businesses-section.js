@@ -55,7 +55,7 @@ class BusinessesSection {
     try {
         const { page, limit } = this.pagination;
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-const session = await window.OsliraAuth.getSession();
+const session = window.OsliraAuth.getCurrentSession();
 const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/businesses?page=${page}&limit=${limit}`, {
@@ -94,7 +94,7 @@ async searchBusinesses(query) {
 
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-const session = await window.OsliraAuth.getSession();
+const session = window.OsliraAuth.getCurrentSession();
 const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/businesses/search?q=${encodeURIComponent(query)}`, {
@@ -131,7 +131,7 @@ const token = session?.access_token;
 async loadBusinessAnalytics(businessId) {
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-const session = await window.OsliraAuth.getSession();
+const session = window.OsliraAuth.getCurrentSession();
 const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/businesses/${businessId}/analytics`, {
