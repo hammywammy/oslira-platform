@@ -785,86 +785,145 @@ if (document.readyState === 'loading') {
     executeGuard();
 }
     
-    // Allow access to admin panel
-    function allowAccess(userId) {
-        console.log('✅ [AdminGuard] Access granted - loading admin panel');
-        
-        // Restore page visibility
-        document.documentElement.style.visibility = 'visible';
-        document.documentElement.style.opacity = '1';
-        document.body.style.overflow = '';
-        
-        // Clear body (remove password screen)
-        document.body.innerHTML = `
-            <!-- Skip Navigation -->
-            <a href="#admin-main-content" class="skip-nav">Skip to main content</a>
-            
-            <!-- Main Content Area -->
-            <main id="admin-main-content" class="admin-main-content">
-                <div class="admin-gradient-bg"></div>
-                <div id="admin-content-container" class="admin-content-container">
-                    <div id="admin-loading" class="admin-loading-state">
-                        <div class="loading-spinner"></div>
-                        <p class="text-slate-600 mt-4">Loading admin panel...</p>
-                    </div>
-                    <div id="admin-error" class="admin-error-state hidden">
-                        <div class="error-icon">⚠️</div>
-                        <h2 class="text-2xl font-bold text-slate-900 mb-2">Something went wrong</h2>
-                        <p class="text-slate-600 mb-4" id="admin-error-message"></p>
-                        <button onclick="location.reload()" class="btn-primary">Reload Page</button>
-                    </div>
-                    <div id="admin-section-content" class="admin-section-content hidden"></div>
-                </div>
-            </main>
-            
-            <div id="admin-toast-container" class="admin-toast-container"></div>
-            <div id="admin-modals-container"></div>
-        `;
-        
-        // Dispatch event to signal admin scripts can load
-        window.dispatchEvent(new CustomEvent('admin:guard:passed', {
-            detail: { userId }
-        }));
-        
-        // Store auth status globally
-        window.ADMIN_AUTHORIZED = true;
-    }
+  function allowAccess(userId) {
+    console.log('✅ [AdminGuard] Access granted - loading admin panel');
     
-    // Main guard execution
-    async function executeGuard() {
-        try {
-            // Wait for environment
-            await waitForEnvironment();
-            
-            // Check if already authenticated
-            if (isAuthenticated()) {
-                const authData = JSON.parse(localStorage.getItem(SESSION_KEY));
-                console.log('✅ [AdminGuard] Session valid - allowing access');
-                allowAccess(authData.userId);
-                return;
-            }
-            
-            // Check rate limit
-            if (isRateLimited()) {
-                console.log('🚫 [AdminGuard] Rate limited');
-                showRateLimitScreen();
-                return;
-            }
-            
-            // Verify admin status
-            const userId = await verifyAdminAccess();
-            if (!userId) {
-                return; // Already redirected
-            }
-            
-            // Show password prompt
-            await showPasswordPrompt(userId);
-            
-        } catch (error) {
-            console.error('❌ [AdminGuard] Guard execution failed:', error);
-            showError('Admin guard initialization failed. Please refresh.');
+    // Remove the inline blocking styles
+    const blockingStyles = document.querySelectorAll('style');
+    blockingStyles.forEach(style => {
+        if (style.textContent.includes('visibility: hidden')) {
+            style.remove();
         }
+    });
+    
+    // Restore page visibility
+    document.documentElement.style.visibility = 'visible';
+    document.documentElement.style.opacity = '1';
+    document.body.style.overflow = '';
+    document.body.style.visibility = 'visible';
+    document.body.style.opacity = '1';
+    
+    // Clear body (remove password screen)
+    document.body.innerHTML = `
+        <!-- Skip Navigation -->
+        <a href="#admin-main-content" class="skip-nav">Skip to main content</a>
+        
+        <!-- Main Content Area -->
+        <main id="admin-main-content" class="admin-main-content">
+            <div class="admin-gradient-bg"></div>
+            <div id="admin-content-container" class="admin-content-container">
+                <div id="admin-loading" class="admin-loading-state">
+                    <div class="loading-spinner"></div>
+                    <p class="text-slate-600 mt-4">Loading admin panel...</p>
+                </div>
+                <div id="admin-error" class="admin-error-state hidden">
+                    <div class="error-icon">⚠️</div>
+                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Something went wrong</h2>
+                    <p class="text-slate-600 mb-4" id="admin-error-message"></p>
+                    <button onclick="location.reload()" class="btn-primary">Reload Page</button>
+                </div>
+                <div id="admin-section-content" class="admin-section-content hidden"></div>
+            </div>
+        </main>
+        
+        <div id="admin-toast-container" class="admin-toast-container"></div>
+        <div id="admin-modals-container"></div>
+    `;
+    
+    // Dispatch event to signal admin scripts can load
+    window.dispatchEvent(new CustomEvent('admin:guard:passed', {
+        detail: { userId }
+    }));
+    
+    // Store auth status globally
+    window.ADMIN_AUTHORIZED = true;
+    
+    console.log('🚀 [AdminGuard] Admin panel ready - script loader will now initialize');
+}
+    
+// Main guard execution
+async function executeGuard() {
+    console.log('🚀 [AdminGuard] Starting execution...');
+    
+    try {
+        // Step 1: Check if already authenticated with password (INSTANT)
+        if (isAuthenticated()) {
+            const authData = JSON.parse(localStorage.getItem(SESSION_KEY));
+            console.log('✅ [AdminGuard] Valid password session found, allowing access immediately');
+            allowAccess(authData.userId);
+            return;
+        }
+        
+        // Step 2: Check rate limit BEFORE loading anything
+        if (isRateLimited()) {
+            console.log('🚫 [AdminGuard] Rate limited');
+            showRateLimitScreen();
+            return;
+        }
+        
+        // Step 3: Wait for environment (needed for API calls)
+        console.log('⏳ [AdminGuard] Waiting for environment...');
+        await waitForEnvironment();
+        console.log('✅ [AdminGuard] Environment ready');
+        
+        // Step 4: Verify Supabase authentication + admin status
+        console.log('🔐 [AdminGuard] Verifying user authentication and admin status...');
+        
+        if (!window.OsliraAuth) {
+            console.error('❌ [AdminGuard] OsliraAuth not available');
+            showError('Authentication system not loaded. Please refresh the page.');
+            return;
+        }
+        
+        // CRITICAL: Wait for auth to fully load
+        await window.OsliraAuth.waitForAuth();
+        
+        if (!window.OsliraAuth.isAuthenticated()) {
+            console.log('🚫 [AdminGuard] User not authenticated with Supabase, redirecting to login');
+            window.location.href = window.OsliraEnv.getAuthUrl();
+            return;
+        }
+        
+        const user = window.OsliraAuth.getCurrentUser();
+        
+        if (!user) {
+            console.error('❌ [AdminGuard] User object not available after auth');
+            showError('Failed to load user data. Please refresh the page.');
+            return;
+        }
+        
+        console.log('👤 [AdminGuard] User authenticated:', {
+            id: user.id,
+            email: user.email,
+            is_admin: user.is_admin || user.user_metadata?.is_admin
+        });
+        
+        // Check admin status
+        const isAdmin = user.user_metadata?.is_admin || user.is_admin;
+        
+        if (!isAdmin) {
+            console.log('🚫 [AdminGuard] User is not admin');
+            showAccessDenied();
+            return;
+        }
+        
+        console.log('✅ [AdminGuard] Admin status verified - showing password prompt');
+        
+        // Step 5: Show password prompt
+        await showPasswordPrompt(user.id);
+        
+    } catch (error) {
+        console.error('❌ [AdminGuard] Fatal error during execution:', error);
+        showError(
+            'Admin guard initialization failed.',
+            {
+                error: error.message,
+                stack: error.stack?.substring(0, 500),
+                timestamp: new Date().toISOString()
+            }
+        );
     }
+}
     
     // Execute when DOM is ready
     if (document.readyState === 'loading') {
