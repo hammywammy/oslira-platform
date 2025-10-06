@@ -51,71 +51,113 @@ class BusinessesSection {
     // DATA LOADING
     // =========================================================================
     
-    async loadBusinesses() {
-        try {
-            const { page, limit } = this.pagination;
-            const response = await window.OsliraAPI.get(`/admin/businesses?page=${page}&limit=${limit}`);
-            
-            if (!response.success) {
-                throw new Error(response.error || 'Failed to load businesses');
-            }
-            
-            this.businesses = response.data.businesses;
-            this.pagination = response.data.pagination;
-            
-            console.log('✅ [BusinessesSection] Businesses loaded:', this.businesses.length);
-            
-        } catch (error) {
-            console.error('❌ [BusinessesSection] Loading failed:', error);
-            throw error;
-        }
-    }
-    
-    async searchBusinesses(query) {
-        if (!query || query.length < 2) {
-            await this.loadBusinesses();
-            return;
-        }
+ async loadBusinesses() {
+    try {
+        const { page, limit } = this.pagination;
+        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const token = window.OsliraAuth.getSession()?.access_token;
         
-        try {
-            const response = await window.OsliraAPI.get(`/admin/businesses/search?q=${encodeURIComponent(query)}`);
-            
-            if (!response.success) {
-                throw new Error(response.error || 'Search failed');
+        const response = await fetch(`${apiUrl}/admin/businesses?page=${page}&limit=${limit}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-            
-            this.businesses = response.data.businesses;
-            this.pagination.total = this.businesses.length;
-            
-            console.log('✅ [BusinessesSection] Search results:', this.businesses.length);
-            
-        } catch (error) {
-            console.error('❌ [BusinessesSection] Search failed:', error);
-            this.eventBus.emit('admin:show-toast', {
-                message: 'Search failed: ' + error.message,
-                type: 'error'
-            });
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
         }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to load businesses');
+        }
+
+        this.businesses = result.data.businesses;
+        this.pagination = result.data.pagination;
+
+        console.log('✅ [BusinessesSection] Businesses loaded:', this.businesses.length);
+
+    } catch (error) {
+        console.error('❌ [BusinessesSection] Loading failed:', error);
+        throw error;
     }
+}
     
-    async loadBusinessAnalytics(businessId) {
-        try {
-            const response = await window.OsliraAPI.get(`/admin/businesses/${businessId}/analytics`);
-            
-            if (!response.success) {
-                throw new Error(response.error || 'Failed to load analytics');
-            }
-            
-            this.selectedBusiness = response.data;
-            console.log('✅ [BusinessesSection] Analytics loaded for:', businessId);
-            
-            return response.data;
-            
-        } catch (error) {
-            console.error('❌ [BusinessesSection] Analytics loading failed:', error);
-            throw error;
-        }
+async searchBusinesses(query) {
+    if (!query || query.length < 2) {
+        await this.loadBusinesses();
+        return;
     }
+
+    try {
+        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const token = window.OsliraAuth.getSession()?.access_token;
+        
+        const response = await fetch(`${apiUrl}/admin/businesses/search?q=${encodeURIComponent(query)}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Search failed');
+        }
+
+        this.businesses = result.data.businesses;
+        this.pagination.total = this.businesses.length;
+
+        console.log('✅ [BusinessesSection] Search results:', this.businesses.length);
+
+    } catch (error) {
+        console.error('❌ [BusinessesSection] Search failed:', error);
+        this.eventBus.emit('admin:show-toast', {
+            message: 'Search failed: ' + error.message,
+            type: 'error'
+        });
+    }
+}
+    
+async loadBusinessAnalytics(businessId) {
+    try {
+        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const token = window.OsliraAuth.getSession()?.access_token;
+        
+        const response = await fetch(`${apiUrl}/admin/businesses/${businessId}/analytics`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to load analytics');
+        }
+
+        this.selectedBusiness = result.data;
+        console.log('✅ [BusinessesSection] Analytics loaded for:', businessId);
+
+        return result.data;
+
+    } catch (error) {
+        console.error('❌ [BusinessesSection] Analytics loading failed:', error);
+        throw error;
+    }
+}
     
     // =========================================================================
     // RENDERING
