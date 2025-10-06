@@ -33,51 +33,61 @@
     </style>
 </head>
 <body class="admin-page">
-    <!-- NOTHING HERE - Guard will inject everything -->
+<!-- REMOVE env-manager.js from here - script-loader will load it -->
+<script src="/pages/admin/admin-guard.js"></script>
+
+<script>
+    console.log('📋 [Admin] Waiting for guard authorization...');
     
-    <!-- 
-        CRITICAL: Admin Guard MUST load FIRST and SYNCHRONOUSLY
-        This blocks ALL other scripts from loading until password is verified
-    -->
-    <script src="/core/env-manager.js"></script>
-    <script src="/pages/admin/admin-guard.js"></script>
+    window.addEventListener('admin:guard:passed', function(event) {
+        console.log('🔓 [Admin] Guard passed - loading scripts', event.detail);
+        
+        window.OSLIRA_PAGE = 'admin';
+        
+        const scriptLoader = document.createElement('script');
+        scriptLoader.src = '/core/script-loader.js';
+        scriptLoader.onload = function() {
+            console.log('✅ [Admin] Script loader initialized');
+        };
+        scriptLoader.onerror = function() {
+            console.error('❌ [Admin] Failed to load script-loader');
+            // Show error in a simple div
+            document.body.innerHTML = '<div style="padding: 2rem; text-align: center;"><h2>Failed to load admin panel</h2><p>Please refresh the page</p></div>';
+        };
+        document.head.appendChild(scriptLoader);
+    });
+</script>
+
+<!-- Admin Page Content Structure (injected after guard passes) -->
+<div id="admin-page-root" style="display: none;">
+    <!-- Gradient Background -->
+    <div class="admin-gradient-bg"></div>
     
-    <!-- 
-        Script loader will ONLY run AFTER guard passes
-        This is triggered by the 'admin:guard:passed' event
-    -->
-    <script>
-        console.log('📋 [Admin] Waiting for guard authorization...');
-        
-        // WAIT for admin guard to authorize before loading anything
-        window.addEventListener('admin:guard:passed', function(event) {
-            console.log('🔓 [Admin] Guard passed - loading scripts', event.detail);
-            
-            // Set page identifier for script loader
-            window.OSLIRA_PAGE = 'admin';
-            
-            // NOW load the script loader (which will load all other scripts)
-            const scriptLoader = document.createElement('script');
-            scriptLoader.src = '/core/script-loader.js';
-            scriptLoader.onload = function() {
-                console.log('✅ [Admin] Script loader initialized');
-            };
-            scriptLoader.onerror = function() {
-                console.error('❌ [Admin] Failed to load script-loader');
-                document.getElementById('admin-error').classList.remove('hidden');
-                document.getElementById('admin-error-message').textContent = 'Failed to load core scripts. Please refresh the page.';
-            };
-            document.head.appendChild(scriptLoader);
-        });
-        
-        // Global error boundary
-        window.addEventListener('error', function(event) {
-            console.error('❌ [Admin] Global error:', event.error);
-        });
-        
-        window.addEventListener('unhandledrejection', function(event) {
-            console.error('❌ [Admin] Unhandled promise rejection:', event.reason);
-        });
-    </script>
+    <!-- Sidebar will be injected here by AdminSidebarManager -->
+    
+    <!-- Main Content Area -->
+    <main id="admin-main-content" class="admin-main-content">
+        <div class="admin-content-container">
+            <!-- Section content container -->
+            <div id="admin-section-content"></div>
+        </div>
+    </main>
+    
+    <!-- Loading State -->
+    <div id="admin-loading" class="admin-loading-overlay">
+        <div class="admin-loading-spinner"></div>
+        <p class="admin-loading-text">Loading admin panel...</p>
+    </div>
+    
+    <!-- Error State -->
+    <div id="admin-error" class="admin-error-overlay hidden">
+        <div class="admin-error-content">
+            <div class="admin-error-icon">⚠️</div>
+            <h2 class="admin-error-title">Error Loading Admin Panel</h2>
+            <p id="admin-error-message" class="admin-error-message"></p>
+            <button onclick="window.location.reload()" class="btn-primary">Reload Page</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
