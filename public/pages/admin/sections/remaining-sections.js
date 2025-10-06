@@ -40,7 +40,12 @@ async loadData() {
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
 const session = window.OsliraAuth.getCurrentSession();
-const token = session?.access_token;
+
+if (!session) {
+    throw new Error('No session - please login');
+}
+
+const token = session.access_token;
         
         const response = await fetch(`${apiUrl}/admin/usage?range=${this.range}&groupBy=${this.groupBy}`, {
             headers: {
@@ -227,7 +232,12 @@ async loadData() {
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
 const session = window.OsliraAuth.getCurrentSession();
-const token = session?.access_token;
+
+if (!session) {
+    throw new Error('No session - please login');
+}
+
+const token = session.access_token;
         
         const response = await fetch(`${apiUrl}/admin/system`, {
             headers: {
@@ -403,7 +413,12 @@ class LeadsSection {
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
 const session = window.OsliraAuth.getCurrentSession();
-const token = session?.access_token;
+
+if (!session) {
+    throw new Error('No session - please login');
+}
+
+const token = session.access_token;
         
         const response = await fetch(`${apiUrl}/admin/leads`, {
             headers: {
