@@ -458,10 +458,18 @@ try {
     // SCRIPT LOADING UTILITIES
     // =============================================================================
     
-    async loadScript(name, src) {
-        if (this.loadedScripts.has(name)) {
-            return;
-        }
+async loadScript(name, src) {
+    // Check if already loaded by checking for script tag in DOM
+    const existingScript = document.querySelector(`script[src="${src}"]`);
+    if (existingScript) {
+        console.log(`✅ [ScriptLoader] ${name} already loaded, skipping`);
+        this.loadedScripts.add(name);
+        return;
+    }
+
+    if (this.loadedScripts.has(name)) {
+        return;
+    }
         
         if (this.loadingPromises.has(name)) {
             return this.loadingPromises.get(name);
