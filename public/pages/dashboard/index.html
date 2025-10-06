@@ -190,12 +190,13 @@ window.clearAllSelections = function() {
 };
 
 window.openBulkModal = function() {
-    if (window.dashboard?.container?.get('modalManager')) {
-        window.dashboard.container.get('modalManager').openModal('bulkModal');
-    } else if (window.showBulkModal) {
-        window.showBulkModal();
+    console.log('🔘 [Global] openBulkModal called');
+    
+    const modalManager = window.dashboard?.container?.get('modalManager');
+    if (modalManager) {
+        modalManager.openModal('bulkModal');
     } else {
-        console.error('Bulk modal functionality not available');
+        console.error('❌ [Global] ModalManager not available');
     }
 };
 
