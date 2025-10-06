@@ -582,6 +582,49 @@ async waitForBusinesses() {
     return this.businesses;
 }
 
+    /**
+ * Refresh user credits from subscription table
+ * Call this after any credit-consuming operation
+ */
+async refreshCredits() {
+    if (!this.supabase || !this.user) {
+        return;
+    }
+    
+    try {
+        const { data: subscription, error } = await this.supabase
+            .from('subscriptions')
+            .select('credits_remaining')
+            .eq('user_id', this.user.id)
+            .eq('status', 'active')
+            .maybeSingle();
+        
+        if (error) {
+            console.warn('⚠️ [Auth] Could not refresh credits:', error);
+            return;
+        }
+        
+        if (subscription) {
+            const oldCredits = this.user.credits;
+            this.user.credits = subscription.credits_remaining;
+            
+            console.log('💳 [Auth] Credits refreshed:', {
+                old: oldCredits,
+                new: this.user.credits,
+                change: this.user.credits - oldCredits
+            });
+            
+            // Emit credit update event
+            this.emitAuthEvent('credits:updated', {
+                credits: this.user.credits,
+                previousCredits: oldCredits
+            });
+        }
+    } catch (error) {
+        console.error('❌ [Auth] Error refreshing credits:', error);
+    }
+}
+
 hasBusinesses() {
     return this.businessesLoaded && this.businesses.length > 0;
 }
