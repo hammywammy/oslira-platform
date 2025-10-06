@@ -43,7 +43,7 @@ class OverviewSection {
 async loadData() {
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-const session = window.OsliraAuth.getSession();
+const session = window.OsliraAuth.getCurrentSession();
 const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/overview`, {
