@@ -203,9 +203,24 @@ class AdminCore {
 initializeEventBus() {
     console.log('📡 [AdminCore] Initializing event bus...');
     
+    // Create AdminEventBus inline if not exists
     if (!window.AdminEventBus) {
-        console.error('❌ [AdminCore] AdminEventBus not loaded');
-        throw new Error('AdminEventBus not available');
+        console.log('🔧 [AdminCore] Creating AdminEventBus...');
+        
+        window.AdminEventBus = new EventTarget();
+        
+        // Helper methods
+        window.AdminEventBus.emit = function(eventName, data) {
+            this.dispatchEvent(new CustomEvent(eventName, { detail: data }));
+        };
+        
+        window.AdminEventBus.on = function(eventName, handler) {
+            this.addEventListener(eventName, (e) => handler(e.detail));
+        };
+        
+        window.AdminEventBus.off = function(eventName, handler) {
+            this.removeEventListener(eventName, handler);
+        };
     }
     
     this.eventBus = window.AdminEventBus;
