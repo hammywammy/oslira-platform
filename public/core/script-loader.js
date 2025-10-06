@@ -86,6 +86,7 @@ this.coreScripts = [
 
 'admin': {
     scripts: [
+        '/pages/admin/admin-guard.js',
         // Core dependencies
         '/core/dependency-readiness.js',
         '/core/api-client.js',
