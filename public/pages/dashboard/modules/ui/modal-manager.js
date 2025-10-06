@@ -102,7 +102,7 @@ closeAllModals() {
     modalIds.forEach(modalId => this.closeModal(modalId));
 }
     
-    }
+    
     
     // ===============================================================================
     // ANALYSIS MODAL - EXTRACTED FROM dashboard.js
