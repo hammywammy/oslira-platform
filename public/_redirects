@@ -131,3 +131,4 @@ https://status.oslira.org/*                /pages/footer/status/:splat      200
 # CATCH-ALL FALLBACK - MUST BE LAST
 # =============================================================================
 /*                                         /pages/home/index.html           200
+"@ | Out-File -FilePath "public/_redirects" -Encoding ASCII -NoNewline
