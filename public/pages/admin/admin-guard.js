@@ -690,99 +690,6 @@ function showError(message, details = null) {
     
     document.body.appendChild(overlay);
 }
-
-// Main guard execution
-async function executeGuard() {
-    console.log('🚀 [AdminGuard] Starting execution...');
-    
-    try {
-        // Step 1: Check if already authenticated with password (INSTANT)
-        if (isAuthenticated()) {
-            const authData = JSON.parse(localStorage.getItem(SESSION_KEY));
-            
-            // Double-check userId exists (should be caught by isAuthenticated, but be safe)
-            if (!authData || !authData.userId) {
-                console.error('❌ [AdminGuard] Session data invalid after check');
-                localStorage.removeItem(SESSION_KEY);
-                // Continue to password prompt
-            } else {
-                console.log('✅ [AdminGuard] Valid password session found, allowing access immediately');
-                allowAccess(authData.userId);
-                return;
-            }
-        }
-        
-        // Step 2: Check rate limit BEFORE loading anything
-        if (isRateLimited()) {
-            console.log('🚫 [AdminGuard] Rate limited');
-            showRateLimitScreen();
-            return;
-        }
-        
-// Step 3: Load core dependencies if not already loaded
-console.log('⏳ [AdminGuard] Loading core dependencies...');
-await loadCoreDependencies();
-console.log('✅ [AdminGuard] Core dependencies ready');
-
-// Step 4: Verify Supabase authentication + admin status
-console.log('🔐 [AdminGuard] Verifying user authentication and admin status...');
-
-if (!window.OsliraAuth) {
-    console.error('❌ [AdminGuard] OsliraAuth not available after loading');
-    showError('Authentication system not loaded. Please refresh the page.');
-    return;
-}
-        
-        // CRITICAL: Wait for auth to fully load
-        await window.OsliraAuth.waitForAuth();
-        
-        if (!window.OsliraAuth.isAuthenticated()) {
-            console.log('🚫 [AdminGuard] User not authenticated with Supabase, redirecting to login');
-            window.location.href = window.OsliraEnv.getAuthUrl();
-            return;
-        }
-        
-        const user = window.OsliraAuth.getCurrentUser();
-        
-        if (!user) {
-            console.error('❌ [AdminGuard] User object not available after auth');
-            showError('Failed to load user data. Please refresh the page.');
-            return;
-        }
-        
-        console.log('👤 [AdminGuard] User authenticated:', {
-            id: user.id,
-            email: user.email,
-            is_admin: user.is_admin || user.user_metadata?.is_admin
-        });
-        
-        // Check admin status
-        const isAdmin = user.user_metadata?.is_admin || user.is_admin;
-        
-        if (!isAdmin) {
-            console.log('🚫 [AdminGuard] User is not admin');
-            showAccessDenied();
-            return;
-        }
-        
-        console.log('✅ [AdminGuard] Admin status verified - showing password prompt');
-        
-        // Step 5: Show password prompt
-        await showPasswordPrompt(user.id);
-        
-    } catch (error) {
-        console.error('❌ [AdminGuard] Fatal error during execution:', error);
-        showError(
-            'Admin guard initialization failed.',
-            {
-                error: error.message,
-                stack: error.stack?.substring(0, 500),
-                timestamp: new Date().toISOString()
-            }
-        );
-    }
-}
-
 // Show access denied screen for non-admin users
 function showAccessDenied() {
     document.documentElement.style.visibility = 'visible';
@@ -920,19 +827,19 @@ async function executeGuard() {
             return;
         }
         
-        // Step 2: Check rate limit BEFORE loading anything
-        if (isRateLimited()) {
-            console.log('🚫 [AdminGuard] Rate limited');
-            showRateLimitScreen();
-            return;
-        }
-        
-        // Step 3: Wait for environment (needed for API calls)
-        console.log('⏳ [AdminGuard] Waiting for environment...');
-        await waitForEnvironment();
-        console.log('✅ [AdminGuard] Environment ready');
-        
-        // Step 4: Verify Supabase authentication + admin status
+// Step 2: Check rate limit BEFORE loading anything
+if (isRateLimited()) {
+    console.log('🚫 [AdminGuard] Rate limited');
+    showRateLimitScreen();
+    return;
+}
+
+// Step 3: Load core dependencies if not already loaded
+console.log('⏳ [AdminGuard] Loading core dependencies...');
+await loadCoreDependencies();
+console.log('✅ [AdminGuard] Core dependencies ready');
+
+// Step 4: Verify Supabase authentication + admin status
         console.log('🔐 [AdminGuard] Verifying user authentication and admin status...');
         
         if (!window.OsliraAuth) {
