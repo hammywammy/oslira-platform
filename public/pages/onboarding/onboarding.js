@@ -45,9 +45,7 @@ async function initialize() {
         throw new Error('OsliraAuth not available');
     }
     
-    // CRITICAL: Restore session from URL hash BEFORE initializing
-    await window.OsliraAuth.restoreSessionFromUrl();
-    
+    // ✅ Auth manager now handles URL restoration internally
     await window.OsliraAuth.initialize();
     const session = window.OsliraAuth.getCurrentSession();
         
