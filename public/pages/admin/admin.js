@@ -101,21 +101,26 @@ async verifyAdminAccess() {
 async initializeSidebar() {
     console.log('📐 [AdminCore] Initializing sidebar...');
     
-    // Wait for sidebar script to load
-    let attempts = 0;
-    while (!window.AdminSidebarManager && attempts < 50) {
+    // Wait for AdminSidebarManager with retry logic
+    let retries = 0;
+    const maxRetries = 50; // 5 seconds (50 * 100ms)
+    
+    while (!window.AdminSidebarManager && retries < maxRetries) {
+        console.log(`⏳ [AdminCore] Waiting for AdminSidebarManager... (${retries}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
+        retries++;
     }
     
     if (!window.AdminSidebarManager) {
+        console.error('❌ [AdminCore] AdminSidebarManager not loaded after timeout');
         throw new Error('AdminSidebarManager not loaded after timeout');
     }
     
+    console.log('✅ [AdminCore] AdminSidebarManager found, initializing...');
     this.sidebarManager = new window.AdminSidebarManager();
     await this.sidebarManager.initialize();
     
-    console.log('✅ [AdminCore] Sidebar initialized');
+    console.log('✅ [AdminCore] Sidebar initialized successfully');
 }
     
     // =========================================================================
@@ -233,13 +238,13 @@ async initializeSidebar() {
     // UI HELPERS
     // =========================================================================
     
-    hideLoading() {
-        const loadingEl = document.getElementById('admin-loading');
-        const contentEl = document.getElementById('admin-section-content');
-        
-        if (loadingEl) loadingEl.classList.add('hidden');
-        if (contentEl) contentEl.classList.remove('hidden');
-    }
+hideLoading() {
+    const loadingEl = document.getElementById('admin-loading');
+    const pageRoot = document.getElementById('admin-page-root');
+    
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (pageRoot) pageRoot.style.display = 'block';
+}
     
     showError(message) {
         const loadingEl = document.getElementById('admin-loading');
