@@ -143,11 +143,14 @@ this.coreScripts = [
                 enableTailwind: true
             },
             
-            'settings': {
-                scripts: ['/pages/settings/settings.js'],
-                requiresAuth: true,
-                enableTailwind: true
-            },
+'settings': {
+    scripts: [
+        '/core/sidebar/sidebar-manager.js',
+        '/pages/settings/settings.js'
+    ],
+    requiresAuth: true,
+    enableTailwind: true
+},
             
             'subscription': {
                 scripts: [
