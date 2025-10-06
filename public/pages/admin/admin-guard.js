@@ -33,35 +33,27 @@
     }
     
     // Check if already authenticated
-    function isAuthenticated() {
-        try {
-            const authData = localStorage.getItem(SESSION_KEY);
-            if (!authData) return false;
-            
-            const parsed = JSON.parse(authData);
-            const { timestamp, verified, checksum, userId } = parsed;
-            
-            // Verify checksum
-            const expectedChecksum = generateChecksum(timestamp, verified);
-            if (checksum !== expectedChecksum) {
-                console.warn('🛡️ [AdminGuard] Tampering detected');
-                localStorage.removeItem(SESSION_KEY);
-                return false;
+async function isAuthenticated() {
+    const authData = localStorage.getItem(SESSION_KEY);
+    if (!authData) return false;
+    
+    // Existing validation...
+    const parsed = JSON.parse(authData);
+    
+    // ADD: Server-side session validation
+    try {
+        const response = await fetch(`${window.OsliraEnv.getWorkerUrl()}/admin/validate-session`, {
+            headers: {
+                'Authorization': `Bearer ${await window.OsliraAuth.getToken()}`,
+                'X-Session-ID': parsed.checksum
             }
-            
-            // Check expiration
-            const isExpired = Date.now() - timestamp > SESSION_DURATION;
-            if (isExpired) {
-                localStorage.removeItem(SESSION_KEY);
-                return false;
-            }
-            
-            return verified && userId;
-        } catch (error) {
-            localStorage.removeItem(SESSION_KEY);
-            return false;
-        }
+        });
+        return response.ok;
+    } catch {
+        localStorage.removeItem(SESSION_KEY);
+        return false;
     }
+}
     
     // Save authentication
     function saveAuthentication(userId) {
