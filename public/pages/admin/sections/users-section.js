@@ -54,7 +54,7 @@ async loadUsers() {
     try {
         const { page, limit } = this.pagination;
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-const session = await window.OsliraAuth.getSession();
+const session = window.OsliraAuth.getCurrentSession();
 const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/users?page=${page}&limit=${limit}`, {
@@ -93,7 +93,7 @@ async searchUsers(query) {
 
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-const session = await window.OsliraAuth.getSession();
+const session = window.OsliraAuth.getCurrentSession();
 const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/users/search?q=${encodeURIComponent(query)}`, {
@@ -346,7 +346,7 @@ async viewUser(userId) {
 
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-const session = await window.OsliraAuth.getSession();
+const session = window.OsliraAuth.getCurrentSession();
 const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/users/${userId}`, {
@@ -395,7 +395,7 @@ async editCredits(userId, currentCredits) {
 
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-const session = await window.OsliraAuth.getSession();
+const session = window.OsliraAuth.getCurrentSession();
 const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/users/${userId}/update-credits`, {
@@ -442,7 +442,7 @@ async toggleAdmin(userId, currentStatus) {
 
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-const session = await window.OsliraAuth.getSession();
+const session = window.OsliraAuth.getCurrentSession();
 const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/users/${userId}/toggle-admin`, {
@@ -488,7 +488,7 @@ async toggleSuspension(userId, currentStatus) {
 
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-const session = await window.OsliraAuth.getSession();
+const session = window.OsliraAuth.getCurrentSession();
 const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/users/${userId}/suspend`, {
