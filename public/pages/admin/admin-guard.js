@@ -378,15 +378,15 @@ async function verifyAdminAccess() {
         // Fetch admin token from backend
         let ADMIN_TOKEN;
         try {
-            const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
-            const token = window.OsliraAuth.getSession()?.access_token;
+            const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
+const token = window.OsliraAuth?.getSession?.()?.access_token;
             
-            const response = await fetch(`${apiUrl}/config/public`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+const response = await fetch(`${apiUrl}/config/public`, {
+    headers: {
+        'Content-Type': 'application/json'
+        // No auth token - endpoint should allow public access for admin token
+    }
+});
             
             const config = await response.json();
             ADMIN_TOKEN = config.data?.adminToken;
@@ -554,8 +554,8 @@ form.addEventListener('submit', async function(e) {
     submitBtn.style.opacity = '0.6';
     
     try {
-        // Call backend to verify password
-        const response = await fetch(`${window.OsliraEnv.getWorkerUrl()}/admin/verify-password`, {
+// Call backend to verify password
+const response = await fetch(`${window.OsliraEnv.WORKER_URL}/admin/verify-password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
