@@ -533,7 +533,13 @@ if (result && data.success) {
         const successCount = results.filter(r => r.success).length;
         const failedCount = results.length - successCount;
 
-        console.log(`✅ [AnalysisQueue] Bulk analysis complete: ${successCount} succeeded, ${failedCount} failed`);
+            console.log('✅ [AnalysisQueue] Bulk analysis completed');
+    
+    // ⚠️ ADD THIS HERE:
+    if (window.OsliraAuth?.refreshCredits) {
+        await window.OsliraAuth.refreshCredits();
+        console.log('💳 [AnalysisQueue] Credits refreshed after bulk analysis');
+    }
 
         this.eventBus.emit(window.DASHBOARD_EVENTS.DATA_REFRESH);
 
