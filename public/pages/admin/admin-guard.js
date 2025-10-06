@@ -32,24 +32,41 @@
         return hash.toString();
     }
     
-    // Check if already authenticated
-async function isAuthenticated() {
-    const authData = localStorage.getItem(SESSION_KEY);
-    if (!authData) return false;
-    
-    // Existing validation...
-    const parsed = JSON.parse(authData);
-    
-    // ADD: Server-side session validation
+// Check if already authenticated
+function isAuthenticated() {
     try {
-        const response = await fetch(`${window.OsliraEnv.getWorkerUrl()}/admin/validate-session`, {
-            headers: {
-                'Authorization': `Bearer ${await window.OsliraAuth.getToken()}`,
-                'X-Session-ID': parsed.checksum
-            }
-        });
-        return response.ok;
-    } catch {
+        const authData = localStorage.getItem(SESSION_KEY);
+        if (!authData) return false;
+        
+        const parsed = JSON.parse(authData);
+        const { timestamp, verified, checksum, userId } = parsed;
+        
+        // Validate all required fields exist
+        if (!timestamp || !verified || !checksum || !userId) {
+            console.warn('🛡️ [AdminGuard] Incomplete session data, clearing');
+            localStorage.removeItem(SESSION_KEY);
+            return false;
+        }
+        
+        // Verify checksum
+        const expectedChecksum = generateChecksum(timestamp, verified);
+        if (checksum !== expectedChecksum) {
+            console.warn('🛡️ [AdminGuard] Tampering detected');
+            localStorage.removeItem(SESSION_KEY);
+            return false;
+        }
+        
+        // Check expiration
+        const isExpired = Date.now() - timestamp > SESSION_DURATION;
+        if (isExpired) {
+            console.log('⏰ [AdminGuard] Session expired');
+            localStorage.removeItem(SESSION_KEY);
+            return false;
+        }
+        
+        return verified && userId;
+    } catch (error) {
+        console.error('❌ [AdminGuard] Session validation error:', error);
         localStorage.removeItem(SESSION_KEY);
         return false;
     }
@@ -637,58 +654,67 @@ async function executeGuard() {
     console.log('🚀 [AdminGuard] Starting execution...');
     
     try {
-        // Step 1: Wait for environment
-        console.log('⏳ [AdminGuard] Waiting for environment...');
-        await waitForEnvironment();
-        console.log('✅ [AdminGuard] Environment ready');
-        
-        // Step 2: Check if already authenticated with password
+        // Step 1: Check if already authenticated with password (INSTANT)
         if (isAuthenticated()) {
             const authData = JSON.parse(localStorage.getItem(SESSION_KEY));
-            console.log('✅ [AdminGuard] Valid session found, allowing access');
-            allowAccess(authData.userId);
-            return;
+            
+            // Double-check userId exists (should be caught by isAuthenticated, but be safe)
+            if (!authData || !authData.userId) {
+                console.error('❌ [AdminGuard] Session data invalid after check');
+                localStorage.removeItem(SESSION_KEY);
+                // Continue to password prompt
+            } else {
+                console.log('✅ [AdminGuard] Valid password session found, allowing access immediately');
+                allowAccess(authData.userId);
+                return;
+            }
         }
         
-        // Step 3: Check rate limit
+        // Step 2: Check rate limit BEFORE loading anything
         if (isRateLimited()) {
             console.log('🚫 [AdminGuard] Rate limited');
             showRateLimitScreen();
             return;
         }
         
-        // Step 4: Verify user is authenticated with Supabase
-        console.log('🔐 [AdminGuard] Checking Supabase authentication...');
+        // Step 3: Wait for environment (needed for API calls)
+        console.log('⏳ [AdminGuard] Waiting for environment...');
+        await waitForEnvironment();
+        console.log('✅ [AdminGuard] Environment ready');
+        
+        // Step 4: Verify Supabase authentication + admin status
+        console.log('🔐 [AdminGuard] Verifying user authentication and admin status...');
+        
         if (!window.OsliraAuth) {
-            throw new Error('OsliraAuth not available. Please refresh the page.');
+            console.error('❌ [AdminGuard] OsliraAuth not available');
+            showError('Authentication system not loaded. Please refresh the page.');
+            return;
         }
         
+        // CRITICAL: Wait for auth to fully load
         await window.OsliraAuth.waitForAuth();
         
         if (!window.OsliraAuth.isAuthenticated()) {
-            console.log('🚫 [AdminGuard] User not authenticated with Supabase');
+            console.log('🚫 [AdminGuard] User not authenticated with Supabase, redirecting to login');
             window.location.href = window.OsliraEnv.getAuthUrl();
             return;
         }
         
-        console.log('✅ [AdminGuard] Supabase authentication verified');
-        
-        // Step 5: Check admin status
-        console.log('🔍 [AdminGuard] Verifying admin status...');
         const user = window.OsliraAuth.getCurrentUser();
         
         if (!user) {
-            throw new Error('User object not available');
+            console.error('❌ [AdminGuard] User object not available after auth');
+            showError('Failed to load user data. Please refresh the page.');
+            return;
         }
         
-        console.log('👤 [AdminGuard] User loaded:', {
+        console.log('👤 [AdminGuard] User authenticated:', {
             id: user.id,
             email: user.email,
-            has_user_metadata: !!user.user_metadata,
-            has_is_admin: !!user.is_admin,
-            user_metadata_is_admin: user.user_metadata?.is_admin
+            is_admin: user.is_admin || user.user_metadata?.is_admin
         });
         
+        // Check admin status
         const isAdmin = user.user_metadata?.is_admin || user.is_admin;
         
         if (!isAdmin) {
@@ -697,21 +723,19 @@ async function executeGuard() {
             return;
         }
         
-        console.log('✅ [AdminGuard] Admin status verified');
+        console.log('✅ [AdminGuard] Admin status verified - showing password prompt');
         
-        // Step 6: Show password prompt
-        console.log('🔐 [AdminGuard] Showing password prompt...');
+        // Step 5: Show password prompt
         await showPasswordPrompt(user.id);
         
     } catch (error) {
         console.error('❌ [AdminGuard] Fatal error during execution:', error);
         showError(
-            'Admin guard initialization failed. This could be due to a network issue or configuration problem.',
+            'Admin guard initialization failed.',
             {
                 error: error.message,
-                stack: error.stack,
-                timestamp: new Date().toISOString(),
-                userAgent: navigator.userAgent
+                stack: error.stack?.substring(0, 500),
+                timestamp: new Date().toISOString()
             }
         );
     }
@@ -931,5 +955,15 @@ async function executeGuard() {
     } else {
         executeGuard();
     }
+
+    // Debug helper - expose globally for testing
+window.clearAdminSession = function() {
+    localStorage.removeItem(SESSION_KEY);
+    const currentWindow = getCurrentWindow();
+    const attemptsKey = ATTEMPTS_KEY + '_' + currentWindow;
+    localStorage.removeItem(attemptsKey);
+    console.log('✅ [AdminGuard] Session cleared');
+    window.location.reload();
+};
     
 })();
