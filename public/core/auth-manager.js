@@ -72,33 +72,55 @@ async initialize() {
         }
     }
     
-    async initializeSupabase() {
-        try {
-            const config = await window.OsliraConfig.getSupabaseConfig();
-            
-            if (!config.url || !config.key) {
-                throw new Error('Supabase configuration missing');
-            }
-            
-            if (config.url.includes('placeholder') || config.key.includes('placeholder')) {
-                console.warn('⚠️  [Auth] Using placeholder Supabase configuration');
-                return; // Don't initialize with placeholder config
-            }
-            
-            // Initialize Supabase (assuming it's loaded globally)
-            if (typeof window.supabase !== 'undefined') {
-                this.supabase = window.supabase.createClient(config.url, config.key);
-            } else {
-                console.warn('⚠️  [Auth] Supabase not available, auth features disabled');
-            }
-            
-            console.log('✅ [Auth] Supabase initialized');
-            
-        } catch (error) {
-            console.error('❌ [Auth] Supabase initialization failed:', error);
-            throw error;
+async initializeSupabase() {
+    try {
+        const config = await window.OsliraConfig.getSupabaseConfig();
+        
+        if (!config.url || !config.key) {
+            throw new Error('Supabase configuration missing');
         }
+        
+        if (config.url.includes('placeholder') || config.key.includes('placeholder')) {
+            console.warn('⚠️  [Auth] Using placeholder Supabase configuration');
+            return;
+        }
+        
+        if (typeof window.supabase !== 'undefined') {
+            // Detect root domain dynamically for cookie sharing
+            const hostname = window.location.hostname;
+            const hostParts = hostname.split('.');
+            const rootDomain = hostParts.length >= 2 
+                ? '.' + hostParts.slice(-2).join('.')
+                : hostname;
+            
+            console.log('🍪 [Auth] Setting cookie domain:', rootDomain);
+            
+            this.supabase = window.supabase.createClient(config.url, config.key, {
+                auth: {
+                    storageKey: 'oslira-auth',
+                    storage: window.localStorage,
+                    autoRefreshToken: true,
+                    persistSession: true,
+                    detectSessionInUrl: true,
+                    flowType: 'pkce',
+                    cookieOptions: {
+                        domain: rootDomain,
+                        path: '/',
+                        sameSite: 'lax'
+                    }
+                }
+            });
+        } else {
+            console.warn('⚠️  [Auth] Supabase not available, auth features disabled');
+        }
+        
+        console.log('✅ [Auth] Supabase initialized');
+        
+    } catch (error) {
+        console.error('❌ [Auth] Supabase initialization failed:', error);
+        throw error;
     }
+}
     
     async loadCurrentSession() {
         if (!this.supabase) {
