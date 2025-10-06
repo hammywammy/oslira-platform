@@ -151,18 +151,33 @@ async function loadCoreDependencies() {
             await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
         }
         
-        // Load config-manager and auth-manager in parallel
-        await Promise.all([
-            window.OsliraConfig ? Promise.resolve() : loadScript('/core/config-manager.js'),
-            window.OsliraAuth ? Promise.resolve() : loadScript('/core/auth-manager.js')
-        ]);
-        
-        // Wait for auth to initialize
-        if (window.OsliraAuth && !window.OsliraAuth.isLoaded) {
-            await window.OsliraAuth.initialize();
-        }
-        
-        console.log('✅ [AdminGuard] All core dependencies loaded and initialized');
+// Load config-manager and auth-manager in parallel
+await Promise.all([
+    window.OsliraConfig ? Promise.resolve() : loadScript('/core/config-manager.js'),
+    window.OsliraAuth ? Promise.resolve() : loadScript('/core/auth-manager.js')
+]);
+
+// CRITICAL: Wait for auth to fully initialize and load session
+if (window.OsliraAuth) {
+    if (!window.OsliraAuth.isLoaded) {
+        console.log('⏳ [AdminGuard] Waiting for OsliraAuth to initialize...');
+        await window.OsliraAuth.initialize();
+    }
+    
+    // Give it extra time to load session from storage
+    console.log('⏳ [AdminGuard] Ensuring session is loaded...');
+    await window.OsliraAuth.waitForAuth();
+    
+    // Additional safety: wait a moment for session propagation
+    await new Promise(resolve => setTimeout(resolve, 500));
+}
+
+console.log('✅ [AdminGuard] All core dependencies loaded and initialized');
+console.log('🔍 [AdminGuard] Auth status:', {
+    isAuthenticated: window.OsliraAuth?.isAuthenticated(),
+    hasUser: !!window.OsliraAuth?.getCurrentUser(),
+    userId: window.OsliraAuth?.getCurrentUser()?.id
+});
         
     } catch (error) {
         console.error('❌ [AdminGuard] Failed to load core dependencies:', error);
