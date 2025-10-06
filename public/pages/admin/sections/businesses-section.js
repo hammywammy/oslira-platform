@@ -54,7 +54,7 @@ class BusinessesSection {
  async loadBusinesses() {
     try {
         const { page, limit } = this.pagination;
-        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
         const token = window.OsliraAuth.getSession()?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/businesses?page=${page}&limit=${limit}`, {
@@ -92,7 +92,7 @@ async searchBusinesses(query) {
     }
 
     try {
-        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
         const token = window.OsliraAuth.getSession()?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/businesses/search?q=${encodeURIComponent(query)}`, {
@@ -128,7 +128,7 @@ async searchBusinesses(query) {
     
 async loadBusinessAnalytics(businessId) {
     try {
-        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
         const token = window.OsliraAuth.getSession()?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/businesses/${businessId}/analytics`, {
