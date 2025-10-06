@@ -830,12 +830,15 @@ if (updateUserError) {
     console.warn('⚠️ [Onboarding] Failed to update user status:', updateUserError);
 }
 
-// Create subscription record (everything else handled by database defaults/triggers)
+// Create subscription record with free plan defaults
 console.log('💳 [Onboarding] Creating subscription record...');
 const { error: subscriptionError } = await authSystem.supabase
     .from('subscriptions')
     .insert({
-        user_id: user.id
+        user_id: user.id,
+        plan_type: 'free',
+        credits_remaining: 25,
+        status: 'active'
     });
 
 if (subscriptionError) {
