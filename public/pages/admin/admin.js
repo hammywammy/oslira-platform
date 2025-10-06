@@ -1,6 +1,6 @@
 // =============================================================================
 // ADMIN CORE CONTROLLER
-// Main orchestrator for admin panel
+// Main orchestrator for admin panel with password gate
 // =============================================================================
 
 class AdminCore {
@@ -10,6 +10,7 @@ class AdminCore {
         this.eventBus = null;
         this.sections = {};
         this.isInitialized = false;
+        this.passwordVerified = false;
         
         console.log('🎯 [AdminCore] Controller initialized');
     }
@@ -22,22 +23,25 @@ class AdminCore {
         console.log('🚀 [AdminCore] Starting initialization...');
         
         try {
-            // Step 1: Verify admin access
-            await this.verifyAdminAccess();
+            // Step 1: Verify admin password (BLOCKS until verified)
+            await this.verifyAdminPassword();
             
-            // Step 2: Initialize event bus
+            // Step 2: Show page content
+            this.showPageContent();
+            
+            // Step 3: Initialize event bus
             this.initializeEventBus();
             
-            // Step 3: Initialize sidebar
+            // Step 4: Initialize sidebar
             await this.initializeSidebar();
             
-            // Step 4: Initialize sections
+            // Step 5: Initialize sections
             await this.initializeSections();
             
-            // Step 5: Load initial section
+            // Step 6: Load initial section
             await this.loadInitialSection();
             
-            // Step 6: Setup global listeners
+            // Step 7: Setup global listeners
             this.setupGlobalListeners();
             
             // Hide loading, show content
@@ -53,20 +57,144 @@ class AdminCore {
     }
     
     // =========================================================================
-    // AUTHENTICATION
+    // PASSWORD AUTHENTICATION
     // =========================================================================
     
-async verifyAdminAccess() {
-    console.log('🔐 [AdminCore] Verifying admin access...');
-    
-    // Guard already verified everything, just check flag
-    if (!window.ADMIN_AUTHORIZED) {
-        console.warn('⚠️ [AdminCore] ADMIN_AUTHORIZED flag not set - guard may not have run');
-        throw new Error('Admin guard did not authorize access');
+    async verifyAdminPassword() {
+        console.log('🔐 [AdminCore] Starting password verification...');
+        
+        // Check if already verified in this session
+        const SESSION_KEY = 'admin_auth_' + btoa(window.location.hostname).slice(0, 8);
+        const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 hours
+        
+        try {
+            const authData = localStorage.getItem(SESSION_KEY);
+            if (authData) {
+                const parsed = JSON.parse(authData);
+                const isExpired = Date.now() - parsed.timestamp > SESSION_DURATION;
+                
+                if (!isExpired && parsed.verified) {
+                    console.log('✅ [AdminCore] Valid session found');
+                    this.passwordVerified = true;
+                    return;
+                }
+            }
+        } catch (e) {
+            localStorage.removeItem(SESSION_KEY);
+        }
+        
+        // Show password prompt and wait for verification
+        console.log('🔑 [AdminCore] Showing password prompt...');
+        await this.showPasswordPrompt(SESSION_KEY);
+        
+        console.log('✅ [AdminCore] Password verified');
+        this.passwordVerified = true;
     }
     
-    console.log('✅ [AdminCore] Admin access verified');
-}
+    async showPasswordPrompt(sessionKey) {
+        return new Promise((resolve, reject) => {
+            // Create password overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'admin-password-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100vh;
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 99999;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            `;
+            
+            overlay.innerHTML = `
+                <div style="background: white; padding: 48px; border-radius: 16px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); text-align: center; max-width: 450px; width: 90%;">
+                    <div style="font-size: 64px; margin-bottom: 24px;">🔐</div>
+                    <h2 style="margin: 0 0 12px 0; color: #1e293b; font-size: 28px; font-weight: 700;">Admin Panel Access</h2>
+                    <p style="margin: 0 0 32px 0; color: #64748b; font-size: 16px;">Enter the admin password to continue.</p>
+                    <form id="admin-password-form">
+                        <input type="password" id="admin-password-input" placeholder="Enter password" 
+                               style="width: 100%; padding: 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; margin-bottom: 16px; box-sizing: border-box;" 
+                               required autocomplete="off" />
+                        <button type="submit" id="admin-submit-btn"
+                                style="width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer;">
+                            Access Panel
+                        </button>
+                    </form>
+                    <div id="admin-password-error" style="color: #dc2626; font-size: 14px; padding: 12px; background: #fef2f2; border-radius: 8px; margin-top: 16px; display: none;"></div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            const input = document.getElementById('admin-password-input');
+            const form = document.getElementById('admin-password-form');
+            const errorDiv = document.getElementById('admin-password-error');
+            const submitBtn = document.getElementById('admin-submit-btn');
+            
+            setTimeout(() => input.focus(), 100);
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const password = input.value.trim();
+                if (!password) return;
+                
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Verifying...';
+                errorDiv.style.display = 'none';
+                
+                try {
+                    const workerUrl = window.OsliraEnv?.WORKER_URL || 'https://api.oslira.com';
+                    const response = await fetch(`${workerUrl}/admin/verify-password`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            password, 
+                            userId: 'admin-user-' + Date.now() 
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success && result.data?.valid) {
+                        // Save session
+                        const timestamp = Date.now();
+                        localStorage.setItem(sessionKey, JSON.stringify({
+                            verified: true,
+                            timestamp
+                        }));
+                        
+                        // Remove overlay
+                        overlay.remove();
+                        resolve();
+                    } else {
+                        errorDiv.textContent = 'Incorrect password. Please try again.';
+                        errorDiv.style.display = 'block';
+                        input.value = '';
+                        input.focus();
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Access Panel';
+                    }
+                } catch (error) {
+                    console.error('❌ [AdminCore] Password verification failed:', error);
+                    errorDiv.textContent = 'Verification failed. Please try again.';
+                    errorDiv.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Access Panel';
+                }
+            });
+        });
+    }
+    
+    showPageContent() {
+        const pageRoot = document.getElementById('admin-page-root');
+        if (pageRoot) {
+            pageRoot.style.display = 'block';
+        }
+    }
     
     // =========================================================================
     // EVENT BUS
@@ -299,17 +427,19 @@ hideLoading() {
 }
 
 // =============================================================================
-// INITIALIZATION
+// INITIALIZATION - SAME PATTERN AS DASHBOARD
 // =============================================================================
 
 window.addEventListener('oslira:scripts:loaded', async () => {
     try {
         console.log('🚀 [Admin] Scripts loaded, initializing admin panel...');
         
-        // Wait for config
+        // Wait for config to be ready
+        console.log('⏳ [Admin] Waiting for config...');
         await window.OsliraEnv.ready();
+        console.log('✅ [Admin] Config ready');
         
-        // Create and initialize admin core
+        // Create and initialize admin core (will handle password prompt)
         window.AdminCore = new AdminCore();
         await window.AdminCore.initialize();
         
