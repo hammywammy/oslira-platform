@@ -21,7 +21,7 @@ constructor() {
     // INITIALIZATION
     // =============================================================================
     
-  async initialize() {
+async initialize() {
     if (this.isLoaded) {
         return true;
     }
@@ -45,6 +45,11 @@ constructor() {
         this.isLoaded = true;
         console.log('✅ [Auth] Authentication system initialized');
         return true;
+        
+    } catch (error) {
+        console.error('❌ [Auth] Initialization failed:', error);
+        this.isLoaded = true; // Mark as loaded even if failed, to prevent infinite retries
+        return false;
     }
 }
     async waitForConfig() {
