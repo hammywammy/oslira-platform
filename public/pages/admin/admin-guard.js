@@ -546,50 +546,244 @@ form.addEventListener('submit', async function(e) {
         document.head.appendChild(style);
     }
     
-    // Show error screen
-    function showError(message) {
-        document.documentElement.style.visibility = 'visible';
-        document.documentElement.style.opacity = '1';
-        document.body.innerHTML = `
-            <div style="
-                position: fixed;
-                inset: 0;
-                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            ">
-                <div style="
-                    background: white;
-                    padding: 48px;
-                    border-radius: 16px;
-                    text-align: center;
-                    max-width: 450px;
-                ">
-                    <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
-                    <h2 style="margin: 0 0 16px 0; color: #dc2626; font-size: 28px; font-weight: 700;">Error</h2>
-                    <p style="margin: 0 0 24px 0; color: #64748b; font-size: 16px;">${message}</p>
-                    <button 
-                        onclick="window.location.reload()"
-                        style="
-                            width: 100%;
-                            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-                            color: white;
-                            border: none;
-                            padding: 14px;
-                            border-radius: 10px;
-                            font-size: 16px;
-                            font-weight: 600;
-                            cursor: pointer;
-                        "
-                    >
-                        Reload Page
-                    </button>
-                </div>
-            </div>
-        `;
+ // Show error screen with details
+function showError(message, details = null) {
+    document.documentElement.style.visibility = 'visible';
+    document.documentElement.style.opacity = '1';
+    document.body.innerHTML = '';
+    document.body.style.overflow = 'hidden';
+    
+    console.error('❌ [AdminGuard] Error:', message, details);
+    
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        padding: 20px;
+    `;
+    
+    overlay.innerHTML = `
+        <div style="
+            background: white;
+            padding: 48px;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        ">
+            <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
+            <h2 style="margin: 0 0 16px 0; color: #dc2626; font-size: 28px; font-weight: 700;">
+                Initialization Error
+            </h2>
+            <p style="margin: 0 0 24px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
+                ${message}
+            </p>
+            ${details ? `
+                <details style="text-align: left; margin: 20px 0; padding: 16px; background: #f8fafc; border-radius: 8px; font-size: 12px; font-family: monospace; color: #475569;">
+                    <summary style="cursor: pointer; font-weight: 600; margin-bottom: 8px;">Technical Details</summary>
+                    <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">${JSON.stringify(details, null, 2)}</pre>
+                </details>
+            ` : ''}
+            <button 
+                onclick="window.location.reload()"
+                style="
+                    width: 100%;
+                    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+                    color: white;
+                    border: none;
+                    padding: 14px;
+                    border-radius: 10px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                "
+            >
+                Reload Page
+            </button>
+            <button 
+                onclick="localStorage.clear(); window.location.reload()"
+                style="
+                    width: 100%;
+                    background: transparent;
+                    color: #64748b;
+                    border: 2px solid #e2e8f0;
+                    padding: 12px;
+                    border-radius: 10px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    margin-top: 12px;
+                "
+            >
+                Clear Cache & Reload
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+}
+
+// Main guard execution
+async function executeGuard() {
+    console.log('🚀 [AdminGuard] Starting execution...');
+    
+    try {
+        // Step 1: Wait for environment
+        console.log('⏳ [AdminGuard] Waiting for environment...');
+        await waitForEnvironment();
+        console.log('✅ [AdminGuard] Environment ready');
+        
+        // Step 2: Check if already authenticated with password
+        if (isAuthenticated()) {
+            const authData = JSON.parse(localStorage.getItem(SESSION_KEY));
+            console.log('✅ [AdminGuard] Valid session found, allowing access');
+            allowAccess(authData.userId);
+            return;
+        }
+        
+        // Step 3: Check rate limit
+        if (isRateLimited()) {
+            console.log('🚫 [AdminGuard] Rate limited');
+            showRateLimitScreen();
+            return;
+        }
+        
+        // Step 4: Verify user is authenticated with Supabase
+        console.log('🔐 [AdminGuard] Checking Supabase authentication...');
+        if (!window.OsliraAuth) {
+            throw new Error('OsliraAuth not available. Please refresh the page.');
+        }
+        
+        await window.OsliraAuth.waitForAuth();
+        
+        if (!window.OsliraAuth.isAuthenticated()) {
+            console.log('🚫 [AdminGuard] User not authenticated with Supabase');
+            window.location.href = window.OsliraEnv.getAuthUrl();
+            return;
+        }
+        
+        console.log('✅ [AdminGuard] Supabase authentication verified');
+        
+        // Step 5: Check admin status
+        console.log('🔍 [AdminGuard] Verifying admin status...');
+        const user = window.OsliraAuth.getCurrentUser();
+        
+        if (!user) {
+            throw new Error('User object not available');
+        }
+        
+        console.log('👤 [AdminGuard] User loaded:', {
+            id: user.id,
+            email: user.email,
+            has_user_metadata: !!user.user_metadata,
+            has_is_admin: !!user.is_admin,
+            user_metadata_is_admin: user.user_metadata?.is_admin
+        });
+        
+        const isAdmin = user.user_metadata?.is_admin || user.is_admin;
+        
+        if (!isAdmin) {
+            console.log('🚫 [AdminGuard] User is not admin');
+            showAccessDenied();
+            return;
+        }
+        
+        console.log('✅ [AdminGuard] Admin status verified');
+        
+        // Step 6: Show password prompt
+        console.log('🔐 [AdminGuard] Showing password prompt...');
+        await showPasswordPrompt(user.id);
+        
+    } catch (error) {
+        console.error('❌ [AdminGuard] Fatal error during execution:', error);
+        showError(
+            'Admin guard initialization failed. This could be due to a network issue or configuration problem.',
+            {
+                error: error.message,
+                stack: error.stack,
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent
+            }
+        );
     }
+}
+
+// Show access denied screen for non-admin users
+function showAccessDenied() {
+    document.documentElement.style.visibility = 'visible';
+    document.documentElement.style.opacity = '1';
+    document.body.innerHTML = '';
+    document.body.style.overflow = 'hidden';
+    
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+    
+    overlay.innerHTML = `
+        <div style="
+            background: white;
+            padding: 48px;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+        ">
+            <div style="font-size: 64px; margin-bottom: 24px;">🚫</div>
+            <h2 style="margin: 0 0 16px 0; color: #dc2626; font-size: 28px; font-weight: 700;">
+                Access Denied
+            </h2>
+            <p style="margin: 0 0 32px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
+                You do not have administrator privileges.<br>
+                This area is restricted to admin users only.
+            </p>
+            <button 
+                onclick="window.location.href='${window.OsliraEnv.getAppUrl('/dashboard')}'"
+                style="
+                    width: 100%;
+                    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+                    color: white;
+                    border: none;
+                    padding: 14px;
+                    border-radius: 10px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                "
+            >
+                Return to Dashboard
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+}
+
+// Execute when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', executeGuard);
+} else {
+    executeGuard();
+}
     
     // Allow access to admin panel
     function allowAccess(userId) {
