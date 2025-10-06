@@ -44,7 +44,12 @@ async loadData() {
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
 const session = window.OsliraAuth.getCurrentSession();
-const token = session?.access_token;
+
+if (!session) {
+    throw new Error('No session - please login');
+}
+
+const token = session.access_token;
         
         const response = await fetch(`${apiUrl}/admin/overview`, {
             headers: {
