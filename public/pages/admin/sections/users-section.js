@@ -55,7 +55,12 @@ async loadUsers() {
         const { page, limit } = this.pagination;
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
 const session = window.OsliraAuth.getCurrentSession();
-const token = session?.access_token;
+
+if (!session) {
+    throw new Error('No session - please login');
+}
+
+const token = session.access_token;
         
         const response = await fetch(`${apiUrl}/admin/users?page=${page}&limit=${limit}`, {
             headers: {
@@ -94,7 +99,12 @@ async searchUsers(query) {
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
 const session = window.OsliraAuth.getCurrentSession();
-const token = session?.access_token;
+
+if (!session) {
+    throw new Error('No session - please login');
+}
+
+const token = session.access_token;
         
         const response = await fetch(`${apiUrl}/admin/users/search?q=${encodeURIComponent(query)}`, {
             headers: {
@@ -347,7 +357,12 @@ async viewUser(userId) {
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
 const session = window.OsliraAuth.getCurrentSession();
-const token = session?.access_token;
+
+if (!session) {
+    throw new Error('No session - please login');
+}
+
+const token = session.access_token;
         
         const response = await fetch(`${apiUrl}/admin/users/${userId}`, {
             headers: {
@@ -396,7 +411,12 @@ async editCredits(userId, currentCredits) {
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
 const session = window.OsliraAuth.getCurrentSession();
-const token = session?.access_token;
+
+if (!session) {
+    throw new Error('No session - please login');
+}
+
+const token = session.access_token;
         
         const response = await fetch(`${apiUrl}/admin/users/${userId}/update-credits`, {
             method: 'POST',
@@ -443,7 +463,12 @@ async toggleAdmin(userId, currentStatus) {
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
 const session = window.OsliraAuth.getCurrentSession();
-const token = session?.access_token;
+
+if (!session) {
+    throw new Error('No session - please login');
+}
+
+const token = session.access_token;
         
         const response = await fetch(`${apiUrl}/admin/users/${userId}/toggle-admin`, {
             method: 'POST',
@@ -489,7 +514,12 @@ async toggleSuspension(userId, currentStatus) {
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
 const session = window.OsliraAuth.getCurrentSession();
-const token = session?.access_token;
+
+if (!session) {
+    throw new Error('No session - please login');
+}
+
+const token = session.access_token;
         
         const response = await fetch(`${apiUrl}/admin/users/${userId}/suspend`, {
             method: 'POST',
