@@ -19,6 +19,12 @@ class StatsCalculator {
         this.cacheExpiryMs = 5 * 60 * 1000; // 5 minutes
 
         this.statsRefreshTimeout = null;
+
+    window.addEventListener('auth:credits:updated', (event) => {
+        console.log('💳 [StatsCalculator] Credits updated event received:', event.detail);
+        this.refreshStats();
+    });
+        
         console.log('🚀 [StatsCalculator] Initialized');
     }
     
@@ -209,17 +215,25 @@ if (creditsPercentEl) {
     console.log('✅ [StatsCalculator] Stats UI updated successfully');
 }
 
-    calculateStats(leads) {
-    console.log('🔢 [StatsCalculator] Calculating stats from lead data...');
+calculateStats(leads) {
+    console.log('📊 [StatsCalculator] Calculating stats from lead data...');
     
     if (!leads || leads.length === 0) {
         return this.getDefaultStats();
     }
     
-    // Get subscription data for credits
-    const planType = this.osliraAuth?.user?.plan_type || 'free';
-    const creditsRemaining = this.osliraAuth?.user?.credits || 0;
+    // Get subscription data for credits (with multiple fallbacks)
+    const user = this.osliraAuth?.user || window.OsliraAuth?.user;
+    const planType = user?.plan_type || 'free';
+    const creditsRemaining = user?.credits || 0;
     const planCredits = this.getPlanCredits(planType);
+    
+    console.log('💳 [StatsCalculator] Credit info:', {
+        planType,
+        creditsRemaining,
+        planCredits,
+        source: this.osliraAuth?.user ? 'osliraAuth' : 'OsliraAuth'
+    });
     
     const stats = {
         // Credits
