@@ -40,30 +40,36 @@ class OverviewSection {
     // DATA LOADING
     // =========================================================================
     
-    async loadData() {
-        try {
-const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
-const token = window.OsliraAuth.getSession()?.access_token;
-const response = await fetch(`${apiUrl}/admin/overview`, {
-    headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-    }
-});
-const data = await response.json();
-            
-            if (!response.success) {
-                throw new Error(response.error || 'Failed to load overview data');
+async loadData() {
+    try {
+        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const token = window.OsliraAuth.getSession()?.access_token;
+        
+        const response = await fetch(`${apiUrl}/admin/overview`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-            
-            this.data = response.data;
-            console.log('✅ [OverviewSection] Data loaded:', this.data);
-            
-        } catch (error) {
-            console.error('❌ [OverviewSection] Data loading failed:', error);
-            throw error;
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
         }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to load overview data');
+        }
+
+        this.data = result.data;
+        console.log('✅ [OverviewSection] Data loaded:', this.data);
+
+    } catch (error) {
+        console.error('❌ [OverviewSection] Data loading failed:', error);
+        throw error;
     }
+}
     
     // =========================================================================
     // RENDERING
