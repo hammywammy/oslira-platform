@@ -374,13 +374,15 @@ setupGlobalMethods() {
     }
 
 showBulkModal() {
-    console.log('📁 [AnalysisFunctions] Opening bulk analysis modal...');
+    console.log('📁 [AnalysisFunctions] Opening bulk modal...');
     
     try {
         const modalManager = this.container.get('modalManager');
-        modalManager.showBulkModal(); // Let modal manager handle all state logic
-        
-        console.log('✅ [AnalysisFunctions] Bulk modal opened');
+        if (modalManager) {
+            modalManager.openModal('bulkModal');  // ✅ Use the generic openModal method
+        } else {
+            console.error('❌ [AnalysisFunctions] ModalManager not available');
+        }
     } catch (error) {
         console.error('❌ [AnalysisFunctions] Failed to open bulk modal:', error);
     }
