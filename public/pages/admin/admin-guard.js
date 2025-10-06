@@ -132,32 +132,84 @@ async function isAuthenticated() {
         });
     }
     
-    // Verify admin access with backend
-    async function verifyAdminAccess() {
-        try {
-            // Wait for auth system
-            if (!window.OsliraAuth) {
-                throw new Error('Auth system not available');
-            }
-            
-            await window.OsliraAuth.waitForAuth();
-            
-            if (!window.OsliraAuth.isAuthenticated()) {
-                console.log('🚫 [AdminGuard] User not authenticated');
-                window.location.href = window.OsliraEnv.getAuthUrl();
-                return false;
-            }
-            
-            const user = window.OsliraAuth.getCurrentUser();
-            
-            // Check if user is admin (check both possible locations)
-            const isAdmin = user.user_metadata?.is_admin || user.is_admin;
-            
-            if (!isAdmin) {
-                console.log('🚫 [AdminGuard] User is not admin');
-                window.location.href = window.OsliraEnv.getAppUrl('/dashboard');
-                return false;
-            }
+async function verifyAdminAccess() {
+    try {
+        if (!window.OsliraAuth) {
+            throw new Error('Auth system not available');
+        }
+        
+        await window.OsliraAuth.waitForAuth();
+        
+        if (!window.OsliraAuth.isAuthenticated()) {
+            console.log('🚫 [AdminGuard] User not authenticated');
+            window.location.href = window.OsliraEnv.getAuthUrl();
+            return false;
+        }
+        
+        const user = window.OsliraAuth.getCurrentUser();
+        
+        // Check if user is admin (check both possible locations)
+        const isAdmin = user.user_metadata?.is_admin || user.is_admin;
+        
+        if (!isAdmin) {
+            console.log('🚫 [AdminGuard] User is not admin, redirecting to dashboard');
+            // Show a message before redirecting
+            document.body.innerHTML = `
+                <div style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100vh;
+                    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                ">
+                    <div style="
+                        background: white;
+                        padding: 48px;
+                        border-radius: 16px;
+                        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+                        text-align: center;
+                        max-width: 450px;
+                        width: 90%;
+                    ">
+                        <div style="font-size: 64px; margin-bottom: 24px;">🚫</div>
+                        <h2 style="margin: 0 0 16px 0; color: #dc2626; font-size: 28px; font-weight: 700;">
+                            Access Denied
+                        </h2>
+                        <p style="margin: 0 0 32px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
+                            You do not have administrator privileges.<br>
+                            This area is restricted to admin users only.
+                        </p>
+                        <button 
+                            onclick="window.location.href='${window.OsliraEnv.getAppUrl('/dashboard')}'"
+                            style="
+                                width: 100%;
+                                background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+                                color: white;
+                                border: none;
+                                padding: 14px;
+                                border-radius: 10px;
+                                font-size: 16px;
+                                font-weight: 600;
+                                cursor: pointer;
+                            "
+                        >
+                            Return to Dashboard
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.documentElement.style.visibility = 'visible';
+            document.documentElement.style.opacity = '1';
+            return false;
+        }
+        
+        console.log('✅ [AdminGuard] Admin status verified');
+        return user.id;
             
             console.log('✅ [AdminGuard] Admin status verified');
             return user.id;
@@ -409,41 +461,79 @@ async function isAuthenticated() {
         
         setTimeout(() => input.focus(), 100);
         
-        // Handle form submission
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const enteredPassword = input.value.trim();
-            
-            if (enteredPassword === ADMIN_TOKEN) {
-                console.log('✅ [AdminGuard] Admin password correct');
-                saveAuthentication(userId);
-                allowAccess(userId);
-            } else {
-                console.log('❌ [AdminGuard] Admin password incorrect');
-                recordFailedAttempt();
-                
-                const newRemaining = getRemainingAttempts();
-                
-                if (newRemaining === 0) {
-                    showRateLimitScreen();
-                } else {
-                    const attemptsDisplay = modal.querySelector('div[style*="background: #fff7ed"] p');
-                    if (attemptsDisplay) {
-                        attemptsDisplay.textContent = `Attempts remaining: ${newRemaining} of ${MAX_ATTEMPTS}`;
-                    }
-                    
-                    errorDiv.textContent = `Incorrect password. ${newRemaining} ${newRemaining === 1 ? 'attempt' : 'attempts'} remaining.`;
-                    errorDiv.style.display = 'block';
-                    input.value = '';
-                    input.focus();
-                    
-                    // Shake animation
-                    modal.style.animation = 'shake 0.5s ease-in-out';
-                    setTimeout(() => modal.style.animation = '', 500);
-                }
-            }
+// Handle form submission
+form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const enteredPassword = input.value.trim();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    if (!enteredPassword) {
+        errorDiv.textContent = 'Please enter a password';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    // Disable button during verification
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Verifying...';
+    submitBtn.style.opacity = '0.6';
+    
+    try {
+        // Call backend to verify password
+        const response = await fetch(`${window.OsliraEnv.getWorkerUrl()}/admin/verify-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                password: enteredPassword,
+                userId: userId
+            })
         });
+        
+        const result = await response.json();
+        
+        if (result.success && result.data?.valid) {
+            console.log('✅ [AdminGuard] Admin password correct');
+            saveAuthentication(userId);
+            allowAccess(userId);
+        } else {
+            console.log('❌ [AdminGuard] Admin password incorrect');
+            recordFailedAttempt();
+            
+            const newRemaining = getRemainingAttempts();
+            
+            if (newRemaining === 0) {
+                showRateLimitScreen();
+            } else {
+                const attemptsDisplay = modal.querySelector('div[style*="background: #fff7ed"] p');
+                if (attemptsDisplay) {
+                    attemptsDisplay.textContent = `Attempts remaining: ${newRemaining} of ${MAX_ATTEMPTS}`;
+                }
+                
+                errorDiv.textContent = `Incorrect password. ${newRemaining} ${newRemaining === 1 ? 'attempt' : 'attempts'} remaining.`;
+                errorDiv.style.display = 'block';
+                input.value = '';
+                input.focus();
+                
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Access Admin Panel';
+                submitBtn.style.opacity = '1';
+            }
+        }
+    } catch (error) {
+        console.error('❌ [AdminGuard] Password verification failed:', error);
+        errorDiv.textContent = 'Verification failed. Please try again.';
+        errorDiv.style.display = 'block';
+        
+        // Re-enable button
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Access Admin Panel';
+        submitBtn.style.opacity = '1';
+    }
+});
         
         // Add shake animation
         const style = document.createElement('style');
