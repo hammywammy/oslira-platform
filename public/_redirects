@@ -49,8 +49,8 @@ https://admin.oslira.com/                  /pages/admin/index.html          200
 https://admin.oslira.org/                  /pages/admin/index.html          200
 https://admin.oslira.com/*                 /pages/admin/:splat              200
 https://admin.oslira.org/*                 /pages/admin/:splat              200
-https://oslira.org/admin                   /pages/admin/index.html          200
-https://oslira.org/admin/*                 /pages/admin/index.html          200
+/admin                                     /pages/admin/index.html          200
+/admin/*                                   /pages/admin/index.html          200
 
 # =============================================================================
 # SUBDOMAIN: contact.oslira.{com|org}
@@ -131,4 +131,3 @@ https://status.oslira.org/*                /pages/footer/status/:splat      200
 # CATCH-ALL FALLBACK - MUST BE LAST
 # =============================================================================
 /*                                         /pages/home/index.html           200
-"@ | Out-File -FilePath "public/_redirects" -Encoding ASCII -NoNewline
