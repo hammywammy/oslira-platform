@@ -116,13 +116,11 @@ async checkIsAdmin() {
             return false;
         }
         
-        const token = session.access_token;
-        const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-        
-        // Call backend to verify admin status
-        const response = await fetch(`${apiUrl}/admin/validate-session`, {
+        const workerUrl = window.OsliraEnv?.WORKER_URL || 'https://api.oslira.com';
+        const response = await fetch(`${workerUrl}/admin/validate-session`, {
+            method: 'GET',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                'Authorization': `Bearer ${session.access_token}`,
                 'Content-Type': 'application/json'
             }
         });
