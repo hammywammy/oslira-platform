@@ -422,30 +422,6 @@ async processAnalysisForm(event) {
     // BULK MODAL - EXTRACTED FROM dashboard.js
     // ===============================================================================
     
-    showBulkModal() {
-        console.log('📁 [ModalManager] Opening bulk analysis modal...');
-        
-        const modal = this.openModal('bulkModal');
-        if (!modal) return;
-        
-        // Reset form and state
-        this.resetBulkModal();
-        
-        // Load business profiles for bulk modal (async with proper error handling)
-        setTimeout(async () => {
-            try {
-                const businessManager = this.container.get('businessManager');
-                if (businessManager) {
-                    await businessManager.loadBusinessProfilesForBulkModal();
-                }
-            } catch (error) {
-                console.error('❌ [ModalManager] Failed to load bulk business profiles:', error);
-            }
-        }, 100);
-        
-        console.log('✅ [ModalManager] Bulk modal opened');
-    }
-    
 resetBulkModal() {
     // Reset form
     const form = document.getElementById('bulkForm');
