@@ -131,23 +131,65 @@ function isAuthenticated() {
         return minutes === 1 ? '1 minute' : `${minutes} minutes`;
     }
     
-    // Wait for environment to be ready
-    async function waitForEnvironment() {
-        return new Promise((resolve) => {
-            const check = setInterval(() => {
-                if (window.OsliraEnv && window.OsliraAuth) {
-                    clearInterval(check);
-                    resolve();
-                }
-            }, 50);
-            
-            // Timeout after 10 seconds
-            setTimeout(() => {
-                clearInterval(check);
-                resolve();
-            }, 10000);
-        });
+// Load core dependencies (OsliraEnv, Supabase, OsliraConfig, OsliraAuth)
+async function loadCoreDependencies() {
+    // Check if already loaded
+    if (window.OsliraEnv && window.OsliraAuth && window.OsliraAuth.isLoaded) {
+        console.log('✅ [AdminGuard] Core dependencies already loaded');
+        return;
     }
+    
+    try {
+        // Load env-manager first (synchronously required)
+        if (!window.OsliraEnv) {
+            await loadScript('/core/env-manager.js');
+            await window.OsliraEnv.ready(); // Wait for async config load
+        }
+        
+        // Load Supabase CDN
+        if (!window.supabase) {
+            await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
+        }
+        
+        // Load config-manager and auth-manager in parallel
+        await Promise.all([
+            window.OsliraConfig ? Promise.resolve() : loadScript('/core/config-manager.js'),
+            window.OsliraAuth ? Promise.resolve() : loadScript('/core/auth-manager.js')
+        ]);
+        
+        // Wait for auth to initialize
+        if (window.OsliraAuth && !window.OsliraAuth.isLoaded) {
+            await window.OsliraAuth.initialize();
+        }
+        
+        console.log('✅ [AdminGuard] All core dependencies loaded and initialized');
+        
+    } catch (error) {
+        console.error('❌ [AdminGuard] Failed to load core dependencies:', error);
+        throw error;
+    }
+}
+
+// Helper function to load a script dynamically
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = false; // Load in order
+        
+        script.onload = () => {
+            console.log(`✅ [AdminGuard] Loaded: ${src}`);
+            resolve();
+        };
+        
+        script.onerror = () => {
+            console.error(`❌ [AdminGuard] Failed to load: ${src}`);
+            reject(new Error(`Failed to load script: ${src}`));
+        };
+        
+        document.head.appendChild(script);
+    });
+}
     
 async function verifyAdminAccess() {
     try {
@@ -677,19 +719,19 @@ async function executeGuard() {
             return;
         }
         
-        // Step 3: Wait for environment (needed for API calls)
-        console.log('⏳ [AdminGuard] Waiting for environment...');
-        await waitForEnvironment();
-        console.log('✅ [AdminGuard] Environment ready');
-        
-        // Step 4: Verify Supabase authentication + admin status
-        console.log('🔐 [AdminGuard] Verifying user authentication and admin status...');
-        
-        if (!window.OsliraAuth) {
-            console.error('❌ [AdminGuard] OsliraAuth not available');
-            showError('Authentication system not loaded. Please refresh the page.');
-            return;
-        }
+// Step 3: Load core dependencies if not already loaded
+console.log('⏳ [AdminGuard] Loading core dependencies...');
+await loadCoreDependencies();
+console.log('✅ [AdminGuard] Core dependencies ready');
+
+// Step 4: Verify Supabase authentication + admin status
+console.log('🔐 [AdminGuard] Verifying user authentication and admin status...');
+
+if (!window.OsliraAuth) {
+    console.error('❌ [AdminGuard] OsliraAuth not available after loading');
+    showError('Authentication system not loaded. Please refresh the page.');
+    return;
+}
         
         // CRITICAL: Wait for auth to fully load
         await window.OsliraAuth.waitForAuth();
