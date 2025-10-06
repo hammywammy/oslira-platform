@@ -30,66 +30,78 @@ class ModalManager {
     // MODAL CONTROL METHODS - EXTRACTED FROM ORIGINAL
     // ===============================================================================
     
-closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-        
-        // Add hidden class back to child elements
-        const mainContent = modal.querySelector('.fixed');
-        if (mainContent) {
-            mainContent.classList.add('hidden');
-        }
-        
-        this.activeModals.delete(modalId);
-            
-            // Clear any form data
-            this.clearModalForm(modalId);
-            
-            // Update state
-            this.stateManager.setState('activeModal', null);
-            
-            this.eventBus.emit(DASHBOARD_EVENTS.MODAL_CLOSED, { modalId });
-            console.log(`❌ [ModalManager] Modal closed: ${modalId}`);
-        }
-    }
-    
 openModal(modalId, data = {}) {
+    console.log(`📖 [ModalManager] Opening modal: ${modalId}`);
+    
     const modal = document.getElementById(modalId);
     if (!modal) {
         console.error(`❌ [ModalManager] Modal not found: ${modalId}`);
-        return;
+        return null;
     }
     
-    // Close other modals first
+    // Close all other modals first
     this.closeAllModals();
     
-    // Remove hidden class from modal
+    // Open this modal
     modal.classList.remove('hidden');
     modal.style.display = 'flex';
     
-    // Show first-level modal wrapper only (not validation/error elements)
-    const modalWrapper = modal.querySelector('.fixed.inset-0');
-    if (modalWrapper) {
-        modalWrapper.classList.remove('hidden');
+    // Show modal wrapper
+    const wrapper = modal.querySelector('.fixed.inset-0');
+    if (wrapper) {
+        wrapper.classList.remove('hidden');
     }
     
+    // Track as active
     this.activeModals.add(modalId);
-        
-        // Update state
-        this.stateManager.setState('activeModal', modalId);
-        
-        this.eventBus.emit(DASHBOARD_EVENTS.MODAL_OPENED, { modalId, data });
-        console.log(`✅ [ModalManager] Modal opened: ${modalId}`);
-        
-        return modal;
+    this.stateManager?.setState('activeModal', modalId);
+    
+    this.eventBus?.emit('MODAL_OPENED', { modalId, data });
+    console.log(`✅ [ModalManager] Modal opened: ${modalId}`);
+    
+    return modal;
+}
+
+closeModal(modalId) {
+    console.log(`📕 [ModalManager] Closing modal: ${modalId}`);
+    
+    const modal = document.getElementById(modalId);
+    if (!modal) {
+        console.warn(`⚠️ [ModalManager] Modal not found: ${modalId}`);
+        return;
     }
     
-    closeAllModals() {
-        this.activeModals.forEach(modalId => {
-            this.closeModal(modalId);
-        });
+    // Hide modal
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+    
+    // Hide wrapper
+    const wrapper = modal.querySelector('.fixed.inset-0');
+    if (wrapper) {
+        wrapper.classList.add('hidden');
+    }
+    
+    // Remove from active tracking
+    this.activeModals.delete(modalId);
+    
+    // Clear state if this was the active modal
+    const currentActive = this.stateManager?.getState('activeModal');
+    if (currentActive === modalId) {
+        this.stateManager?.setState('activeModal', null);
+    }
+    
+    // Clear form data
+    this.clearModalForm(modalId);
+    
+    this.eventBus?.emit('MODAL_CLOSED', { modalId });
+    console.log(`✅ [ModalManager] Modal closed: ${modalId}`);
+}
+
+closeAllModals() {
+    const modalIds = Array.from(this.activeModals);
+    modalIds.forEach(modalId => this.closeModal(modalId));
+}
+    
     }
     
     // ===============================================================================
