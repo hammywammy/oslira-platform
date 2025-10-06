@@ -1,0 +1,652 @@
+/* =============================================================================
+   ADMIN PANEL STYLES
+   Complete styling for admin dashboard with consistent design language
+   ============================================================================= */
+
+@layer components {
+  /* =============================================================================
+     ADMIN PAGE LAYOUT
+     ============================================================================= */
+  
+  .admin-page {
+    @apply min-h-screen bg-slate-50;
+  }
+  
+  .admin-gradient-bg {
+    @apply fixed inset-0 -z-10;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  }
+  
+  .admin-main-content {
+    @apply ml-64 min-h-screen p-8 transition-all duration-300;
+  }
+  
+  .admin-main-content.sidebar-collapsed {
+    @apply ml-20;
+  }
+  
+  .admin-content-container {
+    @apply max-w-7xl mx-auto;
+  }
+  
+  /* =============================================================================
+     ADMIN SIDEBAR
+     ============================================================================= */
+  
+  .admin-sidebar-nav {
+    @apply fixed left-0 top-0 h-full w-64 bg-slate-900 border-r border-slate-800 z-50 transition-all duration-300;
+  }
+  
+  .admin-sidebar-nav.collapsed {
+    @apply w-20;
+  }
+  
+  .admin-sidebar-nav.collapsed .admin-logo-text,
+  .admin-sidebar-nav.collapsed .nav-text {
+    @apply hidden;
+  }
+  
+  .admin-sidebar-header {
+    @apply flex items-center justify-between p-6 border-b border-slate-800;
+  }
+  
+  .admin-logo-container {
+    @apply flex items-center gap-3;
+  }
+  
+  .admin-logo-icon {
+    @apply text-2xl;
+  }
+  
+  .admin-logo-text {
+    @apply text-white font-bold text-lg;
+  }
+  
+  .admin-sidebar-toggle {
+    @apply p-2 rounded-lg bg-slate-800 text-white hover:bg-slate-700 transition-colors;
+  }
+  
+  .toggle-icon {
+    @apply text-sm;
+  }
+  
+  /* =============================================================================
+     ADMIN NAVIGATION
+     ============================================================================= */
+  
+  .admin-nav-container {
+    @apply flex-1 overflow-y-auto py-4;
+  }
+  
+  .admin-nav-sections {
+    @apply space-y-1 px-3;
+  }
+  
+  .admin-nav-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all duration-200 cursor-pointer;
+  }
+  
+  .admin-nav-item.active {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg;
+  }
+  
+  .admin-nav-item .nav-icon {
+    @apply text-xl w-6 text-center;
+  }
+  
+  .admin-nav-item .nav-text {
+    @apply font-medium;
+  }
+  
+  .admin-nav-item.pulse-highlight {
+    animation: pulse-glow 1s ease-in-out;
+  }
+  
+  .admin-sidebar-footer {
+    @apply p-3 border-t border-slate-800;
+  }
+  
+  .admin-exit-link {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-red-900/20 hover:text-red-400 transition-all;
+  }
+  
+  /* =============================================================================
+     SECTION LAYOUTS
+     ============================================================================= */
+  
+  .admin-section {
+    @apply animate-fade-in;
+  }
+  
+  .admin-section-header {
+    @apply flex items-center justify-between mb-8;
+  }
+  
+  .admin-section-content {
+    @apply space-y-6;
+  }
+  
+  /* =============================================================================
+     CARDS & CONTAINERS
+     ============================================================================= */
+  
+  .admin-card {
+    @apply bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden;
+  }
+  
+  .admin-card-header {
+    @apply px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100;
+  }
+  
+  .admin-card-content {
+    @apply p-6;
+  }
+  
+  /* =============================================================================
+     METRIC CARDS
+     ============================================================================= */
+  
+  .admin-metrics-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8;
+  }
+  
+  .admin-metric-card {
+    @apply bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex items-center gap-4 hover:shadow-md transition-shadow;
+  }
+  
+  .metric-icon {
+    @apply w-14 h-14 rounded-xl flex items-center justify-center text-2xl;
+  }
+  
+  .metric-content {
+    @apply flex-1;
+  }
+  
+  .metric-label {
+    @apply text-sm text-slate-600 font-medium mb-1;
+  }
+  
+  .metric-value {
+    @apply text-2xl font-bold text-slate-900;
+  }
+  
+  .metric-trend {
+    @apply text-xs text-slate-500 mt-1;
+  }
+  
+  .metric-card-small {
+    @apply p-4 bg-slate-50 rounded-lg;
+  }
+  
+  /* =============================================================================
+     CHARTS
+     ============================================================================= */
+  
+  .admin-charts-grid {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8;
+  }
+  
+  .admin-mini-chart {
+    @apply flex items-end gap-2 h-32;
+  }
+  
+  .chart-bar-container {
+    @apply flex-1 flex flex-col items-center;
+  }
+  
+  .chart-bar {
+    @apply w-full bg-gradient-to-t from-blue-600 to-purple-600 rounded-t transition-all duration-500 hover:opacity-80;
+  }
+  
+  .chart-label {
+    @apply text-xs text-slate-600 mt-2;
+  }
+  
+  .chart-summary {
+    @apply text-center;
+  }
+  
+  /* =============================================================================
+     TABLES
+     ============================================================================= */
+  
+  .admin-table-container {
+    @apply overflow-x-auto;
+  }
+  
+  .admin-table {
+    @apply w-full border-collapse;
+  }
+  
+  .admin-table thead {
+    @apply bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200;
+  }
+  
+  .admin-table th {
+    @apply px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider;
+  }
+  
+  .admin-table-row {
+    @apply border-b border-slate-100 hover:bg-slate-50 transition-colors;
+  }
+  
+  .admin-table td {
+    @apply px-6 py-4 text-sm text-slate-900;
+  }
+  
+  .user-info-cell {
+    @apply flex items-center gap-3;
+  }
+  
+  .user-avatar {
+    @apply w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold;
+  }
+  
+  /* =============================================================================
+     ACTION BUTTONS
+     ============================================================================= */
+  
+  .action-buttons {
+    @apply flex items-center gap-2;
+  }
+  
+  .action-btn {
+    @apply w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all hover:scale-110;
+  }
+  
+  .action-btn-view {
+    @apply bg-blue-50 hover:bg-blue-100 text-blue-600;
+  }
+  
+  .action-btn-edit {
+    @apply bg-green-50 hover:bg-green-100 text-green-600;
+  }
+  
+  .action-btn-admin {
+    @apply bg-purple-50 hover:bg-purple-100 text-purple-600;
+  }
+  
+  .action-btn-suspend {
+    @apply bg-red-50 hover:bg-red-100 text-red-600;
+  }
+  
+  /* =============================================================================
+     BADGES
+     ============================================================================= */
+  
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+  }
+  
+  .badge-blue {
+    @apply bg-blue-100 text-blue-800;
+  }
+  
+  .badge-green {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .badge-red {
+    @apply bg-red-100 text-red-800;
+  }
+  
+  .badge-orange {
+    @apply bg-orange-100 text-orange-800;
+  }
+  
+  .badge-purple {
+    @apply bg-purple-100 text-purple-800;
+  }
+  
+  .badge-gray {
+    @apply bg-slate-100 text-slate-800;
+  }
+  
+  /* =============================================================================
+     SEARCH BAR
+     ============================================================================= */
+  
+  .admin-search-bar {
+    @apply flex items-center gap-2 mb-6;
+  }
+  
+  .admin-search-input {
+    @apply flex-1 px-6 py-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all;
+  }
+  
+  .admin-search-button {
+    @apply px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors;
+  }
+  
+  /* =============================================================================
+     PAGINATION
+     ============================================================================= */
+  
+  .admin-pagination {
+    @apply flex items-center justify-center gap-4 px-6 py-4 border-t border-slate-200;
+  }
+  
+  .pagination-btn {
+    @apply px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors;
+  }
+  
+  .pagination-btn.disabled {
+    @apply opacity-50 cursor-not-allowed hover:bg-slate-100;
+  }
+  
+  .pagination-info {
+    @apply text-sm text-slate-600 font-medium;
+  }
+  
+  /* =============================================================================
+     MODALS
+     ============================================================================= */
+  
+  .admin-modal-overlay {
+    @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4;
+    animation: fadeIn 0.2s ease-out;
+  }
+  
+  .admin-modal {
+    @apply bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden;
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  .admin-modal-header {
+    @apply flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100;
+  }
+  
+  .modal-close-btn {
+    @apply w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-200 text-2xl;
+  }
+  
+  .admin-modal-content {
+    @apply px-6 py-6 overflow-y-auto max-h-[60vh];
+  }
+  
+  .admin-modal-footer {
+    @apply flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200;
+  }
+  
+  /* =============================================================================
+     FORMS & INPUTS
+     ============================================================================= */
+  
+  .admin-select {
+    @apply px-4 py-2 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all;
+  }
+  
+  /* =============================================================================
+     STATUS INDICATORS
+     ============================================================================= */
+  
+  .system-status-grid {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-4;
+  }
+  
+  .status-item {
+    @apply flex items-center justify-between p-4 bg-slate-50 rounded-lg;
+  }
+  
+  .status-label {
+    @apply text-sm text-slate-600 font-medium;
+  }
+  
+  .status-value {
+    @apply flex items-center gap-2 text-sm font-semibold;
+  }
+  
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+  
+  .status-success {
+    @apply text-green-700;
+  }
+  
+  .status-warning {
+    @apply text-yellow-700;
+  }
+  
+  .status-info {
+    @apply text-blue-700;
+  }
+  
+  /* =============================================================================
+     TOAST NOTIFICATIONS
+     ============================================================================= */
+  
+  .admin-toast-container {
+    @apply fixed top-4 right-4 z-50 space-y-2;
+  }
+  
+  .admin-toast {
+    @apply flex items-center gap-3 px-6 py-4 rounded-xl shadow-lg border transform translate-x-full opacity-0 transition-all duration-300;
+  }
+  
+  .admin-toast.show {
+    @apply translate-x-0 opacity-100;
+  }
+  
+ .admin-toast-success {
+    @apply bg-green-50 border-green-200 text-green-800;
+  }
+  
+  .admin-toast-error {
+    @apply bg-red-50 border-red-200 text-red-800;
+  }
+  
+  .admin-toast-warning {
+    @apply bg-yellow-50 border-yellow-200 text-yellow-800;
+  }
+  
+  .admin-toast-info {
+    @apply bg-blue-50 border-blue-200 text-blue-800;
+  }
+  
+  .toast-icon {
+    @apply text-xl;
+  }
+  
+  .toast-message {
+    @apply font-medium;
+  }
+  
+  /* =============================================================================
+     LOADING STATES
+     ============================================================================= */
+  
+  .admin-loading-state {
+    @apply flex flex-col items-center justify-center min-h-[60vh];
+  }
+  
+  .loading-spinner {
+    @apply w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin;
+  }
+  
+  /* =============================================================================
+     ERROR STATES
+     ============================================================================= */
+  
+  .admin-error-state {
+    @apply flex flex-col items-center justify-center min-h-[60vh] text-center;
+  }
+  
+  .error-icon {
+    @apply text-6xl mb-4;
+  }
+  
+  /* =============================================================================
+     BUTTONS
+     ============================================================================= */
+  
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all hover:-translate-y-0.5;
+  }
+  
+  .btn-secondary {
+    @apply px-6 py-3 bg-white border border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-all;
+  }
+  
+  .btn-danger {
+    @apply px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-all;
+  }
+  
+  /* =============================================================================
+     ECONOMICS & STATS
+     ============================================================================= */
+  
+  .economics-stat {
+    @apply p-4 bg-slate-50 rounded-lg;
+  }
+  
+  .stat-label {
+    @apply text-sm text-slate-600 font-medium mb-2;
+  }
+  
+  .stat-value {
+    @apply text-2xl font-bold mb-1;
+  }
+  
+  .stat-description {
+    @apply text-xs text-slate-500;
+  }
+  
+  .plan-breakdown-item {
+    @apply space-y-2;
+  }
+  
+  /* =============================================================================
+     ANIMATIONS
+     ============================================================================= */
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideUp {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    }
+    50% {
+      box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  /* =============================================================================
+     RESPONSIVE DESIGN
+     ============================================================================= */
+  
+  @media (max-width: 768px) {
+    .admin-sidebar-nav {
+      @apply -translate-x-full;
+    }
+    
+    .admin-sidebar-nav.open {
+      @apply translate-x-0;
+    }
+    
+    .admin-main-content {
+      @apply ml-0;
+    }
+    
+    .admin-metrics-grid {
+      @apply grid-cols-1;
+    }
+    
+    .admin-charts-grid {
+      @apply grid-cols-1;
+    }
+    
+    .admin-section-header {
+      @apply flex-col items-start gap-4;
+    }
+  }
+  
+  /* =============================================================================
+     UTILITY CLASSES
+     ============================================================================= */
+  
+  .hidden {
+    @apply hidden;
+  }
+  
+  .text-ellipsis {
+    @apply truncate;
+  }
+  
+  /* =============================================================================
+     PRINT STYLES
+     ============================================================================= */
+  
+  @media print {
+    .admin-sidebar-nav,
+    .admin-search-bar,
+    .action-buttons,
+    .admin-section-header button {
+      @apply hidden;
+    }
+    
+    .admin-main-content {
+      @apply ml-0;
+    }
+    
+    .admin-card {
+      @apply border border-slate-300;
+      box-shadow: none;
+    }
+  }
+}
+
+/* =============================================================================
+   BASE STYLES (Outside @layer)
+   ============================================================================= */
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for admin sidebar */
+.admin-sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.admin-sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Focus styles for accessibility */
+*:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
