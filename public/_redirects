@@ -33,6 +33,14 @@ https://app.oslira.com/*                   /pages/dashboard/:splat          200
 https://app.oslira.org/*                   /pages/dashboard/:splat          200
 
 # =============================================================================
+# ADMIN ROUTES - NOW UNDER app.oslira.{com|org}/admin/*
+# =============================================================================
+https://app.oslira.com/admin               /pages/admin/index.html          200
+https://app.oslira.org/admin               /pages/admin/index.html          200
+https://app.oslira.com/admin/*             /pages/admin/:splat              200
+https://app.oslira.org/admin/*             /pages/admin/:splat              200
+
+# =============================================================================
 # SUBDOMAIN: auth.oslira.{com|org}
 # =============================================================================
 https://auth.oslira.com/                   /pages/auth/index.html           200
@@ -41,16 +49,6 @@ https://auth.oslira.com/auth/callback      /pages/auth/callback.html        200
 https://auth.oslira.org/auth/callback      /pages/auth/callback.html        200
 https://auth.oslira.com/*                  /pages/auth/:splat               200
 https://auth.oslira.org/*                  /pages/auth/:splat               200
-
-# =============================================================================
-# SUBDOMAIN: admin.oslira.{com|org}
-# =============================================================================
-https://admin.oslira.com/                  /pages/admin/index.html          200
-https://admin.oslira.org/                  /pages/admin/index.html          200
-https://admin.oslira.com/*                 /pages/admin/:splat              200
-https://admin.oslira.org/*                 /pages/admin/:splat              200
-/admin                                     /pages/admin/index.html          200
-/admin/*                                   /pages/admin/index.html          200
 
 # =============================================================================
 # SUBDOMAIN: contact.oslira.{com|org}
