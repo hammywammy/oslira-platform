@@ -56,7 +56,12 @@ class BusinessesSection {
         const { page, limit } = this.pagination;
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
 const session = window.OsliraAuth.getCurrentSession();
-const token = session?.access_token;
+
+if (!session) {
+    throw new Error('No session - please login');
+}
+
+const token = session.access_token;
         
         const response = await fetch(`${apiUrl}/admin/businesses?page=${page}&limit=${limit}`, {
             headers: {
@@ -95,7 +100,12 @@ async searchBusinesses(query) {
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
 const session = window.OsliraAuth.getCurrentSession();
-const token = session?.access_token;
+
+if (!session) {
+    throw new Error('No session - please login');
+}
+
+const token = session.access_token;
         
         const response = await fetch(`${apiUrl}/admin/businesses/search?q=${encodeURIComponent(query)}`, {
             headers: {
@@ -132,7 +142,12 @@ async loadBusinessAnalytics(businessId) {
     try {
 const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
 const session = window.OsliraAuth.getCurrentSession();
-const token = session?.access_token;
+
+if (!session) {
+    throw new Error('No session - please login');
+}
+
+const token = session.access_token;
         
         const response = await fetch(`${apiUrl}/admin/businesses/${businessId}/analytics`, {
             headers: {
