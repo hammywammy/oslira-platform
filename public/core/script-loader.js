@@ -281,7 +281,15 @@ async loadCoreScripts() {
     
     // Phase 1: Bootstrap - env-manager only (REQUIRED FIRST)
     console.log('📦 [ScriptLoader] Phase 1: Bootstrap');
-    await this.loadScript('env-manager', '/core/env-manager.js');
+    
+    // CRITICAL: Skip if already loaded by admin-guard
+    if (!document.querySelector('script[src="/core/env-manager.js"]')) {
+        await this.loadScript('env-manager', '/core/env-manager.js');
+    } else {
+        console.log('✅ [ScriptLoader] env-manager already loaded, skipping');
+        this.loadedScripts.add('env-manager');
+    }
+    
     if (!window.OsliraEnv) {
         throw new Error('env-manager failed to expose OsliraEnv global');
     }
