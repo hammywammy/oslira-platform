@@ -322,20 +322,6 @@ updateUserInfo() {
                         </div>
                     </div>
                     
-                    <!-- Account Section -->
-                    <div class="nav-section">
-                        <h4 class="nav-section-header">Account</h4>
-                        <div class="nav-items">
-                        <a href="${window.OsliraEnv.getAppUrl('/subscription')}" data-page="Subscription" data-tooltip="Subscription" class="nav-item">
-                                <span class="nav-icon">💳</span>
-                                <span class="nav-text">Subscription</span>
-                            </a>
-                            <a href="${window.OsliraEnv.getAppUrl('/settings')}" data-page="settings" data-tooltip="Settings" class="nav-item">
-                                <span class="nav-icon">⚙️</span>
-                                <span class="nav-text">Settings</span>
-                            </a>
-                        </div>
-                    </div>
                 </nav>
                 
 <!-- User Section -->
@@ -438,104 +424,6 @@ toggleSidebar() {
     }
 }
 
-createExternalToggle() {
-    console.log('🔧 [SidebarManager] Creating external toggle...');
-    
-    // Remove any existing external toggle
-    const existing = document.getElementById('sidebar-external-toggle');
-    if (existing) {
-        existing.remove();
-    }
-    
-    // Create the toggle button
-    const toggle = document.createElement('button');
-    toggle.id = 'sidebar-external-toggle';
-    toggle.innerHTML = `
-        <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
-        </svg>
-    `;
-    
-    // Style as thin vertical bar with transparency
-    toggle.style.cssText = `
-        position: fixed !important;
-        top: 6.3% !important;
-        left: 256px !important;
-        transform: translateY(-50%) !important;
-        width: 1rem !important;
-        height: 8rem !important;
-background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.9) 100%) !important;
-backdrop-filter: blur(16px) !important;
--webkit-backdrop-filter: blur(16px) !important;
-        border: 1px solid rgba(229, 231, 235, 0.6) !important;
-        border-left: none !important;
-        border-radius: 0 0.5rem 0.5rem 0 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        cursor: pointer !important;
-        z-index: 30 !important;
-        box-shadow: 2px 0 8px rgba(0,0,0,0.1) !important;
-        color: #6b7280 !important;
-        transition: all 0.3s ease !important;
-    `;
-    
-    // Add click handler
-    toggle.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.toggleSidebar();
-    });
-
-const hideWhenModalsPresent = () => {
-    // Only consider modals that are actually visible with content (opacity: 1 and not empty)
-    const activeModals = document.querySelectorAll('[id*="Modal"]');
-    const hasActiveModal = Array.from(activeModals).some(modal => {
-        const styles = window.getComputedStyle(modal);
-        const hasContent = modal.children.length > 0 || modal.textContent.trim().length > 0;
-        return styles.display !== 'none' && 
-               !modal.classList.contains('hidden') && 
-               styles.opacity === '1' && 
-               hasContent;
-    });
-    
-    if (hasActiveModal) {
-        toggle.style.display = 'none';
-    } else {
-        toggle.style.display = 'flex';
-    }
-};
-
-// Set initial state
-toggle.style.display = 'flex';
-
-// Run once on creation, then only when modals actually change
-hideWhenModalsPresent();
-
-// Simpler observer that only watches for modal-specific changes
-const modalObserver = new MutationObserver((mutations) => {
-    const modalChanged = mutations.some(mutation => 
-        mutation.target.id && mutation.target.id.includes('Modal')
-    );
-    if (modalChanged) {
-        hideWhenModalsPresent();
-    }
-});
-
-modalObserver.observe(document.body, {
-    childList: true,
-    attributes: true,
-    attributeFilter: ['style']
-});
-    
-    // Add to body
-    document.body.appendChild(toggle);
-    
-    // Store reference
-    this.externalToggle = toggle;
-    
-    console.log('✅ [SidebarManager] External toggle created');
-}
-
     updateSidebarState() {
         if (!this.sidebar) return;
         
@@ -556,17 +444,6 @@ modalObserver.observe(document.body, {
         
         // Update all child elements
         this.updateChildElements();
-        
-        // Update external toggle position
-        if (this.externalToggle) {
-            if (this.isCollapsed) {
-                this.externalToggle.style.left = '64px';
-                this.externalToggle.querySelector('svg').style.transform = 'rotate(180deg)';
-            } else {
-                this.externalToggle.style.left = '256px';
-                this.externalToggle.querySelector('svg').style.transform = 'rotate(0deg)';
-            }
-        }
         
         console.log('✅ [SidebarManager] State updated');
     }
