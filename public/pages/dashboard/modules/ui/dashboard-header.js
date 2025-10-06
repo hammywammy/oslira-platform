@@ -580,13 +580,13 @@ setupModalObserver() {
 openBulkModal() {
     console.log('📊 [DashboardHeader] Opening bulk modal...');
     
-    // Simplified: just delegate to analysis functions
-    if (window.dashboard?.container?.get('analysisFunctions')) {
-        window.dashboard.container.get('analysisFunctions').showBulkModal();
-    } else if (window.showBulkModal) {
-        window.showBulkModal();
+    const modalManager = this.container?.get('modalManager');
+    if (modalManager) {
+        modalManager.openModal('bulkModal');
+    } else if (window.dashboard?.container?.get('modalManager')) {
+        window.dashboard.container.get('modalManager').openModal('bulkModal');
     } else {
-        console.error('❌ [DashboardHeader] No bulk modal function available');
+        console.error('❌ [DashboardHeader] ModalManager not available');
     }
 }
 
