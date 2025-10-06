@@ -274,23 +274,34 @@ updateUserInfo() {
     // =========================================================================
     // HTML TEMPLATE
     // =========================================================================
-
-    getSidebarHTML() {
+getSidebarHTML() {
         return `
             <div class="sidebar-container">
-                <!-- Header -->
-<div class="sidebar-header">
-    <a href="${window.OsliraEnv.getMarketingUrl()}" class="sidebar-logo-link">
-        <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" class="sidebar-logo-image">
-        <span class="sidebar-logo-text home-logo">Oslira</span>
-    </a>
-</div>
+                <!-- Header with Logo and Toggle -->
+                <div class="sidebar-header">
+                    <div class="sidebar-header-content">
+                        <a href="${window.OsliraEnv.getMarketingUrl()}" class="sidebar-logo-link">
+                            <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" class="sidebar-logo-image">
+                            <span class="sidebar-logo-text home-logo">Oslira</span>
+                        </a>
+                        <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle Sidebar">
+                            <svg class="sidebar-toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 6L6 18M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
                 
                 <!-- Navigation -->
                 <nav class="sidebar-nav">
-                    <!-- Main Section -->
-                    <div class="nav-section">
-                        <h4 class="nav-section-header">Main</h4>
+                    <!-- Main Section - Collapsible -->
+                    <div class="nav-section collapsible">
+                        <div class="nav-section-header-wrapper" data-section="main">
+                            <h4 class="nav-section-header">Main</h4>
+                            <svg class="section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </div>
                         <div class="nav-items">
                             <a href="${window.OsliraEnv.getAppUrl('/dashboard')}" data-page="dashboard" data-tooltip="Dashboard" class="nav-item">
                                 <span class="nav-icon">📊</span>
@@ -307,9 +318,14 @@ updateUserInfo() {
                         </div>
                     </div>
                     
-                    <!-- Tools Section -->
-                    <div class="nav-section">
-                        <h4 class="nav-section-header">Tools</h4>
+                    <!-- Tools Section - Collapsible -->
+                    <div class="nav-section collapsible">
+                        <div class="nav-section-header-wrapper" data-section="tools">
+                            <h4 class="nav-section-header">Tools</h4>
+                            <svg class="section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </div>
                         <div class="nav-items">
                             <a href="${window.OsliraEnv.getAppUrl('/campaigns')}" data-page="campaigns" data-tooltip="Campaigns" class="nav-item">
                                 <span class="nav-icon">🎯</span>
@@ -321,56 +337,65 @@ updateUserInfo() {
                             </a>
                         </div>
                     </div>
-                    
                 </nav>
                 
-<!-- User Section -->
-<div class="sidebar-user-section">
-    <!-- Expanded User Info with integrated business -->
-    <div class="sidebar-user-expanded">
-        <div class="sidebar-user-info bg-gradient-to-b from-gray-50 to-white rounded-xl border border-gray-200/60 overflow-hidden">
-            <!-- Business Header -->
-            <div class="px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200/40">
-                <label class="text-xs text-gray-600 uppercase tracking-wider font-semibold">Active Business</label>
-<select id="sidebar-business-select" 
-        onchange="window.sidebarManager && window.sidebarManager.handleBusinessChange(event)"
-        class="w-full border border-gray-300 bg-gray-50 hover:bg-white hover:border-gray-400 focus:bg-white focus:border-blue-500 text-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all">
-    <!-- Options will be dynamically loaded without placeholder -->
-</select>
-            </div>
-            
-            <!-- User Details -->
-            <div class="px-4 py-3">
-                <div id="sidebar-email" class="sidebar-user-email text-sm font-medium text-gray-800">Loading...</div>
-                <div id="sidebar-plan" class="sidebar-user-plan text-xs text-gray-500 mt-1">Free Plan</div>
-            </div>
-            
-            <div class="sidebar-user-credits px-4 py-3 border-t border-gray-200/40">
-                <div class="sidebar-user-credits-header">
-                    <div>
-                        <span class="sidebar-user-credits-label">Credits</span>
-                        <div id="sidebar-credits" class="sidebar-user-credits-count">--</div>
+                <!-- Account Section - Bottom Dropdown -->
+                <div class="sidebar-account-section">
+                    <button class="account-trigger" id="account-trigger-btn">
+                        <div class="account-trigger-content">
+                            <div class="account-avatar">
+                                <span id="sidebar-user-initial">U</span>
+                            </div>
+                            <div class="account-info">
+                                <div id="sidebar-email" class="account-email">Loading...</div>
+                                <div id="sidebar-plan" class="account-plan">Free Plan</div>
+                            </div>
+                            <svg class="account-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </div>
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div class="account-dropdown" id="account-dropdown">
+                        <!-- Business Selector -->
+                        <div class="account-dropdown-section">
+                            <label class="dropdown-label">Active Business</label>
+                            <select id="sidebar-business-select" 
+                                    onchange="window.sidebarManager && window.sidebarManager.handleBusinessChange(event)"
+                                    class="dropdown-select">
+                                <!-- Options dynamically loaded -->
+                            </select>
+                        </div>
+                        
+                        <!-- Credits Display -->
+                        <div class="account-dropdown-section">
+                            <div class="credits-display">
+                                <span class="credits-label">Credits</span>
+                                <div class="credits-value">
+                                    <span id="sidebar-credits">--</span>
+                                    <span class="credits-icon">⚡</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="account-dropdown-section account-dropdown-actions">
+                            <a href="${window.OsliraEnv.getAppUrl('/settings')}" class="dropdown-action-btn">
+                                <span class="action-icon">⚙️</span>
+                                <span>Settings</span>
+                            </a>
+                            <a href="${window.OsliraEnv.getAppUrl('/subscription')}" class="dropdown-action-btn">
+                                <span class="action-icon">💳</span>
+                                <span>Subscription</span>
+                            </a>
+                            <button onclick="window.sidebarManager && window.sidebarManager.handleLogout()" class="dropdown-action-btn logout-btn">
+                                <span class="action-icon">🚪</span>
+                                <span>Sign out</span>
+                            </button>
+                        </div>
                     </div>
-                    <div class="sidebar-user-credits-icon">⚡</div>
                 </div>
-            </div>
-            
-            <div class="sidebar-user-actions px-4 py-3 border-t border-gray-200/40 bg-gray-50/50">
-<button onclick="window.sidebarManager.handleLogout()" 
-        class="sidebar-user-button w-full">
-    Sign out
-</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Collapsed User Avatar -->
-    <div class="sidebar-user-collapsed">
-        <div class="sidebar-user-avatar">
-            <span id="sidebar-user-initial">U</span>
-        </div>
-    </div>
-</div>
             </div>
         `;
     }
@@ -385,6 +410,15 @@ initializeSidebar() {
     // Initialize navigation
     this.initializeNavigation();
     
+    // Initialize collapsible sections
+    this.initializeCollapsibleSections();
+    
+    // Initialize internal toggle button
+    this.initializeToggleButton();
+    
+    // Initialize account dropdown
+    this.initializeAccountDropdown();
+    
     // Initialize business integration
     this.initializeBusinessIntegration();
     
@@ -393,6 +427,9 @@ initializeSidebar() {
     
     // Set initial state
     this.updateSidebarState();
+    
+    // Initialize hover behavior for collapsed state
+    this.initializeCollapsedHover();
 
     // After sidebar renders
 if (window.OsliraAuth?.user) {
@@ -402,6 +439,88 @@ if (window.OsliraAuth?.user) {
     console.log('✅ [SidebarManager] Sidebar functionality initialized');
 }
 
+initializeCollapsibleSections() {
+    const sectionHeaders = document.querySelectorAll('.nav-section-header-wrapper');
+    
+    sectionHeaders.forEach(header => {
+        header.addEventListener('click', (e) => {
+            const section = header.closest('.nav-section');
+            const isCollapsed = section.classList.contains('section-collapsed');
+            
+            if (isCollapsed) {
+                section.classList.remove('section-collapsed');
+            } else {
+                section.classList.add('section-collapsed');
+            }
+            
+            console.log(`🔄 [SidebarManager] Section ${header.dataset.section} toggled`);
+        });
+    });
+    
+    console.log('✅ [SidebarManager] Collapsible sections initialized');
+}
+
+initializeToggleButton() {
+    const toggleBtn = document.getElementById('sidebar-toggle-btn');
+    
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            this.toggleSidebar();
+        });
+        console.log('✅ [SidebarManager] Toggle button initialized');
+    }
+}
+
+initializeAccountDropdown() {
+    const accountTrigger = document.getElementById('account-trigger-btn');
+    const accountDropdown = document.getElementById('account-dropdown');
+    
+    if (accountTrigger && accountDropdown) {
+        accountTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = accountDropdown.classList.contains('open');
+            
+            if (isOpen) {
+                accountDropdown.classList.remove('open');
+            } else {
+                accountDropdown.classList.add('open');
+            }
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!accountTrigger.contains(e.target) && !accountDropdown.contains(e.target)) {
+                accountDropdown.classList.remove('open');
+            }
+        });
+        
+        console.log('✅ [SidebarManager] Account dropdown initialized');
+    }
+}
+
+initializeCollapsedHover() {
+    if (!this.sidebar) return;
+    
+    this.sidebar.addEventListener('mouseenter', () => {
+        if (this.isCollapsed) {
+            const logoImage = this.sidebar.querySelector('.sidebar-logo-image');
+            const toggleBtn = this.sidebar.querySelector('#sidebar-toggle-btn');
+            
+            if (logoImage) logoImage.style.opacity = '0';
+            if (toggleBtn) toggleBtn.style.opacity = '1';
+        }
+    });
+    
+    this.sidebar.addEventListener('mouseleave', () => {
+        if (this.isCollapsed) {
+            const logoImage = this.sidebar.querySelector('.sidebar-logo-image');
+            const toggleBtn = this.sidebar.querySelector('#sidebar-toggle-btn');
+            
+            if (logoImage) logoImage.style.opacity = '1';
+            if (toggleBtn) toggleBtn.style.opacity = '0';
+        }
+    });
+}
 toggleSidebar() {
     console.log('🔄 [SidebarManager] Toggling sidebar, current state:', this.isCollapsed);
     
