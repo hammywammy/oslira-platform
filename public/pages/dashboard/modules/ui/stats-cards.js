@@ -49,9 +49,7 @@ renderPriorityCards() {
                 </button>
             </div>
             <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                <svg class="w-6 h-6 text-purple-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                </svg>
+                ${window.IconComponents.getAnalysisQueueIcon()}
             </div>
         </div>
     </div>
@@ -70,9 +68,7 @@ renderPriorityCards() {
                 </button>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
-                </svg>
+                ${window.IconComponents.getDiscoveriesIcon()}
             </div>
         </div>
     </div>
@@ -97,26 +93,22 @@ renderPriorityCards() {
                 </button>
             </div>
             <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                </svg>
+                ${window.IconComponents.getSavedListsIcon()}
             </div>
         </div>
     </div>
 </div>`;
 }
-
+    
 renderPerformanceMetrics() {
     return `
 <!-- Monthly Metrics -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-<!-- Credits Remaining -->
+    <!-- Credits Remaining -->
     <div class="glass-white rounded-2xl p-6 hover-lift">
         <div class="flex items-center justify-between mb-4">
             <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                </svg>
+                ${window.IconComponents.getCreditsIcon()}
             </div>
             <span id="credits-percent" class="text-xs text-gray-500">0% used</span>
         </div>
@@ -126,14 +118,11 @@ renderPerformanceMetrics() {
         <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Credits Remaining This Month</p>
     </div>
     
-<!-- Leads Researched -->
+    <!-- Leads Researched -->
     <div class="glass-white rounded-2xl p-6 hover-lift">
         <div class="flex items-center justify-between mb-4">
             <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-<svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="11" cy="11" r="8" stroke-width="2"/>
-    <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
-</svg>
+                ${window.IconComponents.getSearchIcon()}
             </div>
             <span class="text-xs text-green-600 font-semibold">+23% from last month</span>
         </div>
@@ -141,13 +130,11 @@ renderPerformanceMetrics() {
         <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Leads Researched This Month</p>
     </div>
     
-    <!-- Analysis Depth -->
+    <!-- Avg Quality Score -->
     <div class="glass-white rounded-2xl p-6 hover-lift">
         <div class="flex items-center justify-between mb-4">
             <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
+                ${window.IconComponents.getBarChartIcon()}
             </div>
             <span class="text-xs text-red-600 font-semibold">NEEDS IMPROVEMENT</span>
         </div>
@@ -157,13 +144,11 @@ renderPerformanceMetrics() {
         <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Avg quality score</p>
     </div>
     
-<!-- Premium Leads -->
+    <!-- Premium Leads -->
     <div class="glass-white rounded-2xl p-6">
         <div class="flex items-center justify-between mb-4">
             <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
-                </svg>
+                ${window.IconComponents.getPremiumStarIcon()}
             </div>
             <span id="premium-view-link" class="text-xs text-blue-600 font-semibold cursor-pointer hover:text-blue-700 transition-colors">VIEW</span>
         </div>
