@@ -90,13 +90,10 @@ this.coreScripts = [
         '/core/dependency-readiness.js',
         '/core/api-client.js',
         
-        // Event bus for admin
-        '/pages/admin/admin-event-bus.js',
-        
-        // Admin-specific sidebar (MUST load before admin.js)
+        // Admin-specific sidebar (BEFORE admin.js)
         '/core/adminsidebar/sidebar-manager.js',
         
-        // Section modules (MUST load before admin.js)
+        // Section modules (BEFORE admin.js so they're available)
         '/pages/admin/sections/overview-section.js',
         '/pages/admin/sections/users-section.js',
         '/pages/admin/sections/businesses-section.js',
@@ -106,7 +103,7 @@ this.coreScripts = [
         // Admin core controller LAST (orchestrator)
         '/pages/admin/admin.js'
     ],
-    requiresAuth: true,
+    requiresAuth: false, // Admin does its own password auth
     enableTailwind: true
 },
             
