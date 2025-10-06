@@ -65,31 +65,107 @@ async verifyAdminPassword() {
     
     // Check if already verified in this session
     const SESSION_KEY = 'admin_auth_' + btoa(window.location.hostname).slice(0, 8);
-    const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 hours
+    const SESSION_DURATION = 8 * 60 * 60 * 1000;
     
     try {
-        const authData = sessionStorage.getItem(SESSION_KEY); // Changed from localStorage
-            if (authData) {
-                const parsed = JSON.parse(authData);
-                const isExpired = Date.now() - parsed.timestamp > SESSION_DURATION;
-                
-                if (!isExpired && parsed.verified) {
-                    console.log('✅ [AdminCore] Valid session found');
-                    this.passwordVerified = true;
-                    return;
-                }
+        const authData = sessionStorage.getItem(SESSION_KEY);
+        if (authData) {
+            const parsed = JSON.parse(authData);
+            const isExpired = Date.now() - parsed.timestamp > SESSION_DURATION;
+            
+            if (!isExpired && parsed.verified && parsed.isAdmin) {
+                console.log('✅ [AdminCore] Valid admin session found');
+                this.passwordVerified = true;
+                return;
             }
-        } catch (e) {
-            localStorage.removeItem(SESSION_KEY);
+        }
+    } catch (e) {
+        sessionStorage.removeItem(SESSION_KEY);
+    }
+    
+    // Show password prompt
+    console.log('🔑 [AdminCore] Showing password prompt...');
+    await this.showPasswordPrompt(SESSION_KEY);
+    
+    // Password verified, now check if user is admin
+    console.log('🔐 [AdminCore] Checking admin privileges...');
+    const isAdmin = await this.checkIsAdmin();
+    
+    if (!isAdmin) {
+        console.error('❌ [AdminCore] User is not an admin');
+        this.showAdminDeniedError();
+        throw new Error('Access denied - admin privileges required');
+    }
+    
+    // Save admin status to session
+    const authData = JSON.parse(sessionStorage.getItem(SESSION_KEY));
+    authData.isAdmin = true;
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(authData));
+    
+    console.log('✅ [AdminCore] Password verified and admin confirmed');
+    this.passwordVerified = true;
+}
+
+async checkIsAdmin() {
+    try {
+        // Get current user session
+        const session = window.OsliraAuth.getCurrentSession();
+        
+        if (!session) {
+            console.error('❌ [AdminCore] No user session found');
+            return false;
         }
         
-        // Show password prompt and wait for verification
-        console.log('🔑 [AdminCore] Showing password prompt...');
-        await this.showPasswordPrompt(SESSION_KEY);
+        const token = session.access_token;
+        const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
         
-        console.log('✅ [AdminCore] Password verified');
-        this.passwordVerified = true;
+        // Call backend to verify admin status
+        const response = await fetch(`${apiUrl}/admin/validate-session`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        return result.success === true;
+        
+    } catch (error) {
+        console.error('❌ [AdminCore] Admin check failed:', error);
+        return false;
     }
+}
+
+showAdminDeniedError() {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+    `;
+    
+    overlay.innerHTML = `
+        <div style="background: white; padding: 48px; border-radius: 16px; text-align: center; max-width: 450px;">
+            <div style="font-size: 64px; margin-bottom: 24px;">🚫</div>
+            <h2 style="margin: 0 0 12px 0; color: #dc2626; font-size: 28px; font-weight: 700;">Access Denied</h2>
+            <p style="margin: 0 0 32px 0; color: #64748b; font-size: 16px;">You do not have administrator privileges.</p>
+            <button onclick="window.location.href='${window.OsliraEnv.getAppUrl('/dashboard')}'" 
+                    style="width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer;">
+                Return to Dashboard
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+}
     
     async showPasswordPrompt(sessionKey) {
         return new Promise((resolve, reject) => {
