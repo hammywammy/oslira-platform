@@ -54,8 +54,9 @@ class BusinessesSection {
  async loadBusinesses() {
     try {
         const { page, limit } = this.pagination;
-        const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-        const token = window.OsliraAuth.getSession()?.access_token;
+const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
+const session = await window.OsliraAuth.getSession();
+const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/businesses?page=${page}&limit=${limit}`, {
             headers: {
@@ -92,8 +93,9 @@ async searchBusinesses(query) {
     }
 
     try {
-        const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-        const token = window.OsliraAuth.getSession()?.access_token;
+const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
+const session = await window.OsliraAuth.getSession();
+const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/businesses/search?q=${encodeURIComponent(query)}`, {
             headers: {
@@ -128,8 +130,9 @@ async searchBusinesses(query) {
     
 async loadBusinessAnalytics(businessId) {
     try {
-        const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-        const token = window.OsliraAuth.getSession()?.access_token;
+const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
+const session = await window.OsliraAuth.getSession();
+const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/businesses/${businessId}/analytics`, {
             headers: {
