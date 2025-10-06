@@ -38,8 +38,9 @@ class UsageSection {
     
 async loadData() {
     try {
-        const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-        const token = window.OsliraAuth.getSession()?.access_token;
+const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
+const session = await window.OsliraAuth.getSession();
+const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/usage?range=${this.range}&groupBy=${this.groupBy}`, {
             headers: {
@@ -224,8 +225,9 @@ class SystemSection {
     
 async loadData() {
     try {
-        const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-        const token = window.OsliraAuth.getSession()?.access_token;
+const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
+const session = await window.OsliraAuth.getSession();
+const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/system`, {
             headers: {
@@ -399,8 +401,9 @@ class LeadsSection {
     
   async loadData() {
     try {
-        const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-        const token = window.OsliraAuth.getSession()?.access_token;
+const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
+const session = await window.OsliraAuth.getSession();
+const token = session?.access_token;
         
         const response = await fetch(`${apiUrl}/admin/leads`, {
             headers: {
