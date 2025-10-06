@@ -278,12 +278,13 @@ getAdminUrl(path = '') {
         return this.pageMap[pathWithoutSlash];
     }
     
-    // STEP 3: Dynamic pattern matching
-    if (this.pathname.startsWith('/auth/callback')) return 'auth-callback';
-    if (this.pathname.startsWith('/contact/')) return 'contact-hub';
-    if (this.pathname.startsWith('/footer/contact/')) return 'contact-hub';
-    if (this.pathname.startsWith('/footer/legal/')) return 'privacy';
-    if (this.pathname.startsWith('/footer/')) return 'about';
+// STEP 3: Dynamic pattern matching
+if (this.pathname.startsWith('/admin')) return 'admin';  // ADD THIS FIRST
+if (this.pathname.startsWith('/auth/callback')) return 'auth-callback';
+if (this.pathname.startsWith('/contact/')) return 'contact-hub';
+if (this.pathname.startsWith('/footer/contact/')) return 'contact-hub';
+if (this.pathname.startsWith('/footer/legal/')) return 'privacy';
+if (this.pathname.startsWith('/footer/')) return 'about';
     
     // STEP 4: Root path detection (use subdomain context)
     if (this.pathname === '/' || this.pathname === '' || this.pathname === '/index.html') {
