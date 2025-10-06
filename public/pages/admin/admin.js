@@ -72,27 +72,17 @@ async verifyAdminAccess() {
     // EVENT BUS
     // =========================================================================
     
-    initializeEventBus() {
-        if (!window.AdminEventBus) {
-            window.AdminEventBus = new EventTarget();
-            
-            // Helper methods
-            window.AdminEventBus.emit = function(eventName, data) {
-                this.dispatchEvent(new CustomEvent(eventName, { detail: data }));
-            };
-            
-            window.AdminEventBus.on = function(eventName, handler) {
-                this.addEventListener(eventName, (e) => handler(e.detail));
-            };
-            
-            window.AdminEventBus.off = function(eventName, handler) {
-                this.removeEventListener(eventName, handler);
-            };
-        }
-        
-        this.eventBus = window.AdminEventBus;
-        console.log('✅ [AdminCore] Event bus initialized');
+initializeEventBus() {
+    console.log('📡 [AdminCore] Initializing event bus...');
+    
+    if (!window.AdminEventBus) {
+        console.error('❌ [AdminCore] AdminEventBus not loaded');
+        throw new Error('AdminEventBus not available');
     }
+    
+    this.eventBus = window.AdminEventBus;
+    console.log('✅ [AdminCore] Event bus initialized');
+}
     
     // =========================================================================
     // SIDEBAR
