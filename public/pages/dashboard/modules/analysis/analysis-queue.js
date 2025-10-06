@@ -453,7 +453,13 @@ if (isProfileNotFound) {
 }
 
 if (result && data.success) {
-    this.completeAnalysis(analysisId, true, 'Analysis completed!', result);
+    this.completeAnalysis(analysisId, true, 'Analysis completed!');
+    
+    // Refresh credits after successful analysis
+    if (window.OsliraAuth?.refreshCredits) {
+        await window.OsliraAuth.refreshCredits();
+        console.log('💳 [AnalysisQueue] Credits refreshed after analysis');
+    }
 
     setTimeout(() => {
         this.eventBus.emit(window.DASHBOARD_EVENTS.DATA_REFRESH);
