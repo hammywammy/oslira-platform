@@ -1,7 +1,6 @@
 // =============================================================================
 // ADMIN GUARD - Password Protection for Admin Panel
-// Blocks ALL content until admin status + password verified
-// Must run BEFORE any other admin scripts
+// Minimal, clean implementation - no script loading
 // =============================================================================
 
 (function() {
@@ -32,47 +31,39 @@
         return hash.toString();
     }
     
-// Check if already authenticated
-function isAuthenticated() {
-    try {
-        const authData = localStorage.getItem(SESSION_KEY);
-        if (!authData) return false;
-        
-        const parsed = JSON.parse(authData);
-        const { timestamp, verified, checksum, userId } = parsed;
-        
-        // Validate all required fields exist
-        if (!timestamp || !verified || !checksum || !userId) {
-            console.warn('🛡️ [AdminGuard] Incomplete session data, clearing');
+    // Check if already authenticated
+    function isAuthenticated() {
+        try {
+            const authData = localStorage.getItem(SESSION_KEY);
+            if (!authData) return false;
+            
+            const parsed = JSON.parse(authData);
+            const { timestamp, verified, checksum, userId } = parsed;
+            
+            if (!timestamp || !verified || !checksum || !userId) {
+                localStorage.removeItem(SESSION_KEY);
+                return false;
+            }
+            
+            const expectedChecksum = generateChecksum(timestamp, verified);
+            if (checksum !== expectedChecksum) {
+                localStorage.removeItem(SESSION_KEY);
+                return false;
+            }
+            
+            const isExpired = Date.now() - timestamp > SESSION_DURATION;
+            if (isExpired) {
+                localStorage.removeItem(SESSION_KEY);
+                return false;
+            }
+            
+            return verified && userId;
+        } catch (error) {
             localStorage.removeItem(SESSION_KEY);
             return false;
         }
-        
-        // Verify checksum
-        const expectedChecksum = generateChecksum(timestamp, verified);
-        if (checksum !== expectedChecksum) {
-            console.warn('🛡️ [AdminGuard] Tampering detected');
-            localStorage.removeItem(SESSION_KEY);
-            return false;
-        }
-        
-        // Check expiration
-        const isExpired = Date.now() - timestamp > SESSION_DURATION;
-        if (isExpired) {
-            console.log('⏰ [AdminGuard] Session expired');
-            localStorage.removeItem(SESSION_KEY);
-            return false;
-        }
-        
-        return verified && userId;
-    } catch (error) {
-        console.error('❌ [AdminGuard] Session validation error:', error);
-        localStorage.removeItem(SESSION_KEY);
-        return false;
     }
-}
     
-    // Save authentication
     function saveAuthentication(userId) {
         const timestamp = Date.now();
         const verified = true;
@@ -88,7 +79,7 @@ function isAuthenticated() {
         clearFailedAttempts();
     }
     
-    // Rate limiting functions
+    // Rate limiting
     function getCurrentWindow() {
         return Math.floor(Date.now() / RATE_LIMIT_DURATION);
     }
@@ -131,175 +122,10 @@ function isAuthenticated() {
         return minutes === 1 ? '1 minute' : `${minutes} minutes`;
     }
     
-// Load core dependencies (OsliraEnv, Supabase, OsliraConfig, OsliraAuth)
-async function loadCoreDependencies() {
-    // Check if already loaded
-    if (window.OsliraEnv && window.OsliraAuth && window.OsliraAuth.isLoaded) {
-        console.log('✅ [AdminGuard] Core dependencies already loaded');
-        return;
-    }
-    
-    try {
-        // Load env-manager first (synchronously required)
-        if (!window.OsliraEnv) {
-            await loadScript('/core/env-manager.js');
-            await window.OsliraEnv.ready(); // Wait for async config load
-        }
-        
-        // Load Supabase CDN
-        if (!window.supabase) {
-            await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
-        }
-        
-// Load config-manager and auth-manager in parallel
-await Promise.all([
-    window.OsliraConfig ? Promise.resolve() : loadScript('/core/config-manager.js'),
-    window.OsliraAuth ? Promise.resolve() : loadScript('/core/auth-manager.js')
-]);
-
-// CRITICAL: Wait for auth to fully initialize and load session
-if (window.OsliraAuth) {
-    if (!window.OsliraAuth.isLoaded) {
-        console.log('⏳ [AdminGuard] Waiting for OsliraAuth to initialize...');
-        await window.OsliraAuth.initialize();
-    }
-    
-    // Give it extra time to load session from storage
-    console.log('⏳ [AdminGuard] Ensuring session is loaded...');
-    await window.OsliraAuth.waitForAuth();
-    
-    // Additional safety: wait a moment for session propagation
-    await new Promise(resolve => setTimeout(resolve, 500));
-}
-
-console.log('✅ [AdminGuard] All core dependencies loaded and initialized');
-console.log('🔍 [AdminGuard] Auth status:', {
-    isAuthenticated: window.OsliraAuth?.isAuthenticated(),
-    hasUser: !!window.OsliraAuth?.getCurrentUser(),
-    userId: window.OsliraAuth?.getCurrentUser()?.id
-});
-        
-    } catch (error) {
-        console.error('❌ [AdminGuard] Failed to load core dependencies:', error);
-        throw error;
-    }
-}
-
-// Helper function to load a script dynamically
-function loadScript(src) {
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = src;
-        script.async = false; // Load in order
-        
-        script.onload = () => {
-            console.log(`✅ [AdminGuard] Loaded: ${src}`);
-            resolve();
-        };
-        
-        script.onerror = () => {
-            console.error(`❌ [AdminGuard] Failed to load: ${src}`);
-            reject(new Error(`Failed to load script: ${src}`));
-        };
-        
-        document.head.appendChild(script);
-    });
-}
-    
-async function verifyAdminAccess() {
-    try {
-        if (!window.OsliraAuth) {
-            throw new Error('Auth system not available');
-        }
-        
-        await window.OsliraAuth.waitForAuth();
-        
-        if (!window.OsliraAuth.isAuthenticated()) {
-            console.log('🚫 [AdminGuard] User not authenticated');
-            window.location.href = window.OsliraEnv.getAuthUrl();
-            return false;
-        }
-        
-        const user = window.OsliraAuth.getCurrentUser();
-        
-        // Check if user is admin (check both possible locations)
-        const isAdmin = user.user_metadata?.is_admin || user.is_admin;
-        
-        if (!isAdmin) {
-            console.log('🚫 [AdminGuard] User is not admin, redirecting to dashboard');
-            // Show a message before redirecting
-            document.body.innerHTML = `
-                <div style="
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100vh;
-                    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                ">
-                    <div style="
-                        background: white;
-                        padding: 48px;
-                        border-radius: 16px;
-                        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-                        text-align: center;
-                        max-width: 450px;
-                        width: 90%;
-                    ">
-                        <div style="font-size: 64px; margin-bottom: 24px;">🚫</div>
-                        <h2 style="margin: 0 0 16px 0; color: #dc2626; font-size: 28px; font-weight: 700;">
-                            Access Denied
-                        </h2>
-                        <p style="margin: 0 0 32px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
-                            You do not have administrator privileges.<br>
-                            This area is restricted to admin users only.
-                        </p>
-                        <button 
-                            onclick="window.location.href='${window.OsliraEnv.getAppUrl('/dashboard')}'"
-                            style="
-                                width: 100%;
-                                background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-                                color: white;
-                                border: none;
-                                padding: 14px;
-                                border-radius: 10px;
-                                font-size: 16px;
-                                font-weight: 600;
-                                cursor: pointer;
-                            "
-                        >
-                            Return to Dashboard
-                        </button>
-                    </div>
-                </div>
-            `;
-            document.documentElement.style.visibility = 'visible';
-            document.documentElement.style.opacity = '1';
-            return false;
-        }
-        
-        console.log('✅ [AdminGuard] Admin status verified');
-        return user.id;
-            
-            console.log('✅ [AdminGuard] Admin status verified');
-            return user.id;
-            
-        } catch (error) {
-            console.error('❌ [AdminGuard] Admin verification failed:', error);
-            return false;
-        }
-    }
-    
-    // Show rate limit message
     function showRateLimitScreen() {
         document.documentElement.style.visibility = 'visible';
         document.documentElement.style.opacity = '1';
         document.body.innerHTML = '';
-        document.body.style.overflow = 'hidden';
         
         const timeRemaining = getTimeUntilReset();
         
@@ -318,48 +144,11 @@ async function verifyAdminAccess() {
         `;
         
         overlay.innerHTML = `
-            <div style="
-                background: white;
-                padding: 48px;
-                border-radius: 16px;
-                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-                text-align: center;
-                max-width: 450px;
-                width: 90%;
-            ">
+            <div style="background: white; padding: 48px; border-radius: 16px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); text-align: center; max-width: 450px; width: 90%;">
                 <div style="font-size: 64px; margin-bottom: 24px;">🚫</div>
-                <h2 style="margin: 0 0 16px 0; color: #dc2626; font-size: 28px; font-weight: 700;">
-                    Too Many Attempts
-                </h2>
-                <p style="margin: 0 0 24px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
-                    You've exceeded the maximum number of admin password attempts.<br>
-                    Please try again in <strong style="color: #1e293b;">${formatTimeRemaining(timeRemaining)}</strong>.
-                </p>
-                
-                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; margin: 24px 0;">
-                    <p style="margin: 0; color: #991b1b; font-size: 14px; line-height: 1.6;">
-                        <strong>Security Notice:</strong><br>
-                        Maximum ${MAX_ATTEMPTS} attempts per hour to protect against unauthorized access.
-                    </p>
-                </div>
-                
-                <button 
-                    onclick="window.location.href='${window.OsliraEnv?.getAppUrl('/dashboard') || '/dashboard'}'"
-                    style="
-                        width: 100%;
-                        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-                        color: white;
-                        border: none;
-                        padding: 14px;
-                        border-radius: 10px;
-                        font-size: 16px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        transition: transform 0.2s, box-shadow 0.2s;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 20px rgba(59, 130, 246, 0.3)'"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
-                >
+                <h2 style="margin: 0 0 16px 0; color: #dc2626; font-size: 28px; font-weight: 700;">Too Many Attempts</h2>
+                <p style="margin: 0 0 24px 0; color: #64748b; font-size: 16px;">Please try again in <strong>${formatTimeRemaining(timeRemaining)}</strong>.</p>
+                <button onclick="window.location.href='/dashboard'" style="width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer;">
                     Return to Dashboard
                 </button>
             </div>
@@ -368,37 +157,26 @@ async function verifyAdminAccess() {
         document.body.appendChild(overlay);
     }
     
-    // Show password prompt
     async function showPasswordPrompt(userId) {
         document.documentElement.style.visibility = 'visible';
         document.documentElement.style.opacity = '1';
         document.body.innerHTML = '';
-        document.body.style.overflow = 'hidden';
         
-        // Fetch admin token from backend
+        // Fetch admin token
         let ADMIN_TOKEN;
         try {
-            const apiUrl = window.OsliraEnv.WORKER_URL || 'https://api.oslira.com';
-const token = window.OsliraAuth?.getSession?.()?.access_token;
-            
-const response = await fetch(`${apiUrl}/config/public`, {
-    headers: {
-        'Content-Type': 'application/json'
-        // No auth token - endpoint should allow public access for admin token
-    }
-});
-            
+            const apiUrl = window.OsliraEnv?.WORKER_URL || 'https://api.oslira.com';
+            const response = await fetch(`${apiUrl}/config/public`);
             const config = await response.json();
             ADMIN_TOKEN = config.data?.adminToken;
             
             if (!ADMIN_TOKEN) {
-                console.log('⚠️ [AdminGuard] No admin token configured - allowing access');
+                console.log('⚠️ [AdminGuard] No admin token - allowing access');
                 allowAccess(userId);
                 return;
             }
-            
         } catch (error) {
-            console.error('❌ [AdminGuard] Failed to fetch admin token:', error);
+            console.error('❌ [AdminGuard] Config fetch failed:', error);
             showError('Failed to load configuration. Please refresh.');
             return;
         }
@@ -406,544 +184,174 @@ const response = await fetch(`${apiUrl}/config/public`, {
         const remainingAttempts = getRemainingAttempts();
         
         const overlay = document.createElement('div');
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        `;
+        overlay.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;`;
         
         overlay.innerHTML = `
-            <div style="
-                background: white;
-                padding: 48px;
-                border-radius: 16px;
-                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-                text-align: center;
-                max-width: 450px;
-                width: 90%;
-            ">
+            <div style="background: white; padding: 48px; border-radius: 16px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); text-align: center; max-width: 450px; width: 90%;">
                 <div style="font-size: 64px; margin-bottom: 24px;">🔐</div>
-                <h2 style="margin: 0 0 12px 0; color: #1e293b; font-size: 28px; font-weight: 700;">
-                    Admin Panel Access
-                </h2>
-                <p style="margin: 0 0 32px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
-                    This area requires additional verification.<br>
-                    Enter the admin password to continue.
-                </p>
-                
+                <h2 style="margin: 0 0 12px 0; color: #1e293b; font-size: 28px; font-weight: 700;">Admin Panel Access</h2>
+                <p style="margin: 0 0 32px 0; color: #64748b; font-size: 16px;">Enter the admin password to continue.</p>
                 <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 16px; margin: 0 0 24px 0;">
-                    <p style="margin: 0; color: #9a3412; font-size: 14px; font-weight: 600;">
-                        Attempts remaining: ${remainingAttempts} of ${MAX_ATTEMPTS}
-                    </p>
+                    <p style="margin: 0; color: #9a3412; font-size: 14px; font-weight: 600;">Attempts: ${remainingAttempts}/${MAX_ATTEMPTS}</p>
                 </div>
-                
-                <form id="admin-password-form" style="margin-bottom: 24px;">
-                    <input 
-                        type="password" 
-                        id="admin-password-input"
-                        placeholder="Enter admin password"
-                        style="
-                            width: 100%;
-                            padding: 14px;
-                            border: 2px solid #e2e8f0;
-                            border-radius: 10px;
-                            font-size: 16px;
-                            margin-bottom: 16px;
-                            box-sizing: border-box;
-                            outline: none;
-                            transition: border-color 0.2s;
-                        "
-                        onfocus="this.style.borderColor='#3b82f6'"
-                        onblur="this.style.borderColor='#e2e8f0'"
-                        autocomplete="current-password"
-                        required
-                    />
-                    <button 
-                        type="submit"
-                        style="
-                            width: 100%;
-                            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-                            color: white;
-                            border: none;
-                            padding: 14px;
-                            border-radius: 10px;
-                            font-size: 16px;
-                            font-weight: 600;
-                            cursor: pointer;
-                            transition: transform 0.2s, box-shadow 0.2s;
-                        "
-                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 20px rgba(59, 130, 246, 0.3)'"
-                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
-                    >
-                        Access Admin Panel
-                    </button>
+                <form id="admin-password-form">
+                    <input type="password" id="admin-password-input" placeholder="Enter password" style="width: 100%; padding: 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; margin-bottom: 16px; box-sizing: border-box;" required />
+                    <button type="submit" style="width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer;">Access Panel</button>
                 </form>
-                
-                <div id="admin-error-message" style="
-                    color: #dc2626;
-                    font-size: 14px;
-                    font-weight: 600;
-                    padding: 12px;
-                    background: #fef2f2;
-                    border-radius: 8px;
-                    margin-top: 16px;
-                    display: none;
-                "></div>
-                
-                <button 
-                    onclick="window.location.href='${window.OsliraEnv?.getAppUrl('/dashboard') || '/dashboard'}'"
-                    style="
-                        width: 100%;
-                        background: transparent;
-                        color: #64748b;
-                        border: 2px solid #e2e8f0;
-                        padding: 12px;
-                        border-radius: 10px;
-                        font-size: 14px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        margin-top: 16px;
-                        transition: all 0.2s;
-                    "
-                    onmouseover="this.style.borderColor='#cbd5e1'; this.style.color='#475569'"
-                    onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='#64748b'"
-                >
-                    Return to Dashboard
-                </button>
-                
-                <p style="margin: 24px 0 0 0; color: #94a3b8; font-size: 12px;">
-                    Environment: ${window.OsliraEnv?.hostname || 'unknown'}<br>
-                    Rate limited: ${MAX_ATTEMPTS} attempts per hour
-                </p>
+                <div id="admin-error" style="color: #dc2626; font-size: 14px; padding: 12px; background: #fef2f2; border-radius: 8px; margin-top: 16px; display: none;"></div>
             </div>
         `;
         
         document.body.appendChild(overlay);
         
-        // Focus input
         const input = document.getElementById('admin-password-input');
         const form = document.getElementById('admin-password-form');
-        const errorDiv = document.getElementById('admin-error-message');
-        const modal = overlay.querySelector('div');
+        const errorDiv = document.getElementById('admin-error');
         
         setTimeout(() => input.focus(), 100);
         
-// Handle form submission
-form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const enteredPassword = input.value.trim();
-    const submitBtn = form.querySelector('button[type="submit"]');
-    
-    if (!enteredPassword) {
-        errorDiv.textContent = 'Please enter a password';
-        errorDiv.style.display = 'block';
-        return;
-    }
-    
-    // Disable button during verification
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Verifying...';
-    submitBtn.style.opacity = '0.6';
-    
-    try {
-// Call backend to verify password
-const response = await fetch(`${window.OsliraEnv.WORKER_URL}/admin/verify-password`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                password: enteredPassword,
-                userId: userId
-            })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success && result.data?.valid) {
-            console.log('✅ [AdminGuard] Admin password correct');
-            saveAuthentication(userId);
-            allowAccess(userId);
-        } else {
-            console.log('❌ [AdminGuard] Admin password incorrect');
-            recordFailedAttempt();
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const password = input.value.trim();
+            if (!password) return;
             
-            const newRemaining = getRemainingAttempts();
+            const submitBtn = form.querySelector('button');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Verifying...';
             
-            if (newRemaining === 0) {
-                showRateLimitScreen();
-            } else {
-                const attemptsDisplay = modal.querySelector('div[style*="background: #fff7ed"] p');
-                if (attemptsDisplay) {
-                    attemptsDisplay.textContent = `Attempts remaining: ${newRemaining} of ${MAX_ATTEMPTS}`;
+            try {
+                const response = await fetch(`${window.OsliraEnv.WORKER_URL}/admin/verify-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password, userId })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.data?.valid) {
+                    saveAuthentication(userId);
+                    allowAccess(userId);
+                } else {
+                    recordFailedAttempt();
+                    const newRemaining = getRemainingAttempts();
+                    
+                    if (newRemaining === 0) {
+                        showRateLimitScreen();
+                    } else {
+                        errorDiv.textContent = `Incorrect. ${newRemaining} ${newRemaining === 1 ? 'attempt' : 'attempts'} left.`;
+                        errorDiv.style.display = 'block';
+                        input.value = '';
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Access Panel';
+                    }
                 }
-                
-                errorDiv.textContent = `Incorrect password. ${newRemaining} ${newRemaining === 1 ? 'attempt' : 'attempts'} remaining.`;
+            } catch (error) {
+                errorDiv.textContent = 'Verification failed. Try again.';
                 errorDiv.style.display = 'block';
-                input.value = '';
-                input.focus();
-                
-                // Re-enable button
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Access Admin Panel';
-                submitBtn.style.opacity = '1';
+                submitBtn.textContent = 'Access Panel';
             }
-        }
-    } catch (error) {
-        console.error('❌ [AdminGuard] Password verification failed:', error);
-        errorDiv.textContent = 'Verification failed. Please try again.';
-        errorDiv.style.display = 'block';
-        
-        // Re-enable button
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Access Admin Panel';
-        submitBtn.style.opacity = '1';
-    }
-});
-        
-        // Add shake animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes shake {
-                0%, 20%, 40%, 60%, 80% { transform: translateX(0); }
-                10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-            }
-        `;
-        document.head.appendChild(style);
+        });
     }
     
- // Show error screen with details
-function showError(message, details = null) {
-    document.documentElement.style.visibility = 'visible';
-    document.documentElement.style.opacity = '1';
-    document.body.innerHTML = '';
-    document.body.style.overflow = 'hidden';
-    
-    console.error('❌ [AdminGuard] Error:', message, details);
-    
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100vh;
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        padding: 20px;
-    `;
-    
-    overlay.innerHTML = `
-        <div style="
-            background: white;
-            padding: 48px;
-            border-radius: 16px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-            text-align: center;
-            max-width: 500px;
-            width: 90%;
-        ">
-            <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
-            <h2 style="margin: 0 0 16px 0; color: #dc2626; font-size: 28px; font-weight: 700;">
-                Initialization Error
-            </h2>
-            <p style="margin: 0 0 24px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
-                ${message}
-            </p>
-            ${details ? `
-                <details style="text-align: left; margin: 20px 0; padding: 16px; background: #f8fafc; border-radius: 8px; font-size: 12px; font-family: monospace; color: #475569;">
-                    <summary style="cursor: pointer; font-weight: 600; margin-bottom: 8px;">Technical Details</summary>
-                    <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">${JSON.stringify(details, null, 2)}</pre>
-                </details>
-            ` : ''}
-            <button 
-                onclick="window.location.reload()"
-                style="
-                    width: 100%;
-                    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-                    color: white;
-                    border: none;
-                    padding: 14px;
-                    border-radius: 10px;
-                    font-size: 16px;
-                    font-weight: 600;
-                    cursor: pointer;
-                "
-            >
-                Reload Page
-            </button>
-            <button 
-                onclick="localStorage.clear(); window.location.reload()"
-                style="
-                    width: 100%;
-                    background: transparent;
-                    color: #64748b;
-                    border: 2px solid #e2e8f0;
-                    padding: 12px;
-                    border-radius: 10px;
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    margin-top: 12px;
-                "
-            >
-                Clear Cache & Reload
-            </button>
-        </div>
-    `;
-    
-    document.body.appendChild(overlay);
-}
-// Show access denied screen for non-admin users
-function showAccessDenied() {
-    document.documentElement.style.visibility = 'visible';
-    document.documentElement.style.opacity = '1';
-    document.body.innerHTML = '';
-    document.body.style.overflow = 'hidden';
-    
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100vh;
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    `;
-    
-    overlay.innerHTML = `
-        <div style="
-            background: white;
-            padding: 48px;
-            border-radius: 16px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-            text-align: center;
-            max-width: 450px;
-            width: 90%;
-        ">
-            <div style="font-size: 64px; margin-bottom: 24px;">🚫</div>
-            <h2 style="margin: 0 0 16px 0; color: #dc2626; font-size: 28px; font-weight: 700;">
-                Access Denied
-            </h2>
-            <p style="margin: 0 0 32px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
-                You do not have administrator privileges.<br>
-                This area is restricted to admin users only.
-            </p>
-            <button 
-                onclick="window.location.href='${window.OsliraEnv.getAppUrl('/dashboard')}'"
-                style="
-                    width: 100%;
-                    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-                    color: white;
-                    border: none;
-                    padding: 14px;
-                    border-radius: 10px;
-                    font-size: 16px;
-                    font-weight: 600;
-                    cursor: pointer;
-                "
-            >
-                Return to Dashboard
-            </button>
-        </div>
-    `;
-    
-    document.body.appendChild(overlay);
-}
-
-// Execute when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', executeGuard);
-} else {
-    executeGuard();
-}
-    
-  function allowAccess(userId) {
-    console.log('✅ [AdminGuard] Access granted - loading admin panel');
-    
-    // Remove the inline blocking styles
-    const blockingStyles = document.querySelectorAll('style');
-    blockingStyles.forEach(style => {
-        if (style.textContent.includes('visibility: hidden')) {
-            style.remove();
-        }
-    });
-    
-    // Restore page visibility
-    document.documentElement.style.visibility = 'visible';
-    document.documentElement.style.opacity = '1';
-    document.body.style.overflow = '';
-    document.body.style.visibility = 'visible';
-    document.body.style.opacity = '1';
-    
-    // Clear body (remove password screen)
-    document.body.innerHTML = `
-        <!-- Skip Navigation -->
-        <a href="#admin-main-content" class="skip-nav">Skip to main content</a>
-        
-        <!-- Main Content Area -->
-        <main id="admin-main-content" class="admin-main-content">
-            <div class="admin-gradient-bg"></div>
-            <div id="admin-content-container" class="admin-content-container">
-                <div id="admin-loading" class="admin-loading-state">
-                    <div class="loading-spinner"></div>
-                    <p class="text-slate-600 mt-4">Loading admin panel...</p>
+    function showError(message) {
+        document.documentElement.style.visibility = 'visible';
+        document.documentElement.style.opacity = '1';
+        document.body.innerHTML = `
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                <div style="background: white; padding: 48px; border-radius: 16px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); text-align: center; max-width: 500px; width: 90%;">
+                    <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
+                    <h2 style="margin: 0 0 16px 0; color: #dc2626; font-size: 28px; font-weight: 700;">Error</h2>
+                    <p style="margin: 0 0 24px 0; color: #64748b; font-size: 16px;">${message}</p>
+                    <button onclick="window.location.reload()" style="width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer;">Reload</button>
                 </div>
-                <div id="admin-error" class="admin-error-state hidden">
-                    <div class="error-icon">⚠️</div>
-                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Something went wrong</h2>
-                    <p class="text-slate-600 mb-4" id="admin-error-message"></p>
-                    <button onclick="location.reload()" class="btn-primary">Reload Page</button>
-                </div>
-                <div id="admin-section-content" class="admin-section-content hidden"></div>
             </div>
-        </main>
+        `;
+    }
+    
+    function allowAccess(userId) {
+        console.log('✅ [AdminGuard] Access granted');
         
-        <div id="admin-toast-container" class="admin-toast-container"></div>
-        <div id="admin-modals-container"></div>
-    `;
-    
-    // Dispatch event to signal admin scripts can load
-    window.dispatchEvent(new CustomEvent('admin:guard:passed', {
-        detail: { userId }
-    }));
-    
-    // Store auth status globally
-    window.ADMIN_AUTHORIZED = true;
-    
-    console.log('🚀 [AdminGuard] Admin panel ready - script loader will now initialize');
-}
-    
-// Main guard execution
-async function executeGuard() {
-    console.log('🚀 [AdminGuard] Starting execution...');
-    
-    try {
-        // Step 1: Check if already authenticated with password (INSTANT)
-        if (isAuthenticated()) {
-            const authData = JSON.parse(localStorage.getItem(SESSION_KEY));
-            console.log('✅ [AdminGuard] Valid password session found, allowing access immediately');
-            allowAccess(authData.userId);
-            return;
-        }
-        
-// Step 2: Check rate limit BEFORE loading anything
-if (isRateLimited()) {
-    console.log('🚫 [AdminGuard] Rate limited');
-    showRateLimitScreen();
-    return;
-}
-
-// Step 3: Load core dependencies if not already loaded
-console.log('⏳ [AdminGuard] Loading core dependencies...');
-await loadCoreDependencies();
-console.log('✅ [AdminGuard] Core dependencies ready');
-
-// Step 4: Show password prompt immediately (bypass Supabase check for now)
-console.log('🔐 [AdminGuard] Showing password prompt...');
-
-// TEMPORARY: Skip Supabase verification and go straight to password
-// TODO: Fix cross-subdomain session persistence
-const mockUserId = 'temp-admin-user';
-
-if (!window.OsliraEnv) {
-    console.error('❌ [AdminGuard] OsliraEnv not available');
-    showError('Environment not loaded. Please refresh the page.');
-    return;
-}
-
-console.log('✅ [AdminGuard] Proceeding to password prompt');
-
-// Step 5: Show password prompt
-await showPasswordPrompt(mockUserId);
-return;
-
-/* DISABLED TEMPORARILY - Session not persisting across subdomains
-if (!window.OsliraAuth) {
-    console.error('❌ [AdminGuard] OsliraAuth not available after loading');
-    showError('Authentication system not loaded. Please refresh the page.');
-    return;
-}
-
-await window.OsliraAuth.waitForAuth();
-
-if (!window.OsliraAuth.isAuthenticated()) {
-    console.log('🚫 [AdminGuard] User not authenticated with Supabase, redirecting to login');
-    window.location.href = window.OsliraEnv.getAuthUrl();
-    return;
-}
-
-const user = window.OsliraAuth.getCurrentUser();*/
-        
-        if (!user) {
-            console.error('❌ [AdminGuard] User object not available after auth');
-            showError('Failed to load user data. Please refresh the page.');
-            return;
-        }
-        
-        console.log('👤 [AdminGuard] User authenticated:', {
-            id: user.id,
-            email: user.email,
-            is_admin: user.is_admin || user.user_metadata?.is_admin
+        document.querySelectorAll('style').forEach(style => {
+            if (style.textContent.includes('visibility: hidden')) {
+                style.remove();
+            }
         });
         
-        // Check admin status
-        const isAdmin = user.user_metadata?.is_admin || user.is_admin;
+        document.documentElement.style.visibility = 'visible';
+        document.documentElement.style.opacity = '1';
+        document.body.style.overflow = '';
         
-        if (!isAdmin) {
-            console.log('🚫 [AdminGuard] User is not admin');
-            showAccessDenied();
-            return;
-        }
+        document.body.innerHTML = `
+            <main id="admin-main-content" class="admin-main-content">
+                <div id="admin-content-container" class="admin-content-container">
+                    <div id="admin-loading" class="admin-loading-state">
+                        <div class="loading-spinner"></div>
+                        <p class="text-slate-600 mt-4">Loading admin panel...</p>
+                    </div>
+                    <div id="admin-error" class="admin-error-state hidden">
+                        <div class="error-icon">⚠️</div>
+                        <h2>Something went wrong</h2>
+                        <p id="admin-error-message"></p>
+                        <button onclick="location.reload()">Reload</button>
+                    </div>
+                    <div id="admin-section-content" class="admin-section-content hidden"></div>
+                </div>
+            </main>
+            <div id="admin-toast-container"></div>
+            <div id="admin-modals-container"></div>
+        `;
         
-        console.log('✅ [AdminGuard] Admin status verified - showing password prompt');
+        window.dispatchEvent(new CustomEvent('admin:guard:passed', { detail: { userId } }));
+        window.ADMIN_AUTHORIZED = true;
         
-        // Step 5: Show password prompt
-        await showPasswordPrompt(user.id);
-        
-    } catch (error) {
-        console.error('❌ [AdminGuard] Fatal error during execution:', error);
-        showError(
-            'Admin guard initialization failed.',
-            {
-                error: error.message,
-                stack: error.stack?.substring(0, 500),
-                timestamp: new Date().toISOString()
-            }
-        );
+        console.log('🚀 [AdminGuard] Ready for script loader');
     }
-}
     
-    // Execute when DOM is ready
+    async function executeGuard() {
+        console.log('🚀 [AdminGuard] Starting...');
+        
+        try {
+            // Step 1: Check cached password session
+            if (isAuthenticated()) {
+                const authData = JSON.parse(localStorage.getItem(SESSION_KEY));
+                allowAccess(authData.userId);
+                return;
+            }
+            
+            // Step 2: Check rate limit
+            if (isRateLimited()) {
+                showRateLimitScreen();
+                return;
+            }
+            
+            // Step 3: Verify OsliraEnv loaded
+            if (!window.OsliraEnv) {
+                showError('Core dependencies not loaded. Please refresh.');
+                return;
+            }
+            
+            // Step 4: Show password prompt
+            const mockUserId = 'temp-admin-user';
+            await showPasswordPrompt(mockUserId);
+            
+        } catch (error) {
+            console.error('❌ [AdminGuard] Fatal error:', error);
+            showError('Initialization failed. Please refresh.');
+        }
+    }
+    
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', executeGuard);
     } else {
         executeGuard();
     }
-
-    // Debug helper - expose globally for testing
-window.clearAdminSession = function() {
-    localStorage.removeItem(SESSION_KEY);
-    const currentWindow = getCurrentWindow();
-    const attemptsKey = ATTEMPTS_KEY + '_' + currentWindow;
-    localStorage.removeItem(attemptsKey);
-    console.log('✅ [AdminGuard] Session cleared');
-    window.location.reload();
-};
+    
+    window.clearAdminSession = function() {
+        localStorage.removeItem(SESSION_KEY);
+        const currentWindow = getCurrentWindow();
+        localStorage.removeItem(ATTEMPTS_KEY + '_' + currentWindow);
+        window.location.reload();
+    };
     
 })();
