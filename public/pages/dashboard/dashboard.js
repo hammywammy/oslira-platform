@@ -174,32 +174,6 @@ class DashboardInitializer {
                 }
             },
             
-            showBulkModal: () => {
-                console.log('📁 [Dashboard] Global showBulkModal called');
-                try {
-                    const modal = document.getElementById('bulkModal');
-                    if (modal) {
-                        modal.style.display = 'flex';
-                        console.log('✅ [Dashboard] Bulk modal opened');
-                    }
-                } catch (error) {
-                    console.error('❌ [Dashboard] showBulkModal failed:', error);
-                }
-            },
-            
-            closeModal: (modalId) => {
-                console.log('❌ [Dashboard] Global closeModal called with:', modalId);
-                try {
-                    const modal = document.getElementById(modalId);
-                    if (modal) {
-                        modal.style.display = 'none';
-                        console.log(`✅ [Dashboard] Modal ${modalId} closed`);
-                    }
-                } catch (error) {
-                    console.error('❌ [Dashboard] closeModal failed:', error);
-                }
-            },
-            
             // Form Handlers
             submitAnalysis: async () => {
                 console.log('🔍 [Dashboard] Global submitAnalysis called');
