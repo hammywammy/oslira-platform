@@ -50,53 +50,80 @@ class UsersSection {
     // DATA LOADING
     // =========================================================================
     
-    async loadUsers() {
-        try {
-            const { page, limit } = this.pagination;
-            const response = await window.OsliraAPI.get(`/admin/users?page=${page}&limit=${limit}`);
-            
-            if (!response.success) {
-                throw new Error(response.error || 'Failed to load users');
-            }
-            
-            this.users = response.data.users;
-            this.pagination = response.data.pagination;
-            
-            console.log('✅ [UsersSection] Users loaded:', this.users.length);
-            
-        } catch (error) {
-            console.error('❌ [UsersSection] Users loading failed:', error);
-            throw error;
-        }
-    }
-    
-    async searchUsers(query) {
-        if (!query || query.length < 2) {
-            await this.loadUsers();
-            return;
-        }
+async loadUsers() {
+    try {
+        const { page, limit } = this.pagination;
+        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const token = window.OsliraAuth.getSession()?.access_token;
         
-        try {
-            const response = await window.OsliraAPI.get(`/admin/users/search?q=${encodeURIComponent(query)}`);
-            
-            if (!response.success) {
-                throw new Error(response.error || 'Search failed');
+        const response = await fetch(`${apiUrl}/admin/users?page=${page}&limit=${limit}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-            
-            this.users = response.data.users;
-            this.pagination.total = this.users.length;
-            
-            console.log('✅ [UsersSection] Search results:', this.users.length);
-            
-        } catch (error) {
-            console.error('❌ [UsersSection] Search failed:', error);
-            this.eventBus.emit('admin:show-toast', {
-                message: 'Search failed: ' + error.message,
-                type: 'error'
-            });
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
         }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to load users');
+        }
+
+        this.users = result.data.users;
+        this.pagination = result.data.pagination;
+
+        console.log('✅ [UsersSection] Users loaded:', this.users.length);
+
+    } catch (error) {
+        console.error('❌ [UsersSection] Users loading failed:', error);
+        throw error;
     }
+}
     
+async searchUsers(query) {
+    if (!query || query.length < 2) {
+        await this.loadUsers();
+        return;
+    }
+
+    try {
+        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const token = window.OsliraAuth.getSession()?.access_token;
+        
+        const response = await fetch(`${apiUrl}/admin/users/search?q=${encodeURIComponent(query)}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Search failed');
+        }
+
+        this.users = result.data.users;
+        this.pagination.total = this.users.length;
+
+        console.log('✅ [UsersSection] Search results:', this.users.length);
+
+    } catch (error) {
+        console.error('❌ [UsersSection] Search failed:', error);
+        this.eventBus.emit('admin:show-toast', {
+            message: 'Search failed: ' + error.message,
+            type: 'error'
+        });
+    }
+}
     // =========================================================================
     // RENDERING
     // =========================================================================
@@ -312,129 +339,185 @@ class UsersSection {
     // USER ACTIONS
     // =========================================================================
     
-    async viewUser(userId) {
-        console.log('👁️ [UsersSection] View user:', userId);
+async viewUser(userId) {
+    console.log('👁️ [UsersSection] View user:', userId);
+
+    try {
+        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const token = window.OsliraAuth.getSession()?.access_token;
         
-        try {
-            const response = await window.OsliraAPI.get(`/admin/users/${userId}`);
-            
-            if (!response.success) {
-                throw new Error(response.error || 'Failed to load user details');
+        const response = await fetch(`${apiUrl}/admin/users/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-            
-            // Show user details in modal (to be implemented)
-            this.showUserModal(response.data);
-            
-        } catch (error) {
-            console.error('❌ [UsersSection] View user failed:', error);
-            this.eventBus.emit('admin:show-toast', {
-                message: 'Failed to load user details',
-                type: 'error'
-            });
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
         }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to load user details');
+        }
+
+        this.showUserModal(result.data);
+
+    } catch (error) {
+        console.error('❌ [UsersSection] View user failed:', error);
+        this.eventBus.emit('admin:show-toast', {
+            message: 'Failed to load user details',
+            type: 'error'
+        });
     }
+}
     
-    async editCredits(userId, currentCredits) {
-        const newAmount = prompt(`Enter new credit amount for user:\n\nCurrent: ${currentCredits} credits`, currentCredits);
-        
-        if (newAmount === null) return;
-        
-        const amount = parseInt(newAmount);
-        
-        if (isNaN(amount) || amount < 0) {
-            alert('Please enter a valid number');
-            return;
-        }
-        
-        const reason = prompt('Reason for credit adjustment:', 'Manual admin adjustment');
-        
-        if (!reason) return;
-        
-        try {
-            const response = await window.OsliraAPI.post(`/admin/users/${userId}/update-credits`, {
-                amount,
-                reason
-            });
-            
-            if (!response.success) {
-                throw new Error(response.error || 'Failed to update credits');
-            }
-            
-            this.eventBus.emit('admin:show-toast', {
-                message: `Credits updated successfully to ${amount}`,
-                type: 'success'
-            });
-            
-            await this.refresh();
-            
-        } catch (error) {
-            console.error('❌ [UsersSection] Update credits failed:', error);
-            this.eventBus.emit('admin:show-toast', {
-                message: 'Failed to update credits: ' + error.message,
-                type: 'error'
-            });
-        }
+async editCredits(userId, currentCredits) {
+    const newAmount = prompt(`Enter new credit amount for user:\n\nCurrent: ${currentCredits} credits`, currentCredits);
+
+    if (newAmount === null) return;
+
+    const amount = parseInt(newAmount);
+
+    if (isNaN(amount) || amount < 0) {
+        alert('Please enter a valid number');
+        return;
     }
+
+    const reason = prompt('Reason for credit adjustment:', 'Manual admin adjustment');
+
+    if (!reason) return;
+
+    try {
+        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const token = window.OsliraAuth.getSession()?.access_token;
+        
+        const response = await fetch(`${apiUrl}/admin/users/${userId}/update-credits`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ amount, reason })
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to update credits');
+        }
+
+        this.eventBus.emit('admin:show-toast', {
+            message: `Credits updated successfully to ${amount}`,
+            type: 'success'
+        });
+
+        await this.refresh();
+
+    } catch (error) {
+        console.error('❌ [UsersSection] Update credits failed:', error);
+        this.eventBus.emit('admin:show-toast', {
+            message: 'Failed to update credits: ' + error.message,
+            type: 'error'
+        });
+    }
+}
     
-    async toggleAdmin(userId, currentStatus) {
-        const action = currentStatus ? 'revoke admin access from' : 'grant admin access to';
-        
-        if (!confirm(`Are you sure you want to ${action} this user?`)) {
-            return;
-        }
-        
-        try {
-            const response = await window.OsliraAPI.post(`/admin/users/${userId}/toggle-admin`);
-            
-            if (!response.success) {
-                throw new Error(response.error || 'Failed to toggle admin status');
-            }
-            
-            this.eventBus.emit('admin:show-toast', {
-                message: response.data.message,
-                type: 'success'
-            });
-            
-            await this.refresh();
-            
-        } catch (error) {
-            console.error('❌ [UsersSection] Toggle admin failed:', error);
-            this.eventBus.emit('admin:show-toast', {
-                message: 'Failed to toggle admin status: ' + error.message,
-                type: 'error'
-            });
-        }
+async toggleAdmin(userId, currentStatus) {
+    const action = currentStatus ? 'revoke admin access from' : 'grant admin access to';
+
+    if (!confirm(`Are you sure you want to ${action} this user?`)) {
+        return;
     }
+
+    try {
+        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const token = window.OsliraAuth.getSession()?.access_token;
+        
+        const response = await fetch(`${apiUrl}/admin/users/${userId}/toggle-admin`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to toggle admin status');
+        }
+
+        this.eventBus.emit('admin:show-toast', {
+            message: result.data.message,
+            type: 'success'
+        });
+
+        await this.refresh();
+
+    } catch (error) {
+        console.error('❌ [UsersSection] Toggle admin failed:', error);
+        this.eventBus.emit('admin:show-toast', {
+            message: 'Failed to toggle admin status: ' + error.message,
+            type: 'error'
+        });
+    }
+}
     
-    async toggleSuspension(userId, currentStatus) {
-        const action = currentStatus ? 'unsuspend' : 'suspend';
-        
-        if (!confirm(`Are you sure you want to ${action} this user?`)) {
-            return;
-        }
-        
-        try {
-            const response = await window.OsliraAPI.post(`/admin/users/${userId}/suspend`);
-            
-            if (!response.success) {
-                throw new Error(response.error || 'Failed to toggle suspension');
-            }
-            
-            this.eventBus.emit('admin:show-toast', {
-                message: response.data.message,
-                type: 'success'
-            });
-            
-            await this.refresh();
-            
-        } catch (error) {
-            console.error('❌ [UsersSection] Toggle suspension failed:', error);
-            this.eventBus.emit('admin:show-toast', {
-                message: 'Failed to toggle suspension: ' + error.message,
-                type: 'error'
-            });
-        }
+async toggleSuspension(userId, currentStatus) {
+    const action = currentStatus ? 'unsuspend' : 'suspend';
+
+    if (!confirm(`Are you sure you want to ${action} this user?`)) {
+        return;
     }
+
+    try {
+        const apiUrl = window.OsliraEnv.getConfig('apiUrl') || 'https://api.oslira.com';
+        const token = window.OsliraAuth.getSession()?.access_token;
+        
+        const response = await fetch(`${apiUrl}/admin/users/${userId}/suspend`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to toggle suspension');
+        }
+
+        this.eventBus.emit('admin:show-toast', {
+            message: result.data.message,
+            type: 'success'
+        });
+
+        await this.refresh();
+
+    } catch (error) {
+        console.error('❌ [UsersSection] Toggle suspension failed:', error);
+        this.eventBus.emit('admin:show-toast', {
+            message: 'Failed to toggle suspension: ' + error.message,
+            type: 'error'
+        });
+    }
+}
     
     showUserModal(userData) {
         // TODO: Implement modal with full user details
