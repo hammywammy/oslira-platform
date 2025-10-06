@@ -100,8 +100,6 @@ class SidebarManager {
             this.sidebar = targetElement;
             this.mainContent = document.querySelector('.main-content, [class*="content"], main');
             
-            // Create external toggle
-            this.createExternalToggle();
 
             // Initialize functionality
             this.initializeSidebar();
