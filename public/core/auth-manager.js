@@ -360,15 +360,45 @@ async signInWithGoogle() {
             throw error;
         }
         
-        if (data.session) {
-            console.log('✅ [Auth] Callback successful, user authenticated');
-            
-            // CRITICAL: Create user record immediately after OAuth
+if (data.session) {
+    console.log('✅ [Auth] Callback successful, user authenticated');
+    
+    // CRITICAL: Create user record immediately after OAuth - with retry logic
+    let userCreated = false;
+    let retries = 0;
+    while (!userCreated && retries < 3) {
+        try {
             await this.ensureUserExists();
-            console.log('✅ [Auth] User record ensured in database');
             
-            // THEN check onboarding status
-            const needsOnboarding = await this.checkOnboardingStatus();
+            // VERIFY user actually exists before proceeding
+            const { data: verification, error: verifyError } = await this.supabase
+                .from('users')
+                .select('id')
+                .eq('id', data.session.user.id)
+                .single();
+            
+            if (!verifyError && verification) {
+                userCreated = true;
+                console.log('✅ [Auth] User record verified in database');
+            } else {
+                retries++;
+                console.warn(`⚠️ [Auth] User verification attempt ${retries}/3 failed, retrying...`);
+                await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay
+            }
+        } catch (error) {
+            retries++;
+            console.error(`❌ [Auth] User creation attempt ${retries}/3 failed:`, error);
+            if (retries >= 3) throw error;
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+    }
+    
+    if (!userCreated) {
+        throw new Error('Failed to create user record after 3 attempts');
+    }
+    
+    // THEN check onboarding status
+    const needsOnboarding = await this.checkOnboardingStatus();
             
             const rootDomain = window.location.hostname.replace(/^(auth|app|admin|legal|contact|status|www)\./, '');
             const appUrl = window.OsliraEnv.getAppUrl(needsOnboarding ? '/onboarding' : '/dashboard');
