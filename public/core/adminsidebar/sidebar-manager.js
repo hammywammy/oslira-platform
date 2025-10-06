@@ -247,9 +247,13 @@ class AdminSidebarManager {
 }
 
 // =============================================================================
-// GLOBAL EXPORT
+// GLOBAL INITIALIZATION (same pattern as dashboard sidebar)
 // =============================================================================
 
+// Export for global use
 window.AdminSidebarManager = AdminSidebarManager;
 
-console.log('📦 [AdminSidebar] Manager module loaded');
+// Create global instance
+window.adminSidebarManager = new AdminSidebarManager();
+
+console.log('✅ [AdminSidebarManager] Module loaded and ready');
