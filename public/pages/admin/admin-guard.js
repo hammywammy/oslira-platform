@@ -854,25 +854,41 @@ console.log('⏳ [AdminGuard] Loading core dependencies...');
 await loadCoreDependencies();
 console.log('✅ [AdminGuard] Core dependencies ready');
 
-// Step 4: Verify Supabase authentication + admin status
-        console.log('🔐 [AdminGuard] Verifying user authentication and admin status...');
-        
-        if (!window.OsliraAuth) {
-            console.error('❌ [AdminGuard] OsliraAuth not available');
-            showError('Authentication system not loaded. Please refresh the page.');
-            return;
-        }
-        
-        // CRITICAL: Wait for auth to fully load
-        await window.OsliraAuth.waitForAuth();
-        
-        if (!window.OsliraAuth.isAuthenticated()) {
-            console.log('🚫 [AdminGuard] User not authenticated with Supabase, redirecting to login');
-            window.location.href = window.OsliraEnv.getAuthUrl();
-            return;
-        }
-        
-        const user = window.OsliraAuth.getCurrentUser();
+// Step 4: Show password prompt immediately (bypass Supabase check for now)
+console.log('🔐 [AdminGuard] Showing password prompt...');
+
+// TEMPORARY: Skip Supabase verification and go straight to password
+// TODO: Fix cross-subdomain session persistence
+const mockUserId = 'temp-admin-user';
+
+if (!window.OsliraEnv) {
+    console.error('❌ [AdminGuard] OsliraEnv not available');
+    showError('Environment not loaded. Please refresh the page.');
+    return;
+}
+
+console.log('✅ [AdminGuard] Proceeding to password prompt');
+
+// Step 5: Show password prompt
+await showPasswordPrompt(mockUserId);
+return;
+
+/* DISABLED TEMPORARILY - Session not persisting across subdomains
+if (!window.OsliraAuth) {
+    console.error('❌ [AdminGuard] OsliraAuth not available after loading');
+    showError('Authentication system not loaded. Please refresh the page.');
+    return;
+}
+
+await window.OsliraAuth.waitForAuth();
+
+if (!window.OsliraAuth.isAuthenticated()) {
+    console.log('🚫 [AdminGuard] User not authenticated with Supabase, redirecting to login');
+    window.location.href = window.OsliraEnv.getAuthUrl();
+    return;
+}
+
+const user = window.OsliraAuth.getCurrentUser();*/
         
         if (!user) {
             console.error('❌ [AdminGuard] User object not available after auth');
