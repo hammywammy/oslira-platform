@@ -130,9 +130,10 @@ renderPerformanceMetrics() {
     <div class="glass-white rounded-2xl p-6 hover-lift">
         <div class="flex items-center justify-between mb-4">
             <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
+<svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="11" cy="11" r="8" stroke-width="2"/>
+    <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
+</svg>
             </div>
             <span class="text-xs text-green-600 font-semibold">+23% from last month</span>
         </div>
