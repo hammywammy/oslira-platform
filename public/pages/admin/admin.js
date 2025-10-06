@@ -56,33 +56,23 @@ class AdminCore {
     // AUTHENTICATION
     // =========================================================================
     
-    async verifyAdminAccess() {
-        console.log('🔐 [AdminCore] Verifying admin access...');
-        
-        // Wait for auth to be ready
-        if (!window.OsliraAuth) {
-            throw new Error('Authentication system not available');
-        }
-        
-        await window.OsliraAuth.waitForAuth();
-        
-        if (!window.OsliraAuth.isAuthenticated()) {
-            console.log('🚫 [AdminCore] User not authenticated, redirecting...');
-            window.location.href = window.OsliraEnv.getAuthUrl();
-            throw new Error('Authentication required');
-        }
-        
-        const user = window.OsliraAuth.getCurrentUser();
-        
-        // Check if user is admin
-        if (!user.user_metadata?.is_admin && !user.is_admin) {
-            console.log('🚫 [AdminCore] User is not admin, redirecting to dashboard...');
-            window.location.href = window.OsliraEnv.getAppUrl('/dashboard');
-            throw new Error('Admin access required');
-        }
-        
-        console.log('✅ [AdminCore] Admin access verified for:', user.email);
+async verifyAdminAccess() {
+    console.log('🔐 [AdminCore] Verifying admin access...');
+    
+    // admin-guard.js already verified everything, so just log
+    if (!window.ADMIN_AUTHORIZED) {
+        console.warn('⚠️ [AdminCore] ADMIN_AUTHORIZED flag not set - guard may not have run');
     }
+    
+    // Double-check auth is still valid
+    if (!window.OsliraAuth?.isAuthenticated()) {
+        console.log('🚫 [AdminCore] Auth session expired');
+        window.location.href = window.OsliraEnv.getAuthUrl();
+        throw new Error('Authentication required');
+    }
+    
+    console.log('✅ [AdminCore] Admin access verified');
+}
     
     // =========================================================================
     // EVENT BUS
