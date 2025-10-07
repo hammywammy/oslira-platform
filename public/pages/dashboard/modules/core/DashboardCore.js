@@ -50,6 +50,15 @@ static async waitForDOMElement(selector, timeout = 5000) {
 console.log('🔄 [DashboardCore] Initializing modules...');
 await container.initialize();
 
+            // Initialize sidebar
+console.log('🔧 [DashboardCore] Initializing sidebar...');
+const sidebar = new window.SidebarManager();
+await sidebar.init();
+console.log('✅ [DashboardCore] Sidebar initialized');
+
+// Continue with rendering...
+console.log('🎨 [DashboardCore] Rendering dashboard UI...');
+
 // Trigger business loading after all dependencies are initialized
 const businessManager = container.get('businessManager');
 await businessManager.loadBusinesses();
