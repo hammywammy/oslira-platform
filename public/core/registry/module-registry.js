@@ -125,17 +125,17 @@ auth: {
             // ═══════════════════════════════════════════════════
             // ONBOARDING
             // ═══════════════════════════════════════════════════
-            onboarding: {
-                appClass: 'OnboardingApp',
-                scripts: [
-                    '/core/api-client.js',
-                    '/core/form-manager.js',
-                    '/pages/onboarding/onboarding-rules.js',
-                    '/pages/onboarding/onboarding-validator.js',
-                    '/pages/onboarding/onboarding.js'
-                ],
-                requiresAuth: true
-            },
+onboarding: {
+    appClass: 'OnboardingApp',
+    scripts: [
+        '/core/api-client.js',
+        '/core/form-manager.js',
+        '/pages/onboarding/onboarding-rules.js',
+        '/pages/onboarding/onboarding-validator.js',
+        '/pages/onboarding/onboarding-app.js'  // ✅ CORRECT
+    ],
+    requiresAuth: true
+},
             
             // ═══════════════════════════════════════════════════
             // ADMIN
