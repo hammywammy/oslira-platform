@@ -1,3 +1,8 @@
+// =============================================================================
+// ORCHESTRATOR - Application Initialization (Fixed for callback pages)
+// Path: /core/boot/orchestrator.js
+// =============================================================================
+
 /**
  * ORCHESTRATOR - Application Initialization
  * Coordinates between Loader, Registry, and Page Apps
@@ -6,8 +11,8 @@
  * - Detect current page
  * - Load page scripts (via Loader)
  * - Get page config (from Registry)
- * - Instantiate page app
- * - Call app.init()
+ * - Instantiate page app (if appClass exists)
+ * - Call app.init() (if app exists)
  * - Fire ready event
  * 
  * Does NOT:
@@ -72,7 +77,29 @@ class OsliraOrchestrator {
             console.log('✅ [Orchestrator] All scripts loaded');
             
             // ═══════════════════════════════════════════════════
-            // STEP 5: Instantiate page app
+            // STEP 5: Check if page needs an app class
+            // ═══════════════════════════════════════════════════
+            if (!pageConfig.appClass || pageConfig.appClass === null) {
+                console.log('ℹ️  [Orchestrator] Page has no app class - using inline scripts');
+                
+                // Fire ready event for pages with inline scripts (like callback)
+                const readyEvent = new CustomEvent('oslira:ready', {
+                    detail: {
+                        page: pageName,
+                        app: null,
+                        timestamp: Date.now()
+                    }
+                });
+                window.dispatchEvent(readyEvent);
+                
+                this.initialized = true;
+                const totalTime = (performance.now() - startTime).toFixed(0);
+                console.log(`✅ [Orchestrator] Initialization complete in ${totalTime}ms (no app class)`);
+                return;
+            }
+            
+            // ═══════════════════════════════════════════════════
+            // STEP 6: Instantiate page app
             // ═══════════════════════════════════════════════════
             const AppClass = window[pageConfig.appClass];
             
@@ -84,7 +111,7 @@ class OsliraOrchestrator {
             this.currentApp = new AppClass();
             
             // ═══════════════════════════════════════════════════
-            // STEP 6: Initialize the app
+            // STEP 7: Initialize the app
             // ═══════════════════════════════════════════════════
             if (typeof this.currentApp.init !== 'function') {
                 throw new Error(`${pageConfig.appClass} must have an init() method`);
@@ -95,7 +122,7 @@ class OsliraOrchestrator {
             console.log('✅ [Orchestrator] App initialized successfully');
             
             // ═══════════════════════════════════════════════════
-            // STEP 7: Fire ready event
+            // STEP 8: Fire ready event
             // ═══════════════════════════════════════════════════
             const readyEvent = new CustomEvent('oslira:ready', {
                 detail: {
