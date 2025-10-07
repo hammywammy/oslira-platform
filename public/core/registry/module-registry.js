@@ -106,7 +106,7 @@ home: {
 },
 
             // ═══════════════════════════════════════════════════
-            // HOME PAGE (Simplest)
+            // AUTH PAGEs (Simplest)
             // ═══════════════════════════════════════════════════
 auth: {
     appClass: 'AuthApp',
@@ -115,6 +115,12 @@ auth: {
     ],
     requiresAuth: false
 },
+
+            'auth-callback': {
+                appClass: null, // No app class needed - inline script handles it
+                scripts: [], // No additional scripts needed - all inline
+                requiresAuth: false
+            },
             
             // ═══════════════════════════════════════════════════
             // ONBOARDING
