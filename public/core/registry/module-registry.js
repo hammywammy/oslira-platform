@@ -90,22 +90,9 @@ class OsliraModuleRegistry {
                 requiresAuth: true
             },
             
-            // ═══════════════════════════════════════════════════
-            // HOME PAGE (Simple)
-            // ═══════════════════════════════════════════════════
-            home: {
-                appClass: 'HomeApp',
-                scripts: [
-                    '/core/header/header-manager.js',
-                    '/core/footer/footer-manager.js',
-                    '/pages/home/homeHandlers.js',
-                    '/pages/home/home.js'
-                ],
-                requiresAuth: false
-            },
             
             // ═══════════════════════════════════════════════════
-            // AUTH PAGE (Simplest)
+            // HOME PAGE (Simplest)
             // ═══════════════════════════════════════════════════
 home: {
     appClass: 'HomeApp',
@@ -114,6 +101,17 @@ home: {
         '/core/footer/footer-manager.js',
         '/pages/home/homeHandlers.js',
         '/pages/home/home-app.js'  // ← NEW FILE
+    ],
+    requiresAuth: false
+},
+
+            // ═══════════════════════════════════════════════════
+            // HOME PAGE (Simplest)
+            // ═══════════════════════════════════════════════════
+auth: {
+    appClass: 'AuthApp',
+    scripts: [
+        '/pages/auth/auth-app.js'
     ],
     requiresAuth: false
 },
