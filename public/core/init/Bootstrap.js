@@ -1,84 +1,476 @@
-/**
- * BOOTSTRAP - Application Entry Point
- * The ONLY file loaded directly in HTML <script> tags
- * Responsibilities:
- * - Wait for env-manager (loaded before bootstrap)
- * - Wait for AWS config fetch
- * - Load core scripts via Loader
- * - Initialize app via Orchestrator
- */
+// =============================================================================
+// BOOTSTRAP - 3-Phase Initialization Orchestrator
+// Path: /public/core/init/Bootstrap.js
+// Dependencies: Coordinator, Phases, all core services
+// =============================================================================
 
-(async function() {
-    'use strict';
-    
-    const startTime = performance.now();
-    console.log('🚀 [Bootstrap] Application starting...');
-    
-    try {
-        // ═══════════════════════════════════════════════════════════
-        // STEP 1: Verify env-manager exists (must load before bootstrap)
-        // ═══════════════════════════════════════════════════════════
-        if (typeof window.OsliraEnv === 'undefined') {
-            throw new Error('env-manager.js must be loaded before bootstrap.js');
-        }
-        console.log('✅ [Bootstrap] env-manager detected');
+/**
+ * @class Bootstrap
+ * @description Orchestrates sequential initialization across 3 phases
+ * 
+ * Phase 1: Infrastructure (Env, Config, Http, Logger, ErrorHandler)
+ * Phase 2: Services (Auth, State, Events, DI)
+ * Phase 3: Application (Page-specific initialization)
+ * 
+ * Features:
+ * - Sequential phase execution
+ * - Fail-fast error handling
+ * - Progress tracking
+ * - Error screen on failure
+ * - Body visibility control
+ */
+class Bootstrap {
+    constructor() {
+        this.coordinator = window.Oslira?.init;
+        this.phases = window.OsliraPhases;
         
-        // ═══════════════════════════════════════════════════════════
-        // STEP 2: Wait for AWS config to be fetched
-        // ═══════════════════════════════════════════════════════════
-        console.log('⏳ [Bootstrap] Waiting for config from AWS...');
-        await window.OsliraEnv.ready();
-        console.log('✅ [Bootstrap] Config ready');
-        
-        // ═══════════════════════════════════════════════════════════
-        // STEP 3: Load core scripts (supabase, config-manager, auth-manager)
-        // ═══════════════════════════════════════════════════════════
-        if (typeof window.OsliraLoader === 'undefined') {
-            throw new Error('loader.js failed to load');
+        if (!this.coordinator) {
+            throw new Error('[Bootstrap] Coordinator not found');
         }
         
-        console.log('📦 [Bootstrap] Loading core dependencies...');
-        await window.OsliraLoader.loadCore();
-        console.log('✅ [Bootstrap] Core dependencies loaded');
-        
-        // ═══════════════════════════════════════════════════════════
-        // STEP 4: Initialize the application
-        // ═══════════════════════════════════════════════════════════
-        if (typeof window.OsliraOrchestrator === 'undefined') {
-            throw new Error('orchestrator.js failed to load');
+        if (!this.phases) {
+            throw new Error('[Bootstrap] Phases not found');
         }
         
-        console.log('🎯 [Bootstrap] Initializing application...');
-        await window.OsliraOrchestrator.init();
+        // State
+        this.currentPhase = null;
+        this.isBootstrapped = false;
+        this.startTime = null;
+        this.endTime = null;
         
-        const totalTime = (performance.now() - startTime).toFixed(0);
-        console.log(`✅ [Bootstrap] Application ready in ${totalTime}ms`);
+        // Progress tracking
+        this.phaseProgress = {
+            [this.phases.INFRASTRUCTURE]: { started: false, completed: false, error: null },
+            [this.phases.SERVICES]: { started: false, completed: false, error: null },
+            [this.phases.APPLICATION]: { started: false, completed: false, error: null }
+        };
         
-    } catch (error) {
-        console.error('💥 [Bootstrap] FATAL ERROR:', error);
-        showFatalError(error);
+        console.log('🚀 [Bootstrap] Instance created');
     }
     
-    // ═══════════════════════════════════════════════════════════
-    // FATAL ERROR UI
-    // ═══════════════════════════════════════════════════════════
-    function showFatalError(error) {
-        document.body.innerHTML = `
-            <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #fef2f2; font-family: system-ui, -apple-system, sans-serif;">
-                <div style="text-align: center; max-width: 500px; padding: 40px;">
-                    <div style="font-size: 64px; margin-bottom: 20px;">⚠️</div>
-                    <h1 style="font-size: 24px; color: #991b1b; margin-bottom: 12px;">Application Failed to Load</h1>
-                    <p style="color: #7f1d1d; margin-bottom: 24px;">${error.message}</p>
-                    <button onclick="window.location.reload()" style="background: #dc2626; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: 500;">
+    // =========================================================================
+    // MAIN BOOTSTRAP FLOW
+    // =========================================================================
+    
+    /**
+     * Execute full bootstrap sequence
+     */
+    async bootstrap() {
+        if (this.isBootstrapped) {
+            console.log('⚠️ [Bootstrap] Already bootstrapped');
+            return;
+        }
+        
+        this.startTime = Date.now();
+        console.log('🚀 [Bootstrap] Starting 3-phase initialization...');
+        
+        try {
+            // Phase 1: Infrastructure
+            await this.executePhase(this.phases.INFRASTRUCTURE);
+            
+            // Phase 2: Services
+            await this.executePhase(this.phases.SERVICES);
+            
+            // Phase 3: Application
+            await this.executePhase(this.phases.APPLICATION);
+            
+            // Bootstrap complete
+            this.isBootstrapped = true;
+            this.endTime = Date.now();
+            
+            const duration = this.endTime - this.startTime;
+            console.log(`✅ [Bootstrap] All phases complete in ${duration}ms`);
+            
+            // Make body visible
+            this.showBody();
+            
+            // Emit bootstrap complete event
+            this.emitEvent('bootstrap:complete', { duration });
+            
+        } catch (error) {
+            console.error('❌ [Bootstrap] Bootstrap failed:', error);
+            
+            // Show error screen
+            this.showErrorScreen(error);
+            
+            // Report to Sentry
+            if (window.Sentry) {
+                window.Sentry.captureException(error, {
+                    tags: {
+                        component: 'Bootstrap',
+                        phase: this.currentPhase
+                    }
+                });
+            }
+            
+            throw error;
+        }
+    }
+    
+    /**
+     * Execute a single phase
+     */
+    async executePhase(phase) {
+        this.currentPhase = phase;
+        this.phaseProgress[phase].started = true;
+        
+        const phaseName = this.getPhaseNameString(phase);
+        console.log(`📦 [Bootstrap] Phase ${phase}: ${phaseName} starting...`);
+        
+        const phaseStart = Date.now();
+        
+        try {
+            switch (phase) {
+                case this.phases.INFRASTRUCTURE:
+                    await this.initializeInfrastructure();
+                    break;
+                    
+                case this.phases.SERVICES:
+                    await this.initializeServices();
+                    break;
+                    
+                case this.phases.APPLICATION:
+                    await this.initializeApplication();
+                    break;
+                    
+                default:
+                    throw new Error(`Unknown phase: ${phase}`);
+            }
+            
+            const phaseDuration = Date.now() - phaseStart;
+            this.phaseProgress[phase].completed = true;
+            
+            console.log(`✅ [Bootstrap] Phase ${phase}: ${phaseName} complete (${phaseDuration}ms)`);
+            
+            // Emit phase complete event
+            this.emitEvent('bootstrap:phase-complete', { phase, phaseName, duration: phaseDuration });
+            
+        } catch (error) {
+            this.phaseProgress[phase].error = error;
+            console.error(`❌ [Bootstrap] Phase ${phase}: ${phaseName} failed:`, error);
+            throw error;
+        }
+    }
+    
+    // =========================================================================
+    // PHASE 1: INFRASTRUCTURE
+    // =========================================================================
+    
+    async initializeInfrastructure() {
+        console.log('🏗️ [Bootstrap] Initializing infrastructure...');
+        
+        // 1. Wait for EnvDetector
+        const env = await this.coordinator.waitFor('EnvDetector');
+        console.log('✅ [Bootstrap] EnvDetector ready');
+        
+        // 2. Wait for ConfigProvider
+        const config = await this.coordinator.waitFor('ConfigProvider');
+        console.log('✅ [Bootstrap] ConfigProvider ready');
+        
+        // 3. Wait for HttpClient
+        const http = await this.coordinator.waitFor('HttpClient');
+        console.log('✅ [Bootstrap] HttpClient ready');
+        
+        // 4. Wait for Logger
+        const logger = await this.coordinator.waitFor('Logger');
+        console.log('✅ [Bootstrap] Logger ready');
+        
+        // 5. Wait for ErrorHandler
+        const errorHandler = await this.coordinator.waitFor('ErrorHandler');
+        console.log('✅ [Bootstrap] ErrorHandler ready');
+        
+        // 6. Wait for Monitoring (optional)
+        try {
+            const monitoring = await this.coordinator.waitFor('Monitoring');
+            console.log('✅ [Bootstrap] Monitoring ready');
+        } catch (error) {
+            console.log('ℹ️ [Bootstrap] Monitoring not available (optional)');
+        }
+        
+        console.log('✅ [Bootstrap] Infrastructure phase complete');
+    }
+    
+    // =========================================================================
+    // PHASE 2: SERVICES
+    // =========================================================================
+    
+    async initializeServices() {
+        console.log('⚙️ [Bootstrap] Initializing services...');
+        
+        // 1. Wait for EventBus
+        const eventBus = await this.coordinator.waitFor('EventBus');
+        console.log('✅ [Bootstrap] EventBus ready');
+        
+        // 2. Wait for Store
+        const store = await this.coordinator.waitFor('Store');
+        console.log('✅ [Bootstrap] Store ready');
+        
+        // 3. Wait for StateManager
+        const stateManager = await this.coordinator.waitFor('StateManager');
+        console.log('✅ [Bootstrap] StateManager ready');
+        
+        // 4. Wait for Selectors
+        const selectors = await this.coordinator.waitFor('Selectors');
+        console.log('✅ [Bootstrap] Selectors ready');
+        
+        // 5. Wait for AuthManager
+        const auth = await this.coordinator.waitFor('AuthManager');
+        console.log('✅ [Bootstrap] AuthManager ready');
+        
+        // 6. Wait for DI Container
+        const container = await this.coordinator.waitFor('Container');
+        console.log('✅ [Bootstrap] Container ready');
+        
+        // 7. Initialize all services through DI Container
+        await container.initializeAll();
+        console.log('✅ [Bootstrap] All services initialized via DI');
+        
+        console.log('✅ [Bootstrap] Services phase complete');
+    }
+    
+    // =========================================================================
+    // PHASE 3: APPLICATION
+    // =========================================================================
+    
+    async initializeApplication() {
+        console.log('🎯 [Bootstrap] Initializing application...');
+        
+        // Get page name from loader
+        const pageName = window.OsliraLoader?.pageName;
+        
+        if (!pageName) {
+            console.log('ℹ️ [Bootstrap] No page-specific initialization needed');
+            return;
+        }
+        
+        console.log(`🎯 [Bootstrap] Initializing page: ${pageName}`);
+        
+        // Get page app class from registry
+        const registry = window.OsliraModuleRegistry;
+        if (!registry) {
+            throw new Error('ModuleRegistry not found');
+        }
+        
+        const appClass = registry.getPageAppClass(pageName);
+        
+        if (!appClass) {
+            console.log(`ℹ️ [Bootstrap] No app class registered for ${pageName}`);
+            return;
+        }
+        
+        // Wait for app class to be available
+        console.log(`⏳ [Bootstrap] Waiting for ${appClass}...`);
+        
+        // Try to get app instance
+        let maxAttempts = 50; // 5 seconds
+        let attempts = 0;
+        
+        while (attempts < maxAttempts) {
+            if (window[appClass]) {
+                console.log(`✅ [Bootstrap] ${appClass} found`);
+                break;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+        
+        if (!window[appClass]) {
+            throw new Error(`App class ${appClass} not found after ${maxAttempts * 100}ms`);
+        }
+        
+        // Initialize app if it has initialize method
+        const app = window[appClass];
+        
+        if (app && typeof app.initialize === 'function') {
+            console.log(`🎯 [Bootstrap] Initializing ${appClass}...`);
+            await app.initialize();
+            console.log(`✅ [Bootstrap] ${appClass} initialized`);
+        } else {
+            console.log(`ℹ️ [Bootstrap] ${appClass} has no initialize method`);
+        }
+        
+        console.log('✅ [Bootstrap] Application phase complete');
+    }
+    
+    // =========================================================================
+    // UI CONTROLS
+    // =========================================================================
+    
+    /**
+     * Show body (make visible after successful bootstrap)
+     */
+    showBody() {
+        console.log('👁️ [Bootstrap] Making body visible...');
+        document.body.style.visibility = 'visible';
+        document.body.style.opacity = '1';
+    }
+    
+    /**
+     * Show error screen
+     */
+    showErrorScreen(error) {
+        console.error('💥 [Bootstrap] Showing error screen');
+        
+        // Create error screen
+        const errorScreen = document.createElement('div');
+        errorScreen.id = 'bootstrap-error-screen';
+        errorScreen.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 999999;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: white;
+        `;
+        
+        errorScreen.innerHTML = `
+            <div style="text-align: center; max-width: 500px; padding: 2rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
+                <h1 style="font-size: 2rem; margin-bottom: 1rem; font-weight: 600;">
+                    Initialization Failed
+                </h1>
+                <p style="font-size: 1.125rem; margin-bottom: 2rem; opacity: 0.9;">
+                    We encountered an error while loading the application.
+                </p>
+                <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; margin-bottom: 2rem; text-align: left;">
+                    <p style="font-family: monospace; font-size: 0.875rem; word-break: break-word;">
+                        ${this.escapeHtml(error.message)}
+                    </p>
+                    ${this.currentPhase ? `
+                        <p style="font-size: 0.875rem; margin-top: 0.5rem; opacity: 0.7;">
+                            Failed at: Phase ${this.currentPhase}
+                        </p>
+                    ` : ''}
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button onclick="location.reload()" style="
+                        background: white;
+                        color: #667eea;
+                        border: none;
+                        padding: 0.75rem 1.5rem;
+                        border-radius: 6px;
+                        font-size: 1rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                    ">
                         🔄 Reload Page
                     </button>
-                    <details style="margin-top: 24px; text-align: left; background: white; padding: 16px; border-radius: 8px; border: 1px solid #fecaca;">
-                        <summary style="cursor: pointer; color: #991b1b; font-weight: 500;">Technical Details</summary>
-                        <pre style="margin-top: 12px; font-size: 12px; color: #7f1d1d; overflow-x: auto;">${error.stack || error.message}</pre>
-                    </details>
+                    <button onclick="localStorage.clear(); sessionStorage.clear(); location.reload()" style="
+                        background: rgba(255,255,255,0.2);
+                        color: white;
+                        border: 1px solid rgba(255,255,255,0.3);
+                        padding: 0.75rem 1.5rem;
+                        border-radius: 6px;
+                        font-size: 1rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                    ">
+                        🗑️ Clear Cache & Reload
+                    </button>
                 </div>
             </div>
         `;
+        
+        document.body.innerHTML = '';
+        document.body.appendChild(errorScreen);
+        document.body.style.visibility = 'visible';
     }
     
-})();
+    /**
+     * Escape HTML for error display
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // =========================================================================
+    // EVENTS
+    // =========================================================================
+    
+    /**
+     * Emit bootstrap event
+     */
+    emitEvent(eventType, data) {
+        const event = new CustomEvent(eventType, { detail: data });
+        window.dispatchEvent(event);
+    }
+    
+    // =========================================================================
+    // UTILITIES
+    // =========================================================================
+    
+    /**
+     * Get phase name as string
+     */
+    getPhaseNameString(phase) {
+        const names = {
+            [this.phases.INFRASTRUCTURE]: 'Infrastructure',
+            [this.phases.SERVICES]: 'Services',
+            [this.phases.APPLICATION]: 'Application'
+        };
+        return names[phase] || 'Unknown';
+    }
+    
+    /**
+     * Get bootstrap progress
+     */
+    getProgress() {
+        return {
+            currentPhase: this.currentPhase,
+            isBootstrapped: this.isBootstrapped,
+            phases: this.phaseProgress,
+            duration: this.endTime ? this.endTime - this.startTime : null
+        };
+    }
+    
+    /**
+     * Get bootstrap stats
+     */
+    getStats() {
+        const completedPhases = Object.values(this.phaseProgress)
+            .filter(p => p.completed).length;
+        
+        const failedPhases = Object.values(this.phaseProgress)
+            .filter(p => p.error !== null).length;
+        
+        return {
+            isBootstrapped: this.isBootstrapped,
+            currentPhase: this.currentPhase,
+            completedPhases,
+            failedPhases,
+            totalPhases: 3,
+            duration: this.endTime ? this.endTime - this.startTime : null
+        };
+    }
+    
+    // =========================================================================
+    // DEBUG
+    // =========================================================================
+    
+    /**
+     * Debug info
+     */
+    debug() {
+        console.group('🚀 [Bootstrap] Debug Info');
+        console.log('Stats:', this.getStats());
+        console.log('Progress:', this.getProgress());
+        console.groupEnd();
+    }
+}
+
+// =============================================================================
+// GLOBAL EXPORT
+// =============================================================================
+window.OsliraBootstrap = Bootstrap;
+
+console.log('✅ [Bootstrap] Class loaded and ready');
