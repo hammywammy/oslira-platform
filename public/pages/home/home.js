@@ -44,23 +44,25 @@ async function initializeHeader() {
     console.error('❌ [Home] Header initialization failed:', error);
   }
 }
+
 async function initializeHomePage() {
-  console.log("🚀🚀🚀 EMERGENCY: Initializing home page IMMEDIATELY");
+  console.log('🚀 [Home] Initializing...');
   
-  // Prevent auto-redirect by blocking simple-app initialization
   window.preventSimpleAppInit = true;
   
-  // Initialize header FIRST
-  await initializeHeader();
+  // Parallel initialization - don't await header
+  initializeHeader(); // Remove await
   
+  // Sequential critical path only
   await initializeApp();
-  setupEventListeners();
-  setupAnimations();
-  initializeConversionOptimizations();
   
-  // CRITICAL: Call setupInstagramDemo directly
-  console.log('🔥🔥🔥 [Home] EMERGENCY calling setupInstagramDemo...');
-  setupInstagramDemo();
+  // All these can run in parallel
+  Promise.all([
+    Promise.resolve(setupEventListeners()),
+    Promise.resolve(setupAnimations()),
+    Promise.resolve(initializeConversionOptimizations()),
+    Promise.resolve(setupInstagramDemo())
+  ]);
   
   // Force footer initialization after scripts load
   setTimeout(async () => {
