@@ -1,156 +1,106 @@
 /* =============================================================================
-   SETTINGS PAGE - CLAUDE-STYLE DESIGN
-   Two-column layout with left nav and content area
+   SETTINGS PAGE - CLEAN PROFESSIONAL DESIGN
+   Shared styles for all settings pages
    ============================================================================= */
 
-/* Main Container */
-.settings-main-content {
+/* Main Layout */
+.main-content {
   margin-left: 256px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  padding: 0;
+  background: #fafafa;
   transition: margin-left 0.3s ease;
+  padding: 0;
 }
 
-.settings-main-content.sidebar-collapsed {
+.main-content.sidebar-collapsed {
   margin-left: 64px;
 }
 
-/* Settings Container - Two Column Layout */
-.settings-container {
-  display: flex;
-  min-height: 100vh;
-  max-width: 1400px;
+/* Settings Container */
+.settings-wrapper {
+  max-width: 1000px;
   margin: 0 auto;
+  padding: 3rem 2rem;
 }
 
-/* =============================================================================
-   LEFT NAVIGATION SIDEBAR
-   ============================================================================= */
-
-.settings-sidebar {
-  width: 280px;
-  background: white;
-  border-right: 1px solid rgba(229, 231, 235, 0.8);
-  padding: 2rem 0;
-  flex-shrink: 0;
+/* Header */
+.settings-header {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 1.5rem;
 }
 
-.settings-sidebar-header {
-  padding: 0 1.5rem 1.5rem 1.5rem;
-  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
-}
-
-.settings-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1f2937;
+.settings-header h1 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
 }
 
-/* Navigation Items */
-.settings-nav {
-  padding: 1.5rem 0;
+/* Tab Navigation */
+.settings-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 3rem;
+  border-bottom: 2px solid #e5e7eb;
+  overflow-x: auto;
 }
 
-.settings-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1.5rem;
-  color: #6b7280;
+.settings-tab {
+  padding: 0.75rem 1.25rem;
   font-size: 0.9375rem;
   font-weight: 500;
+  color: #6b7280;
   text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
   transition: all 0.2s ease;
-  border-left: 3px solid transparent;
+  white-space: nowrap;
 }
 
-.settings-nav-item:hover {
-  background: rgba(243, 244, 246, 0.5);
+.settings-tab:hover {
   color: #374151;
+  background: #f9fafb;
 }
 
-.settings-nav-item.active {
-  background: rgba(219, 234, 254, 0.3);
+.settings-tab.active {
   color: #2563eb;
-  border-left-color: #2563eb;
+  border-bottom-color: #2563eb;
 }
 
-.settings-nav-icon {
-  font-size: 1.25rem;
-  width: 1.5rem;
-  height: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.settings-nav-text {
-  flex: 1;
-}
-
-/* =============================================================================
-   CONTENT AREA
-   ============================================================================= */
-
-.settings-content {
-  flex: 1;
+/* Page Content */
+.settings-page-content {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
   padding: 2rem;
-  overflow-y: auto;
-  max-width: 900px;
 }
 
-/* Section Container */
-.settings-section {
-  display: none;
-  animation: fadeIn 0.3s ease;
-}
-
-.settings-section.active {
-  display: block;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Section Header */
-.settings-section-header {
-  margin-bottom: 2rem;
-}
-
-.settings-section-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1f2937;
+.settings-page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
   margin: 0 0 0.5rem 0;
 }
 
-.settings-section-subtitle {
+.settings-page-subtitle {
   font-size: 0.9375rem;
   color: #6b7280;
+  margin: 0 0 2rem 0;
+}
+
+/* Content Placeholder */
+.settings-content-placeholder {
+  padding: 4rem 2rem;
+  text-align: center;
+  color: #9ca3af;
+  border: 2px dashed #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.settings-content-placeholder p {
   margin: 0;
-}
-
-/* Settings Card */
-.settings-card {
-  background: white;
-  border: 1px solid rgba(229, 231, 235, 0.8);
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  margin-bottom: 1.5rem;
-}
-
-.settings-card-body {
-  padding: 1.5rem;
+  font-size: 0.9375rem;
 }
 
 /* =============================================================================
@@ -158,82 +108,52 @@
    ============================================================================= */
 
 @media (max-width: 1024px) {
-  .settings-main-content {
+  .main-content {
     margin-left: 64px;
   }
 }
 
 @media (max-width: 768px) {
-  .settings-main-content {
+  .main-content {
     margin-left: 0;
   }
   
-  .settings-container {
-    flex-direction: column;
+  .settings-wrapper {
+    padding: 2rem 1rem;
   }
   
-  .settings-sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid rgba(229, 231, 235, 0.8);
-    padding: 1rem 0;
-  }
-  
-  .settings-sidebar-header {
-    padding: 0 1rem 1rem 1rem;
-  }
-  
-  .settings-title {
+  .settings-header h1 {
     font-size: 1.5rem;
   }
   
-  .settings-nav {
-    padding: 0.5rem 0;
-    display: flex;
-    overflow-x: auto;
+  .settings-tabs {
+    gap: 0.25rem;
   }
   
-  .settings-nav-item {
-    padding: 0.75rem 1rem;
-    flex-shrink: 0;
-    border-left: none;
-    border-bottom: 3px solid transparent;
+  .settings-tab {
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
   }
   
-  .settings-nav-item.active {
-    border-left-color: transparent;
-    border-bottom-color: #2563eb;
+  .settings-page-content {
+    padding: 1.5rem;
   }
   
-  .settings-content {
-    padding: 1.5rem 1rem;
-  }
-  
-  .settings-section-title {
-    font-size: 1.5rem;
+  .settings-page-title {
+    font-size: 1.25rem;
   }
 }
 
 @media (max-width: 480px) {
-  .settings-content {
+  .settings-wrapper {
+    padding: 1.5rem 0.75rem;
+  }
+  
+  .settings-page-content {
     padding: 1rem;
   }
   
-  .settings-card-body {
-    padding: 1rem;
-  }
-}
-
-/* =============================================================================
-   PRINT STYLES
-   ============================================================================= */
-
-@media print {
-  .settings-sidebar {
-    display: none;
-  }
-  
-  .settings-content {
-    padding: 0;
+  .settings-content-placeholder {
+    padding: 3rem 1rem;
   }
 }
