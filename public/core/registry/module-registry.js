@@ -107,13 +107,16 @@ class OsliraModuleRegistry {
             // ═══════════════════════════════════════════════════
             // AUTH PAGE (Simplest)
             // ═══════════════════════════════════════════════════
-            auth: {
-                appClass: 'AuthApp',
-                scripts: [
-                    '/pages/auth/auth.js'
-                ],
-                requiresAuth: false
-            },
+home: {
+    appClass: 'HomeApp',
+    scripts: [
+        // header-manager already loaded inline in HTML
+        '/core/footer/footer-manager.js',
+        '/pages/home/homeHandlers.js',
+        '/pages/home/home-app.js'  // ← NEW FILE
+    ],
+    requiresAuth: false
+}
             
             // ═══════════════════════════════════════════════════
             // ONBOARDING
