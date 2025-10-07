@@ -1,5 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+<!-- 
+═══════════════════════════════════════════════════════════════════
+ONBOARDING PAGE - OSLIRA BOOTSTRAP ARCHITECTURE
+Path: /public/pages/onboarding/index.html
+Version: 2.0 - Bootstrap System
+═══════════════════════════════════════════════════════════════════
+-->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,6 +19,11 @@
         
         * {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* Prevent FOUC */
+        body {
+            visibility: hidden;
         }
 
         @keyframes fadeInUp {
@@ -52,8 +64,17 @@
             }
         }
     </style>
+    
+    <!-- ═══════════════════════════════════════════════════════════
+         BOOTSTRAP SYSTEM - Load order matters
+         ═══════════════════════════════════════════════════════════ -->
+    <script src="/core/env-manager.js"></script>
+    <script src="/core/boot/loader.js"></script>
+    <script src="/core/registry/module-registry.js"></script>
+    <script src="/core/boot/orchestrator.js"></script>
+    <script src="/core/boot/bootstrap.js"></script>
 </head>
-<body class="onboarding-body">
+<body class="onboarding-body" style="visibility: hidden;">
     <!-- Animated background elements -->
     <div class="onboarding-bg">
         <div class="onboarding-bg-orb onboarding-bg-orb-1"></div>
@@ -821,31 +842,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 
-    <!-- Temporary event handler placeholders -->
-    <script>
-    // Temporary placeholders to prevent errors during loading
-    window.nextStep = window.nextStep || (() => console.warn('nextStep not loaded yet'));
-    window.prevStep = window.prevStep || (() => console.warn('prevStep not loaded yet'));
-    window.submitOnboarding = window.submitOnboarding || (() => console.warn('submitOnboarding not loaded yet'));
-    window.skipPhoneStep = window.skipPhoneStep || (() => console.warn('skipPhoneStep not loaded yet'));
-    window.skipStep = window.skipStep || (() => console.warn('skipStep not loaded yet'));
-    </script>
-    
-    <!-- Script loader - must be last to ensure DOM is ready -->
-    <script src="/core/script-loader.js"></script>
-    
-    <!-- Initialization fallback -->
-    <script>
-setTimeout(() => {
-    // Only show error if BOTH conditions are true: no env AND form is still hidden
-if (!window.OsliraEnv && document.getElementById('onboarding-form').classList.contains('hidden')) {
-        console.error('❌ Script loader failed to initialize - showing error state');
-        const loadingState = document.getElementById('loading-state');
-        const errorState = document.getElementById('error-state');
-        if (loadingState) loadingState.style.display = 'none';
-        if (errorState) errorState.style.display = 'flex';
-    }
-}, 8000);
-    </script>
+<!-- Bootstrap system handles all initialization -->
+    <!-- OnboardingApp makes body visible when ready -->
 </body>
 </html>
