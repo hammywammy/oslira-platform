@@ -146,7 +146,43 @@ this.coreScripts = [
 'settings': {
     scripts: [
         '/core/sidebar/sidebar-manager.js',
-        '/pages/settings/settings.js'
+        '/pages/settings/settings-nav.js'
+    ],
+    requiresAuth: true,
+    enableTailwind: true
+},
+
+'settings-profile': {
+    scripts: [
+        '/core/sidebar/sidebar-manager.js',
+        '/pages/settings/settings-nav.js'
+    ],
+    requiresAuth: true,
+    enableTailwind: true
+},
+
+'settings-account': {
+    scripts: [
+        '/core/sidebar/sidebar-manager.js',
+        '/pages/settings/settings-nav.js'
+    ],
+    requiresAuth: true,
+    enableTailwind: true
+},
+
+'settings-billing': {
+    scripts: [
+        '/core/sidebar/sidebar-manager.js',
+        '/pages/settings/settings-nav.js'
+    ],
+    requiresAuth: true,
+    enableTailwind: true
+},
+
+'settings-usage': {
+    scripts: [
+        '/core/sidebar/sidebar-manager.js',
+        '/pages/settings/settings-nav.js'
     ],
     requiresAuth: true,
     enableTailwind: true
