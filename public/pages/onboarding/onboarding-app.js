@@ -71,10 +71,9 @@ async setupAuthentication() {
         throw new Error('OsliraAuth not available');
     }
     
-    // CRITICAL: Restore session from URL if present (cross-subdomain transfer)
-    await window.OsliraAuth.restoreSessionFromUrl();
-    
-    await window.OsliraAuth.initialize();
+    // AuthManager.initialize() already restored session from URL if present
+    // Just wait for it to finish and check session
+    await window.OsliraAuth.waitForAuth();
     const session = window.OsliraAuth.getCurrentSession();
     
     if (!session || !session.user) {
@@ -82,24 +81,24 @@ async setupAuthentication() {
         window.location.href = window.OsliraEnv.getAuthUrl();
         return;
     }
-        
-this.user = session.user;
-this.supabase = window.OsliraAuth.supabase;
-
-console.log('✅ [OnboardingApp] User authenticated:', this.user.email);
-
-// Initialize API client if not already done
-if (!window.OsliraAPI) {
-    const config = window.OsliraConfig.getAll();
-    window.OsliraAPI = new window.OsliraApiClient(config, window.OsliraAuth);
-    console.log('✅ [OnboardingApp] API client initialized');
-}
-
-// Verify API client is ready
-if (typeof window.OsliraAPI.request !== 'function') {
-    throw new Error('API client not properly initialized');
-}
+    
+    this.user = session.user;
+    this.supabase = window.OsliraAuth.supabase;
+    
+    console.log('✅ [OnboardingApp] User authenticated:', this.user.email);
+    
+    // Initialize API client if not already done
+    if (!window.OsliraAPI) {
+        const config = window.OsliraConfig.getAll();
+        window.OsliraAPI = new window.OsliraApiClient(config, window.OsliraAuth);
+        console.log('✅ [OnboardingApp] API client initialized');
     }
+    
+    // Verify API client is ready
+    if (typeof window.OsliraAPI.request !== 'function') {
+        throw new Error('API client not properly initialized');
+    }
+}
     
     // ═══════════════════════════════════════════════════════════
     // UI MANAGEMENT
