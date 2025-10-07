@@ -1,101 +1,195 @@
 // =============================================================================
-// AUTH MANAGER - CENTRALIZED AUTHENTICATION SYSTEM
+// AUTH MANAGER - Bulletproof Authentication System
+// Path: /public/core/auth/AuthManager.js
+// Dependencies: EnvDetector, Supabase CDN, SessionValidator, TokenRefresher
 // =============================================================================
 
+/**
+ * @class AuthManager
+ * @description Rock-solid authentication with zero race conditions
+ * 
+ * Features:
+ * - Guaranteed initialization order
+ * - Cross-subdomain session transfer
+ * - Automatic token refresh
+ * - Session validation
+ * - Business profile loading
+ * - User enrichment with subscription data
+ * - Zero hanging states
+ */
 class AuthManager {
-constructor() {
-    this.isLoaded = false;
-    this.businessesLoaded = false; // NEW
-    this.loadPromise = null;
-    this.supabase = null;
-    this.session = null;
-    this.user = null;
-    this.business = null;
-    this.businesses = [];
+    constructor() {
+        // Core state
+        this.supabase = null;
+        this.session = null;
+        this.user = null;
+        this.businesses = [];
         
-        // Start loading immediately
-        this.loadPromise = this.initialize();
+        // Loading states (prevents race conditions)
+        this.isLoaded = false;
+        this.isLoading = false;
+        this.loadPromise = null;
+        
+        // Feature flags
+        this.businessesLoaded = false;
+        
+        // Error tracking
+        this.lastError = null;
+        this.initAttempts = 0;
+        this.maxInitAttempts = 3;
+        
+        console.log('🔐 [AuthManager] Instance created');
     }
     
-    // =============================================================================
-    // INITIALIZATION
-    // =============================================================================
+    // =========================================================================
+    // INITIALIZATION (BULLETPROOF)
+    // =========================================================================
     
-async initialize() {
-    if (this.isLoaded) {
-        return true;
+    /**
+     * Initialize auth system with proper ordering
+     * MUST be called after EnvDetector and Supabase CDN load
+     */
+    async initialize() {
+        // Prevent duplicate initialization
+        if (this.isLoading) {
+            console.log('⏳ [AuthManager] Already initializing, waiting...');
+            return this.loadPromise;
+        }
+        
+        if (this.isLoaded) {
+            console.log('✅ [AuthManager] Already initialized');
+            return true;
+        }
+        
+        this.isLoading = true;
+        this.initAttempts++;
+        
+        console.log(`🔐 [AuthManager] Starting initialization (attempt ${this.initAttempts}/${this.maxInitAttempts})...`);
+        
+        // Create promise for other systems to await
+        this.loadPromise = this._initializeInternal();
+        
+        try {
+            await this.loadPromise;
+            this.isLoaded = true;
+            this.isLoading = false;
+            console.log('✅ [AuthManager] Initialization complete');
+            return true;
+            
+        } catch (error) {
+            this.isLoading = false;
+            this.lastError = error;
+            
+            console.error(`❌ [AuthManager] Initialization failed (attempt ${this.initAttempts}):`, error);
+            
+            // Track in Sentry
+            if (window.Sentry) {
+                Sentry.captureException(error, {
+                    tags: {
+                        component: 'AuthManager',
+                        phase: 'initialization',
+                        attempt: this.initAttempts
+                    }
+                });
+            }
+            
+            // Retry logic
+            if (this.initAttempts < this.maxInitAttempts) {
+                console.log(`🔄 [AuthManager] Retrying in 2 seconds...`);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                return this.initialize();
+            }
+            
+            throw error;
+        }
     }
     
-    console.log('🔐 [Auth] Initializing authentication system...');
-    
-    try {
-        await this.waitForConfig();
-        await this.initializeSupabase();
+    /**
+     * Internal initialization logic
+     */
+    async _initializeInternal() {
+        // STEP 1: Ensure EnvDetector is ready
+        await this._waitForEnvDetector();
         
-        // CRITICAL FIX: Check URL hash BEFORE loading stored session
-        const restoredFromUrl = await this.restoreSessionFromUrl();
+        // STEP 2: Ensure Supabase CDN is loaded
+        await this._waitForSupabaseCDN();
         
+        // STEP 3: Initialize Supabase client
+        await this._initializeSupabase();
+        
+        // STEP 4: Check URL for session tokens (cross-subdomain transfer)
+        const restoredFromUrl = await this._restoreSessionFromUrl();
+        
+        // STEP 5: Load current session (only if not restored from URL)
         if (!restoredFromUrl) {
-            // Only load stored session if URL didn't provide one
-            await this.loadCurrentSession();
+            await this._loadCurrentSession();
         }
         
-        this.setupAuthListener();
+        // STEP 6: Setup auth state listener
+        this._setupAuthListener();
         
-        this.isLoaded = true;
-        console.log('✅ [Auth] Authentication system initialized');
-        return true;
-        
-    } catch (error) {
-        console.error('❌ [Auth] Initialization failed:', error);
-        this.isLoaded = true; // Mark as loaded even if failed, to prevent infinite retries
-        return false;
-    }
-}
-    async waitForConfig() {
-        // Wait for config to be available
-        let retries = 0;
-        const maxRetries = 50; // 5 seconds max wait
-        
-        while (!window.OsliraConfig && retries < maxRetries) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            retries++;
-        }
-        
-        if (!window.OsliraConfig) {
-            throw new Error('Configuration not available after timeout');
-        }
-        
-        // Wait for config to be actually loaded
-        if (window.OsliraConfig.getConfig) {
-            await window.OsliraConfig.getConfig();
-        }
+        // STEP 7: Start token refresher (background task)
+        this._startTokenRefresher();
     }
     
-async initializeSupabase() {
-    try {
-        const config = await window.OsliraConfig.getSupabaseConfig();
+    /**
+     * Wait for EnvDetector to be ready
+     */
+    async _waitForEnvDetector() {
+        let attempts = 0;
+        const maxAttempts = 50; // 5 seconds
         
-        if (!config.url || !config.key) {
-            throw new Error('Supabase configuration missing');
+        while (!window.OsliraEnv && attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
         }
         
-        if (config.url.includes('placeholder') || config.key.includes('placeholder')) {
-            console.warn('⚠️  [Auth] Using placeholder Supabase configuration');
-            return;
+        if (!window.OsliraEnv) {
+            throw new Error('EnvDetector not available after timeout');
         }
         
-        if (typeof window.supabase !== 'undefined') {
-            // Detect root domain dynamically for cookie sharing
-            const hostname = window.location.hostname;
-            const hostParts = hostname.split('.');
-            const rootDomain = hostParts.length >= 2 
-                ? '.' + hostParts.slice(-2).join('.')
-                : hostname;
+        console.log('✅ [AuthManager] EnvDetector ready');
+    }
+    
+    /**
+     * Wait for Supabase CDN to load
+     */
+    async _waitForSupabaseCDN() {
+        let attempts = 0;
+        const maxAttempts = 50; // 5 seconds
+        
+        while (!window.supabase?.createClient && attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+        
+        if (!window.supabase?.createClient) {
+            throw new Error('Supabase CDN not loaded after timeout');
+        }
+        
+        console.log('✅ [AuthManager] Supabase CDN ready');
+    }
+    
+    /**
+     * Initialize Supabase client with proper config
+     */
+    async _initializeSupabase() {
+        try {
+            // Get config from ConfigProvider (will be loaded by bootstrap)
+            const supabaseUrl = await this._getSupabaseUrl();
+            const supabaseKey = await this._getSupabaseKey();
             
-            console.log('🍪 [Auth] Setting cookie domain:', rootDomain);
+            if (!supabaseUrl || !supabaseKey) {
+                throw new Error('Supabase configuration missing');
+            }
             
-            this.supabase = window.supabase.createClient(config.url, config.key, {
+            // Detect root domain for cookie sharing
+            const rootDomain = window.OsliraEnv.rootDomain;
+            
+            console.log('🍪 [AuthManager] Cookie domain:', rootDomain);
+            
+            // Create Supabase client
+            this.supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
                 auth: {
                     storageKey: 'oslira-auth',
                     storage: window.localStorage,
@@ -110,600 +204,755 @@ async initializeSupabase() {
                     }
                 }
             });
-        } else {
-            console.warn('⚠️  [Auth] Supabase not available, auth features disabled');
+            
+            console.log('✅ [AuthManager] Supabase client initialized');
+            
+        } catch (error) {
+            console.error('❌ [AuthManager] Supabase initialization failed:', error);
+            throw error;
         }
-        
-        console.log('✅ [Auth] Supabase initialized');
-        
-    } catch (error) {
-        console.error('❌ [Auth] Supabase initialization failed:', error);
-        throw error;
     }
-}
     
-    async loadCurrentSession() {
-        if (!this.supabase) {
-            console.log('ℹ️  [Auth] No Supabase client, skipping session load');
-            return;
+    /**
+     * Get Supabase URL from config
+     */
+    async _getSupabaseUrl() {
+        // Wait for ConfigProvider
+        let attempts = 0;
+        while (!window.OsliraConfig && attempts < 50) {
+            await new Promise(r => setTimeout(r, 100));
+            attempts++;
         }
         
+        if (window.OsliraConfig?.getSupabaseUrl) {
+            return window.OsliraConfig.getSupabaseUrl();
+        }
+        
+        throw new Error('ConfigProvider not available');
+    }
+    
+    /**
+     * Get Supabase key from config
+     */
+    async _getSupabaseKey() {
+        if (window.OsliraConfig?.getSupabaseAnonKey) {
+            return window.OsliraConfig.getSupabaseAnonKey();
+        }
+        
+        throw new Error('ConfigProvider not available');
+    }
+    
+    // =========================================================================
+    // SESSION RESTORATION (Cross-Subdomain)
+    // =========================================================================
+    
+    /**
+     * Restore session from URL hash (cross-subdomain transfer)
+     * Called BEFORE loading stored session
+     */
+    async _restoreSessionFromUrl() {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const authToken = hashParams.get('auth');
+        
+        if (!authToken) {
+            return false; // No token in URL
+        }
+        
+        console.log('🔐 [AuthManager] Found auth token in URL, restoring session...');
+        
+        try {
+            // Decode URL-safe base64
+            const base64 = authToken.replace(/-/g, '+').replace(/_/g, '/');
+            const tokens = JSON.parse(atob(base64));
+            
+            // Clear hash immediately (before any await)
+            history.replaceState(null, '', window.location.pathname);
+            
+            // Restore session in Supabase
+            const { data, error } = await this.supabase.auth.setSession({
+                access_token: tokens.access_token,
+                refresh_token: tokens.refresh_token
+            });
+            
+            if (error) {
+                console.error('❌ [AuthManager] Session restore failed:', error);
+                return false;
+            }
+            
+            if (data.session) {
+                // Immediately populate session and user
+                await this._handleSessionChange(data.session);
+                console.log('✅ [AuthManager] Session restored from URL');
+                return true;
+            }
+            
+            return false;
+            
+        } catch (error) {
+            console.error('❌ [AuthManager] URL session transfer failed:', error);
+            
+            if (window.Sentry) {
+                Sentry.captureException(error, {
+                    tags: { component: 'AuthManager', action: 'url-session-restore' }
+                });
+            }
+            
+            return false;
+        }
+    }
+    
+    /**
+     * Load current session from storage
+     */
+    async _loadCurrentSession() {
         try {
             const { data: { session }, error } = await this.supabase.auth.getSession();
             
             if (error) {
-                console.error('❌ [Auth] Session load error:', error);
+                console.error('❌ [AuthManager] Session load error:', error);
                 return;
             }
             
             if (session) {
-                await this.handleSessionChange(session);
-                console.log('✅ [Auth] Current session loaded');
+                await this._handleSessionChange(session);
+                console.log('✅ [AuthManager] Session loaded from storage');
             } else {
-                console.log('ℹ️  [Auth] No current session');
+                console.log('ℹ️ [AuthManager] No stored session found');
             }
             
         } catch (error) {
-            console.error('❌ [Auth] Failed to load current session:', error);
+            console.error('❌ [AuthManager] Session load failed:', error);
         }
     }
     
-    setupAuthListener() {
-        if (!this.supabase) {
-            return;
-        }
-        
+    // =========================================================================
+    // AUTH STATE LISTENER
+    // =========================================================================
+    
+    /**
+     * Setup Supabase auth state change listener
+     */
+    _setupAuthListener() {
         this.supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log('🔐 [Auth] Auth state change:', event);
+            console.log('🔐 [AuthManager] Auth state change:', event);
             
-            switch (event) {
-                case 'SIGNED_IN':
-                    await this.handleSessionChange(session);
-                    this.emitAuthEvent('signed-in', { session, user: this.user });
-                    break;
-                    
-                case 'SIGNED_OUT':
-                    await this.handleSignOut();
-                    this.emitAuthEvent('signed-out', null);
-                    break;
-                    
-                case 'TOKEN_REFRESHED':
-                    await this.handleSessionChange(session);
-                    this.emitAuthEvent('token-refreshed', { session, user: this.user });
-                    break;
+            try {
+                switch (event) {
+                    case 'SIGNED_IN':
+                        await this._handleSessionChange(session);
+                        this._emitEvent('signed-in', { session, user: this.user });
+                        break;
+                        
+                    case 'SIGNED_OUT':
+                        await this._handleSignOut();
+                        this._emitEvent('signed-out', null);
+                        break;
+                        
+                    case 'TOKEN_REFRESHED':
+                        await this._handleSessionChange(session);
+                        this._emitEvent('token-refreshed', { session, user: this.user });
+                        break;
+                        
+                    case 'USER_UPDATED':
+                        await this._handleSessionChange(session);
+                        this._emitEvent('user-updated', { session, user: this.user });
+                        break;
+                }
+            } catch (error) {
+                console.error('❌ [AuthManager] Auth state change handler failed:', error);
+                
+                if (window.Sentry) {
+                    Sentry.captureException(error, {
+                        tags: { component: 'AuthManager', event }
+                    });
+                }
             }
         });
+        
+        console.log('✅ [AuthManager] Auth listener setup');
     }
     
-    // =============================================================================
+    // =========================================================================
     // SESSION MANAGEMENT
-    // =============================================================================
+    // =========================================================================
     
-async handleSessionChange(session) {
-    this.session = session;
-    this.user = session?.user || null;
-    
-    if (this.user) {
-        console.log('👤 [Auth] User authenticated:', this.user.email);
+    /**
+     * Handle session change (sign in, token refresh, user update)
+     */
+    async _handleSessionChange(session) {
+        this.session = session;
+        this.user = session?.user || null;
         
-        // Load signature_name from users table
-        await this.loadUserProfile();
-        
-        // Load businesses in background WITHOUT blocking
-        this.loadUserBusinesses().catch(err => {
-            console.warn('⚠️ [Auth] Background business load failed:', err);
-        });
-    }
-}
-
-/**
- * Load user profile data including signature_name
- */
-async loadUserProfile() {
-    try {
-        const { data, error } = await this.supabase
-            .from('users')
-            .select('signature_name, full_name')
-            .eq('id', this.user.id)
-            .single();
-        
-        if (!error && data) {
-            // Merge profile data into user object
-            this.user.signature_name = data.signature_name;
-            this.user.full_name = data.full_name;
+        if (this.user) {
+            console.log('👤 [AuthManager] User authenticated:', this.user.email);
+            
+            // Enrich user with profile data
+            await this._enrichUserProfile();
+            
+            // Load businesses in background (non-blocking)
+            this._loadBusinessesInBackground();
         }
-    } catch (err) {
-        console.warn('⚠️ [Auth] Failed to load user profile:', err);
     }
-}
     
-    async handleSignOut() {
+    /**
+     * Enrich user with profile data from database
+     */
+    async _enrichUserProfile() {
+        try {
+            // Get user profile from users table
+            const { data, error } = await this.supabase
+                .from('users')
+                .select('signature_name, full_name')
+                .eq('id', this.user.id)
+                .maybeSingle();
+            
+            if (!error && data) {
+                this.user.signature_name = data.signature_name;
+                this.user.full_name = data.full_name;
+            }
+            
+            // Get subscription data
+            await this._enrichUserSubscription();
+            
+        } catch (error) {
+            console.warn('⚠️ [AuthManager] User enrichment failed:', error);
+        }
+    }
+    
+    /**
+     * Enrich user with subscription data
+     */
+    async _enrichUserSubscription() {
+        try {
+            const { data: subscription, error } = await this.supabase
+                .from('subscriptions')
+                .select('plan_type, credits_remaining, status')
+                .eq('user_id', this.user.id)
+                .eq('status', 'active')
+                .maybeSingle();
+            
+            if (error) {
+                console.warn('⚠️ [AuthManager] Subscription load failed:', error);
+                return;
+            }
+            
+            if (subscription) {
+                this.user.credits = subscription.credits_remaining;
+                this.user.plan_type = subscription.plan_type;
+                this.user.subscription_status = subscription.status;
+                console.log('✅ [AuthManager] User enriched with subscription data');
+            } else {
+                // No subscription yet (pre-onboarding)
+                this.user.credits = 0;
+                this.user.plan_type = null;
+                this.user.subscription_status = 'pending';
+                console.log('ℹ️ [AuthManager] No subscription found (pre-onboarding)');
+            }
+            
+        } catch (error) {
+            console.error('❌ [AuthManager] Subscription enrichment failed:', error);
+        }
+    }
+    
+    /**
+     * Handle sign out
+     */
+    async _handleSignOut() {
         this.session = null;
         this.user = null;
         this.businesses = [];
+        this.businessesLoaded = false;
         
-        console.log('🔐 [Auth] User signed out');
-    }
-    async ensureUserExists() {
-    if (!this.user) return;
-    
-    try {
-        // Check if user exists
-const { data: existingUser, error: fetchError } = await this.supabase
-    .from('users')
-    .select('id')
-    .eq('id', this.user.id)
-    .maybeSingle();
-            
-        if (fetchError && fetchError.code === 'PGRST116') {
-            // User doesn't exist, create them
-            console.log('🔧 [Auth] Creating user record for authenticated user...');
-            
-const userData = {
-    id: this.user.id,
-    email: this.user.email,
-    full_name: this.user.user_metadata?.full_name || this.user.user_metadata?.name,
-    created_via: this.user.app_metadata?.provider || 'email'
-};
-            
-            const { error: createError } = await this.supabase
-                .from('users')
-                .insert(userData);
-                
-            if (createError) {
-                console.error('❌ [Auth] Failed to create user record:', createError);
-                throw createError;
-            }
-            
-            console.log('✅ [Auth] User record created successfully');
-        } else if (fetchError) {
-            console.error('❌ [Auth] Error checking user existence:', fetchError);
-            throw fetchError;
-        }
-    } catch (error) {
-        console.error('❌ [Auth] Failed to ensure user exists:', error);
-        throw error;
-    }
-}
-async loadUserBusinesses() {
-    if (!this.supabase || !this.user) {
-        this.businessesLoaded = true;
-        return;
+        console.log('🔐 [AuthManager] User signed out');
     }
     
-    try {
-        // User already created during callback - just enrich
-        await this.enrichUserWithSubscription();
-        
-        const { data: businesses, error } = await this.supabase
-            .from('business_profiles')
-            .select('*')
-            .eq('user_id', this.user.id);
-            
-        if (error) {
-            console.error('❌ [Auth] Failed to load businesses:', error);
+    // =========================================================================
+    // BUSINESS LOADING (Background)
+    // =========================================================================
+    
+    /**
+     * Load businesses in background (non-blocking)
+     */
+    _loadBusinessesInBackground() {
+        // Don't await - run in background
+        this._loadUserBusinesses().catch(error => {
+            console.warn('⚠️ [AuthManager] Background business load failed:', error);
+        });
+    }
+    
+    /**
+     * Load user's business profiles
+     */
+    async _loadUserBusinesses() {
+        if (!this.user) {
             this.businessesLoaded = true;
             return;
         }
         
-        this.businesses = businesses || [];
-        this.businessesLoaded = true;
-        console.log(`📊 [Auth] Loaded ${this.businesses.length} business profiles`);
-        
-    } catch (error) {
-        console.error('❌ [Auth] Error loading businesses:', error);
-        this.businessesLoaded = true;
-    }
-}
-
-async enrichUserWithSubscription() {
-    if (!this.supabase || !this.user) {
-        return;
-    }
-    
-    try {
-        const { data: subscription, error } = await this.supabase
-            .from('subscriptions')
-            .select('plan_type, credits_remaining, status')
-            .eq('user_id', this.user.id)
-            .eq('status', 'active')
-            .maybeSingle(); // Changed from .single()
-        
-        if (error) {
-            console.warn('⚠️ [Auth] Could not load subscription:', error);
-            return;
-        }
-        
-        if (subscription) {
-            this.user.credits = subscription.credits_remaining;
-            this.user.plan_type = subscription.plan_type;
-            this.user.subscription_status = subscription.status;
-            console.log('✅ [Auth] User enriched with subscription data');
-        } else {
-            // No subscription yet - this is normal before onboarding completion
-            this.user.credits = 0;
-            this.user.plan_type = null;
-            this.user.subscription_status = 'pending';
-            console.log('ℹ️ [Auth] No subscription found - user has not completed onboarding yet');
-        }
-    } catch (error) {
-        console.error('❌ [Auth] Error enriching user with subscription:', error);
-    }
-}
-    // =============================================================================
-    // AUTHENTICATION METHODS
-    // =============================================================================
-    
-async signInWithGoogle() {
-    if (!this.supabase) {
-        throw new Error('Authentication not available');
-    }
-    
-    // Clear any existing session before starting new OAuth
-    console.log('🔐 [Auth] Clearing existing session before OAuth...');
-    await this.supabase.auth.signOut({ scope: 'local' });
-    
-    const config = await window.OsliraConfig.getConfig();
-    const redirectTo = config.authCallbackUrl || `${window.location.origin}/auth/callback`;
-    
-    console.log('🔐 [Auth] Starting Google OAuth, redirect:', redirectTo);
-    
-    const { data, error } = await this.supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-            redirectTo: redirectTo
-        }
-    });
-        
-        if (error) {
-            console.error('❌ [Auth] Google OAuth error:', error);
-            throw error;
-        }
-        
-        return data;
-    }
-    
-    // =============================================================================
-    // OAUTH CALLBACK HANDLING
-    // =============================================================================
-    
-   async handleCallback() {
-    if (!this.supabase) {
-        throw new Error('Authentication not available');
-    }
-    
-    console.log('🔐 [Auth] Processing OAuth callback...');
-    
-    try {
-        const { data, error } = await this.supabase.auth.getSession();
-        
-        if (error) {
-            console.error('❌ [Auth] Callback session error:', error);
-            throw error;
-        }
-        
-if (data.session) {
-    console.log('✅ [Auth] Callback successful, user authenticated');
-    
-    // CRITICAL: Create user record immediately after OAuth - with retry logic
-    let userCreated = false;
-    let retries = 0;
-    while (!userCreated && retries < 3) {
         try {
-            await this.ensureUserExists();
+            const { data: businesses, error } = await this.supabase
+                .from('business_profiles')
+                .select('*')
+                .eq('user_id', this.user.id)
+                .order('created_at', { ascending: false });
             
-            // VERIFY user actually exists before proceeding
-            const { data: verification, error: verifyError } = await this.supabase
-                .from('users')
-                .select('id')
-                .eq('id', data.session.user.id)
-                .single();
-            
-            if (!verifyError && verification) {
-                userCreated = true;
-                console.log('✅ [Auth] User record verified in database');
-            } else {
-                retries++;
-                console.warn(`⚠️ [Auth] User verification attempt ${retries}/3 failed, retrying...`);
-                await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay
+            if (error) {
+                console.error('❌ [AuthManager] Businesses load failed:', error);
+                this.businessesLoaded = true;
+                return;
             }
+            
+            this.businesses = businesses || [];
+            this.businessesLoaded = true;
+            
+            console.log(`📊 [AuthManager] Loaded ${this.businesses.length} businesses`);
+            
         } catch (error) {
-            retries++;
-            console.error(`❌ [Auth] User creation attempt ${retries}/3 failed:`, error);
-            if (retries >= 3) throw error;
-            await new Promise(resolve => setTimeout(resolve, 500));
+            console.error('❌ [AuthManager] Businesses load error:', error);
+            this.businessesLoaded = true;
         }
     }
     
-    if (!userCreated) {
-        throw new Error('Failed to create user record after 3 attempts');
-    }
-    
-const needsOnboarding = await this.checkOnboardingStatus();
+    /**
+     * Wait for businesses to load (for components that need them)
+     */
+    async waitForBusinesses() {
+        let attempts = 0;
+        const maxAttempts = 100; // 10 seconds
         
-        const rootDomain = window.location.hostname.replace(/^(auth|app|admin|legal|contact|status|www)\./, '');
-        const appUrl = window.OsliraEnv.getAppUrl(needsOnboarding ? '/onboarding' : '/dashboard');
-        
-        // Build redirect URL with URL-safe base64 encoding
-        const tokens = {
-            access_token: data.session.access_token,
-            refresh_token: data.session.refresh_token
-        };
-        const base64 = btoa(JSON.stringify(tokens));
-        const urlSafeBase64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-        const redirectUrl = `${appUrl}#auth=${urlSafeBase64}`;
-        
-        console.log('🔐 [Auth] Redirecting to:', redirectUrl);
-        
-        return {
-            session: data.session,
-            user: data.session.user,
-            needsOnboarding,
-            redirectTo: redirectUrl
-        };
-    
-        } else {
-            console.log('❌ [Auth] No valid session found');
-            throw new Error('No valid session found after authentication');
+        while (!this.businessesLoaded && attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
         }
         
-    } catch (error) {
-        console.error('❌ [Auth] Callback processing failed:', error);
-        throw error;
+        if (!this.businessesLoaded) {
+            console.warn('⚠️ [AuthManager] Timeout waiting for businesses');
+        }
+        
+        return this.businesses;
     }
-}
-    // =============================================================================
-// CROSS-SUBDOMAIN SESSION RESTORATION
-// =============================================================================
-
-/**
- * Check URL hash for auth tokens and restore session if present
- * This enables session transfer across subdomains
- * Call this BEFORE initialize() on any authenticated page
- */
-async restoreSessionFromUrl() {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const authToken = hashParams.get('auth');
-
-    if (!authToken) {
-        return false; // No token in URL
-    }
-
-    console.log('🔐 [Auth] Found auth token in URL, restoring session...');
     
-    try {
-        // Decode URL-safe base64 (handles URL encoding issues)
-        const base64 = authToken.replace(/-/g, '+').replace(/_/g, '/');
-        const tokens = JSON.parse(atob(base64));
-        
-        // Clear hash from URL immediately
-        history.replaceState(null, '', window.location.pathname);
-        
-        // CRITICAL: Initialize Supabase if not already done
+    // =========================================================================
+    // AUTHENTICATION METHODS
+    // =========================================================================
+    
+    /**
+     * Sign in with Google OAuth
+     */
+    async signInWithGoogle() {
         if (!this.supabase) {
-            await this.initializeSupabase();
+            throw new Error('Auth system not initialized');
         }
         
-// Restore session in Supabase
-const { data, error } = await this.supabase.auth.setSession({
-    access_token: tokens.access_token,
-    refresh_token: tokens.refresh_token
-});
-
-if (error) {
-    console.error('❌ [Auth] Failed to restore session:', error);
-    return false;
-}
-
-// CRITICAL: Immediately populate session and user from the restored data
-if (data.session) {
-    await this.handleSessionChange(data.session);
-    console.log('✅ [Auth] Session restored and user populated from URL');
-} else {
-    console.error('❌ [Auth] Session restored but no session data returned');
-    return false;
-}
-
-return true;
-        
-    } catch (error) {
-        console.error('❌ [Auth] Session transfer failed:', error);
-        return false;
+        try {
+            // Clear any existing session before OAuth
+            console.log('🔐 [AuthManager] Clearing session before OAuth...');
+            await this.supabase.auth.signOut({ scope: 'local' });
+            
+            const redirectTo = window.OsliraEnv.getAuthUrl('/auth/callback');
+            
+            console.log('🔐 [AuthManager] Starting Google OAuth, redirect:', redirectTo);
+            
+            const { data, error } = await this.supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo }
+            });
+            
+            if (error) {
+                console.error('❌ [AuthManager] Google OAuth error:', error);
+                throw error;
+            }
+            
+            return data;
+            
+        } catch (error) {
+            console.error('❌ [AuthManager] Sign in failed:', error);
+            
+            if (window.Sentry) {
+                Sentry.captureException(error, {
+                    tags: { component: 'AuthManager', action: 'google-signin' }
+                });
+            }
+            
+            throw error;
+        }
     }
-}
     
-    async checkOnboardingStatus() {
-        if (!this.supabase || !this.user) {
-            return true; // Default to onboarding needed
+    /**
+     * Sign out user
+     */
+    async signOut() {
+        if (!this.supabase) {
+            throw new Error('Auth system not initialized');
         }
         
+        try {
+            console.log('🔐 [AuthManager] Signing out...');
+            
+            const { error } = await this.supabase.auth.signOut();
+            
+            if (error) {
+                console.error('❌ [AuthManager] Sign out error:', error);
+                throw error;
+            }
+            
+            console.log('✅ [AuthManager] Sign out successful');
+            
+        } catch (error) {
+            console.error('❌ [AuthManager] Sign out failed:', error);
+            throw error;
+        }
+    }
+    
+    // =========================================================================
+    // TOKEN REFRESHER (Background Task)
+    // =========================================================================
+    
+    /**
+     * Start automatic token refresh
+     */
+    _startTokenRefresher() {
+        // Check if TokenRefresher is available
+        if (window.OsliraTokenRefresher) {
+            const refresher = new window.OsliraTokenRefresher(this);
+            refresher.start();
+            console.log('✅ [AuthManager] Token refresher started');
+        } else {
+            console.log('ℹ️ [AuthManager] TokenRefresher not available, using Supabase auto-refresh');
+        }
+    }
+    
+    // =========================================================================
+    // SESSION VALIDATION
+    // =========================================================================
+    
+    /**
+     * Validate current session with server
+     */
+    async validateSession() {
+        if (!this.session) {
+            return false;
+        }
+        
+        // Use SessionValidator if available
+        if (window.OsliraSessionValidator) {
+            const validator = new window.OsliraSessionValidator(this);
+            return await validator.validate();
+        }
+        
+        // Fallback: check with Supabase
+        try {
+            const { data: { user }, error } = await this.supabase.auth.getUser();
+            return !error && !!user;
+        } catch (error) {
+            console.error('❌ [AuthManager] Session validation failed:', error);
+            return false;
+        }
+    }
+    
+    // =========================================================================
+    // OAUTH CALLBACK HANDLING
+    // =========================================================================
+    
+    /**
+     * Handle OAuth callback (creates user record, checks onboarding)
+     */
+    async handleCallback() {
+        try {
+            console.log('🔐 [AuthManager] Processing OAuth callback...');
+            
+            // Get session from Supabase
+            const { data, error } = await this.supabase.auth.getSession();
+            
+            if (error) {
+                console.error('❌ [AuthManager] Callback session error:', error);
+                throw error;
+            }
+            
+            if (!data.session) {
+                throw new Error('No session found after OAuth');
+            }
+            
+            console.log('✅ [AuthManager] OAuth session retrieved');
+            
+            // Ensure user record exists (with retry logic)
+            await this._ensureUserExists(data.session.user);
+            
+            // Check onboarding status
+            const needsOnboarding = await this._checkOnboardingStatus(data.session.user.id);
+            
+            // Build redirect URL with session tokens
+            const redirectUrl = this._buildRedirectUrl(data.session, needsOnboarding);
+            
+            console.log('🔐 [AuthManager] Callback complete, redirecting...');
+            
+            return {
+                session: data.session,
+                user: data.session.user,
+                needsOnboarding,
+                redirectTo: redirectUrl
+            };
+            
+        } catch (error) {
+            console.error('❌ [AuthManager] Callback processing failed:', error);
+            
+            if (window.Sentry) {
+                Sentry.captureException(error, {
+                    tags: { component: 'AuthManager', action: 'oauth-callback' }
+                });
+            }
+            
+            throw error;
+        }
+    }
+    
+    /**
+     * Ensure user record exists in database
+     */
+    async _ensureUserExists(user) {
+        let retries = 0;
+        const maxRetries = 3;
+        
+        while (retries < maxRetries) {
+            try {
+                // Check if user exists
+                const { data: existingUser, error: fetchError } = await this.supabase
+                    .from('users')
+                    .select('id')
+                    .eq('id', user.id)
+                    .maybeSingle();
+                
+                // User exists
+                if (existingUser) {
+                    console.log('✅ [AuthManager] User record exists');
+                    return;
+                }
+                
+                // User doesn't exist - create
+                console.log('🔧 [AuthManager] Creating user record...');
+                
+                const userData = {
+                    id: user.id,
+                    email: user.email,
+                    full_name: user.user_metadata?.full_name || user.user_metadata?.name,
+                    created_via: user.app_metadata?.provider || 'email'
+                };
+                
+                const { error: createError } = await this.supabase
+                    .from('users')
+                    .insert(userData);
+                
+                if (createError) {
+                    throw createError;
+                }
+                
+                // Verify creation
+                const { data: verification, error: verifyError } = await this.supabase
+                    .from('users')
+                    .select('id')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (!verifyError && verification) {
+                    console.log('✅ [AuthManager] User record created and verified');
+                    return;
+                }
+                
+                throw new Error('User creation verification failed');
+                
+            } catch (error) {
+                retries++;
+                console.error(`❌ [AuthManager] User creation attempt ${retries}/${maxRetries} failed:`, error);
+                
+                if (retries >= maxRetries) {
+                    throw error;
+                }
+                
+                // Wait before retry
+                await new Promise(resolve => setTimeout(resolve, 500 * retries));
+            }
+        }
+    }
+    
+    /**
+     * Check if user needs onboarding
+     */
+    async _checkOnboardingStatus(userId) {
         try {
             const { data, error } = await this.supabase
                 .from('users')
                 .select('onboarding_completed')
-                .eq('id', this.user.id)
+                .eq('id', userId)
                 .single();
             
             if (error) {
-                console.warn('⚠️  [Auth] Could not check onboarding status:', error);
-                return true; // Default to onboarding needed
+                console.warn('⚠️ [AuthManager] Onboarding check failed:', error);
+                return true; // Default to needs onboarding
             }
             
             return !data.onboarding_completed;
             
         } catch (error) {
-            console.warn('⚠️  [Auth] Error checking onboarding:', error);
+            console.warn('⚠️ [AuthManager] Onboarding check error:', error);
             return true;
         }
     }
     
-    // =============================================================================
-    // PUBLIC API
-    // =============================================================================
+    /**
+     * Build redirect URL with session tokens in hash
+     */
+    _buildRedirectUrl(session, needsOnboarding) {
+        const path = needsOnboarding ? '/onboarding' : '/dashboard';
+        const appUrl = window.OsliraEnv.getAppUrl(path);
+        
+        // Encode tokens in URL-safe base64
+        const tokens = {
+            access_token: session.access_token,
+            refresh_token: session.refresh_token
+        };
+        
+        const base64 = btoa(JSON.stringify(tokens));
+        const urlSafeBase64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        
+        return `${appUrl}#auth=${urlSafeBase64}`;
+    }
     
+    // =========================================================================
+    // CREDIT MANAGEMENT
+    // =========================================================================
+    
+    /**
+     * Refresh user's credit balance
+     */
+    async refreshCredits() {
+        if (!this.user) {
+            return;
+        }
+        
+        try {
+            const { data: subscription, error } = await this.supabase
+                .from('subscriptions')
+                .select('credits_remaining')
+                .eq('user_id', this.user.id)
+                .eq('status', 'active')
+                .maybeSingle();
+            
+            if (error) {
+                console.warn('⚠️ [AuthManager] Credits refresh failed:', error);
+                return;
+            }
+            
+            if (subscription) {
+                const oldCredits = this.user.credits;
+                this.user.credits = subscription.credits_remaining;
+                
+                console.log('💳 [AuthManager] Credits refreshed:', {
+                    old: oldCredits,
+                    new: this.user.credits
+                });
+                
+                this._emitEvent('credits-updated', {
+                    credits: this.user.credits,
+                    previousCredits: oldCredits
+                });
+            }
+            
+        } catch (error) {
+            console.error('❌ [AuthManager] Credits refresh error:', error);
+        }
+    }
+    
+    // =========================================================================
+    // PUBLIC API
+    // =========================================================================
+    
+    /**
+     * Check if user is authenticated
+     */
     isAuthenticated() {
         return !!(this.session && this.user);
     }
     
+    /**
+     * Get current session
+     */
     getCurrentSession() {
         return this.session;
     }
     
+    /**
+     * Get current user
+     */
     getCurrentUser() {
         return this.user;
     }
     
+    /**
+     * Get user businesses
+     */
     getUserBusinesses() {
         return this.businesses;
     }
     
+    /**
+     * Check if businesses are loaded
+     */
+    hasBusinesses() {
+        return this.businessesLoaded && this.businesses.length > 0;
+    }
+    
+    /**
+     * Wait for auth to be ready
+     */
     async waitForAuth() {
         if (!this.isLoaded) {
-            await this.loadPromise;
+            await this.initialize();
         }
         return this.isAuthenticated();
     }
     
-    // =============================================================================
+    // =========================================================================
     // EVENT SYSTEM
-    // =============================================================================
+    // =========================================================================
     
-    emitAuthEvent(type, data) {
-        const event = new CustomEvent(`auth:${type}`, {
-            detail: data
-        });
-        
+    /**
+     * Emit auth event
+     */
+    _emitEvent(type, data) {
+        const event = new CustomEvent(`auth:${type}`, { detail: data });
         window.dispatchEvent(event);
-        console.log(`📡 [Auth] Emitted event: auth:${type}`);
+        console.log(`📡 [AuthManager] Event emitted: auth:${type}`);
     }
     
-    // =============================================================================
-    // PAGE SECURITY
-    // =============================================================================
+    // =========================================================================
+    // DEBUG & UTILITIES
+    // =========================================================================
     
-    async requireAuth() {
-        await this.waitForAuth();
-        
-        if (!this.isAuthenticated()) {
-            console.log('🚫 [Auth] Authentication required, redirecting...');
-            window.location.href = window.OsliraEnv.getAuthUrl();
-            return false;
-        }
-        
-        return true;
-    }
-    
-    async requireOnboarding() {
-        await this.requireAuth();
-        
-        const needsOnboarding = await this.checkOnboardingStatus();
-        if (needsOnboarding) {
-            console.log('📝 [Auth] Onboarding required, redirecting...');
-            window.location.href = window.OsliraEnv.getAppUrl('/onboarding');
-            return false;
-        }
-        
-        return true;
-    }
-    
-    // =============================================================================
-    // DEBUG UTILITIES
-    // =============================================================================
-    
+    /**
+     * Get debug info
+     */
     getDebugInfo() {
         return {
             isLoaded: this.isLoaded,
+            isLoading: this.isLoading,
             isAuthenticated: this.isAuthenticated(),
+            hasSupabase: !!this.supabase,
             userId: this.user?.id || null,
             userEmail: this.user?.email || null,
             businessCount: this.businesses.length,
-            hasSupabase: !!this.supabase,
-            sessionExists: !!this.session
+            businessesLoaded: this.businessesLoaded,
+            lastError: this.lastError?.message || null,
+            initAttempts: this.initAttempts
         };
     }
-
-    // =============================================================================
-// BUSINESS DATA HELPERS
-// =============================================================================
-
-async waitForBusinesses() {
-    // First ensure auth is loaded
-    if (!this.isLoaded) {
-        await this.loadPromise;
-    }
-    
-    // Then wait for businesses to load
-    let attempts = 0;
-    const maxAttempts = 100; // 10 seconds max
-    
-    while (!this.businessesLoaded && attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
-    }
-    
-    if (!this.businessesLoaded) {
-        console.warn('⚠️ [Auth] Timeout waiting for businesses');
-    }
-    
-    return this.businesses;
-}
-
-    /**
- * Refresh user credits from subscription table
- * Call this after any credit-consuming operation
- */
-async refreshCredits() {
-    if (!this.supabase || !this.user) {
-        return;
-    }
-    
-    try {
-        const { data: subscription, error } = await this.supabase
-            .from('subscriptions')
-            .select('credits_remaining')
-            .eq('user_id', this.user.id)
-            .eq('status', 'active')
-            .maybeSingle();
-        
-        if (error) {
-            console.warn('⚠️ [Auth] Could not refresh credits:', error);
-            return;
-        }
-        
-        if (subscription) {
-            const oldCredits = this.user.credits;
-            this.user.credits = subscription.credits_remaining;
-            
-            console.log('💳 [Auth] Credits refreshed:', {
-                old: oldCredits,
-                new: this.user.credits,
-                change: this.user.credits - oldCredits
-            });
-            
-            // Emit credit update event
-            this.emitAuthEvent('credits:updated', {
-                credits: this.user.credits,
-                previousCredits: oldCredits
-            });
-        }
-    } catch (error) {
-        console.error('❌ [Auth] Error refreshing credits:', error);
-    }
-}
-
-hasBusinesses() {
-    return this.businessesLoaded && this.businesses.length > 0;
-}
 }
 
 // =============================================================================
-// GLOBAL EXPORT & INITIALIZATION
+// GLOBAL EXPORT
 // =============================================================================
+window.OsliraAuthManager = AuthManager;
 
-// Create global instance
-const authManager = new AuthManager();
+// Create singleton instance (initialize later via bootstrap)
+window.OsliraAuth = new AuthManager();
 
-// Export to window for global access
-window.OsliraAuth = authManager;
-
-console.log('🔐 [Auth] AuthManager initialized and exposed as window.OsliraAuth');
+console.log('✅ [AuthManager] Class loaded, awaiting initialization');
