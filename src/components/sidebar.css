@@ -593,7 +593,7 @@
 }
 
 /* =============================================================================
-   ACCOUNT DROPDOWN SECTION (CLAUDE-STYLE)
+   ACCOUNT DROPDOWN SECTION (CLAUDE-STYLE PROFESSIONAL)
    ============================================================================= */
 
 .sidebar-account-section {
@@ -605,18 +605,17 @@
 
 .account-trigger {
   width: 100%;
-  padding: 0.75rem;
-  background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(248,250,252,0.6) 100%);
-  border: 1px solid rgba(229,231,235,0.5);
-  border-radius: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .account-trigger:hover {
-  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.8) 100%);
-  border-color: rgba(229,231,235,0.8);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  background: #f9fafb;
+  border-color: #d1d5db;
 }
 
 .account-trigger-content {
@@ -626,15 +625,15 @@
 }
 
 .account-avatar {
-  width: 2.5rem;
-  height: 2.5rem;
-  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  width: 2rem;
+  height: 2rem;
+  background: #6b7280;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.875rem;
   flex-shrink: 0;
 }
@@ -645,10 +644,10 @@
   text-align: left;
 }
 
-.account-email {
+.account-name {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1f2937;
+  color: #111827;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -676,17 +675,16 @@
   left: 0.75rem;
   right: 0.75rem;
   margin-bottom: 0.5rem;
-  background: white;
-  border: 1px solid rgba(229,231,235,0.8);
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
   opacity: 0;
   visibility: hidden;
   transform: translateY(10px);
   transition: all 0.3s ease;
   z-index: 100;
-  max-height: 400px;
-  overflow-y: auto;
+  color: white;
 }
 
 .account-dropdown.open {
@@ -695,103 +693,109 @@
   transform: translateY(0);
 }
 
+/* Dropdown Header */
+.account-dropdown-header {
+  padding: 1rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.account-dropdown-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 0.25rem;
+}
+
+.account-dropdown-email {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Dropdown Sections */
 .account-dropdown-section {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(229,231,235,0.5);
+  border-bottom: 1px solid #2a2a2a;
 }
 
 .account-dropdown-section:last-child {
   border-bottom: none;
 }
 
-.dropdown-label {
-  font-size: 0.75rem;
+.account-section-title {
+  font-size: 0.6875rem;
   font-weight: 600;
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  display: block;
   margin-bottom: 0.5rem;
 }
 
-.dropdown-select {
+/* Clean Dropdown Select */
+.dropdown-select-clean {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  background: #f9fafb;
-  border: 1px solid rgba(229,231,235,0.8);
-  border-radius: 0.5rem;
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 0.375rem;
   font-size: 0.875rem;
-  color: #1f2937;
+  color: white;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.dropdown-select:hover {
-  background: white;
+.dropdown-select-clean:hover {
+  background: #333333;
+  border-color: #4a4a4a;
+}
+
+.dropdown-select-clean:focus {
+  outline: none;
   border-color: #3b82f6;
 }
 
-.credits-display {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem;
-  background: linear-gradient(to right, #3b82f6, #8b5cf6);
-  border-radius: 0.5rem;
+/* Clean Credits Display */
+.credits-display-clean {
+  padding: 0.5rem 0.75rem;
+  background: #2a2a2a;
+  border-radius: 0.375rem;
+  font-size: 1.125rem;
+  font-weight: 600;
   color: white;
 }
 
-.credits-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+/* Clean Action Buttons */
+.account-dropdown-actions-clean {
+  padding: 0.5rem 0;
 }
 
-.credits-value {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-.account-dropdown-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.75rem;
-}
-
-.dropdown-action-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
+.dropdown-action-clean {
+  display: block;
+  padding: 0.625rem 1rem;
   background: transparent;
   border: none;
-  border-radius: 0.5rem;
   font-size: 0.875rem;
-  color: #374151;
+  color: #d1d5db;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
   width: 100%;
   text-align: left;
+  border-radius: 0;
 }
 
-.dropdown-action-btn:hover {
-  background: #f3f4f6;
-  color: #1f2937;
+.dropdown-action-clean:hover {
+  background: #2a2a2a;
+  color: white;
 }
 
-.dropdown-action-btn.logout-btn:hover {
-  background: #fef2f2;
-  color: #dc2626;
+.logout-action {
+  border-top: 1px solid #2a2a2a;
+  margin-top: 0.25rem;
+  padding-top: 0.75rem;
 }
 
-.action-icon {
-  font-size: 1.125rem;
+.logout-action:hover {
+  color: #ef4444;
 }
 
 /* Collapsed State for Account Section */
