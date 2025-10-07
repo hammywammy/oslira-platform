@@ -477,7 +477,9 @@ async restoreSessionFromUrl() {
     console.log('🔐 [Auth] Found auth token in URL, restoring session...');
     
     try {
-        const tokens = JSON.parse(atob(authToken));
+        // Decode URL-safe base64 (handles URL encoding issues)
+        const base64 = authToken.replace(/-/g, '+').replace(/_/g, '/');
+        const tokens = JSON.parse(atob(base64));
         
         // Clear hash from URL immediately
         history.replaceState(null, '', window.location.pathname);
