@@ -1,205 +1,318 @@
 // =============================================================================
-// CENTRALIZED ENVIRONMENT & PAGE MANAGER - ASYNC CONFIG LOADING
-// Single source of truth for environment detection AND page detection
+// ENV DETECTOR - Environment & Page Detection
+// Path: /public/core/infrastructure/EnvDetector.js
+// Dependencies: None (loads first)
 // =============================================================================
 
-// =============================================================================
-// CENTRALIZED ENVIRONMENT & PAGE MANAGER - ASYNC CONFIG LOADING
-// Single source of truth for environment detection AND page detection
-// =============================================================================
-
-class OsliraEnvManager { 
+/**
+ * @class EnvDetector
+ * @description Detects environment, current page, and provides URL helpers
+ * 
+ * Features:
+ * - Environment detection (dev/staging/prod)
+ * - Page detection from URL path
+ * - Subdomain-aware URL builders
+ * - Auth requirement checking
+ * - Zero external dependencies
+ */
+class EnvDetector {
     constructor() {
+        // Raw URL info
         this.hostname = window.location.hostname;
         this.origin = window.location.origin;
         this.pathname = window.location.pathname;
         
-        // DOMAIN CONFIGURATION - Single place to update
+        // Domain configuration
         this.domains = {
             production: 'oslira.com',
-            staging: 'oslira.org', 
+            staging: 'oslira.org',
             netlifyStaging: 'osliratest.netlify.app'
         };
         
-        // Config loading state
-        this.configLoaded = false;
-        this.configPromise = null;
-        this.configError = null;
+        // Initialization
+        this.detectEnvironment();
+        this.detectRootDomain();
+        this.detectCurrentPage();
+        this.buildPageRegistry();
         
-        // Initialize environment detection (synchronous)
-        this.initEnvironment();
-        this.initPageDetection();
-        this.initSubdomainHelpers(); // NEW: Initialize URL helpers
-        
-        console.log('🌍 [Env] Environment & Page Setup:', {
-            environment: this.environment,
-            hostname: this.hostname,
-            currentPage: this._currentPage,
-            pageType: this._pageType,
-            workerUrl: this.workerUrl,
-            configLoaded: this.configLoaded,
-            urlHelpers: 'initialized' // NEW: Confirmation log
+        console.log('🌍 [EnvDetector] Initialized:', {
+            env: this.environment,
+            page: this.currentPage,
+            pageType: this.pageType,
+            requiresAuth: this.requiresAuth()
         });
     }
     
-    // =============================================================================
-    // ENVIRONMENT DETECTION (SYNCHRONOUS)
-    // =============================================================================
+    // =========================================================================
+    // ENVIRONMENT DETECTION
+    // =========================================================================
     
-initEnvironment() {
-    // Environment detection - SUBDOMAIN AWARE
-    this.isProduction = this.hostname === this.domains.production || 
-                       this.hostname.endsWith('.oslira.com');
-    this.isStaging = this.hostname === this.domains.staging || 
-                    this.hostname === this.domains.netlifyStaging ||
-                    this.hostname.endsWith('.oslira.org');
-    this.isDevelopment = this.hostname === 'localhost' || 
-                       this.hostname === '127.0.0.1';
+    /**
+     * Detect current environment from hostname
+     */
+    detectEnvironment() {
+        // Check for production
+        this.isProduction = this.hostname === this.domains.production || 
+                           this.hostname.endsWith('.oslira.com');
         
-        // Environment string
+        // Check for staging
+        this.isStaging = this.hostname === this.domains.staging || 
+                        this.hostname === this.domains.netlifyStaging ||
+                        this.hostname.endsWith('.oslira.org');
+        
+        // Check for development
+        this.isDevelopment = this.hostname === 'localhost' || 
+                           this.hostname === '127.0.0.1';
+        
+        // Set environment string
         this.environment = this.isProduction ? 'production' : 
                           (this.isStaging ? 'staging' : 'development');
         
-if (this.isDevelopment) {
-    this.workerUrl = 'http://localhost:8787';
-} else if (this.isProduction) {
-    this.workerUrl = 'https://api.oslira.com';
-} else {
-    this.workerUrl = 'https://api.oslira.org';
-}
+        // Set worker URL based on environment
+        if (this.isDevelopment) {
+            this.workerUrl = 'http://localhost:8787';
+        } else if (this.isProduction) {
+            this.workerUrl = 'https://api.oslira.com';
+        } else {
+            this.workerUrl = 'https://api.oslira.org';
+        }
         
-// Auth callback URLs - always use auth subdomain
-const rootDomain = this.hostname.replace(/^(auth|app|admin|legal|contact|status|www)\./, '');
-this.authCallbackUrl = `https://auth.${rootDomain}/auth/callback`;
-        
-        console.log('🔧 [Env] Environment detected:', {
-            environment: this.environment,
-            workerUrl: this.workerUrl,
-            authCallback: this.authCallbackUrl
-        });
+        console.log('🔧 [EnvDetector] Environment:', this.environment);
     }
     
-    // =============================================================================
-    // PAGE DETECTION (SYNCHRONOUS)
-    // =============================================================================
-    
-initPageDetection() {
-    // COMPLETE PAGE MAPPING - All pages in the system
-    this.pageMap = {
-        // ============= ROOT MARKETING (oslira.com/) =============
-        '/index.html': 'home',
-        
-        // ============= APP SUBDOMAIN (app.oslira.com) =============
-        '/dashboard': 'dashboard',
-        '/settings': 'settings',
-        '/settings/profile': 'settings-profile',
-        '/settings/account': 'settings-account',
-        '/settings/billing': 'settings-billing',
-        '/settings/usage': 'settings-usage',
-        '/analytics': 'analytics',
-        '/campaigns': 'campaigns',
-        '/leads': 'leads',
-        '/messages': 'messages',
-        '/integrations': 'integrations',
-        '/subscription': 'subscription',
-        '/automations': 'automations',
-        '/onboarding': 'onboarding',
-        
-        // ============= AUTH SUBDOMAIN (auth.oslira.com) =============
-        '/auth': 'auth',
-        '/auth/callback': 'auth-callback',
-        
-        // ============= ADMIN SUBDOMAIN (admin.oslira.com) =============
-        '/app/admin': 'admin',
-        
-        // ============= MARKETING/FOOTER PAGES (oslira.com/footer/*) =============
-        '/footer/about': 'about',
-        '/footer/pricing': 'pricing',
-        '/footer/security': 'security-page',
-        '/footer/help': 'help',
-        '/footer/guides': 'guides',
-        '/footer/case-studies': 'case-studies',
-        '/footer/api': 'api-docs',
-        
-        // ============= LEGAL SUBDOMAIN (legal.oslira.com) =============
-        '/footer/terms': 'terms',
-        '/footer/privacy': 'privacy',
-        '/footer/refund': 'refund',
-        '/footer/disclaimer': 'disclaimer',
-        '/footer/legal/terms': 'terms',
-        '/footer/legal/privacy': 'privacy',
-        '/footer/legal/refund': 'refund',
-        '/footer/legal/disclaimer': 'disclaimer',
-        '/terms': 'terms',
-        '/privacy': 'privacy',
-        '/refund': 'refund',
-        '/disclaimer': 'disclaimer',
-        
-        // ============= CONTACT SUBDOMAIN (contact.oslira.com) =============
-        '/footer/contact': 'contact-hub',
-        '/footer/contact/support': 'contact-support',
-        '/footer/contact/sales': 'contact-sales',
-        '/footer/contact/security': 'contact-security',
-        '/footer/contact/bug-report': 'contact-bug-report',
-        '/footer/contact/legal': 'contact-legal',
-        '/contact': 'contact-hub',
-        '/contact/support': 'contact-support',
-        '/contact/sales': 'contact-sales',
-        '/contact/security': 'contact-security',
-        '/contact/bug-report': 'contact-bug-report',
-        '/contact/legal': 'contact-legal',
-        
-        // ============= STATUS SUBDOMAIN (status.oslira.com) =============
-        '/footer/status': 'status',
-        '/status': 'status'
-    };
-    
-    // PAGE TYPE CLASSIFICATION
-    this.pageTypes = {
-        PUBLIC: [
-            'home', 'about', 'api-docs', 'case-studies', 'guides', 'help', 
-            'pricing', 'security-page', 'status', 'contact-hub', 'contact-support',
-            'contact-sales', 'contact-security', 'contact-bug-report', 'contact-legal',
-            'privacy', 'terms', 'refund', 'disclaimer'
-        ],
-        AUTH_ONLY: ['auth', 'auth-callback'], 
-        AUTH_REQUIRED: [
-            'dashboard', 'settings', 'analytics', 'campaigns', 
-            'leads', 'messages', 'integrations', 'subscription', 'automations'
-        ],
-        ONBOARDING_REQUIRED: ['onboarding'],
-        ADMIN_REQUIRED: ['admin']
-    };
-    
-    this._currentPage = this.detectCurrentPage();
-    this._pageType = this.classifyPage(this._currentPage);
-}
-
-    // =============================================================================
-    // URL HELPER METHODS - CENTRALIZED CROSS-SUBDOMAIN NAVIGATION
-    // =============================================================================
-    
-    initSubdomainHelpers() {
-        // Extract root domain (strips subdomain prefix)
-        // Example: app.oslira.com → oslira.com
-        // Example: auth.oslira.org → oslira.org
+    /**
+     * Extract root domain from hostname
+     */
+    detectRootDomain() {
         const hostParts = this.hostname.split('.');
         
         if (hostParts.length >= 2) {
             // Get last two parts (domain + TLD)
             this.rootDomain = hostParts.slice(-2).join('.');
         } else {
-            // Fallback for localhost/dev
+            // Fallback for localhost
             this.rootDomain = this.hostname;
         }
         
-        console.log('🔗 [Env] Root domain detected:', this.rootDomain);
+        // Extract subdomain
+        this.subdomain = hostParts.length > 2 ? 
+            hostParts[0].replace(/^staging-/, '') : null;
+        
+        console.log('🔗 [EnvDetector] Root domain:', this.rootDomain, '| Subdomain:', this.subdomain);
+    }
+    
+    // =========================================================================
+    // PAGE DETECTION
+    // =========================================================================
+    
+    /**
+     * Build complete page registry
+     */
+    buildPageRegistry() {
+        this.pageMap = {
+            // Root marketing
+            '/': 'home',
+            '/index.html': 'home',
+            
+            // App subdomain
+            '/dashboard': 'dashboard',
+            '/leads': 'leads',
+            '/analytics': 'analytics',
+            '/campaigns': 'campaigns',
+            '/automations': 'automations',
+            '/messages': 'messages',
+            '/integrations': 'integrations',
+            '/subscription': 'subscription',
+            '/onboarding': 'onboarding',
+            
+            // Settings
+            '/settings': 'settings',
+            '/settings/profile': 'settings-profile',
+            '/settings/account': 'settings-account',
+            '/settings/billing': 'settings-billing',
+            '/settings/usage': 'settings-usage',
+            
+            // Auth subdomain
+            '/auth': 'auth',
+            '/auth/callback': 'auth-callback',
+            
+            // Admin subdomain
+            '/admin': 'admin',
+            
+            // Marketing/footer pages
+            '/footer/about': 'about',
+            '/footer/pricing': 'pricing',
+            '/footer/security': 'security-page',
+            '/footer/help': 'help',
+            '/footer/guides': 'guides',
+            '/footer/case-studies': 'case-studies',
+            '/footer/api': 'api-docs',
+            
+            // Legal subdomain
+            '/footer/terms': 'terms',
+            '/footer/privacy': 'privacy',
+            '/footer/refund': 'refund',
+            '/footer/disclaimer': 'disclaimer',
+            '/terms': 'terms',
+            '/privacy': 'privacy',
+            '/refund': 'refund',
+            '/disclaimer': 'disclaimer',
+            
+            // Contact subdomain
+            '/footer/contact': 'contact-hub',
+            '/contact': 'contact-hub',
+            '/contact/support': 'contact-support',
+            '/contact/sales': 'contact-sales',
+            '/contact/security': 'contact-security',
+            '/contact/bug-report': 'contact-bug-report',
+            '/contact/legal': 'contact-legal',
+            
+            // Status subdomain
+            '/footer/status': 'status',
+            '/status': 'status'
+        };
+        
+        // Page type classifications
+        this.pageTypes = {
+            PUBLIC: [
+                'home', 'about', 'api-docs', 'case-studies', 'guides', 'help',
+                'pricing', 'security-page', 'status', 'contact-hub', 'contact-support',
+                'contact-sales', 'contact-security', 'contact-bug-report', 'contact-legal',
+                'privacy', 'terms', 'refund', 'disclaimer'
+            ],
+            AUTH_ONLY: ['auth', 'auth-callback'],
+            AUTH_REQUIRED: [
+                'dashboard', 'settings', 'settings-profile', 'settings-account',
+                'settings-billing', 'settings-usage', 'analytics', 'campaigns',
+                'leads', 'messages', 'integrations', 'subscription', 'automations'
+            ],
+            ONBOARDING_REQUIRED: ['onboarding'],
+            ADMIN_REQUIRED: ['admin']
+        };
     }
     
     /**
+     * Detect current page from URL
+     */
+    detectCurrentPage() {
+        // STEP 1: Check exact path match
+        if (this.pageMap[this.pathname]) {
+            this.currentPage = this.pageMap[this.pathname];
+            this.pageType = this.getPageType(this.currentPage);
+            return;
+        }
+        
+        // STEP 2: Try without trailing slash
+        const pathWithoutSlash = this.pathname.replace(/\/$/, '');
+        if (this.pageMap[pathWithoutSlash]) {
+            this.currentPage = this.pageMap[pathWithoutSlash];
+            this.pageType = this.getPageType(this.currentPage);
+            return;
+        }
+        
+        // STEP 3: Dynamic pattern matching
+        if (this.pathname.startsWith('/admin')) {
+            this.currentPage = 'admin';
+            this.pageType = 'ADMIN_REQUIRED';
+            return;
+        }
+        
+        if (this.pathname.startsWith('/settings/')) {
+            const settingsPath = this.pathname.split('/')[2];
+            this.currentPage = settingsPath ? `settings-${settingsPath}` : 'settings';
+            this.pageType = 'AUTH_REQUIRED';
+            return;
+        }
+        
+        if (this.pathname.startsWith('/settings')) {
+            this.currentPage = 'settings';
+            this.pageType = 'AUTH_REQUIRED';
+            return;
+        }
+        
+        if (this.pathname.startsWith('/auth/callback')) {
+            this.currentPage = 'auth-callback';
+            this.pageType = 'AUTH_ONLY';
+            return;
+        }
+        
+        if (this.pathname.startsWith('/contact/') || this.pathname.startsWith('/footer/contact/')) {
+            this.currentPage = 'contact-hub';
+            this.pageType = 'PUBLIC';
+            return;
+        }
+        
+        if (this.pathname.startsWith('/footer/legal/')) {
+            this.currentPage = 'privacy';
+            this.pageType = 'PUBLIC';
+            return;
+        }
+        
+        if (this.pathname.startsWith('/footer/')) {
+            this.currentPage = 'about';
+            this.pageType = 'PUBLIC';
+            return;
+        }
+        
+        // STEP 4: Root path with subdomain context
+        if (this.pathname === '/' || this.pathname === '' || this.pathname === '/index.html') {
+            switch(this.subdomain) {
+                case 'auth':
+                    this.currentPage = 'auth';
+                    this.pageType = 'AUTH_ONLY';
+                    return;
+                case 'app':
+                    if (this.pathname.startsWith('/admin')) {
+                        this.currentPage = 'admin';
+                        this.pageType = 'ADMIN_REQUIRED';
+                    } else {
+                        this.currentPage = 'dashboard';
+                        this.pageType = 'AUTH_REQUIRED';
+                    }
+                    return;
+                case 'legal':
+                    this.currentPage = 'privacy';
+                    this.pageType = 'PUBLIC';
+                    return;
+                case 'contact':
+                    this.currentPage = 'contact-hub';
+                    this.pageType = 'PUBLIC';
+                    return;
+                case 'status':
+                    this.currentPage = 'status';
+                    this.pageType = 'PUBLIC';
+                    return;
+                default:
+                    this.currentPage = 'home';
+                    this.pageType = 'PUBLIC';
+                    return;
+            }
+        }
+        
+        // STEP 5: Fallback
+        console.warn(`⚠️ [EnvDetector] Unknown path: ${this.pathname}, defaulting to home`);
+        this.currentPage = 'home';
+        this.pageType = 'PUBLIC';
+    }
+    
+    /**
+     * Get page type classification
+     */
+    getPageType(pageName) {
+        for (const [type, pages] of Object.entries(this.pageTypes)) {
+            if (pages.includes(pageName)) {
+                return type;
+            }
+        }
+        return 'PUBLIC';
+    }
+    
+    // =========================================================================
+    // URL BUILDERS (Subdomain-Aware)
+    // =========================================================================
+    
+    /**
      * Get app subdomain URL
-     * @param {string} path - Path without leading slash (e.g., 'dashboard' or '/dashboard')
-     * @returns {string} Full URL to app subdomain
      */
     getAppUrl(path = '') {
         const cleanPath = path.startsWith('/') ? path : `/${path}`;
@@ -208,28 +321,22 @@ initPageDetection() {
     
     /**
      * Get auth subdomain URL
-     * @param {string} path - Path without leading slash
-     * @returns {string} Full URL to auth subdomain
      */
     getAuthUrl(path = '') {
         const cleanPath = path.startsWith('/') ? path : `/${path}`;
         return `https://auth.${this.rootDomain}${cleanPath}`;
     }
     
-/**
- * Get admin URL (now under app subdomain)
- * @param {string} path - Path without leading slash
- * @returns {string} Full URL to admin under app subdomain
- */
-getAdminUrl(path = '') {
-    const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `https://app.${this.rootDomain}/admin${cleanPath}`;
-}
+    /**
+     * Get admin URL (under app subdomain)
+     */
+    getAdminUrl(path = '') {
+        const cleanPath = path.startsWith('/') ? path : `/${path}`;
+        return `https://app.${this.rootDomain}/admin${cleanPath}`;
+    }
     
     /**
-     * Get marketing (root domain) URL
-     * @param {string} path - Path without leading slash (e.g., 'about', 'pricing')
-     * @returns {string} Full URL to root domain
+     * Get marketing (root) URL
      */
     getMarketingUrl(path = '') {
         const cleanPath = path.startsWith('/') ? path : `/${path}`;
@@ -238,8 +345,6 @@ getAdminUrl(path = '') {
     
     /**
      * Get legal subdomain URL
-     * @param {string} path - Path without leading slash (e.g., 'terms', 'privacy')
-     * @returns {string} Full URL to legal subdomain
      */
     getLegalUrl(path = '') {
         const cleanPath = path.startsWith('/') ? path : `/${path}`;
@@ -248,8 +353,6 @@ getAdminUrl(path = '') {
     
     /**
      * Get contact subdomain URL
-     * @param {string} path - Path without leading slash (e.g., 'support', 'sales')
-     * @returns {string} Full URL to contact subdomain
      */
     getContactUrl(path = '') {
         const cleanPath = path.startsWith('/') ? path : `/${path}`;
@@ -258,330 +361,160 @@ getAdminUrl(path = '') {
     
     /**
      * Get status subdomain URL
-     * @param {string} path - Path without leading slash
-     * @returns {string} Full URL to status subdomain
      */
     getStatusUrl(path = '') {
         const cleanPath = path.startsWith('/') ? path : `/${path}`;
         return `https://status.${this.rootDomain}${cleanPath}`;
     }
     
- detectCurrentPage() {
-    // Extract subdomain
-    const hostParts = this.hostname.split('.');
-    const subdomain = hostParts.length > 2 ? hostParts[0].replace(/^staging-/, '') : null;
-    
-    // STEP 1: Exact pathname match (highest priority)
-    if (this.pageMap[this.pathname]) {
-        return this.pageMap[this.pathname];
-    }
-
-    // STEP 2: Try without trailing slash
-    const pathWithoutSlash = this.pathname.replace(/\/$/, '');
-    if (this.pageMap[pathWithoutSlash]) {
-        return this.pageMap[pathWithoutSlash];
-    }
-    
-// STEP 3: Dynamic pattern matching
-if (this.pathname.startsWith('/admin')) return 'admin';
-if (this.pathname.startsWith('/settings/profile')) return 'settings-profile';
-if (this.pathname.startsWith('/settings/account')) return 'settings-account';
-if (this.pathname.startsWith('/settings/billing')) return 'settings-billing';
-if (this.pathname.startsWith('/settings/usage')) return 'settings-usage';
-if (this.pathname.startsWith('/settings')) return 'settings';
-if (this.pathname.startsWith('/auth/callback')) return 'auth-callback';
-if (this.pathname.startsWith('/contact/')) return 'contact-hub';
-if (this.pathname.startsWith('/footer/contact/')) return 'contact-hub';
-if (this.pathname.startsWith('/footer/legal/')) return 'privacy';
-if (this.pathname.startsWith('/footer/')) return 'about';
-    
-    // STEP 4: Root path detection (use subdomain context)
-    if (this.pathname === '/' || this.pathname === '' || this.pathname === '/index.html') {
-        // Subdomain determines which root page
-switch(subdomain) {
-    case 'auth': return 'auth';
-    case 'app': {
-        // Check if path is /admin to route to admin page
-        if (this.pathname.startsWith('/admin')) return 'admin';
-        return 'dashboard';
-    }
-            case 'legal': return 'privacy';
-            case 'contact': return 'contact-hub';
-            case 'status': return 'status';
-            default: return 'home'; // No subdomain = marketing root
-        }
-    }
-    
-    // STEP 5: Fallback - try to infer from subdomain
-    if (subdomain) {
-        console.warn(`⚠️ [Env] Unknown path "${this.pathname}" on subdomain "${subdomain}", falling back to subdomain default`);
-        switch(subdomain) {
-            case 'auth': return 'auth';
-            case 'app': return 'dashboard';
-            case 'admin': return 'admin';
-            case 'legal': return 'privacy';
-            case 'contact': return 'contact-hub';
-            case 'status': return 'status';
-        }
-    }
-    
-    // Final fallback
-    console.warn(`⚠️ [Env] Could not detect page for "${this.pathname}", defaulting to home`);
-    return 'home';
-}
-    
-    classifyPage(pageName) {
-        for (const [classification, pages] of Object.entries(this.pageTypes)) {
-            if (pages.includes(pageName)) {
-                return classification;
-            }
-        }
-        return 'PUBLIC';
-    }
-    
-    // =============================================================================
-    // ASYNC CONFIG LOADING FROM AWS (VIA WORKER)
-    // =============================================================================
+    // =========================================================================
+    // AUTH REQUIREMENT CHECKS
+    // =========================================================================
     
     /**
-     * Load configuration from Worker /config endpoint (which fetches from AWS)
-     * This is called once during initialization and cached for the session
+     * Check if current page is public
      */
-    async loadConfigFromAWS() {
-        // Prevent duplicate loads
-        if (this.configPromise) {
-            return this.configPromise;
-        }
-        
-        this.configPromise = (async () => {
-            try {
-                console.log('🔄 [Env] Loading config from Worker:', {
-                    workerUrl: this.workerUrl,
-                    environment: this.environment
-                });
-                
-                const response = await fetch(`${this.workerUrl}/api/public-config?env=${this.environment}`, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Config fetch failed: ${response.status} ${response.statusText}`);
-                }
-                
-                const result = await response.json();
-                
-                if (!result.success || !result.data) {
-                    throw new Error(`Invalid config response: ${result.error || 'missing data'}`);
-                }
-                
-                const config = result.data;
-                
-                // Populate properties from AWS config
-                this.supabaseUrl = config.supabaseUrl;
-                this.supabaseAnonKey = config.supabaseAnonKey;
-                this.stripePublishableKey = config.stripePublishableKey;
-                this.frontendUrl = config.frontendUrl;
-                
-                // Mark config as loaded
-                this.configLoaded = true;
-                
-                console.log('✅ [Env] Config loaded from AWS:', {
-                    environment: config.environment,
-                    hasSupabaseUrl: !!this.supabaseUrl,
-                    hasSupabaseKey: !!this.supabaseAnonKey,
-                    hasStripeKey: !!this.stripePublishableKey,
-                    frontendUrl: this.frontendUrl
-                });
-                
-                // Cache in localStorage for offline fallback
-                try {
-                    localStorage.setItem('oslira-config-cache', JSON.stringify({
-                        timestamp: Date.now(),
-                        environment: this.environment,
-                        data: config
-                    }));
-                } catch (e) {
-                    console.warn('⚠️ [Env] Failed to cache config in localStorage:', e);
-                }
-                
-                // Dispatch ready event
-                window.dispatchEvent(new CustomEvent('oslira:config:ready', {
-                    detail: { environment: this.environment, config }
-                }));
-                
-                // Remove loading overlay if present
-                const loadingOverlay = document.getElementById('oslira-config-loading');
-                if (loadingOverlay) {
-                    loadingOverlay.remove();
-                }
-                
-                return config;
-                
-            } catch (error) {
-                console.error('❌ [Env] Failed to load config from AWS:', error);
-                this.configError = error;
-                
-                // Try to load from localStorage cache as fallback
-                try {
-                    const cached = localStorage.getItem('oslira-config-cache');
-                    if (cached) {
-                        const { timestamp, data } = JSON.parse(cached);
-                        const age = Date.now() - timestamp;
-                        
-                        // Use cache if less than 24 hours old
-                        if (age < 24 * 60 * 60 * 1000) {
-                            console.warn('⚠️ [Env] Using cached config (age: ' + Math.round(age / 60000) + ' minutes)');
-                            
-                            this.supabaseUrl = data.supabaseUrl;
-                            this.supabaseAnonKey = data.supabaseAnonKey;
-                            this.stripePublishableKey = data.stripePublishableKey;
-                            this.frontendUrl = data.frontendUrl;
-                            this.configLoaded = true;
-                            
-                            window.dispatchEvent(new CustomEvent('oslira:config:ready', {
-                                detail: { environment: this.environment, config: data, cached: true }
-                            }));
-                            
-                            return data;
-                        }
-                    }
-                } catch (cacheError) {
-                    console.error('❌ [Env] Failed to load cached config:', cacheError);
-                }
-                
-                throw new Error(`Failed to load configuration: ${error.message}`);
-            }
-        })();
-        
-        return this.configPromise;
+    isPublicPage() {
+        return this.pageType === 'PUBLIC';
     }
     
     /**
-     * Public method to wait for config to be ready
-     * All components should call this before accessing config
+     * Check if current page is auth-only
      */
-    async ready() {
-        if (this.configLoaded) {
-            return true;
-        }
-        
-        if (!this.configPromise) {
-            await this.loadConfigFromAWS();
-        } else {
-            await this.configPromise;
-        }
-        
-        return this.configLoaded;
+    isAuthPage() {
+        return this.pageType === 'AUTH_ONLY';
     }
     
-    // =============================================================================
-    // PUBLIC API - Getters (with validation)
-    // =============================================================================
+    /**
+     * Check if current page requires authentication
+     */
+    requiresAuth() {
+        return ['AUTH_REQUIRED', 'ONBOARDING_REQUIRED', 'ADMIN_REQUIRED'].includes(this.pageType);
+    }
     
-    // Environment getters (synchronous, always available)
+    /**
+     * Check if current page requires onboarding
+     */
+    requiresOnboarding() {
+        return this.pageType === 'ONBOARDING_REQUIRED';
+    }
+    
+    /**
+     * Check if current page requires admin
+     */
+    requiresAdmin() {
+        return this.pageType === 'ADMIN_REQUIRED';
+    }
+    
+    // =========================================================================
+    // REDIRECT HELPERS
+    // =========================================================================
+    
+    /**
+     * Get redirect URL for unauthenticated user
+     */
+    getUnauthenticatedRedirect() {
+        if (this.isAuthPage()) {
+            return null; // Already on auth page
+        }
+        return this.getAuthUrl();
+    }
+    
+    /**
+     * Get redirect URL for authenticated user on auth page
+     */
+    getAuthenticatedRedirect(needsOnboarding = false) {
+        if (needsOnboarding) {
+            return this.getAppUrl('/onboarding');
+        }
+        
+        // If already on protected page, stay there
+        if (this.requiresAuth()) {
+            return null;
+        }
+        
+        // Default to dashboard
+        return this.getAppUrl('/dashboard');
+    }
+    
+    // =========================================================================
+    // GETTERS (Compatibility with old env-manager)
+    // =========================================================================
+    
     get ENV() { return this.environment; }
     get IS_PRODUCTION() { return this.isProduction; }
     get IS_STAGING() { return this.isStaging; }
     get IS_DEVELOPMENT() { return this.isDevelopment; }
     get WORKER_URL() { return this.workerUrl; }
     get BASE_URL() { return this.origin; }
-    get AUTH_CALLBACK_URL() { return this.authCallbackUrl; }
-    
-    // Page getters (synchronous, always available)
-    get CURRENT_PAGE() { return this._currentPage; }
-    get PAGE_TYPE() { return this._pageType; }
+    get CURRENT_PAGE() { return this.currentPage; }
+    get PAGE_TYPE() { return this.pageType; }
     get PATHNAME() { return this.pathname; }
-    get currentPage() { return this._currentPage; }
-    get pageType() { return this._pageType; }
     
-    // Config getters (throw error if accessed before ready)
-    get SUPABASE_URL() {
-        if (!this.configLoaded) {
-            throw new Error('Config not loaded. Call await window.OsliraEnv.ready() first');
-        }
-        return this.supabaseUrl;
-    }
+    // =========================================================================
+    // UTILITIES
+    // =========================================================================
     
-    get SUPABASE_ANON_KEY() {
-        if (!this.configLoaded) {
-            throw new Error('Config not loaded. Call await window.OsliraEnv.ready() first');
-        }
-        return this.supabaseAnonKey;
-    }
-    
-    get STRIPE_PUBLISHABLE_KEY() {
-        if (!this.configLoaded) {
-            throw new Error('Config not loaded. Call await window.OsliraEnv.ready() first');
-        }
-        return this.stripePublishableKey;
-    }
-    
-    get FRONTEND_URL() {
-        if (!this.configLoaded) {
-            throw new Error('Config not loaded. Call await window.OsliraEnv.ready() first');
-        }
-        return this.frontendUrl;
-    }
-    
-    // Helper methods
-    isPrimaryDomain() {
-        return this.isProduction;
-    }
-    
-    isPublicPage() {
-        return this._pageType === 'PUBLIC';
-    }
-
-    isAuthPage() {
-        return this._pageType === 'AUTH_ONLY';
-    }
-
-    requiresAuth() {
-        return ['AUTH_REQUIRED', 'ONBOARDING_REQUIRED', 'ADMIN_REQUIRED'].includes(this._pageType);
-    }
-
-    requiresOnboarding() {
-        return this._pageType === 'ONBOARDING_REQUIRED';
-    }
-
-    requiresAdmin() {
-        return this._pageType === 'ADMIN_REQUIRED';
-    }
-    
+    /**
+     * Get environment color for UI
+     */
     getEnvironmentColor() {
         if (this.isProduction) return '#10b981';
         if (this.isStaging) return '#f59e0b';
         return '#6b7280';
     }
     
-    // Debug method
+    /**
+     * Check if on primary domain
+     */
+    isPrimaryDomain() {
+        return this.isProduction;
+    }
+    
+    /**
+     * Debug info
+     */
     debug() {
-        console.group('🌍 [Env] Debug Information');
+        console.group('🌍 [EnvDetector] Debug Info');
         console.log('Environment:', this.environment);
-        console.log('Config Loaded:', this.configLoaded);
         console.log('Hostname:', this.hostname);
+        console.log('Root Domain:', this.rootDomain);
+        console.log('Subdomain:', this.subdomain);
         console.log('Pathname:', this.pathname);
-        console.log('Current Page:', this._currentPage);
-        console.log('Page Type:', this._pageType);
+        console.log('Current Page:', this.currentPage);
+        console.log('Page Type:', this.pageType);
+        console.log('Requires Auth:', this.requiresAuth());
         console.log('Worker URL:', this.workerUrl);
-        console.log('Auth Callback:', this.authCallbackUrl);
-        if (this.configLoaded) {
-            console.log('Supabase URL:', this.supabaseUrl);
-            console.log('Has Anon Key:', !!this.supabaseAnonKey);
-            console.log('Has Stripe Key:', !!this.stripePublishableKey);
-        }
         console.groupEnd();
+    }
+    
+    /**
+     * Get all info as object
+     */
+    getInfo() {
+        return {
+            environment: this.environment,
+            isDevelopment: this.isDevelopment,
+            isStaging: this.isStaging,
+            isProduction: this.isProduction,
+            hostname: this.hostname,
+            rootDomain: this.rootDomain,
+            subdomain: this.subdomain,
+            pathname: this.pathname,
+            currentPage: this.currentPage,
+            pageType: this.pageType,
+            requiresAuth: this.requiresAuth(),
+            workerUrl: this.workerUrl
+        };
     }
 }
 
 // =============================================================================
-// GLOBAL SINGLETON - Available everywhere immediately
+// GLOBAL EXPORT
 // =============================================================================
+window.OsliraEnvDetector = EnvDetector;
 
-window.OsliraEnv = new OsliraEnvManager();
+// Create singleton instance immediately (no async needed)
+window.OsliraEnv = new EnvDetector();
 
-console.log('🌍 [Env] Manager loaded and ready for async config loading');
-
+console.log('✅ [EnvDetector] Loaded and initialized');
