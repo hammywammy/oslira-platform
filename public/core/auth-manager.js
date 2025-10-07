@@ -484,23 +484,27 @@ async restoreSessionFromUrl() {
             await this.initializeSupabase();
         }
         
-        // Restore session in Supabase
-        const { error } = await this.supabase.auth.setSession({
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token
-        });
-        
-        if (error) {
-            console.error('❌ [Auth] Failed to restore session:', error);
-            return false;
-        }
-        
-        console.log('✅ [Auth] Session restored from URL');
-        
-        // Wait for session to propagate
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        return true;
+// Restore session in Supabase
+const { data, error } = await this.supabase.auth.setSession({
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token
+});
+
+if (error) {
+    console.error('❌ [Auth] Failed to restore session:', error);
+    return false;
+}
+
+// CRITICAL: Immediately populate session and user from the restored data
+if (data.session) {
+    await this.handleSessionChange(data.session);
+    console.log('✅ [Auth] Session restored and user populated from URL');
+} else {
+    console.error('❌ [Auth] Session restored but no session data returned');
+    return false;
+}
+
+return true;
         
     } catch (error) {
         console.error('❌ [Auth] Session transfer failed:', error);
