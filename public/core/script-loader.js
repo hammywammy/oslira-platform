@@ -79,7 +79,7 @@ this.coreScripts = [
             },
             
 'home': {
-    scripts: ['/core/header/header-manager.js', '/pages/home/homeHandlers.js', '/pages/home/home.js', '/core/footer/footer-manager.js'],
+    scripts: ['/pages/home/homeHandlers.js', '/pages/home/home.js', '/core/footer/footer-manager.js'],
     requiresAuth: false,
     enableTailwind: true
 },
