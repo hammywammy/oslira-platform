@@ -92,6 +92,10 @@ initPageDetection() {
         // ============= APP SUBDOMAIN (app.oslira.com) =============
         '/dashboard': 'dashboard',
         '/settings': 'settings',
+        '/settings/profile': 'settings-profile',
+        '/settings/account': 'settings-account',
+        '/settings/billing': 'settings-billing',
+        '/settings/usage': 'settings-usage',
         '/analytics': 'analytics',
         '/campaigns': 'campaigns',
         '/leads': 'leads',
@@ -279,7 +283,12 @@ getAdminUrl(path = '') {
     }
     
 // STEP 3: Dynamic pattern matching
-if (this.pathname.startsWith('/admin')) return 'admin';  // ADD THIS FIRST
+if (this.pathname.startsWith('/admin')) return 'admin';
+if (this.pathname.startsWith('/settings/profile')) return 'settings-profile';
+if (this.pathname.startsWith('/settings/account')) return 'settings-account';
+if (this.pathname.startsWith('/settings/billing')) return 'settings-billing';
+if (this.pathname.startsWith('/settings/usage')) return 'settings-usage';
+if (this.pathname.startsWith('/settings')) return 'settings';
 if (this.pathname.startsWith('/auth/callback')) return 'auth-callback';
 if (this.pathname.startsWith('/contact/')) return 'contact-hub';
 if (this.pathname.startsWith('/footer/contact/')) return 'contact-hub';
