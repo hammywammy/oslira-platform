@@ -5,30 +5,6 @@
 // ===============================================================================
 
 (async function() {
-    if (!window.DependencyReadiness) {
-        await new Promise(resolve => {
-            const checkInterval = setInterval(() => {
-                if (window.DependencyReadiness) {
-                    clearInterval(checkInterval);
-                    console.log('✅ [modal-components-personality] DependencyReadiness loaded');
-                    resolve();
-                }
-            }, 50);
-            
-            setTimeout(() => {
-                clearInterval(checkInterval);
-                console.error('❌ [modal-components-personality] DependencyReadiness timeout');
-                resolve();
-            }, 10000);
-        });
-    }
-
-    try {
-        await window.DependencyReadiness.waitForDependency('ModalComponents');
-    } catch (error) {
-        console.error('❌ [modal-components-personality] ModalComponents core not loaded:', error);
-        return;
-    }
 
     window._modalComponentExtensions = window._modalComponentExtensions || [];
     
