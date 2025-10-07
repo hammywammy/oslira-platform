@@ -223,9 +223,18 @@ updateUserInfo() {
     
     console.log('👤 [SidebarManager] Updating user info:', {
         email: user.email,
+        name: user.signature_name,
         credits: user.credits,
         plan: user.plan_type
     });
+    
+    // Update name (from signature_name)
+    const nameElements = document.querySelectorAll('#sidebar-name, #sidebar-name-trigger');
+    if (user.signature_name) {
+        nameElements.forEach(el => {
+            if (el) el.textContent = user.signature_name;
+        });
+    }
     
     // Update email
     const emailElement = document.getElementById('sidebar-email');
@@ -233,21 +242,29 @@ updateUserInfo() {
         emailElement.textContent = user.email;
     }
     
+    // Update avatar initial (first letter of name)
+    const initialElement = document.getElementById('sidebar-user-initial');
+    if (initialElement && user.signature_name) {
+        initialElement.textContent = user.signature_name.charAt(0).toUpperCase();
+    }
+    
     // Update plan
     const planElement = document.getElementById('sidebar-plan');
     if (planElement && user.plan_type) {
         const planNames = {
-            'free': 'Free Plan',
-            'starter': 'Starter Plan',
-            'pro': 'Pro Plan'
+            'free': 'Free plan',
+            'starter': 'Starter plan',
+            'pro': 'Pro plan',
+            'max': 'Max plan'
         };
-        planElement.textContent = planNames[user.plan_type] || 'Free Plan';
+        planElement.textContent = planNames[user.plan_type] || 'Free plan';
     }
     
     // Update credits
     const creditsElement = document.getElementById('sidebar-credits');
     if (creditsElement) {
-        creditsElement.textContent = user.credits !== undefined ? user.credits.toLocaleString() : '--';
+        creditsElement.textContent = user.credits !== undefined ?
+            user.credits.toLocaleString() : '--';
     }
 }
     setActiveMenuItem(pageId) {
@@ -339,60 +356,66 @@ getSidebarHTML() {
                 
                 <!-- Account Section - Bottom Dropdown -->
                 <div class="sidebar-account-section">
-                    <button class="account-trigger" id="account-trigger-btn">
-                        <div class="account-trigger-content">
-                            <div class="account-avatar">
-                                <span id="sidebar-user-initial">U</span>
-                            </div>
-                            <div class="account-info">
-                                <div id="sidebar-email" class="account-email">Loading...</div>
-                                <div id="sidebar-plan" class="account-plan">Free Plan</div>
-                            </div>
-                            <svg class="account-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M6 9l6 6 6-6"/>
-                            </svg>
-                        </div>
-                    </button>
+<button class="account-trigger" id="account-trigger-btn">
+    <div class="account-trigger-content">
+        <div class="account-avatar" id="sidebar-avatar">
+            <span id="sidebar-user-initial">U</span>
+        </div>
+        <div class="account-info">
+            <div id="sidebar-name-trigger" class="account-name">Loading...</div>
+            <div id="sidebar-plan" class="account-plan">Free Plan</div>
+        </div>
+        <svg class="account-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6"/>
+        </svg>
+    </div>
+</button>
                     
-                    <!-- Dropdown Menu -->
-                    <div class="account-dropdown" id="account-dropdown">
-                        <!-- Business Selector -->
-                        <div class="account-dropdown-section">
-                            <label class="dropdown-label">Active Business</label>
-                            <select id="sidebar-business-select" 
-                                    onchange="window.sidebarManager && window.sidebarManager.handleBusinessChange(event)"
-                                    class="dropdown-select">
-                                <!-- Options dynamically loaded -->
-                            </select>
-                        </div>
-                        
-                        <!-- Credits Display -->
-                        <div class="account-dropdown-section">
-                            <div class="credits-display">
-                                <span class="credits-label">Credits</span>
-                                <div class="credits-value">
-                                    <span id="sidebar-credits">--</span>
-                                    <span class="credits-icon">⚡</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Action Buttons -->
-                        <div class="account-dropdown-section account-dropdown-actions">
-                            <a href="${window.OsliraEnv.getAppUrl('/settings')}" class="dropdown-action-btn">
-                                <span class="action-icon">⚙️</span>
-                                <span>Settings</span>
-                            </a>
-                            <a href="${window.OsliraEnv.getAppUrl('/subscription')}" class="dropdown-action-btn">
-                                <span class="action-icon">💳</span>
-                                <span>Subscription</span>
-                            </a>
-                            <button onclick="window.sidebarManager && window.sidebarManager.handleLogout()" class="dropdown-action-btn logout-btn">
-                                <span class="action-icon">🚪</span>
-                                <span>Sign out</span>
-                            </button>
-                        </div>
-                    </div>
+<!-- Dropdown Menu -->
+<div class="account-dropdown" id="account-dropdown">
+    <!-- User Info Header -->
+    <div class="account-dropdown-header">
+        <div id="sidebar-name" class="account-dropdown-name">Loading...</div>
+        <div id="sidebar-email" class="account-dropdown-email">Loading...</div>
+    </div>
+    
+    <!-- Business Selector -->
+    <div class="account-dropdown-section">
+        <div class="account-section-title">ACTIVE BUSINESS</div>
+        <select id="sidebar-business-select" 
+                onchange="window.sidebarManager && window.sidebarManager.handleBusinessChange(event)"
+                class="dropdown-select-clean">
+            <!-- Options dynamically loaded -->
+        </select>
+    </div>
+    
+    <!-- Credits Display -->
+    <div class="account-dropdown-section">
+        <div class="account-section-title">CREDITS</div>
+        <div class="credits-display-clean">
+            <span id="sidebar-credits">--</span>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="account-dropdown-actions-clean">
+        <a href="${window.OsliraEnv.getAppUrl('/settings/profile')}" class="dropdown-action-clean">
+            Settings
+        </a>
+        <a href="${window.OsliraEnv.getAppUrl('/subscription')}" class="dropdown-action-clean">
+            Upgrade plan
+        </a>
+        <a href="${window.OsliraEnv.getMarketingUrl('/help')}" class="dropdown-action-clean">
+            Get help
+        </a>
+        <a href="${window.OsliraEnv.getMarketingUrl('/docs')}" class="dropdown-action-clean">
+            Learn more
+        </a>
+        <button onclick="window.sidebarManager && window.sidebarManager.handleLogout()" class="dropdown-action-clean logout-action">
+            Log out
+        </button>
+    </div>
+</div>
                 </div>
             </div>
         `;
