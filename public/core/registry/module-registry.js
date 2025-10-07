@@ -85,7 +85,7 @@ class OsliraModuleRegistry {
                     '/pages/dashboard/modules/utils/daily-tips.js',
                     
                     // Orchestrator (MUST BE LAST)
-                    '/pages/dashboard/dashboard.js'
+                    '/pages/dashboard/modules/core/dashboard-app.js'
                 ],
                 requiresAuth: true
             },
