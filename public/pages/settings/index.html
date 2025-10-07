@@ -6,117 +6,35 @@
     <title>Settings - Oslira</title>
     <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
     <link rel="stylesheet" href="/assets/css/tailwind.css">
+    <link rel="stylesheet" href="/pages/settings/settings.css">
     <script src="/core/script-loader.js"></script>
 </head>
-<body class="bg-gray-50">
+<body>
 
-<!-- Sidebar Container -->
 <div id="sidebar-container"></div>
 
-<!-- Main Content Area -->
-<main class="main-content settings-main-content">
-    
-    <!-- Settings Container -->
-    <div class="settings-container">
+<main class="main-content">
+    <div class="settings-wrapper">
+        <header class="settings-header">
+            <h1>Settings</h1>
+        </header>
         
-        <!-- Left Navigation Panel -->
-        <aside class="settings-sidebar">
-            <div class="settings-sidebar-header">
-                <h1 class="settings-title">Settings</h1>
+        <nav class="settings-tabs">
+            <a href="/settings/profile" class="settings-tab">Profile</a>
+            <a href="/settings/account" class="settings-tab">Account</a>
+            <a href="/settings/billing" class="settings-tab">Billing</a>
+            <a href="/settings/usage" class="settings-tab">Usage</a>
+        </nav>
+        
+        <div class="settings-page-content">
+            <h2 class="settings-page-title">Settings</h2>
+            <p class="settings-page-subtitle">Choose a settings section from the tabs above</p>
+            
+            <div class="settings-content-placeholder">
+                <p>Select a tab to view settings</p>
             </div>
-            
-            <nav class="settings-nav">
-                <a href="#profile" class="settings-nav-item active" data-section="profile">
-                    <span class="settings-nav-icon">👤</span>
-                    <span class="settings-nav-text">Profile</span>
-                </a>
-                <a href="#account" class="settings-nav-item" data-section="account">
-                    <span class="settings-nav-icon">🔐</span>
-                    <span class="settings-nav-text">Account</span>
-                </a>
-                <a href="#billing" class="settings-nav-item" data-section="billing">
-                    <span class="settings-nav-icon">💳</span>
-                    <span class="settings-nav-text">Billing</span>
-                </a>
-                <a href="#usage" class="settings-nav-item" data-section="usage">
-                    <span class="settings-nav-icon">📊</span>
-                    <span class="settings-nav-text">Usage</span>
-                </a>
-            </nav>
-        </aside>
-        
-        <!-- Content Area -->
-        <div class="settings-content">
-            
-            <!-- Profile Section -->
-            <section id="profile-section" class="settings-section active">
-                <div class="settings-section-header">
-                    <h2 class="settings-section-title">Profile</h2>
-                    <p class="settings-section-subtitle">Manage your personal information and preferences</p>
-                </div>
-                
-                <div class="settings-card">
-                    <div class="settings-card-body">
-                        <!-- Content will be populated by JS -->
-                        <div class="text-center py-12 text-gray-500">
-                            Profile settings content coming soon...
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Account Section -->
-            <section id="account-section" class="settings-section">
-                <div class="settings-section-header">
-                    <h2 class="settings-section-title">Account</h2>
-                    <p class="settings-section-subtitle">Security and authentication settings</p>
-                </div>
-                
-                <div class="settings-card">
-                    <div class="settings-card-body">
-                        <div class="text-center py-12 text-gray-500">
-                            Account settings content coming soon...
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Billing Section -->
-            <section id="billing-section" class="settings-section">
-                <div class="settings-section-header">
-                    <h2 class="settings-section-title">Billing</h2>
-                    <p class="settings-section-subtitle">Payment methods and billing history</p>
-                </div>
-                
-                <div class="settings-card">
-                    <div class="settings-card-body">
-                        <div class="text-center py-12 text-gray-500">
-                            Billing settings content coming soon...
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Usage Section -->
-            <section id="usage-section" class="settings-section">
-                <div class="settings-section-header">
-                    <h2 class="settings-section-title">Usage</h2>
-                    <p class="settings-section-subtitle">Monitor your credit usage and analytics</p>
-                </div>
-                
-                <div class="settings-card">
-                    <div class="settings-card-body">
-                        <div class="text-center py-12 text-gray-500">
-                            Usage statistics content coming soon...
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
         </div>
-        
     </div>
-    
 </main>
 
 </body>
