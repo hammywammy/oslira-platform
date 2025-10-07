@@ -17,32 +17,10 @@ const conversionState = {
   timeOnPage: 0,
   scrollDepth: 0
 };
-// Initialize header dynamically
-async function initializeHeader() {
-  try {
-    console.log('🧭 [Home] Initializing header...');
-    
-    // Wait for HeaderManager to load
-    let retries = 0;
-    while (!window.HeaderManager && retries < 50) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      retries++;
-    }
-    
-    if (!window.HeaderManager) {
-      throw new Error('HeaderManager not loaded after 5 seconds');
-    }
-    
-    // Render header
-    const headerManager = new window.HeaderManager();
-    headerManager.render('home-header-container', {
-      type: 'home'
-    });
-    
-    console.log('✅ [Home] Header initialized successfully');
-  } catch (error) {
-    console.error('❌ [Home] Header initialization failed:', error);
-  }
+// Header already rendered by inline script - this function is no longer needed
+// Keeping empty function to avoid breaking references
+function initializeHeader() {
+  console.log('✅ [Home] Header already rendered inline');
 }
 
 async function initializeHomePage() {
