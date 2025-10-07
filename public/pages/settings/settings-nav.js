@@ -87,42 +87,7 @@ class SettingsNav {
 }
 
 // =============================================================================
-// INITIALIZATION
+// EXPORT TO WINDOW (Bootstrap system will instantiate)
 // =============================================================================
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initSettingsNav);
-} else {
-    initSettingsNav();
-}
-
-async function initSettingsNav() {
-    console.log('🚀 [SettingsNav] Starting initialization...');
-    
-    try {
-        // Wait for OsliraAuth
-        let attempts = 0;
-        while (!window.OsliraAuth?.isLoaded && attempts < 50) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-        }
-        
-        if (!window.OsliraAuth?.user) {
-            console.error('❌ [SettingsNav] User not authenticated');
-            window.location.href = window.OsliraEnv.getAuthUrl();
-            return;
-        }
-        
-        // Initialize settings nav
-        const settingsNav = new SettingsNav();
-        await settingsNav.init();
-        
-        // Expose globally
-        window.settingsNav = settingsNav;
-        
-    } catch (error) {
-        console.error('❌ [SettingsNav] Failed to initialize:', error);
-    }
-}
-
-console.log('✅ [SettingsNav] Module loaded');
+window.SettingsNav = SettingsNav;
+console.log('✅ [SettingsNav] Module loaded and ready');
