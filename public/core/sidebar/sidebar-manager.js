@@ -546,22 +546,32 @@ toggleSidebar() {
     console.log('🔄 [SidebarManager] Toggling sidebar, current state:', this.isCollapsed);
     
     this.isCollapsed = !this.isCollapsed;
-    this.updateSidebarState();
     
     // Update classes and margins
     if (this.isCollapsed) {
         this.sidebar.classList.add('collapsed');
         if (this.mainContent) {
             this.mainContent.classList.add('sidebar-collapsed');
-            this.mainContent.style.marginLeft = '64px'; // Collapsed sidebar width
+            this.mainContent.style.marginLeft = '64px';
         }
+        
+        // Dispatch collapsed event
+        window.dispatchEvent(new CustomEvent('sidebar:collapsed'));
     } else {
         this.sidebar.classList.remove('collapsed');
         if (this.mainContent) {
             this.mainContent.classList.remove('sidebar-collapsed');
-            this.mainContent.style.marginLeft = '256px'; // Full sidebar width
+            this.mainContent.style.marginLeft = '256px';
         }
+        
+        // Dispatch expanded event
+        window.dispatchEvent(new CustomEvent('sidebar:expanded'));
     }
+    
+    // Save state to localStorage
+    localStorage.setItem('sidebarCollapsed', this.isCollapsed.toString());
+    
+    console.log('✅ [SidebarManager] Sidebar toggled to:', this.isCollapsed ? 'collapsed' : 'expanded');
 }
 
     updateSidebarState() {
