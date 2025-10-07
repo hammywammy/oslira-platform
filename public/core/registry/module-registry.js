@@ -158,50 +158,55 @@ admin: {
             // ═══════════════════════════════════════════════════
             // SETTINGS
             // ═══════════════════════════════════════════════════
-            settings: {
-                appClass: 'SettingsApp',
-                scripts: [
-                    '/core/sidebar/sidebar-manager.js',
-                    '/pages/settings/settings-nav.js'
-                ],
-                requiresAuth: true
-            },
-            
-            'settings-profile': {
-                appClass: 'SettingsApp',
-                scripts: [
-                    '/core/sidebar/sidebar-manager.js',
-                    '/pages/settings/settings-nav.js'
-                ],
-                requiresAuth: true
-            },
-            
-            'settings-account': {
-                appClass: 'SettingsApp',
-                scripts: [
-                    '/core/sidebar/sidebar-manager.js',
-                    '/pages/settings/settings-nav.js'
-                ],
-                requiresAuth: true
-            },
-            
-            'settings-billing': {
-                appClass: 'SettingsApp',
-                scripts: [
-                    '/core/sidebar/sidebar-manager.js',
-                    '/pages/settings/settings-nav.js'
-                ],
-                requiresAuth: true
-            },
-            
-            'settings-usage': {
-                appClass: 'SettingsApp',
-                scripts: [
-                    '/core/sidebar/sidebar-manager.js',
-                    '/pages/settings/settings-nav.js'
-                ],
-                requiresAuth: true
-            }
+'settings': {
+    appClass: 'SettingsApp',
+    scripts: [
+        '/core/sidebar/sidebar-manager.js',
+        '/pages/settings/settings-nav.js',
+        '/pages/settings/settings-app.js'  // ADD THIS
+    ],
+    requiresAuth: true
+},
+
+'settings-profile': {
+    appClass: 'SettingsApp',
+    scripts: [
+        '/core/sidebar/sidebar-manager.js',
+        '/pages/settings/settings-nav.js',
+        '/pages/settings/settings-app.js'  // ADD THIS
+    ],
+    requiresAuth: true
+},
+
+'settings-account': {
+    appClass: 'SettingsApp',
+    scripts: [
+        '/core/sidebar/sidebar-manager.js',
+        '/pages/settings/settings-nav.js',
+        '/pages/settings/settings-app.js'  // ADD THIS
+    ],
+    requiresAuth: true
+},
+
+'settings-billing': {
+    appClass: 'SettingsApp',
+    scripts: [
+        '/core/sidebar/sidebar-manager.js',
+        '/pages/settings/settings-nav.js',
+        '/pages/settings/settings-app.js'  // ADD THIS
+    ],
+    requiresAuth: true
+},
+
+'settings-usage': {
+    appClass: 'SettingsApp',
+    scripts: [
+        '/core/sidebar/sidebar-manager.js',
+        '/pages/settings/settings-nav.js',
+        '/pages/settings/settings-app.js'  // ADD THIS
+    ],
+    requiresAuth: true
+}
         };
     }
     
