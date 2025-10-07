@@ -3,6 +3,8 @@
 // Handles all modals, toasts, loading states, and UI interactions
 // =============================================================================
 
+//IMPORTANT, ONLY FOR THE MOST REPEATABLE THINGS SUCH AS ERROR MESSAGES AND SUCH
+
 class OsliraUIManager {
     constructor() {
         this.modals = new Map();
