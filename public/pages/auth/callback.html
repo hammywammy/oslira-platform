@@ -1,9 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+<!-- 
+═══════════════════════════════════════════════════════════════════
+CALLBACK PAGE - OSLIRA BOOTSTRAP ARCHITECTURE
+Path: /public/pages/auth/callback/index.html
+Version: 2.0 - Bootstrap System
+═══════════════════════════════════════════════════════════════════
+-->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Completing Sign In - Oslira</title>
+    <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
+    
     <style>
         /* Simple callback page styles */
         body {
@@ -20,6 +29,7 @@
         .callback-container {
             text-align: center;
             padding: 2rem;
+            max-width: 500px;
         }
         
         .logo {
@@ -74,7 +84,17 @@
             background: #f5f5f5;
         }
     </style>
+    
+    <!-- ═══════════════════════════════════════════════════════════
+         BOOTSTRAP SYSTEM - Load order matters
+         ═══════════════════════════════════════════════════════════ -->
+    <script src="/core/env-manager.js"></script>
+    <script src="/core/boot/loader.js"></script>
+    <script src="/core/registry/module-registry.js"></script>
+    <script src="/core/boot/orchestrator.js"></script>
+    <script src="/core/boot/bootstrap.js"></script>
 </head>
+
 <body>
     <div class="callback-container">
         <div class="logo">Oslira</div>
@@ -92,80 +112,84 @@
         </div>
     </div>
 
-    <!-- Simple Script Loading -->
-    <script src="/core/script-loader.js"></script>
+    <!-- ═══════════════════════════════════════════════════════════
+         CALLBACK PROCESSING LOGIC
+         ═══════════════════════════════════════════════════════════ -->
     <script>
-        // Simple callback processing
         console.log('🔐 [Callback] Starting OAuth callback processing...');
         
+        // UI Helper Functions
         function updateStatus(message) {
-            document.getElementById('status-text').textContent = message;
+            const statusEl = document.getElementById('status-text');
+            if (statusEl) statusEl.textContent = message;
         }
         
         function showError(message) {
             document.getElementById('loading-state').style.display = 'none';
-            document.getElementById('error-state').style.display = 'block';
-            document.getElementById('error-message').textContent = message;
-            document.getElementById('retry-btn').style.display = 'inline-block';
+            const errorState = document.getElementById('error-state');
+            const errorMessage = document.getElementById('error-message');
+            const retryBtn = document.getElementById('retry-btn');
+            
+            if (errorMessage) errorMessage.textContent = message;
+            if (errorState) errorState.style.display = 'block';
+            if (retryBtn) retryBtn.style.display = 'inline-block';
         }
         
-        function redirectTo(url, delay = 1000) {
+        function redirectTo(url, delay = 500) {
             setTimeout(() => {
                 console.log(`🔐 [Callback] Redirecting to: ${url}`);
                 window.location.href = url;
             }, delay);
         }
         
-window.addEventListener('oslira:scripts:loaded', async () => {
-    try {
-        console.log('🔐 [Callback] Scripts loaded, processing OAuth callback...');
-        
-        // DO NOT clear session here - OAuth callback needs to read it
-        
-        updateStatus('Processing authentication...');
-        
-        if (!window.OsliraAuth) {
-            throw new Error('Auth system not available');
-        }
-        
-        await window.OsliraAuth.waitForAuth();
-        
-        // Check for OAuth callback parameters in URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlHash = window.location.hash;
-        
-        console.log('🔐 [Callback] URL params:', urlParams.toString());
-        console.log('🔐 [Callback] URL hash:', urlHash);
-        
-        // Check if we have OAuth parameters (Supabase handles this automatically)
-        updateStatus('Verifying credentials...');
-        
-        // Use auth manager's callback handler
-        const result = await window.OsliraAuth.handleCallback();
-
-if (result && result.session) {
-    console.log('✅ [Callback] Authentication successful');
-    console.log('🔐 [Callback] User:', result.session.user.email);
-    
-    updateStatus('Sign-in successful! Redirecting...');
-    
-// CRITICAL: Pass tokens via URL hash (survives cross-subdomain redirect)
-const tokenData = btoa(JSON.stringify({
-    access_token: result.session.access_token,
-    refresh_token: result.session.refresh_token
-}));
-
-console.log('🔐 [Callback] Redirecting with embedded auth tokens');
-
-// Redirect with tokens in hash
-setTimeout(() => {
-    window.location.href = `${result.redirectTo}#auth=${tokenData}`;
-}, 500);
-    
-} else {
-    console.log('❌ [Callback] No valid session found');
-    throw new Error('No valid session found after authentication');
-}
+        // Wait for bootstrap to complete, then process callback
+        window.addEventListener('oslira:ready', async () => {
+            try {
+                console.log('🔐 [Callback] Bootstrap ready, processing OAuth callback...');
+                
+                updateStatus('Processing authentication...');
+                
+                // Verify OsliraAuth is available
+                if (!window.OsliraAuth) {
+                    throw new Error('Auth system not available');
+                }
+                
+                // Wait for auth system to be ready
+                await window.OsliraAuth.waitForAuth();
+                
+                // Log URL parameters for debugging
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlHash = window.location.hash;
+                
+                console.log('🔐 [Callback] URL params:', urlParams.toString());
+                console.log('🔐 [Callback] URL hash:', urlHash ? 'present' : 'none');
+                
+                updateStatus('Verifying credentials...');
+                
+                // Handle the OAuth callback (Supabase processes URL automatically)
+                const result = await window.OsliraAuth.handleCallback();
+                
+                if (result && result.session) {
+                    console.log('✅ [Callback] Authentication successful');
+                    console.log('🔐 [Callback] User:', result.session.user.email);
+                    
+                    updateStatus('Sign-in successful! Redirecting...');
+                    
+                    // Encode tokens for cross-subdomain redirect
+                    const tokenData = btoa(JSON.stringify({
+                        access_token: result.session.access_token,
+                        refresh_token: result.session.refresh_token
+                    }));
+                    
+                    console.log('🔐 [Callback] Redirecting with embedded auth tokens');
+                    
+                    // Redirect with tokens in hash
+                    redirectTo(`${result.redirectTo}#auth=${tokenData}`);
+                    
+                } else {
+                    console.log('❌ [Callback] No valid session found');
+                    throw new Error('No valid session found after authentication');
+                }
                 
             } catch (error) {
                 console.error('❌ [Callback] Callback processing failed:', error);
@@ -190,10 +214,14 @@ setTimeout(() => {
         // Setup retry button
         document.getElementById('retry-btn').addEventListener('click', () => {
             console.log('🔐 [Callback] Retry button clicked, redirecting to auth');
-            window.location.href = window.OsliraEnv.getAuthUrl();
+            if (window.OsliraEnv && window.OsliraEnv.getAuthUrl) {
+                window.location.href = window.OsliraEnv.getAuthUrl();
+            } else {
+                window.location.href = 'https://auth.oslira.com';
+            }
         });
         
-        // Check for specific error parameters in URL
+        // Check for OAuth error parameters in URL
         const urlParams = new URLSearchParams(window.location.search);
         const errorParam = urlParams.get('error');
         const errorDescription = urlParams.get('error_description');
@@ -230,7 +258,7 @@ setTimeout(() => {
             }
         }, 15000);
         
-        console.log('🔐 [Callback] Waiting for scripts to load...');
+        console.log('🔐 [Callback] Waiting for bootstrap to complete...');
     </script>
 </body>
 </html>
