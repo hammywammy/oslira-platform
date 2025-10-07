@@ -116,28 +116,54 @@ class HomeApp {
     async setupInstagramDemo() {
         console.log('🎯 [HomeApp] Setting up Instagram demo...');
         
-        // Wait for demo container to exist
-        const demoContainer = await this.waitForElement('#demo-results', 5000);
-        
-        if (!demoContainer) {
-            console.warn('⚠️ [HomeApp] Demo container not found, skipping demo setup');
-            return;
-        }
-        
-        // Get demo elements
-        const usernameInput = document.getElementById('instagram-username-input');
-        const analyzeButton = document.getElementById('analyze-demo-btn');
+        // Get demo elements (MATCHING YOUR HTML IDs)
+        const usernameInput = document.getElementById('demo-handle-input'); // ← YOUR ID
+        const analyzeButton = document.getElementById('demo-analyze-btn');  // ← YOUR ID
         const resultsContainer = document.getElementById('demo-results');
         
+        // Debug: Log what we found
+        console.log('🔍 [HomeApp] Demo elements check:', {
+            input: !!usernameInput,
+            button: !!analyzeButton,
+            results: !!resultsContainer,
+            inputValue: usernameInput?.id || 'not found',
+            buttonValue: analyzeButton?.id || 'not found',
+            resultsValue: resultsContainer?.id || 'not found'
+        });
+        
         if (!usernameInput || !analyzeButton || !resultsContainer) {
-            console.warn('⚠️ [HomeApp] Demo elements incomplete:', {
-                input: !!usernameInput,
-                button: !!analyzeButton,
-                results: !!resultsContainer
-            });
+            console.warn('⚠️ [HomeApp] Demo elements incomplete - waiting for DOM...');
+            
+            // Wait a bit for DOM to settle, then try again
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            const retryInput = document.getElementById('demo-handle-input');
+            const retryButton = document.getElementById('demo-analyze-btn');
+            const retryResults = document.getElementById('demo-results');
+            
+            if (!retryInput || !retryButton || !retryResults) {
+                console.warn('⚠️ [HomeApp] Demo elements still missing after retry:', {
+                    input: !!retryInput,
+                    button: !!retryButton,
+                    results: !!retryResults
+                });
+                return;
+            }
+            
+            // Use retry elements
+            this.setupDemoListeners(retryInput, retryButton, retryResults);
+            this.demoInitialized = true;
+            console.log('✅ [HomeApp] Instagram demo ready (after retry)');
             return;
         }
         
+        // Setup with found elements
+        this.setupDemoListeners(usernameInput, analyzeButton, resultsContainer);
+        this.demoInitialized = true;
+        console.log('✅ [HomeApp] Instagram demo ready');
+    }
+    
+    setupDemoListeners(usernameInput, analyzeButton, resultsContainer) {
         // Setup demo event listeners
         analyzeButton.addEventListener('click', () => this.handleDemoAnalysis());
         
@@ -147,14 +173,11 @@ class HomeApp {
                 this.handleDemoAnalysis();
             }
         });
-        
-        this.demoInitialized = true;
-        console.log('✅ [HomeApp] Instagram demo ready');
     }
     
     async handleDemoAnalysis() {
-        const usernameInput = document.getElementById('instagram-username-input');
-        const analyzeButton = document.getElementById('analyze-demo-btn');
+        const usernameInput = document.getElementById('demo-handle-input'); // ← FIXED
+        const analyzeButton = document.getElementById('demo-analyze-btn');
         const resultsContainer = document.getElementById('demo-results');
         
         if (!usernameInput || !analyzeButton || !resultsContainer) {
@@ -171,13 +194,11 @@ class HomeApp {
         
         // Show loading state
         analyzeButton.disabled = true;
-        analyzeButton.innerHTML = `
-            <svg class="animate-spin h-5 w-5 mr-2 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Analyzing...
-        `;
+        const btnText = analyzeButton.querySelector('.demo-btn-text');
+        const btnLoading = analyzeButton.querySelector('.demo-btn-loading');
+        
+        if (btnText) btnText.classList.add('hidden');
+        if (btnLoading) btnLoading.classList.remove('hidden');
         
         try {
             // Call analysis handler (from homeHandlers.js)
@@ -199,12 +220,11 @@ class HomeApp {
         } finally {
             // Reset button
             analyzeButton.disabled = false;
-            analyzeButton.innerHTML = `
-                <svg class="w-5 h-5 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                Analyze Profile
-            `;
+            const btnText = analyzeButton.querySelector('.demo-btn-text');
+            const btnLoading = analyzeButton.querySelector('.demo-btn-loading');
+            
+            if (btnText) btnText.classList.remove('hidden');
+            if (btnLoading) btnLoading.classList.add('hidden');
         }
     }
     
@@ -212,44 +232,35 @@ class HomeApp {
         const resultsContainer = document.getElementById('demo-results');
         if (!resultsContainer) return;
         
+        // Remove hidden class to show results
+        resultsContainer.classList.remove('hidden');
+        
         resultsContainer.innerHTML = `
-            <div class="bg-white rounded-2xl shadow-xl p-8 animate-fadeIn">
-                <div class="flex items-center space-x-4 mb-6">
-                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
+            <div class="demo-result-card bg-white rounded-2xl shadow-xl p-8 animate-fadeIn">
+                <div class="demo-profile-info flex items-center space-x-4 mb-6">
+                    <div class="demo-avatar w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                        ${data.username ? data.username.charAt(0).toUpperCase() : '👤'}
                     </div>
-                    <div>
-                        <h3 class="text-2xl font-bold text-gray-900">Analysis Complete!</h3>
-                        <p class="text-gray-600">Profile analyzed successfully</p>
+                    <div class="flex-1">
+                        <h4 class="demo-name text-xl font-bold text-gray-900">@${data.username || 'example_handle'}</h4>
+                        <p class="demo-analysis text-gray-600">${data.niche || 'Perfect fit'} • ${data.category || 'Content Creator'} • ${data.followers || '15K'} followers</p>
                     </div>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4">
-                        <div class="text-sm text-gray-600 mb-1">Match Score</div>
+                    <div class="text-right">
                         <div class="text-3xl font-bold text-blue-600">${data.score || 85}%</div>
-                    </div>
-                    <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4">
-                        <div class="text-sm text-gray-600 mb-1">Confidence</div>
-                        <div class="text-3xl font-bold text-purple-600">${data.confidence || 'High'}</div>
+                        <div class="text-sm text-gray-600">Match</div>
                     </div>
                 </div>
                 
-                <div class="bg-gray-50 rounded-xl p-6 mb-6">
-                    <h4 class="font-semibold text-gray-900 mb-3">Key Insights</h4>
-                    <ul class="space-y-2">
-                        ${this.generateInsights(data).map(insight => `
-                            <li class="flex items-start space-x-2">
-                                <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <span class="text-gray-700">${insight}</span>
-                            </li>
-                        `).join('')}
-                    </ul>
+                <div class="demo-outreach-preview bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 mb-4">
+                    <h5 class="font-semibold text-gray-900 mb-2">Suggested Outreach:</h5>
+                    <p class="demo-message text-gray-700 italic">
+                        "${data.outreach || 'Hi! Loved your latest post about wellness routines. I help health coaches like you turn content into...'}"
+                    </p>
                 </div>
+                
+                <p class="demo-upgrade-hint text-center text-sm text-gray-600 mb-4">
+                    ↑ See full analysis & 24 more leads like this with your free trial
+                </p>
                 
                 <a href="${window.OsliraEnv.getAuthUrl()}" class="block w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl text-center transition-all duration-200 shadow-lg hover:shadow-xl">
                     Get Full Analysis Report →
@@ -263,6 +274,9 @@ class HomeApp {
     showDemoError(message) {
         const resultsContainer = document.getElementById('demo-results');
         if (!resultsContainer) return;
+        
+        // Remove hidden class to show error
+        resultsContainer.classList.remove('hidden');
         
         resultsContainer.innerHTML = `
             <div class="bg-red-50 border border-red-200 rounded-xl p-6 animate-fadeIn">
