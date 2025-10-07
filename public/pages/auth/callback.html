@@ -252,7 +252,8 @@ Version: 2.0 - Bootstrap System
         
         // Fallback timeout - if nothing happens in 15 seconds, show error
         setTimeout(() => {
-            if (document.getElementById('loading-state').style.display !== 'none') {
+            const loadingState = document.getElementById('loading-state');
+            if (loadingState && loadingState.style.display !== 'none') {
                 console.error('❌ [Callback] Callback processing timeout');
                 showError('Authentication is taking too long. Please try again.');
             }
