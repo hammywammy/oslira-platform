@@ -50,10 +50,10 @@ static async waitForDOMElement(selector, timeout = 5000) {
 console.log('🔄 [DashboardCore] Initializing modules...');
 await container.initialize();
 
-            // Initialize sidebar
+// Initialize sidebar
 console.log('🔧 [DashboardCore] Initializing sidebar...');
 const sidebar = new window.SidebarManager();
-await sidebar.init();
+await sidebar.render('#sidebar-container');
 console.log('✅ [DashboardCore] Sidebar initialized');
 
 // Continue with rendering...
