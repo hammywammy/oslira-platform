@@ -140,20 +140,20 @@ onboarding: {
             // ═══════════════════════════════════════════════════
             // ADMIN
             // ═══════════════════════════════════════════════════
-            admin: {
-                appClass: 'AdminApp',
-                scripts: [
-                    '/core/api-client.js',
-                    '/core/adminsidebar/sidebar-manager.js',
-                    '/pages/admin/sections/overview-section.js',
-                    '/pages/admin/sections/users-section.js',
-                    '/pages/admin/sections/businesses-section.js',
-                    '/pages/admin/sections/revenue-section.js',
-                    '/pages/admin/sections/remaining-sections.js',
-                    '/pages/admin/admin.js'
-                ],
-                requiresAuth: false // Has its own password auth
-            },
+admin: {
+    appClass: 'AdminApp',
+    scripts: [
+        '/core/api-client.js',
+        '/core/adminsidebar/sidebar-manager.js',
+        '/pages/admin/sections/overview-section.js',
+        '/pages/admin/sections/users-section.js',
+        '/pages/admin/sections/businesses-section.js',
+        '/pages/admin/sections/revenue-section.js',
+        '/pages/admin/sections/remaining-sections.js',
+        '/pages/admin/admin-app.js'           // NEW: Bootstrap-compatible wrapper
+    ],
+    requiresAuth: false  // Has own password auth
+},
             
             // ═══════════════════════════════════════════════════
             // SETTINGS
