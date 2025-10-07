@@ -6,13 +6,17 @@
     <title>AI-Powered Lead Research Dashboard - Oslira</title>
     <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
     <link rel="stylesheet" href="/assets/css/tailwind.css">
-    <script src="/core/script-loader.js"></script>
+    <script src="/core/env-manager.js"></script>
+    <script src="/core/boot/loader.js"></script>
+    <script src="/core/registry/module-registry.js"></script>
+    <script src="/core/boot/orchestrator.js"></script>
+    <script src="/core/boot/bootstrap.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     
     <!-- Dynamic styles will be injected here -->
     <div id="dynamic-styles"></div>
 </head>
-<body class="bg-gray-50 overflow-hidden">
+<body class="bg-gray-50 overflow-hidden" style="visibility: hidden;">
 <!-- Main Container with Gradient Background -->
 <div class="min-h-screen dashboard-gradient-bg relative">
     <div class="wave-overlay"></div>
@@ -141,29 +145,14 @@
     
 </div>
 
-<!-- Global Function Bindings Script -->
+<!-- All initialization handled by bootstrap system -->
+<!-- Global functions preserved for backwards compatibility -->
 <script>
-// Initialize Feather Icons when document loads
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof feather !== 'undefined') {
-        feather.replace();
-    }
-});
-
-// Global function bindings for UI elements
-window.openResearchModal = function() {
-    if (window.dashboard?.container?.get('researchHandlers')) {
-        window.dashboard.container.get('researchHandlers').openResearchModal();
-    } else if (window.ResearchHandlers) {
-        new window.ResearchHandlers().openResearchModal();
-    }
-};
-
-window.closeResearchModal = function() {
-    if (window.dashboard?.container?.get('researchHandlers')) {
-        window.dashboard.container.get('researchHandlers').closeResearchModal();
-    } else if (window.ResearchHandlers) {
-        new window.ResearchHandlers().closeResearchModal();
+// Minimal compatibility layer - functions delegate to dashboard container
+window.handleDropdownSelection = function(mode) {
+    const headerManager = window.dashboard?.container?.get('dashboardHeader');
+    if (headerManager && headerManager.handleModeChange) {
+        headerManager.handleModeChange(mode);
     }
 };
 
@@ -178,8 +167,6 @@ window.submitResearch = function() {
 window.filterByPriority = function(priority) {
     if (window.dashboard?.container?.get('statsCards')) {
         window.dashboard.container.get('statsCards').filterByPriority(priority);
-    } else {
-        console.log('Filtering by priority:', priority);
     }
 };
 
@@ -190,35 +177,25 @@ window.clearAllSelections = function() {
 };
 
 window.openBulkModal = function() {
-    console.log('🔘 [Global] openBulkModal called');
-    
     const modalManager = window.dashboard?.container?.get('modalManager');
     if (modalManager) {
         modalManager.openModal('bulkModal');
-    } else {
-        console.error('❌ [Global] ModalManager not available');
     }
 };
 
 window.handleMainButtonClick = function() {
-    // Get current mode from dashboard header
     const headerManager = window.dashboard?.container?.get('dashboardHeader');
-    if (!headerManager) {
-        console.error('Dashboard header not available');
-        return;
-    }
+    if (!headerManager) return;
     
     const currentMode = headerManager.currentMode || 'single';
     
     if (currentMode === 'bulk') {
-        // Open bulk modal
         if (window.dashboard?.container?.get('modalManager')) {
             window.dashboard.container.get('modalManager').openModal('bulkModal');
         } else if (window.showBulkModal) {
             window.showBulkModal();
         }
     } else {
-        // Open research modal for single lead
         if (window.dashboard?.container?.get('researchHandlers')) {
             window.dashboard.container.get('researchHandlers').openResearchModal();
         } else if (window.openResearchModal) {
@@ -226,7 +203,6 @@ window.handleMainButtonClick = function() {
         }
     }
 };
-
 </script>
 </body>
 </html>
