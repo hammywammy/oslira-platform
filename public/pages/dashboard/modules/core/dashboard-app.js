@@ -78,12 +78,15 @@ class DashboardApp {
                 this.container
             );
             
-            // Expose for debugging and external access
-            this.exposePublicAPI();
-            
-            this.initialized = true;
-            const initTime = Date.now() - this.initStartTime;
-            console.log(`✅ [DashboardApp] Initialization completed in ${initTime}ms`);
+this.exposePublicAPI();
+
+this.initialized = true;
+const initTime = Date.now() - this.initStartTime;
+
+// Make page visible
+document.body.style.visibility = 'visible';
+
+console.log(`✅ [DashboardApp] Initialization completed in ${initTime}ms`);
             
             // Emit initialization complete event
             this.container.get('eventBus').emit(window.DASHBOARD_EVENTS.INIT_COMPLETE, {
