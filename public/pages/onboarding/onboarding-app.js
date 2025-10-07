@@ -66,19 +66,22 @@ class OnboardingApp {
     // AUTHENTICATION
     // ═══════════════════════════════════════════════════════════
     
-    async setupAuthentication() {
-        if (!window.OsliraAuth) {
-            throw new Error('OsliraAuth not available');
-        }
-        
-        await window.OsliraAuth.initialize();
-        const session = window.OsliraAuth.getCurrentSession();
-        
-        if (!session || !session.user) {
-            console.log('❌ [OnboardingApp] No valid session, redirecting to auth');
-            window.location.href = window.OsliraEnv.getAuthUrl();
-            return;
-        }
+async setupAuthentication() {
+    if (!window.OsliraAuth) {
+        throw new Error('OsliraAuth not available');
+    }
+    
+    // CRITICAL: Restore session from URL if present (cross-subdomain transfer)
+    await window.OsliraAuth.restoreSessionFromUrl();
+    
+    await window.OsliraAuth.initialize();
+    const session = window.OsliraAuth.getCurrentSession();
+    
+    if (!session || !session.user) {
+        console.log('❌ [OnboardingApp] No valid session, redirecting to auth');
+        window.location.href = window.OsliraEnv.getAuthUrl();
+        return;
+    }
         
         this.user = session.user;
         this.supabase = window.OsliraAuth.supabase;
