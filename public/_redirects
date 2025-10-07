@@ -21,14 +21,22 @@ https://app.oslira.com/messages            /pages/messages/index.html       200
 https://app.oslira.org/messages            /pages/messages/index.html       200
 https://app.oslira.com/integrations        /pages/integrations/index.html   200
 https://app.oslira.org/integrations        /pages/integrations/index.html   200
-https://app.oslira.com/settings            /pages/settings/index.html       200
-https://app.oslira.org/settings            /pages/settings/index.html       200
 https://app.oslira.com/subscription        /pages/subscription/index.html   200
 https://app.oslira.org/subscription        /pages/subscription/index.html   200
 https://app.oslira.com/automations         /pages/automations/index.html    200
 https://app.oslira.org/automations         /pages/automations/index.html    200
 https://app.oslira.com/onboarding          /pages/onboarding/index.html     200
 https://app.oslira.org/onboarding          /pages/onboarding/index.html     200
+https://app.oslira.com/settings            /pages/settings/profile.html     200
+https://app.oslira.org/settings            /pages/settings/profile.html     200
+https://app.oslira.com/settings/profile    /pages/settings/profile.html     200
+https://app.oslira.org/settings/profile    /pages/settings/profile.html     200
+https://app.oslira.com/settings/account    /pages/settings/account.html     200
+https://app.oslira.org/settings/account    /pages/settings/account.html     200
+https://app.oslira.com/settings/billing    /pages/settings/billing.html     200
+https://app.oslira.org/settings/billing    /pages/settings/billing.html     200
+https://app.oslira.com/settings/usage      /pages/settings/usage.html       200
+https://app.oslira.org/settings/usage      /pages/settings/usage.html       200
 
 # Admin routes under app subdomain (MUST come before catch-all)
 https://app.oslira.com/admin               /pages/admin/index.html          200
@@ -117,9 +125,13 @@ https://status.oslira.org/*                /pages/footer/status/:splat      200
 /leads                                     /pages/leads/index.html          200
 /messages                                  /pages/messages/index.html       200
 /onboarding                                /pages/onboarding/index.html     200
-/settings                                  /pages/settings/index.html       200
 /subscription                              /pages/subscription/index.html   200
 /automations                               /pages/automations/index.html    200
+/settings                                  /pages/settings/profile.html     200
+/settings/profile                          /pages/settings/profile.html     200
+/settings/account                          /pages/settings/account.html     200
+/settings/billing                          /pages/settings/billing.html     200
+/settings/usage                            /pages/settings/usage.html       200
 
 # Favicon
 /favicon.ico                               /assets/images/oslira-logo.png   200
