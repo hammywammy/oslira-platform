@@ -299,11 +299,12 @@ getSidebarHTML() {
                             <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" class="sidebar-logo-image">
                             <span class="sidebar-logo-text home-logo">Oslira</span>
                         </a>
-                        <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle Sidebar">
-                            <svg class="sidebar-toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M18 6L6 18M6 6l12 12"/>
-                            </svg>
-                        </button>
+<button id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle Sidebar">
+    <svg class="sidebar-toggle-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="18" height="18" x="3" y="3" rx="2"/>
+        <path d="M9 3v18"/>
+    </svg>
+</button>
                     </div>
                 </div>
                 
@@ -547,12 +548,21 @@ toggleSidebar() {
     
     this.isCollapsed = !this.isCollapsed;
     
+    // Get toggle button and icon
+    const toggleBtn = document.getElementById('sidebar-toggle-btn');
+    const toggleIcon = toggleBtn?.querySelector('.sidebar-toggle-icon');
+    
     // Update classes and margins
     if (this.isCollapsed) {
         this.sidebar.classList.add('collapsed');
         if (this.mainContent) {
             this.mainContent.classList.add('sidebar-collapsed');
             this.mainContent.style.marginLeft = '64px';
+        }
+        
+        // Update icon to open state
+        if (toggleIcon) {
+            toggleIcon.innerHTML = '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/>';
         }
         
         // Dispatch collapsed event
@@ -564,6 +574,11 @@ toggleSidebar() {
             this.mainContent.style.marginLeft = '256px';
         }
         
+        // Update icon to default state
+        if (toggleIcon) {
+            toggleIcon.innerHTML = '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>';
+        }
+        
         // Dispatch expanded event
         window.dispatchEvent(new CustomEvent('sidebar:expanded'));
     }
@@ -573,7 +588,6 @@ toggleSidebar() {
     
     console.log('✅ [SidebarManager] Sidebar toggled to:', this.isCollapsed ? 'collapsed' : 'expanded');
 }
-
     updateSidebarState() {
         if (!this.sidebar) return;
         
