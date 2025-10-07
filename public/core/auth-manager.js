@@ -419,34 +419,29 @@ if (data.session) {
         throw new Error('Failed to create user record after 3 attempts');
     }
     
-    // THEN check onboarding status
-    const needsOnboarding = await this.checkOnboardingStatus();
-            
-            const rootDomain = window.location.hostname.replace(/^(auth|app|admin|legal|contact|status|www)\./, '');
-            const appUrl = window.OsliraEnv.getAppUrl(needsOnboarding ? '/onboarding' : '/dashboard');
-            
-            console.log('🔐 [Auth] Redirecting to:', appUrl);
-            
-// Store session tokens in URL hash for cross-subdomain transfer
-const tokens = {
-    access_token: data.session.access_token,
-    refresh_token: data.session.refresh_token
-};
-const authHash = btoa(JSON.stringify(tokens));
-
-// Build redirect URL with session token
-const redirectUrl = needsOnboarding 
-    ? `${appUrl}#auth=${authHash}`
-    : `${appUrl}#auth=${authHash}`;
-
-console.log('🔐 [Auth] Redirecting with session token to:', redirectUrl);
-
-return {
-    session: data.session,
-    user: data.session.user,
-    needsOnboarding,
-    redirectTo: redirectUrl
-};
+const needsOnboarding = await this.checkOnboardingStatus();
+        
+        const rootDomain = window.location.hostname.replace(/^(auth|app|admin|legal|contact|status|www)\./, '');
+        const appUrl = window.OsliraEnv.getAppUrl(needsOnboarding ? '/onboarding' : '/dashboard');
+        
+        // Build redirect URL with URL-safe base64 encoding
+        const tokens = {
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token
+        };
+        const base64 = btoa(JSON.stringify(tokens));
+        const urlSafeBase64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        const redirectUrl = `${appUrl}#auth=${urlSafeBase64}`;
+        
+        console.log('🔐 [Auth] Redirecting to:', redirectUrl);
+        
+        return {
+            session: data.session,
+            user: data.session.user,
+            needsOnboarding,
+            redirectTo: redirectUrl
+        };
+    
         } else {
             console.log('❌ [Auth] No valid session found');
             throw new Error('No valid session found after authentication');
