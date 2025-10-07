@@ -481,8 +481,13 @@ class AdminApp {
             this.initialized = true;
             console.log('✅ [AdminApp] Admin panel ready');
             
-            // Make page visible
-            document.body.style.visibility = 'visible';
+            // Make page visible (both body AND admin-page-root)
+document.body.style.visibility = 'visible';
+
+const pageRoot = document.getElementById('admin-page-root');
+if (pageRoot) {
+    pageRoot.style.display = 'block';
+}
             
         } catch (error) {
             console.error('❌ [AdminApp] Initialization failed:', error);
