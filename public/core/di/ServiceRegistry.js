@@ -1,18 +1,14 @@
 // =============================================================================
-// SERVICE REGISTRY - Service Definitions & Dependencies
+// SERVICE REGISTRY - Complete Service Registration
 // Path: /public/core/di/ServiceRegistry.js
-// Dependencies: None (pure configuration)
+// Dependencies: None
 // =============================================================================
 
 /**
  * @class ServiceRegistry
- * @description Central registry of all services and their dependencies
+ * @description Central registry of all services with their dependencies
  * 
- * Features:
- * - Service definitions with dependencies
- * - Initialization order determination
- * - Singleton vs factory patterns
- * - Service metadata
+ * COMPLETE REGISTRATION - ALL SYSTEM SERVICES
  */
 class ServiceRegistry {
     constructor() {
@@ -20,21 +16,20 @@ class ServiceRegistry {
         this.initialized = false;
         
         console.log('📋 [ServiceRegistry] Instance created');
+        
+        // Auto-register all services
         this.registerAllServices();
     }
     
     // =========================================================================
-    // SERVICE REGISTRATION
+    // AUTO-REGISTRATION
     // =========================================================================
     
-    /**
-     * Register all services with their dependencies
-     */
     registerAllServices() {
-        console.log('📋 [ServiceRegistry] Registering services...');
+        console.log('📝 [ServiceRegistry] Registering all services...');
         
         // =================================================================
-        // PHASE 1: INFRASTRUCTURE (No Dependencies)
+        // PHASE 2: INFRASTRUCTURE
         // =================================================================
         
         this.register({
@@ -44,8 +39,30 @@ class ServiceRegistry {
             dependencies: [],
             singleton: true,
             autoInit: true,
-            phase: 1,
-            description: 'Environment and page detection'
+            phase: 2,
+            description: 'Environment detection'
+        });
+        
+        this.register({
+            name: 'ConfigProvider',
+            class: 'OsliraConfigProvider',
+            instance: 'OsliraConfig',
+            dependencies: ['EnvDetector'],
+            singleton: true,
+            autoInit: true,
+            phase: 2,
+            description: 'Configuration management'
+        });
+        
+        this.register({
+            name: 'HttpClient',
+            class: 'OsliraHttpClient',
+            instance: 'OsliraHttp',
+            dependencies: ['Logger'],
+            singleton: true,
+            autoInit: true,
+            phase: 2,
+            description: 'HTTP client with retry logic'
         });
         
         this.register({
@@ -55,8 +72,8 @@ class ServiceRegistry {
             dependencies: [],
             singleton: true,
             autoInit: true,
-            phase: 1,
-            description: 'Logging system with Sentry integration'
+            phase: 2,
+            description: 'Logging system with Sentry'
         });
         
         this.register({
@@ -66,34 +83,19 @@ class ServiceRegistry {
             dependencies: ['Logger'],
             singleton: true,
             autoInit: true,
-            phase: 1,
-            description: 'Global error handling'
-        });
-        
-        // =================================================================
-        // PHASE 2: CONFIGURATION
-        // =================================================================
-        
-        this.register({
-            name: 'ConfigProvider',
-            class: 'OsliraConfigProvider',
-            instance: 'OsliraConfig',
-            dependencies: ['EnvDetector', 'Logger'],
-            singleton: true,
-            autoInit: true,
             phase: 2,
-            description: 'Configuration management from AWS'
+            description: 'Global error handler'
         });
         
         this.register({
-            name: 'HttpClient',
-            class: 'OsliraHttpClient',
-            instance: 'OsliraHttpClient',
-            dependencies: ['Logger', 'ConfigProvider'],
+            name: 'Monitoring',
+            class: 'OsliraMonitoring',
+            instance: 'OsliraMonitoring',
+            dependencies: ['Logger'],
             singleton: true,
-            autoInit: true,
+            autoInit: false, // Optional
             phase: 2,
-            description: 'HTTP client with retry and timeout'
+            description: 'Performance monitoring'
         });
         
         // =================================================================
@@ -104,20 +106,20 @@ class ServiceRegistry {
             name: 'AuthManager',
             class: 'OsliraAuthManager',
             instance: 'OsliraAuth',
-            dependencies: ['EnvDetector', 'ConfigProvider', 'Logger'],
+            dependencies: ['ConfigProvider', 'Logger'],
             singleton: true,
             autoInit: true,
             phase: 3,
-            description: 'Authentication system'
+            description: 'Authentication manager'
         });
         
         this.register({
             name: 'SessionValidator',
             class: 'OsliraSessionValidator',
-            instance: null, // Created by AuthManager
+            instance: 'OsliraSessionValidator',
             dependencies: ['AuthManager'],
-            singleton: false,
-            autoInit: false,
+            singleton: true,
+            autoInit: false, // Started by AuthManager
             phase: 3,
             description: 'Session validation'
         });
@@ -125,12 +127,12 @@ class ServiceRegistry {
         this.register({
             name: 'TokenRefresher',
             class: 'OsliraTokenRefresher',
-            instance: null, // Created by AuthManager
+            instance: 'OsliraTokenRefresher',
             dependencies: ['AuthManager'],
-            singleton: false,
-            autoInit: false,
+            singleton: true,
+            autoInit: false, // Started by AuthManager
             phase: 3,
-            description: 'Token refresh system'
+            description: 'Token refresh manager'
         });
         
         // =================================================================
@@ -318,26 +320,52 @@ class ServiceRegistry {
             description: 'Form validation system'
         });
         
+        // =================================================================
+        // PHASE 10: UTILITIES
+        // =================================================================
+        
         this.register({
-            name: 'AppSidebar',
-            class: 'OsliraAppSidebar',
-            instance: 'OsliraAppSidebar',
-            dependencies: ['AuthManager', 'BusinessService', 'EventBus', 'Logger'],
+            name: 'DateUtils',
+            class: 'OsliraDateUtils',
+            instance: 'OsliraDateUtils',
+            dependencies: [],
             singleton: true,
-            autoInit: false, // Manually initialized by pages
-            phase: 8,
-            description: 'Application sidebar'
+            autoInit: false, // Utilities don't need init
+            phase: 10,
+            description: 'Date formatting and parsing'
         });
         
         this.register({
-            name: 'AdminSidebar',
-            class: 'OsliraAdminSidebar',
-            instance: 'OsliraAdminSidebar',
-            dependencies: ['AuthManager', 'EventBus', 'Logger'],
+            name: 'ValidationUtils',
+            class: 'OsliraValidationUtils',
+            instance: 'OsliraValidationUtils',
+            dependencies: [],
             singleton: true,
             autoInit: false,
-            phase: 8,
-            description: 'Admin sidebar'
+            phase: 10,
+            description: 'Input validation utilities'
+        });
+        
+        this.register({
+            name: 'FormatUtils',
+            class: 'OsliraFormatUtils',
+            instance: 'OsliraFormatUtils',
+            dependencies: [],
+            singleton: true,
+            autoInit: false,
+            phase: 10,
+            description: 'Number and text formatting'
+        });
+        
+        this.register({
+            name: 'CryptoUtils',
+            class: 'OsliraCryptoUtils',
+            instance: 'OsliraCryptoUtils',
+            dependencies: [],
+            singleton: true,
+            autoInit: false,
+            phase: 10,
+            description: 'Cryptographic utilities'
         });
         
         this.initialized = true;
@@ -359,20 +387,17 @@ class ServiceRegistry {
             dependencies = [],
             singleton = true,
             autoInit = true,
-            phase = 1,
+            phase = 0,
             description = ''
         } = config;
         
-        if (!name) {
-            throw new Error('Service name is required');
-        }
-        
-        if (!className) {
-            throw new Error(`Service ${name} must have a class name`);
+        if (!name || !className) {
+            throw new Error('[ServiceRegistry] Service must have name and class');
         }
         
         if (this.services.has(name)) {
-            throw new Error(`Service ${name} already registered`);
+            console.warn(`⚠️ [ServiceRegistry] Service ${name} already registered`);
+            return;
         }
         
         this.services.set(name, {
@@ -388,12 +413,8 @@ class ServiceRegistry {
         });
     }
     
-    // =========================================================================
-    // SERVICE LOOKUP
-    // =========================================================================
-    
     /**
-     * Get service definition
+     * Get service configuration
      */
     getService(name) {
         return this.services.get(name);
@@ -414,24 +435,10 @@ class ServiceRegistry {
     }
     
     /**
-     * Get services that auto-initialize
+     * Get auto-init services
      */
     getAutoInitServices() {
         return this.getAllServices().filter(s => s.autoInit);
-    }
-    
-    /**
-     * Get singleton services
-     */
-    getSingletonServices() {
-        return this.getAllServices().filter(s => s.singleton);
-    }
-    
-    /**
-     * Check if service exists
-     */
-    hasService(name) {
-        return this.services.has(name);
     }
     
     // =========================================================================
@@ -439,42 +446,10 @@ class ServiceRegistry {
     // =========================================================================
     
     /**
-     * Get service dependencies (direct only)
+     * Get initialization order (topological sort)
      */
-    getServiceDependencies(name) {
-        const service = this.getService(name);
-        return service ? service.dependencies : [];
-    }
-    
-    /**
-     * Get all dependencies (recursive)
-     */
-    getAllDependencies(name, visited = new Set()) {
-        if (visited.has(name)) {
-            return [];
-        }
-        
-        visited.add(name);
-        
-        const service = this.getService(name);
-        if (!service) {
-            return [];
-        }
-        
-        const allDeps = [...service.dependencies];
-        
-        for (const dep of service.dependencies) {
-            const subDeps = this.getAllDependencies(dep, visited);
-            allDeps.push(...subDeps);
-        }
-        
-        return [...new Set(allDeps)]; // Remove duplicates
-    }
-    
-    /**
-     * Get initialization order for a service (topological sort)
-     */
-    getInitializationOrder(name) {
+    getFullInitializationOrder() {
+        const autoInitServices = this.getAutoInitServices();
         const order = [];
         const visited = new Set();
         const visiting = new Set();
@@ -505,33 +480,9 @@ class ServiceRegistry {
             order.push(serviceName);
         };
         
-        visit(name);
-        return order;
-    }
-    
-    /**
-     * Get full initialization order for all auto-init services
-     */
-    getFullInitializationOrder() {
-        const autoInitServices = this.getAutoInitServices();
-        const order = [];
-        const visited = new Set();
-        
-        // Sort by phase first
-        autoInitServices.sort((a, b) => a.phase - b.phase);
-        
+        // Visit all auto-init services
         for (const service of autoInitServices) {
-            const serviceOrder = this.getInitializationOrder(service.name);
-            
-            for (const name of serviceOrder) {
-                if (!visited.has(name)) {
-                    const svc = this.getService(name);
-                    if (svc && svc.autoInit) {
-                        order.push(name);
-                        visited.add(name);
-                    }
-                }
-            }
+            visit(service.name);
         }
         
         return order;
@@ -542,21 +493,16 @@ class ServiceRegistry {
     // =========================================================================
     
     /**
-     * Validate all service definitions
+     * Validate registry
      */
     validate() {
         const errors = [];
         
         for (const service of this.services.values()) {
-            // Check if class exists
-            if (!window[service.className]) {
-                errors.push(`Service ${service.name}: Class ${service.className} not found`);
-            }
-            
-            // Check if dependencies exist
+            // Check dependencies exist
             for (const dep of service.dependencies) {
-                if (!this.hasService(dep)) {
-                    errors.push(`Service ${service.name}: Dependency ${dep} not registered`);
+                if (!this.services.has(dep)) {
+                    errors.push(`${service.name}: missing dependency ${dep}`);
                 }
             }
         }
@@ -565,7 +511,7 @@ class ServiceRegistry {
         try {
             this.getFullInitializationOrder();
         } catch (error) {
-            errors.push(`Circular dependency detected: ${error.message}`);
+            errors.push(error.message);
         }
         
         return {
@@ -574,24 +520,12 @@ class ServiceRegistry {
         };
     }
     
-    /**
-     * Check for circular dependencies
-     */
-    hasCircularDependencies() {
-        try {
-            this.getFullInitializationOrder();
-            return false;
-        } catch (error) {
-            return true;
-        }
-    }
-    
     // =========================================================================
-    // STATISTICS
+    // DEBUG
     // =========================================================================
     
     /**
-     * Get registry statistics
+     * Get statistics
      */
     getStats() {
         const services = this.getAllServices();
@@ -621,49 +555,6 @@ class ServiceRegistry {
         return breakdown;
     }
     
-    // =========================================================================
-    // DEBUG
-    // =========================================================================
-    
-    /**
-     * Print service tree
-     */
-    printServiceTree() {
-        console.group('📋 [ServiceRegistry] Service Tree');
-        
-        const phases = [...new Set(this.getAllServices().map(s => s.phase))].sort();
-        
-        for (const phase of phases) {
-            console.group(`Phase ${phase}`);
-            
-            const services = this.getServicesByPhase(phase);
-            for (const service of services) {
-                const deps = service.dependencies.length > 0 ? 
-                    ` → [${service.dependencies.join(', ')}]` : '';
-                console.log(`${service.name}${deps}`);
-            }
-            
-            console.groupEnd();
-        }
-        
-        console.groupEnd();
-    }
-    
-    /**
-     * Print initialization order
-     */
-    printInitializationOrder() {
-        console.group('📋 [ServiceRegistry] Initialization Order');
-        
-        const order = this.getFullInitializationOrder();
-        order.forEach((name, index) => {
-            const service = this.getService(name);
-            console.log(`${index + 1}. ${name} (Phase ${service.phase})`);
-        });
-        
-        console.groupEnd();
-    }
-    
     /**
      * Debug info
      */
@@ -671,19 +562,14 @@ class ServiceRegistry {
         console.group('📋 [ServiceRegistry] Debug Info');
         console.log('Stats:', this.getStats());
         console.log('Validation:', this.validate());
+        console.log('Init Order:', this.getFullInitializationOrder());
         console.groupEnd();
-        
-        this.printServiceTree();
-        this.printInitializationOrder();
     }
 }
 
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraServiceRegistry = ServiceRegistry;
+window.OsliraServiceRegistry = new ServiceRegistry();
 
-// Create singleton instance
-window.OsliraRegistry = new ServiceRegistry();
-
-console.log('✅ [ServiceRegistry] Loaded and initialized');
+console.log('✅ [ServiceRegistry] Loaded with', window.OsliraServiceRegistry.getStats().totalServices, 'services');
