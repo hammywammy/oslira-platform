@@ -166,30 +166,25 @@ Version: 2.0 - Bootstrap System
                 
                 updateStatus('Verifying credentials...');
                 
-                // Handle the OAuth callback (Supabase processes URL automatically)
-                const result = await window.OsliraAuth.handleCallback();
-                
-                if (result && result.session) {
-                    console.log('✅ [Callback] Authentication successful');
-                    console.log('🔐 [Callback] User:', result.session.user.email);
-                    
-                    updateStatus('Sign-in successful! Redirecting...');
-                    
-                    // Encode tokens for cross-subdomain redirect
-                    const tokenData = btoa(JSON.stringify({
-                        access_token: result.session.access_token,
-                        refresh_token: result.session.refresh_token
-                    }));
-                    
-                    console.log('🔐 [Callback] Redirecting with embedded auth tokens');
-                    
-                    // Redirect with tokens in hash
-                    redirectTo(`${result.redirectTo}#auth=${tokenData}`);
-                    
-                } else {
-                    console.log('❌ [Callback] No valid session found');
-                    throw new Error('No valid session found after authentication');
-                }
+// Handle the OAuth callback (Supabase processes URL automatically)
+const result = await window.OsliraAuth.handleCallback();
+
+if (result && result.session) {
+    console.log('✅ [Callback] Authentication successful');
+    console.log('🔐 [Callback] User:', result.session.user.email);
+    
+    updateStatus('Sign-in successful! Redirecting...');
+    
+    // result.redirectTo already contains the auth hash from handleCallback()
+    // Just redirect directly - no double encoding
+    console.log('🔐 [Callback] Redirecting to:', result.redirectTo);
+    
+    redirectTo(result.redirectTo);
+    
+} else {
+    console.log('❌ [Callback] No valid session found');
+    throw new Error('No valid session found after authentication');
+}
                 
             } catch (error) {
                 console.error('❌ [Callback] Callback processing failed:', error);
