@@ -815,6 +815,25 @@
   margin-bottom: 0;
   min-width: 280px;
 }
+
+/* =============================================================================
+   TOGGLE BUTTON HOVER STATES
+   ============================================================================= */
+
+.sidebar-toggle-btn:hover .sidebar-toggle-icon {
+  stroke: #2563eb;
+}
+
+/* Hover state - show close icon when sidebar is open */
+.sidebar:not(.collapsed) .sidebar-toggle-btn:hover .sidebar-toggle-icon rect + path {
+  d: path("M15 3v18");
+}
+
+/* Hover state - show open icon when sidebar is closed */
+.sidebar.collapsed .sidebar-toggle-btn:hover .sidebar-toggle-icon rect + path {
+  d: path("M9 3v18");
+}
+
 /* Mobile responsiveness */
 @media (max-width: 1024px) {
   .sidebar {
