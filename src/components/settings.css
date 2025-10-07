@@ -3,16 +3,15 @@
    Shared styles for all settings pages
    ============================================================================= */
 
-/* Main Layout */
-.main-content {
+.settings-page .main-content {
   margin-left: 256px;
   min-height: 100vh;
-  background: #fafafa;
+  background: transparent;
   transition: margin-left 0.3s ease;
   padding: 0;
 }
 
-.main-content.sidebar-collapsed {
+.settings-page .main-content.sidebar-collapsed {
   margin-left: 64px;
 }
 
