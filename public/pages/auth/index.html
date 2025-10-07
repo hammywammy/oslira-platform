@@ -1,36 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
+<!-- 
+═══════════════════════════════════════════════════════════════════
+AUTH PAGE - OSLIRA BOOTSTRAP ARCHITECTURE
+Path: /public/pages/auth/index.html
+Version: 2.0 - Bootstrap System
+═══════════════════════════════════════════════════════════════════
+-->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign up for Oslira - AI Lead Generation</title>
     <meta name="description" content="Start your free trial with Oslira. Get 25 free credits for lead analyses, then upgrade for more access to AI-powered lead generation.">
+    
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
     
     <!-- Tailwind CSS -->
     <link rel="stylesheet" href="/assets/css/tailwind.css">
     
-    <!-- Script loader initialization -->
-    <script src="/core/script-loader.js"></script>
+    <!-- ═══════════════════════════════════════════════════════════
+         BOOTSTRAP SYSTEM - Load order matters
+         ═══════════════════════════════════════════════════════════ -->
+    <script src="/core/env-manager.js"></script>
+    <script src="/core/boot/loader.js"></script>
+    <script src="/core/registry/module-registry.js"></script>
+    <script src="/core/boot/orchestrator.js"></script>
+    <script src="/core/boot/bootstrap.js"></script>
 </head>
+
 <body class="auth-page-body" style="visibility: hidden;">
     <div class="auth-container">
-        <!-- Loading State -->
-        <div id="loading-state" class="auth-loading-state">
+        
+        <!-- ═══════════════════════════════════════════════════════════
+             LOADING STATE
+             ═══════════════════════════════════════════════════════════ -->
+        <div id="loading-state" class="auth-loading-state hidden">
             <div class="auth-loading-spinner"></div>
             <p id="loading-message" class="auth-loading-text">Loading...</p>
         </div>
 
-        <!-- Error State -->
-        <div id="error-state" class="auth-error-message">
+        <!-- ═══════════════════════════════════════════════════════════
+             ERROR STATE
+             ═══════════════════════════════════════════════════════════ -->
+        <div id="error-state" class="auth-error-message hidden">
             <div class="alert-content">
                 <strong>Error</strong>
                 <span id="error-message"></span>
             </div>
         </div>
 
-        <!-- Success State -->
-        <div id="success-state" class="auth-success-state">
+        <!-- ═══════════════════════════════════════════════════════════
+             SUCCESS STATE
+             ═══════════════════════════════════════════════════════════ -->
+        <div id="success-state" class="auth-success-state hidden">
             <div class="auth-success-icon">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -43,17 +66,23 @@
             </div>
         </div>
 
-        <!-- Header -->
+        <!-- ═══════════════════════════════════════════════════════════
+             HEADER
+             ═══════════════════════════════════════════════════════════ -->
         <div class="auth-header">
             <div class="auth-logo-container">
                 <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" class="auth-logo-image">
                 <span class="auth-logo-text">Oslira</span>
             </div>
             <h1 id="auth-title" class="auth-title">Start your free trial</h1>
-            <p id="auth-subtitle" class="auth-subtitle">Get 25 free credits for lead analyses, then upgrade for more access to AI-powered lead generation.</p>
+            <p id="auth-subtitle" class="auth-subtitle">
+                Get 25 free credits for lead analyses, then upgrade for more access to AI-powered lead generation.
+            </p>
         </div>
 
-        <!-- Google Sign In (Only Auth Option) -->
+        <!-- ═══════════════════════════════════════════════════════════
+             GOOGLE SIGN-IN (Only Auth Option)
+             ═══════════════════════════════════════════════════════════ -->
         <div id="auth-options" class="auth-step active">
             <button type="button" class="auth-method primary" id="google-signin-btn">
                 <div class="auth-icon">
@@ -68,7 +97,9 @@
             </button>
         </div>
 
-        <!-- Footer -->
+        <!-- ═══════════════════════════════════════════════════════════
+             FOOTER
+             ═══════════════════════════════════════════════════════════ -->
         <div class="auth-footer">
             <p class="auth-note">
                 By continuing, you agree to our Terms of Service and Privacy Policy.
@@ -81,46 +112,14 @@
         </div>
     </div>
 
-<script>
-    // Show content immediately
-    document.body.style.visibility = 'visible';
-    
-    // Set legal links dynamically after env loads
-    function setLegalLinks() {
-        if (!window.OsliraEnv || !window.OsliraEnv.rootDomain) {
-            setTimeout(setLegalLinks, 100);
-            return;
-        }
-        
-        console.log('🔗 [Auth] Setting legal links with root domain:', window.OsliraEnv.rootDomain);
-        
-        document.querySelectorAll('[data-legal-link]').forEach(link => {
-            const type = link.getAttribute('data-legal-link');
-            let targetUrl;
-            
-            if (type === 'terms') {
-                targetUrl = window.OsliraEnv.getLegalUrl('terms');
-            } else if (type === 'privacy') {
-                targetUrl = window.OsliraEnv.getLegalUrl('privacy');
-            } else if (type === 'contact') {
-                targetUrl = window.OsliraEnv.getContactUrl('');
-            }
-            
-            if (targetUrl) {
-                link.href = targetUrl;
-                console.log(`✅ [Auth] Set ${type} link to:`, targetUrl);
-            }
-        });
-    }
-    
-    // Wait for env manager to initialize
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', setLegalLinks);
-    } else {
-        setLegalLinks();
-    }
-    
-    console.log('🔐 [Auth] Simple auth page loaded');
-</script>
+    <!-- ═══════════════════════════════════════════════════════════
+         MINIMAL INLINE JAVASCRIPT
+         All complex logic handled by AuthApp
+         ═══════════════════════════════════════════════════════════ -->
+    <script>
+        // Show content immediately to prevent FOUC
+        document.body.style.visibility = 'visible';
+        console.log('🔐 [Auth] Page loaded');
+    </script>
 </body>
 </html>
