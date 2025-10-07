@@ -8,10 +8,9 @@
     <meta name="description" content="Paste an Instagram link and Oslira grades the profile, gives you a clear debrief, crafts personalized outreach, and suggests your next leads. Get 25 free credits — no card required.">
     <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
 <link rel="shortcut icon" type="image/png" href="/assets/images/oslira-logo.png">
-    
-    <!-- Preload critical CSS -->
-    <link rel="preload" href="/assets/css/tailwind.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/assets/css/tailwind.css"></noscript>
+
+    <!-- Remove preload, use direct blocking load -->
+<link rel="stylesheet" href="/assets/css/tailwind.css">
     
     <!-- Critical above-fold styles to prevent FOUC -->
     <style>
