@@ -34,8 +34,12 @@
 <!-- Load HeaderManager BEFORE script-loader (synchronous, blocking) -->
 <script src="/core/header/header-manager.js"></script>
 
-<!-- Script loader initialization -->
-<script src="/core/script-loader.js"></script>
+<!-- ✅ NEW SYSTEM -->
+<script src="/core/env-manager.js"></script>
+<script src="/core/boot/loader.js"></script>
+<script src="/core/registry/module-registry.js"></script>
+<script src="/core/boot/orchestrator.js"></script>
+<script src="/core/boot/bootstrap.js"></script>
 </head>
 <body class="home-page-body">
 
