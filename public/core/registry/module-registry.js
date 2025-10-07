@@ -116,7 +116,7 @@ home: {
         '/pages/home/home-app.js'  // ← NEW FILE
     ],
     requiresAuth: false
-}
+},
             
             // ═══════════════════════════════════════════════════
             // ONBOARDING
