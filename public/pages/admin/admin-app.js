@@ -62,51 +62,55 @@ class AdminCore {
     // PASSWORD AUTHENTICATION
     // =========================================================================
     
-    async verifyAdminPassword() {
-        console.log('🔐 [AdminCore] Starting password verification...');
-        
-        // Check if already verified in this session
-        const SESSION_KEY = 'admin_auth_' + btoa(window.location.hostname).slice(0, 8);
-        const SESSION_DURATION = 8 * 60 * 60 * 1000;
-        
-        try {
-            const authData = sessionStorage.getItem(SESSION_KEY);
-            if (authData) {
-                const parsed = JSON.parse(authData);
-                const isExpired = Date.now() - parsed.timestamp > SESSION_DURATION;
-                
-                if (!isExpired && parsed.verified && parsed.isAdmin) {
-                    console.log('✅ [AdminCore] Valid admin session found');
-                    this.passwordVerified = true;
-                    return;
-                }
+ async verifyAdminPassword() {
+    console.log('🔐 [AdminCore] Starting password verification...');
+    
+    // Check if already verified in this session
+    const SESSION_KEY = 'admin_auth_' + btoa(window.location.hostname).slice(0, 8);
+    const SESSION_DURATION = 8 * 60 * 60 * 1000;
+    
+    try {
+        const authData = sessionStorage.getItem(SESSION_KEY);
+        if (authData) {
+            const parsed = JSON.parse(authData);
+            const isExpired = Date.now() - parsed.timestamp > SESSION_DURATION;
+            
+            if (!isExpired && parsed.verified && parsed.isAdmin) {
+                console.log('✅ [AdminCore] Valid admin session found');
+                this.passwordVerified = true;
+                return;
             }
-        } catch (e) {
-            sessionStorage.removeItem(SESSION_KEY);
         }
-        
-        // Show password prompt
-        console.log('🔑 [AdminCore] Showing password prompt...');
-        await this.showPasswordPrompt(SESSION_KEY);
-        
-        // Password verified, now check if user is admin
-        console.log('🔐 [AdminCore] Checking admin privileges...');
-        const isAdmin = await this.checkIsAdmin();
-        
-        if (!isAdmin) {
-            console.error('❌ [AdminCore] User is not an admin');
-            this.showAdminDeniedError();
-            throw new Error('Access denied - admin privileges required');
-        }
-        
-        // Save admin status to session
-        const authData = JSON.parse(sessionStorage.getItem(SESSION_KEY));
-        authData.isAdmin = true;
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify(authData));
-        
-        console.log('✅ [AdminCore] Password verified and admin confirmed');
-        this.passwordVerified = true;
+    } catch (e) {
+        sessionStorage.removeItem(SESSION_KEY);
     }
+    
+    // Show password prompt
+    console.log('🔑 [AdminCore] Showing password prompt...');
+    
+    // CRITICAL: Make body visible so password prompt can be seen
+    document.body.style.visibility = 'visible';
+    
+    await this.showPasswordPrompt(SESSION_KEY);
+    
+    // Password verified, now check if user is admin
+    console.log('🔐 [AdminCore] Checking admin privileges...');
+    const isAdmin = await this.checkIsAdmin();
+    
+    if (!isAdmin) {
+        console.error('❌ [AdminCore] User is not an admin');
+        this.showAdminDeniedError();
+        throw new Error('Access denied - admin privileges required');
+    }
+    
+    // Save admin status to session
+    const authData = JSON.parse(sessionStorage.getItem(SESSION_KEY));
+    authData.isAdmin = true;
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(authData));
+    
+    console.log('✅ [AdminCore] Password verified and admin confirmed');
+    this.passwordVerified = true;
+}
 
     async checkIsAdmin() {
         try {
