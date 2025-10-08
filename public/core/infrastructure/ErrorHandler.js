@@ -66,16 +66,22 @@ class ErrorHandler {
                 console.warn('⚠️ [ErrorHandler] Logger not available');
             }
             
-            // Setup global error handlers
-            this.setupGlobalHandlers();
-            
-            this.isInitialized = true;
-            console.log('✅ [ErrorHandler] Initialized');
-            
-        } catch (error) {
-            console.error('❌ [ErrorHandler] Initialization failed:', error);
-            throw error;
-        }
+// Setup global error handlers
+this.setupGlobalHandlers();
+
+this.isInitialized = true;
+console.log('✅ [ErrorHandler] Initialized');
+
+// Register with Coordinator after successful initialization
+if (window.Oslira?.init) {
+    window.Oslira.init.register('ErrorHandler', this);
+    console.log('📋 [ErrorHandler] Registered with Coordinator');
+}
+
+} catch (error) {
+    console.error('❌ [ErrorHandler] Initialization failed:', error);
+    throw error;
+}
     }
     
     // =========================================================================
@@ -535,9 +541,3 @@ window.OsliraErrorHandler = new ErrorHandler();
 setTimeout(() => {
     window.OsliraErrorHandler.initialize().catch(console.error);
 }, 100);
-
-console.log('✅ [ErrorHandler] Loaded, awaiting initialization');
-if (window.Oslira?.init) {
-    window.Oslira.init.register('Logger', window.OsliraLogger);
-    console.log('📋 [Logger] Registered with Coordinator');
-}
