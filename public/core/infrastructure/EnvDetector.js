@@ -16,24 +16,28 @@
  * - Zero external dependencies
  */
 class EnvDetector {
-    constructor() {
-        // Raw URL info
-        this.hostname = window.location.hostname;
-        this.origin = window.location.origin;
-        this.pathname = window.location.pathname;
-        
-        // Domain configuration
-        this.domains = {
-            production: 'oslira.com',
-            staging: 'oslira.org',
-            netlifyStaging: 'osliratest.netlify.app'
-        };
-        
-        // Initialization
-        this.detectEnvironment();
-        this.detectRootDomain();
-        this.detectCurrentPage();
-        this.buildPageRegistry();
+constructor() {
+    // Raw URL info
+    this.hostname = window.location.hostname;
+    this.origin = window.location.origin;
+    this.pathname = window.location.pathname;
+    
+    // Domain configuration
+    this.domains = {
+        production: 'oslira.com',
+        staging: 'oslira.org',
+        netlifyStaging: 'osliratest.netlify.app'
+    };
+    
+    // Initialize page map first
+    this.pageMap = null;
+    this.pageTypes = null;
+    
+    // Initialization (ORDER MATTERS)
+    this.detectEnvironment();
+    this.detectRootDomain();
+    this.buildPageRegistry();  // ← MUST be before detectCurrentPage
+    this.detectCurrentPage();
         
         console.log('🌍 [EnvDetector] Initialized:', {
             env: this.environment,
