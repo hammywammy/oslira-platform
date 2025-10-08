@@ -78,11 +78,11 @@ class Bootstrap {
             this.isBootstrapped = true;
             this.endTime = Date.now();
             
-            const duration = this.endTime - this.startTime;
+const duration = this.endTime - this.startTime;
             console.log(`✅ [Bootstrap] All phases complete in ${duration}ms`);
             
-            // Make body visible
-            this.showBody();
+            // Body is already visible (SSR approach)
+            // No need to manipulate visibility
             
             // Emit bootstrap complete event
             this.emitEvent('bootstrap:complete', { duration });
