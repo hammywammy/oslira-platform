@@ -579,23 +579,24 @@ class Selectors {
 }
 
 // =============================================================================
-// GLOBAL EXPORT
+// GLOBAL EXPORT (Safe Singleton Pattern)
 // =============================================================================
 
-// Create singleton instance (requires Store)
-const store = window.OsliraStore;
-const instance = new Selectors(store);
-
-// Export to window
-window.OsliraSelectors = instance;
-
-// Auto-initialize
-instance.initialize();
-
-console.log('✅ [Selectors] Loaded and initialized');
-
-// Register with Coordinator immediately (Pattern A)
-if (window.Oslira?.init) {
-    window.Oslira.init.register('Selectors', instance);
-    console.log('📋 [Selectors] Registered with Coordinator');
+if (!window.OsliraSelectors) {
+    const store = window.OsliraStore;
+    const instance = new Selectors(store);
+    
+    window.OsliraSelectors = instance;
+    
+    // Auto-initialize
+    instance.initialize();
+    
+    console.log('✅ [Selectors] Loaded and initialized');
+    
+    if (window.Oslira?.init) {
+        window.Oslira.init.register('Selectors', instance);
+        console.log('📋 [Selectors] Registered with Coordinator');
+    }
+} else {
+    console.log('⚠️ [Selectors] Already loaded, skipping re-initialization');
 }
