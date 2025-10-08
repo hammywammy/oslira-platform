@@ -588,3 +588,7 @@ window.OsliraLogger = new Logger();
 window.OsliraLogger.initialize().catch(console.error);
 
 console.log('✅ [Logger] Loaded and initialized');
+if (window.Oslira?.init) {
+    window.Oslira.init.register('Logger', window.OsliraLogger);
+    console.log('📋 [Logger] Registered with Coordinator');
+}
