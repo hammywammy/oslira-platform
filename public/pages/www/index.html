@@ -3,7 +3,7 @@
 <!-- 
 ═══════════════════════════════════════════════════════════════════
 HOME PAGE - OSLIRA BOOTSTRAP ARCHITECTURE
-Path: /public/pages/home/index.html
+Path: /public/pages/www/index.html
 Version: 2.0 - Bootstrap System
 ═══════════════════════════════════════════════════════════════════
 -->
@@ -68,18 +68,9 @@ Version: 2.0 - Bootstrap System
     </style>
     
     <!-- ═══════════════════════════════════════════════════════════
-         BOOTSTRAP SYSTEM - Load order matters
+         SINGLE SCRIPT LOADER - Handles all core & page scripts
          ═══════════════════════════════════════════════════════════ -->
-    
-    <!-- 1. HeaderManager (synchronous for immediate render) -->
-    <script src="/core/header/header-manager.js"></script>
-    
-    <!-- 2. Bootstrap Core Scripts (order-dependent) -->
-    <script src="/core/env-manager.js"></script>
-    <script src="/core/boot/loader.js"></script>
-    <script src="/core/registry/module-registry.js"></script>
-    <script src="/core/boot/orchestrator.js"></script>
-    <script src="/core/boot/bootstrap.js"></script>
+    <script src="/core/init/Loader.js" data-page="home"></script>
 </head>
 
 <body class="home-page-body">
@@ -135,7 +126,7 @@ Version: 2.0 - Bootstrap System
                         <div class="hero-demo-container">
                             <p class="demo-intro-text">Try the AI analysis below:</p>
                             
-                            <!-- Demo Input (IDs match home-app.js) -->
+                            <!-- Demo Input (IDs match HomeApp.js) -->
                             <div class="demo-input-container">
                                 <input 
                                     type="text" 
@@ -217,7 +208,7 @@ Version: 2.0 - Bootstrap System
                                                 <span class="demo-tag">Business owner</span>
                                             </div>
                                             <div class="demo-outreach">
-                                                <p>"Hi Jane! Your portfolio caught my eye - especially the fintech project. I help designers like you..."</p>
+                                                <p>"Hi Jane! Your portfolio caught my eye - especially the fintech project..."</p>
                                             </div>
                                         </div>
                                     </div>
@@ -225,65 +216,72 @@ Version: 2.0 - Bootstrap System
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </section>
 
         <!-- Benefits Section -->
         <section id="benefits" class="benefits-section">
-            <div class="benefits-container">
-                <div class="benefits-header">
-                    <h2 class="benefits-title">Why Copywriters Love Oslira</h2>
-                    <p class="benefits-subtitle">Transform your client acquisition from painful to effortless</p>
-                </div>
-                
+            <div class="section-container">
+                <h2 class="section-title">Why Copywriters Choose Oslira</h2>
+                <p class="section-subtitle">
+                    Stop wasting time on manual research. Let AI do the heavy lifting.
+                </p>
+
                 <div class="benefits-grid">
                     <!-- Benefit 1 -->
                     <div class="benefit-card">
-                        <div class="benefit-icon time-icon">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <h3 class="benefit-title">⏰ Save Hours of Work</h3>
+                        <div class="benefit-icon">⚡</div>
+                        <h3 class="benefit-title">10x Faster Prospecting</h3>
                         <p class="benefit-description">
-                            Automate tedious lead research and reclaim hours every week. What used to take you 5+ hours of scrolling now happens in a 10-second analysis.
+                            Analyze 50+ Instagram profiles in the time it used to take for 5. Oslira instantly evaluates engagement, content quality, and business fit.
                         </p>
-                        <div class="benefit-proof">
-                            <span class="proof-stat">5+ hours → 10 seconds</span>
-                        </div>
                     </div>
 
                     <!-- Benefit 2 -->
                     <div class="benefit-card">
-                        <div class="benefit-icon clarity-icon">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <h3 class="benefit-title">🎯 Clear Direction & Focus</h3>
+                        <div class="benefit-icon">🎯</div>
+                        <h3 class="benefit-title">Smart Lead Scoring</h3>
                         <p class="benefit-description">
-                            Know exactly who to reach out to and how to approach them. Get instant clarity on your ideal client profile and a ready-made outreach strategy.
+                            AI grades each profile and highlights decision-makers who actually need your services. No more guessing who's a good fit.
                         </p>
-                        <div class="benefit-proof">
-                            <span class="proof-stat">95% qualified leads</span>
-                        </div>
                     </div>
 
                     <!-- Benefit 3 -->
                     <div class="benefit-card">
-                        <div class="benefit-icon personalization-icon">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                            </svg>
-                        </div>
-                        <h3 class="benefit-title">💌 Personalized Outreach</h3>
+                        <div class="benefit-icon">✍️</div>
+                        <h3 class="benefit-title">Personalized Outreach</h3>
                         <p class="benefit-description">
-                            Win more responses with AI-personalized messages. Users report 2-3× higher response rates when they personalize outreach using Oslira's insights.
+                            Get tailored message templates for each lead. Oslira crafts opening lines based on their recent posts and business needs.
                         </p>
-                        <div class="benefit-proof">
-                            <span class="proof-stat">12% → 43% response rate</span>
-                        </div>
+                    </div>
+
+                    <!-- Benefit 4 -->
+                    <div class="benefit-card">
+                        <div class="benefit-icon">🔄</div>
+                        <h3 class="benefit-title">Automated Follow-Ups</h3>
+                        <p class="benefit-description">
+                            Never lose a warm lead again. Oslira tracks your outreach and reminds you when to follow up for maximum conversion.
+                        </p>
+                    </div>
+
+                    <!-- Benefit 5 -->
+                    <div class="benefit-card">
+                        <div class="benefit-icon">📊</div>
+                        <h3 class="benefit-title">Track What Works</h3>
+                        <p class="benefit-description">
+                            See which profiles convert best and refine your targeting. Built-in analytics show you exactly where to focus your efforts.
+                        </p>
+                    </div>
+
+                    <!-- Benefit 6 -->
+                    <div class="benefit-card">
+                        <div class="benefit-icon">🚀</div>
+                        <h3 class="benefit-title">Scale Without Burnout</h3>
+                        <p class="benefit-description">
+                            Handle 3x more clients without sacrificing quality. Oslira handles the tedious research so you can focus on high-value work.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -291,19 +289,19 @@ Version: 2.0 - Bootstrap System
 
         <!-- How It Works Section -->
         <section id="how-it-works" class="how-it-works-section">
-            <div class="how-it-works-container">
-                <div class="how-it-works-header">
-                    <h2 class="how-it-works-title">Effortless 3-Step Workflow</h2>
-                    <p class="how-it-works-subtitle">From prospect discovery to personalized outreach in minutes</p>
-                </div>
-                
-                <div class="how-it-works-steps">
+            <div class="section-container">
+                <h2 class="section-title">How Oslira Works</h2>
+                <p class="section-subtitle">
+                    Three simple steps to transform your prospecting process
+                </p>
+
+                <div class="steps-grid">
                     <!-- Step 1 -->
                     <div class="step-card">
                         <div class="step-number">1</div>
-                        <h3 class="step-title">Analyze a Profile</h3>
+                        <h3 class="step-title">Paste Instagram Link</h3>
                         <p class="step-description">
-                           Enter any Instagram @handle — Oslira's AI instantly analyzes the profile for interests, business info, and engagement stats.
+                            Drop any Instagram profile URL into Oslira. Our AI instantly analyzes their content, engagement patterns, and business indicators.
                         </p>
                         <div class="step-visual">
                             <div class="step-demo-input">
@@ -317,16 +315,16 @@ Version: 2.0 - Bootstrap System
                     <!-- Step 2 -->
                     <div class="step-card">
                         <div class="step-number">2</div>
-                        <h3 class="step-title">Target the Right Leads</h3>
+                        <h3 class="step-title">Get Smart Recommendations</h3>
                         <p class="step-description">
-                            Let Oslira find and recommend similar high-potential prospects for you. Our AI scans for lookalike prospects who meet your ideal client criteria.
+                            Oslira scores the lead, highlights key insights, and suggests similar high-potential prospects. See exactly who needs your services most.
                         </p>
                         <div class="step-visual">
                             <div class="step-demo-grid">
-                                <div class="demo-prospect">👤</div>
-                                <div class="demo-prospect">👤</div>
-                                <div class="demo-prospect">👤</div>
-                                <div class="demo-prospect">👤</div>
+                                <div class="demo-prospect">👤 85%</div>
+                                <div class="demo-prospect">👤 92%</div>
+                                <div class="demo-prospect">👤 78%</div>
+                                <div class="demo-prospect">👤 88%</div>
                             </div>
                         </div>
                     </div>
@@ -334,13 +332,14 @@ Version: 2.0 - Bootstrap System
                     <!-- Step 3 -->
                     <div class="step-card">
                         <div class="step-number">3</div>
-                        <h3 class="step-title">Get Personalized Outreach</h3>
+                        <h3 class="step-title">Send Personalized Outreach</h3>
                         <p class="step-description">
-                            Receive AI-crafted message templates for each lead. Oslira generates a personalized DM or email draft based on their profile's content and interests.
+                            Use AI-generated message templates tailored to each lead. Copy, customize, and send - all in under 2 minutes per prospect.
                         </p>
                         <div class="step-visual">
                             <div class="step-demo-message">
-                                <p>"Hi Sarah, loved your latest post about morning routines. I help wellness coaches like you..."</p>
+                                <p>"Hi Sarah, loved your latest post about morning routines..."</p>
+                                <button class="demo-copy-btn">Copy Message</button>
                             </div>
                         </div>
                     </div>
@@ -350,67 +349,72 @@ Version: 2.0 - Bootstrap System
 
         <!-- Social Proof Section -->
         <section id="social-proof" class="social-proof-section">
-            <div class="social-proof-container">
-                <div class="social-proof-header">
-                    <h2 class="social-proof-title">Trusted by 1,200+ Professionals</h2>
-                    <p class="social-proof-subtitle">See why copywriters are switching to Oslira</p>
-                </div>
+            <div class="section-container">
+                <h2 class="section-title">Success Stories</h2>
+                <p class="section-subtitle">
+                    Real results from copywriters using Oslira
+                </p>
 
-                <!-- Success Metrics -->
-                <div class="success-metrics">
-                    <div class="metric-card">
-                        <div class="metric-number">85%</div>
-                        <div class="metric-label">Average response rate</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-number">2.4×</div>
-                        <div class="metric-label">ROI increase</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-number">5,000+</div>
-                        <div class="metric-label">Leads delivered</div>
-                    </div>
-                </div>
-
-                <!-- Testimonials -->
                 <div class="testimonials-grid">
+                    <!-- Testimonial 1 -->
                     <div class="testimonial-card">
-                        <div class="testimonial-content">
-                            <p>"Oslira helped me book 3 new clients in a month. It's like I have a research assistant working 24/7!"</p>
-                        </div>
+                        <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                        <p class="testimonial-text">
+                            "Oslira cut my prospecting time from 10 hours to under 2 hours per week. I'm landing 3x more clients with half the effort."
+                        </p>
                         <div class="testimonial-author">
-                            <div class="author-avatar">SC</div>
+                            <div class="author-avatar">MJ</div>
                             <div>
-                                <div class="author-name">Sarah C.</div>
+                                <div class="author-name">Marcus Johnson</div>
                                 <div class="author-title">Freelance Copywriter</div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="testimonial-card featured">
-                        <div class="testimonial-content">
-                            <p>"Our response rate went from 12% to 43%. Finally, a lead gen tool that actually works!"</p>
-                        </div>
+
+                    <!-- Testimonial 2 -->
+                    <div class="testimonial-card">
+                        <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                        <p class="testimonial-text">
+                            "The AI-generated outreach templates are shockingly good. My response rate jumped from 12% to 43% in the first month."
+                        </p>
                         <div class="testimonial-author">
-                            <div class="author-avatar">MR</div>
+                            <div class="author-avatar">SP</div>
                             <div>
-                                <div class="author-name">Mike R.</div>
-                                <div class="author-title">Growth Copywriter</div>
+                                <div class="author-name">Sarah Park</div>
+                                <div class="author-title">B2B Copy Specialist</div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Testimonial 3 -->
                     <div class="testimonial-card">
-                        <div class="testimonial-content">
-                            <p>"Finally, I don't have to spend hours scrolling Instagram. Oslira does the heavy lifting."</p>
-                        </div>
+                        <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                        <p class="testimonial-text">
+                            "Finally, a tool that actually understands my niche. Oslira finds perfect-fit leads I would've missed manually."
+                        </p>
                         <div class="testimonial-author">
-                            <div class="author-avatar">AJ</div>
+                            <div class="author-avatar">KL</div>
                             <div>
-                                <div class="author-name">Alex J.</div>
-                                <div class="author-title">Conversion Copywriter</div>
+                                <div class="author-name">Kevin Lee</div>
+                                <div class="author-title">SaaS Copywriter</div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Stats Bar -->
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <div class="stat-number">92%</div>
+                        <div class="stat-label">User Satisfaction</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">50K+</div>
+                        <div class="stat-label">Profiles Analyzed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">4.8/5</div>
+                        <div class="stat-label">Average Rating</div>
                     </div>
                 </div>
             </div>
@@ -418,34 +422,17 @@ Version: 2.0 - Bootstrap System
 
         <!-- Final CTA Section -->
         <section class="final-cta-section">
-            <div class="final-cta-container">
-                <div class="final-cta-content">
-                    <h2 class="final-cta-title">Ready to Land Your Next Client Effortlessly?</h2>
-                    <p class="final-cta-subtitle">
-                       Get 25 free credits and see the difference in your workflow — no risk, all reward.
+            <div class="section-container">
+                <div class="cta-card">
+                    <h2 class="cta-title">Ready to 10x Your Prospecting?</h2>
+                    <p class="cta-description">
+                        Join 1,200+ copywriters who are landing more clients with less effort. Start with 25 free credits — no credit card required.
                     </p>
-                    
-                    <!-- Urgency Element -->
-                    <div class="urgency-element">
-                        <p class="urgency-text">
-                            🚨 <strong>Limited Beta Spots:</strong> Only 47 free trials left this month
-                        </p>
-                    </div>
-
-                    <!-- Main CTA -->
-                    <div class="final-cta-button-container">
-                        <button class="btn-primary-final final-cta-main">
-                            Claim My Free Credits
-                        </button>
-                        <p class="final-cta-subtext">
-                            ✓ 25 free lead credits included<br>
-                            ✓ No credit card required<br>
-                            ✓ 2-minute setup
-                        </p>
-                    </div>
-
-                    <p class="final-urgency">
-                        Get started now and discover your next client in seconds.
+                    <button class="btn-primary-hero cta-button-large">
+                        Get Started Free
+                    </button>
+                    <p class="cta-footer-text">
+                        ✓ 25 free profile analyses • ✓ No credit card needed • ✓ Cancel anytime
                     </p>
                 </div>
             </div>
@@ -475,9 +462,17 @@ Version: 2.0 - Bootstrap System
          All complex logic handled by HomeApp
          ═══════════════════════════════════════════════════════════ -->
     <script>
-        // Urgency banner close
-        document.querySelector('.urgency-close')?.addEventListener('click', function() {
-            this.closest('.urgency-banner').style.display = 'none';
+        // Urgency banner close handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeBtn = document.querySelector('.urgency-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    const banner = this.closest('.urgency-banner');
+                    if (banner) {
+                        banner.style.display = 'none';
+                    }
+                });
+            }
         });
     </script>
 
