@@ -529,6 +529,18 @@ class Store {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraStore = Store;
 
-console.log('✅ [Store] Class loaded and ready');
+// Create singleton instance (requires Logger)
+const logger = window.OsliraLogger;
+const instance = new Store(logger);
+
+// Export to window
+window.OsliraStore = instance;
+
+console.log('✅ [Store] Loaded and ready');
+
+// Register with Coordinator immediately (Pattern A)
+if (window.Oslira?.init) {
+    window.Oslira.init.register('Store', instance);
+    console.log('📋 [Store] Registered with Coordinator');
+}
