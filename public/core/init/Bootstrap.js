@@ -156,39 +156,54 @@ class Bootstrap {
     // PHASE 1: INFRASTRUCTURE
     // =========================================================================
     
-    async initializeInfrastructure() {
-        console.log('🏗️ [Bootstrap] Initializing infrastructure...');
-        
-        // 1. Wait for EnvDetector
-        const env = await this.coordinator.waitFor('EnvDetector');
-        console.log('✅ [Bootstrap] EnvDetector ready');
-        
-        // 2. Wait for ConfigProvider
-        const config = await this.coordinator.waitFor('ConfigProvider');
-        console.log('✅ [Bootstrap] ConfigProvider ready');
-        
-        // 3. Wait for HttpClient
-        const http = await this.coordinator.waitFor('HttpClient');
-        console.log('✅ [Bootstrap] HttpClient ready');
-        
-        // 4. Wait for Logger
-        const logger = await this.coordinator.waitFor('Logger');
-        console.log('✅ [Bootstrap] Logger ready');
-        
-        // 5. Wait for ErrorHandler
-        const errorHandler = await this.coordinator.waitFor('ErrorHandler');
-        console.log('✅ [Bootstrap] ErrorHandler ready');
-        
-        // 6. Wait for Monitoring (optional)
-        try {
-            const monitoring = await this.coordinator.waitFor('Monitoring');
-            console.log('✅ [Bootstrap] Monitoring ready');
-        } catch (error) {
-            console.log('ℹ️ [Bootstrap] Monitoring not available (optional)');
-        }
-        
-        console.log('✅ [Bootstrap] Infrastructure phase complete');
+async initializeInfrastructure() {
+    console.log('🏗️ [Bootstrap] Initializing infrastructure...');
+    
+    // 1. Wait for EnvDetector (auto-registered on load)
+    const env = await this.coordinator.waitFor('EnvDetector');
+    console.log('✅ [Bootstrap] EnvDetector ready');
+    
+    // 2. Wait for Logger (auto-registered on load)
+    const logger = await this.coordinator.waitFor('Logger');
+    console.log('✅ [Bootstrap] Logger ready');
+    
+    // 3. Wait for ErrorHandler (auto-registered after init)
+    const errorHandler = await this.coordinator.waitFor('ErrorHandler');
+    console.log('✅ [Bootstrap] ErrorHandler ready');
+    
+    // 4. Initialize ConfigProvider (registers itself after init)
+    console.log('🔧 [Bootstrap] Initializing ConfigProvider...');
+    const config = window.OsliraConfig;
+    if (config && !config.isLoaded) {
+        await config.initialize({ envDetector: env, logger });
+        // ConfigProvider registers itself in initialize() method
     }
+    console.log('✅ [Bootstrap] ConfigProvider ready');
+    
+    // 5. Initialize HttpClient (registers itself after init)
+    console.log('🌐 [Bootstrap] Initializing HttpClient...');
+    const http = window.OsliraHttp;
+    if (http && !http.isInitialized) {
+        await http.initialize({ logger });
+        // HttpClient registers itself in initialize() method
+    }
+    console.log('✅ [Bootstrap] HttpClient ready');
+    
+    // 6. Initialize Monitoring (optional, registers itself after init)
+    try {
+        console.log('📊 [Bootstrap] Initializing Monitoring...');
+        const monitoring = window.OsliraMonitoring;
+        if (monitoring && typeof monitoring.initialize === 'function') {
+            await monitoring.initialize({ logger });
+            // Monitoring registers itself in initialize() method
+        }
+        console.log('✅ [Bootstrap] Monitoring ready');
+    } catch (error) {
+        console.log('ℹ️ [Bootstrap] Monitoring not available (optional)');
+    }
+    
+    console.log('✅ [Bootstrap] Infrastructure phase complete');
+}
     
     // =========================================================================
     // PHASE 2: SERVICES
