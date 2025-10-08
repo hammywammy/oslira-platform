@@ -647,21 +647,25 @@ class StateManager {
 }
 
 // =============================================================================
-// GLOBAL EXPORT
+// GLOBAL EXPORT (Safe Singleton Pattern)
 // =============================================================================
 
-// Create singleton instance (requires Store and Logger)
-const store = window.OsliraStore;
-const logger = window.OsliraLogger;  // ← Only ONE declaration
-const instance = new StateManager(store, logger);
-
-// Export to window
-window.OsliraStateManager = instance;
-
-console.log('✅ [StateManager] Loaded and ready');
-
-// Register with Coordinator immediately (Pattern A)
-if (window.Oslira?.init) {
-    window.Oslira.init.register('StateManager', instance);
-    console.log('📋 [StateManager] Registered with Coordinator');
+if (!window.OsliraStateManager) {
+    // Create singleton instance only if not exists
+    const store = window.OsliraStore;
+    const logger = window.OsliraLogger;
+    const instance = new StateManager(store, logger);
+    
+    // Export to window
+    window.OsliraStateManager = instance;
+    
+    console.log('✅ [StateManager] Loaded and ready');
+    
+    // Register with Coordinator immediately (Pattern A)
+    if (window.Oslira?.init) {
+        window.Oslira.init.register('StateManager', instance);
+        console.log('📋 [StateManager] Registered with Coordinator');
+    }
+} else {
+    console.log('⚠️ [StateManager] Already loaded, skipping re-initialization');
 }
