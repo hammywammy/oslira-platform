@@ -49,7 +49,7 @@ class AuthManager {
      * Initialize auth system with proper ordering
      * MUST be called after EnvDetector and Supabase CDN load
      */
-    async initialize() {
+async initialize() {
         // Prevent duplicate initialization
         if (this.isLoading) {
             console.log('⏳ [AuthManager] Already initializing, waiting...');
@@ -73,7 +73,16 @@ class AuthManager {
             await this.loadPromise;
             this.isLoaded = true;
             this.isLoading = false;
+            this.isInitialized = true;
+            
             console.log('✅ [AuthManager] Initialization complete');
+            
+            // Register with Coordinator AFTER successful initialization (Pattern B)
+            if (window.Oslira?.init) {
+                window.Oslira.init.register('AuthManager', this);
+                console.log('📋 [AuthManager] Registered with Coordinator');
+            }
+            
             return true;
             
         } catch (error) {
@@ -950,9 +959,11 @@ class AuthManager {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraAuthManager = AuthManager;
 
-// Create singleton instance (initialize later via bootstrap)
+// Create singleton instance (DO NOT initialize yet)
 window.OsliraAuth = new AuthManager();
 
 console.log('✅ [AuthManager] Class loaded, awaiting initialization');
+
+// NOTE: AuthManager follows Pattern B (Manual-Init)
+// Registration happens inside the initialize() method
