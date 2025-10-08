@@ -471,6 +471,107 @@ class Bootstrap {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
+// Export to global namespace
 window.OsliraBootstrap = Bootstrap;
 
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Bootstrap;
+}
+
 console.log('✅ [Bootstrap] Class loaded and ready');
+
+// =============================================================================
+// AUTO-START BOOTSTRAP (Self-Executing)
+// =============================================================================
+
+/**
+ * Bootstrap auto-starts when:
+ * 1. All scripts are loaded (oslira:scripts:loaded event fired)
+ * 2. DOM is ready
+ * 3. No existing bootstrap instance
+ * 
+ * This ensures Bootstrap runs exactly once, at the right time.
+ */
+(function autoStartBootstrap() {
+    console.log('🎬 [Bootstrap] Auto-start handler registered');
+    
+    let scriptsLoaded = false;
+    let domReady = document.readyState === 'complete' || document.readyState === 'interactive';
+    
+    // Check if we should start bootstrap
+    function tryStart() {
+        // Don't start if already running
+        if (window.Oslira?.bootstrap?.isBootstrapped) {
+            console.log('ℹ️ [Bootstrap] Already bootstrapped, skipping auto-start');
+            return;
+        }
+        
+        // Start only when BOTH conditions met
+        if (scriptsLoaded && domReady) {
+            console.log('🚀 [Bootstrap] Auto-starting...');
+            startBootstrap();
+        }
+    }
+    
+    // Listen for scripts loaded event
+    function onScriptsLoaded() {
+        console.log('📡 [Bootstrap] Scripts loaded event received');
+        scriptsLoaded = true;
+        tryStart();
+    }
+    
+    // Listen for DOM ready
+    function onDomReady() {
+        console.log('📄 [Bootstrap] DOM ready');
+        domReady = true;
+        tryStart();
+    }
+    
+    // Register event listeners
+    if (window.OsliraEventBus) {
+        window.OsliraEventBus.on('oslira:scripts:loaded', onScriptsLoaded);
+    } else {
+        // Fallback: listen on window for custom event
+        window.addEventListener('oslira:scripts:loaded', onScriptsLoaded);
+    }
+    
+    if (domReady) {
+        onDomReady();
+    } else {
+        document.addEventListener('DOMContentLoaded', onDomReady);
+        // Backup: if DOMContentLoaded already fired
+        if (document.readyState !== 'loading') {
+            onDomReady();
+        }
+    }
+    
+    // Actual bootstrap startup
+    async function startBootstrap() {
+        try {
+            // Create and store instance
+            const bootstrap = new Bootstrap();
+            
+            if (!window.Oslira) {
+                window.Oslira = {};
+            }
+            window.Oslira.bootstrap = bootstrap;
+            
+            // Run bootstrap
+            await bootstrap.run();
+            
+            console.log('✅ [Bootstrap] Auto-start completed successfully');
+            
+        } catch (error) {
+            console.error('❌ [Bootstrap] Auto-start failed:', error);
+            
+            // Show error to user
+            if (window.OsliraErrorHandler) {
+                window.OsliraErrorHandler.handleError(error, {
+                    component: 'Bootstrap',
+                    phase: 'auto-start',
+                    fatal: true
+                });
+            }
+        }
+    }
+})();
