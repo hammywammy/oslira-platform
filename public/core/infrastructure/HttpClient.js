@@ -68,16 +68,22 @@ class HttpClient {
         try {
             console.log('🌐 [HttpClient] Initializing...');
             
-            this.logger = dependencies.logger || window.OsliraLogger;
-            this.configProvider = dependencies.configProvider || window.OsliraConfig;
-            
-            this.isInitialized = true;
-            console.log('✅ [HttpClient] Initialized');
-            
-        } catch (error) {
-            console.error('❌ [HttpClient] Initialization failed:', error);
-            throw error;
-        }
+this.logger = dependencies.logger || window.OsliraLogger;
+this.configProvider = dependencies.configProvider || window.OsliraConfig;
+
+this.isInitialized = true;
+console.log('✅ [HttpClient] Initialized');
+
+// Register with Coordinator after successful initialization
+if (window.Oslira?.init) {
+    window.Oslira.init.register('HttpClient', this);
+    console.log('📋 [HttpClient] Registered with Coordinator');
+}
+
+} catch (error) {
+    console.error('❌ [HttpClient] Initialization failed:', error);
+    throw error;
+}
     }
     
     // =========================================================================
