@@ -581,6 +581,21 @@ class Selectors {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraSelectors = Selectors;
 
-console.log('✅ [Selectors] Class loaded and ready');
+// Create singleton instance (requires Store)
+const store = window.OsliraStore;
+const instance = new Selectors(store);
+
+// Export to window
+window.OsliraSelectors = instance;
+
+// Auto-initialize
+instance.initialize();
+
+console.log('✅ [Selectors] Loaded and initialized');
+
+// Register with Coordinator immediately (Pattern A)
+if (window.Oslira?.init) {
+    window.Oslira.init.register('Selectors', instance);
+    console.log('📋 [Selectors] Registered with Coordinator');
+}
