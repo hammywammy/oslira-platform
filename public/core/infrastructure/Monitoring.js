@@ -685,9 +685,6 @@ class Monitoring {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraMonitoring = Monitoring;
-
-// Create singleton instance (initialize later via container)
-window.OsliraMonitor = new Monitoring();
+window.OsliraMonitoring = new Monitoring();
 
 console.log('✅ [Monitoring] Class loaded, awaiting initialization');
