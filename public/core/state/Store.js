@@ -527,20 +527,21 @@ class Store {
 }
 
 // =============================================================================
-// GLOBAL EXPORT
+// GLOBAL EXPORT (Safe Singleton Pattern)
 // =============================================================================
 
-// Create singleton instance (requires Logger)
-const logger = window.OsliraLogger;
-const instance = new Store(logger);
-
-// Export to window
-window.OsliraStore = instance;
-
-console.log('✅ [Store] Loaded and ready');
-
-// Register with Coordinator immediately (Pattern A)
-if (window.Oslira?.init) {
-    window.Oslira.init.register('Store', instance);
-    console.log('📋 [Store] Registered with Coordinator');
+if (!window.OsliraStore) {
+    const logger = window.OsliraLogger;
+    const instance = new Store(logger);
+    
+    window.OsliraStore = instance;
+    
+    console.log('✅ [Store] Loaded and ready');
+    
+    if (window.Oslira?.init) {
+        window.Oslira.init.register('Store', instance);
+        console.log('📋 [Store] Registered with Coordinator');
+    }
+} else {
+    console.log('⚠️ [Store] Already loaded, skipping re-initialization');
 }
