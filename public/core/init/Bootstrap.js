@@ -541,33 +541,35 @@ console.log('✅ [Bootstrap] Class loaded and ready');
         }
     }
     
-    // Actual bootstrap startup
-    async function startBootstrap() {
-        try {
-            // Create and store instance
-            const bootstrap = new Bootstrap();
-            
-            if (!window.Oslira) {
-                window.Oslira = {};
-            }
-            window.Oslira.bootstrap = bootstrap;
-            
-            // Run bootstrap
-            await bootstrap.run();
-            
-            console.log('✅ [Bootstrap] Auto-start completed successfully');
-            
-        } catch (error) {
-            console.error('❌ [Bootstrap] Auto-start failed:', error);
-            
-            // Show error to user
-            if (window.OsliraErrorHandler) {
-                window.OsliraErrorHandler.handleError(error, {
-                    component: 'Bootstrap',
-                    phase: 'auto-start',
-                    fatal: true
-                });
-            }
+// Actual bootstrap startup
+async function startBootstrap() {
+    try {
+        // Create and store instance
+        const bootstrap = new Bootstrap();
+        
+        if (!window.Oslira) {
+            window.Oslira = {};
+        }
+        window.Oslira.bootstrap = bootstrap;
+        
+        // Run bootstrap (correct method name is 'bootstrap')
+        await bootstrap.bootstrap();  // ✅ CORRECT
+        
+        console.log('✅ [Bootstrap] Auto-start completed successfully');
+        
+    } catch (error) {
+        console.error('❌ [Bootstrap] Auto-start failed:', error);
+        console.error('   Error details:', error.message);
+        console.error('   Stack:', error.stack);
+        
+        // Show error to user
+        if (window.OsliraErrorHandler) {
+            window.OsliraErrorHandler.handleError(error, {
+                component: 'Bootstrap',
+                phase: 'auto-start',
+                fatal: true
+            });
         }
     }
+}
 })();
