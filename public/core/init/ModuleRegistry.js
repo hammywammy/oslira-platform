@@ -11,9 +11,7 @@
  * This is the SINGLE SOURCE OF TRUTH for page-script mapping.
  * Bootstrap uses this to know what to load.
  * 
- * ✅ CORRECTED PATHS based on actual file structure:
- * - pages/app/* for application pages
- * - pages/www/* for marketing/public pages
+ * ✅ ONLY INCLUDES ACTUAL FILES - No assumptions, no placeholders
  */
 class ModuleRegistry {
     constructor() {
@@ -29,59 +27,59 @@ class ModuleRegistry {
     initializePages() {
         return {
             // =================================================================
-            // HOME PAGE (Marketing Root) - pages/www/
+            // HOME PAGE (Marketing Root) - HAS JS
             // =================================================================
             home: {
                 appClass: 'HomeApp',
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
                     '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/www/HomeApp.js'  // ✅ CORRECT
+                    '/pages/www/HomeApp.js'
                 ],
                 requiresAuth: false,
                 description: 'Marketing homepage'
             },
             
             // =================================================================
-            // AUTH PAGES - pages/app/auth/
+            // AUTH PAGES - HAS JS
             // =================================================================
             auth: {
                 appClass: 'AuthApp',
                 scripts: [
-                    '/pages/app/auth/AuthApp.js'  // ✅ CORRECT
+                    '/pages/app/auth/AuthApp.js'
                 ],
                 requiresAuth: false,
                 description: 'Login/signup page'
             },
             
             'auth-callback': {
-                appClass: null, // Inline script handles it
-                scripts: [],
+                appClass: null,
+                scripts: [], // Inline script in HTML handles this
                 requiresAuth: false,
                 description: 'OAuth callback handler'
             },
             
             // =================================================================
-            // DASHBOARD - pages/app/dashboard/
+            // DASHBOARD - HAS JS
             // =================================================================
             dashboard: {
                 appClass: 'DashboardApp',
                 scripts: [
                     '/core/ui/components/layouts/AppSidebar.js',
-                    '/pages/app/dashboard/core/DashboardApp.js'  // ✅ CORRECT
+                    '/pages/app/dashboard/core/DashboardApp.js'
                 ],
                 requiresAuth: true,
                 description: 'Main dashboard'
             },
             
             // =================================================================
-            // SETTINGS - pages/app/settings/
+            // SETTINGS - HAS JS
             // =================================================================
             settings: {
                 appClass: 'SettingsApp',
                 scripts: [
                     '/core/ui/components/layouts/AppSidebar.js',
-                    '/pages/app/settings/SettingsApp.js'  // ✅ CORRECT
+                    '/pages/app/settings/SettingsApp.js'
                 ],
                 requiresAuth: true,
                 description: 'Settings page'
@@ -91,7 +89,7 @@ class ModuleRegistry {
                 appClass: 'SettingsApp',
                 scripts: [
                     '/core/ui/components/layouts/AppSidebar.js',
-                    '/pages/app/settings/SettingsApp.js'  // ✅ CORRECT
+                    '/pages/app/settings/SettingsApp.js'
                 ],
                 requiresAuth: true,
                 description: 'Profile settings'
@@ -101,7 +99,7 @@ class ModuleRegistry {
                 appClass: 'SettingsApp',
                 scripts: [
                     '/core/ui/components/layouts/AppSidebar.js',
-                    '/pages/app/settings/SettingsApp.js'  // ✅ CORRECT
+                    '/pages/app/settings/SettingsApp.js'
                 ],
                 requiresAuth: true,
                 description: 'Account settings'
@@ -111,7 +109,7 @@ class ModuleRegistry {
                 appClass: 'SettingsApp',
                 scripts: [
                     '/core/ui/components/layouts/AppSidebar.js',
-                    '/pages/app/settings/SettingsApp.js'  // ✅ CORRECT
+                    '/pages/app/settings/SettingsApp.js'
                 ],
                 requiresAuth: true,
                 description: 'Billing settings'
@@ -121,323 +119,285 @@ class ModuleRegistry {
                 appClass: 'SettingsApp',
                 scripts: [
                     '/core/ui/components/layouts/AppSidebar.js',
-                    '/pages/app/settings/SettingsApp.js'  // ✅ CORRECT
+                    '/pages/app/settings/SettingsApp.js'
                 ],
                 requiresAuth: true,
                 description: 'Usage settings'
             },
             
             // =================================================================
-            // ONBOARDING - pages/app/onboarding/
+            // ONBOARDING - HAS JS
             // =================================================================
             onboarding: {
                 appClass: 'OnboardingApp',
                 scripts: [
-                    '/pages/app/onboarding/OnboardingApp.js'  // ✅ CORRECT
+                    '/pages/app/onboarding/OnboardingApp.js'
                 ],
                 requiresAuth: true,
                 description: 'User onboarding flow'
             },
             
             // =================================================================
-            // ADMIN - pages/app/admin/
+            // ADMIN - HAS JS
             // =================================================================
             admin: {
                 appClass: 'AdminApp',
                 scripts: [
                     '/core/ui/components/layouts/AdminSidebar.js',
-                    '/pages/app/admin/AdminApp.js'  // ✅ CORRECT
+                    '/pages/app/admin/AdminApp.js'
                 ],
                 requiresAuth: true,
                 description: 'Admin panel'
             },
             
             // =================================================================
-            // LEADS - pages/app/leadResearch/ (note: capital R in actual file)
-            // =================================================================
-            leads: {
-                appClass: 'LeadsApp',
-                scripts: [
-                    '/core/ui/components/layouts/AppSidebar.js',
-                    '/pages/app/leadResearch/leads-app.js'  // ✅ Path exists, assuming JS file
-                ],
-                requiresAuth: true,
-                description: 'Lead research page'
-            },
-            
-            // =================================================================
-            // MESSAGES - pages/app/messagesCenter/
-            // =================================================================
-            messages: {
-                appClass: 'MessagesApp',
-                scripts: [
-                    '/core/ui/components/layouts/AppSidebar.js',
-                    '/pages/app/messagesCenter/messages-app.js'  // ✅ Path exists, assuming JS file
-                ],
-                requiresAuth: true,
-                description: 'Messages center'
-            },
-            
-            // =================================================================
-            // ANALYTICS - pages/app/analytics/
-            // =================================================================
-            analytics: {
-                appClass: 'AnalyticsApp',
-                scripts: [
-                    '/core/ui/components/layouts/AppSidebar.js',
-                    '/pages/app/analytics/analytics-app.js'  // ✅ Path exists, assuming JS file
-                ],
-                requiresAuth: true,
-                description: 'Analytics page'
-            },
-            
-            // =================================================================
-            // CAMPAIGNS - pages/app/campaigns/
-            // =================================================================
-            campaigns: {
-                appClass: 'CampaignsApp',
-                scripts: [
-                    '/core/ui/components/layouts/AppSidebar.js',
-                    '/pages/app/campaigns/campaigns-app.js'  // ✅ Path exists, assuming JS file
-                ],
-                requiresAuth: true,
-                description: 'Campaigns page'
-            },
-            
-            // =================================================================
-            // INTEGRATIONS - pages/app/integrations/
-            // =================================================================
-            integrations: {
-                appClass: 'IntegrationsApp',
-                scripts: [
-                    '/core/ui/components/layouts/AppSidebar.js',
-                    '/pages/app/integrations/integrations-app.js'  // ✅ Path exists, assuming JS file
-                ],
-                requiresAuth: true,
-                description: 'Integrations page'
-            },
-            
-            // =================================================================
-            // SUBSCRIPTION - pages/app/subscription/
+            // SUBSCRIPTION - HAS JS
             // =================================================================
             subscription: {
                 appClass: 'SubscriptionApp',
                 scripts: [
                     '/core/ui/components/layouts/AppSidebar.js',
-                    '/pages/app/subscription/subscription.js'  // ✅ CORRECT (actual file name)
+                    '/pages/app/subscription/subscription.js'
                 ],
                 requiresAuth: true,
                 description: 'Subscription management'
             },
             
             // =================================================================
-            // PUBLIC/MARKETING PAGES - pages/www/
+            // HTML-ONLY PAGES (No JS app files exist)
+            // Inline scripts in HTML handle initialization
+            // =================================================================
+            
+            // LEADS - HTML only
+            leads: {
+                appClass: null,
+                scripts: [
+                    '/core/ui/components/layouts/AppSidebar.js'
+                ],
+                requiresAuth: true,
+                description: 'Lead research page'
+            },
+            
+            // MESSAGES - HTML only
+            messages: {
+                appClass: null,
+                scripts: [
+                    '/core/ui/components/layouts/AppSidebar.js'
+                ],
+                requiresAuth: true,
+                description: 'Messages center'
+            },
+            
+            // ANALYTICS - HTML only
+            analytics: {
+                appClass: null,
+                scripts: [
+                    '/core/ui/components/layouts/AppSidebar.js'
+                ],
+                requiresAuth: true,
+                description: 'Analytics page'
+            },
+            
+            // CAMPAIGNS - HTML only
+            campaigns: {
+                appClass: null,
+                scripts: [
+                    '/core/ui/components/layouts/AppSidebar.js'
+                ],
+                requiresAuth: true,
+                description: 'Campaigns page'
+            },
+            
+            // INTEGRATIONS - HTML only
+            integrations: {
+                appClass: null,
+                scripts: [
+                    '/core/ui/components/layouts/AppSidebar.js'
+                ],
+                requiresAuth: true,
+                description: 'Integrations page'
+            },
+            
+            // =================================================================
+            // PUBLIC/MARKETING PAGES - HTML only
             // =================================================================
             about: {
-                appClass: 'StaticPageApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/www/static-app.js'  // ✅ Assuming shared static app
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'About page'
             },
             
             pricing: {
-                appClass: 'StaticPageApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/www/static-app.js'  // ✅ Assuming shared static app
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'Pricing page'
             },
             
             'security-page': {
-                appClass: 'StaticPageApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/www/static-app.js'  // ✅ Assuming shared static app
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'Security page'
             },
             
             help: {
-                appClass: 'StaticPageApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/www/static-app.js'  // ✅ Assuming shared static app
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'Help center'
             },
             
             docs: {
-                appClass: 'StaticPageApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/www/static-app.js'  // ✅ Assuming shared static app
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'Documentation'
             },
             
             api: {
-                appClass: 'StaticPageApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/www/static-app.js'  // ✅ Assuming shared static app
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'API documentation'
             },
             
             'case-studies': {
-                appClass: 'StaticPageApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/www/static-app.js'  // ✅ Assuming shared static app
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'Case studies'
             },
             
             // =================================================================
-            // LEGAL PAGES - pages/app/legal/
+            // LEGAL PAGES - HTML only
             // =================================================================
             terms: {
-                appClass: 'LegalPageApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/app/legal/legal-app.js'  // ✅ Path exists, assuming JS file
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'Terms of service'
             },
             
             privacy: {
-                appClass: 'LegalPageApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/app/legal/legal-app.js'  // ✅ Path exists, assuming JS file
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'Privacy policy'
             },
             
             refund: {
-                appClass: 'LegalPageApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/app/legal/legal-app.js'  // ✅ Path exists, assuming JS file
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'Refund policy'
             },
             
             disclaimer: {
-                appClass: 'LegalPageApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/app/legal/legal-app.js'  // ✅ Path exists, assuming JS file
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'Disclaimer'
             },
             
             // =================================================================
-            // CONTACT PAGES - pages/app/contact/
+            // CONTACT PAGES - HTML only
             // =================================================================
             'contact-hub': {
-                appClass: 'ContactApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/app/contact/contact-app.js'  // ✅ Path exists, assuming JS file
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'Contact hub'
             },
             
-            'contact-support': {
-                appClass: 'ContactApp',
-                scripts: [
-                    '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/app/support/support-app.js'  // ✅ Path exists, assuming JS file
-                ],
-                requiresAuth: false,
-                description: 'Support contact'
-            },
-            
             'bug-report': {
-                appClass: 'ContactApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/app/contact/bug-report-app.js'  // ✅ Path exists, assuming JS file
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'Bug report form'
             },
             
             // =================================================================
-            // SUPPORT PAGES - pages/app/
+            // SUPPORT PAGES - HTML only
             // =================================================================
             support: {
-                appClass: 'SupportApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/app/support/support-app.js'  // ✅ Path exists, assuming JS file
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'Support center'
             },
             
             sales: {
-                appClass: 'SalesApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/app/sales/sales-app.js'  // ✅ Path exists, assuming JS file
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'Sales contact'
             },
             
             security: {
-                appClass: 'SecurityApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/app/security/security-app.js'  // ✅ Path exists, assuming JS file
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'Security contact'
             },
             
             // =================================================================
-            // STATUS PAGE - pages/app/status/
+            // STATUS PAGE - HTML only
             // =================================================================
             status: {
-                appClass: 'StatusApp',
+                appClass: null,
                 scripts: [
                     '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/app/status/status-app.js'  // ✅ Path exists, assuming JS file
+                    '/core/ui/components/layouts/AppFooter.js'
                 ],
                 requiresAuth: false,
                 description: 'System status'
@@ -538,7 +498,8 @@ class ModuleRegistry {
             authRequired: 0,
             publicPages: 0,
             totalScripts: 0,
-            pagesWithAppClass: 0
+            pagesWithAppClass: 0,
+            htmlOnlyPages: 0
         };
         
         for (const config of Object.values(this.pages)) {
@@ -552,6 +513,8 @@ class ModuleRegistry {
             
             if (config.appClass) {
                 stats.pagesWithAppClass++;
+            } else {
+                stats.htmlOnlyPages++;
             }
         }
         
