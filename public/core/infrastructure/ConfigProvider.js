@@ -65,11 +65,18 @@ class ConfigProvider {
         this.loadPromise = this._initializeInternal(dependencies);
         
         try {
-            await this.loadPromise;
-            this.isLoaded = true;
-            this.isLoading = false;
-            console.log('✅ [ConfigProvider] Initialization complete');
-            return true;
+await this.loadPromise;
+this.isLoaded = true;
+this.isLoading = false;
+console.log('✅ [ConfigProvider] Initialization complete');
+
+// Register with Coordinator after successful initialization
+if (window.Oslira?.init) {
+    window.Oslira.init.register('ConfigProvider', this);
+    console.log('📋 [ConfigProvider] Registered with Coordinator');
+}
+
+return true;
             
         } catch (error) {
             this.isLoading = false;
@@ -517,3 +524,6 @@ window.OsliraConfigProvider = ConfigProvider;
 window.OsliraConfig = new ConfigProvider();
 
 console.log('✅ [ConfigProvider] Class loaded, awaiting initialization');
+
+// Note: ConfigProvider registers itself AFTER initialization completes
+// Registration happens in Bootstrap.js after calling initialize()
