@@ -33,7 +33,8 @@ home: {
         '/core/ui/components/layouts/AppHeader.js',
         '/core/ui/components/layouts/AppFooter.js',
         '/pages/www/HomeApp.js'  // ✅ CORRECT PATH
-    ],
+    ]
+},
             
             // =================================================================
             // AUTH PAGES
@@ -333,7 +334,7 @@ home: {
                 requiresAuth: false,
                 description: 'System status'
             }
-        }
+        };
     }
     
     // =========================================================================
