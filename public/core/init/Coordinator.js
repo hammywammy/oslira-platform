@@ -16,7 +16,7 @@
  * - Performance budgets
  * - Real User Monitoring (RUM) metrics
  */
-class Monitoring {
+class CoordinatorMonitoring {
     constructor() {
         this.isInitialized = false;
         this.logger = null;
@@ -685,9 +685,12 @@ class Monitoring {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraMonitoring = Monitoring;
+// Export globally
+window.OsliraCoordinator = new Coordinator();
+window.Oslira = window.Oslira || {};
+window.Oslira.init = window.OsliraCoordinator;
 
-// Create singleton instance (initialize later via container)
-window.OsliraMonitor = new Monitoring();
+// Export monitoring utility separately
+window.OsliraCoordinatorMonitoring = CoordinatorMonitoring;  // ← Export renamed class
 
-console.log('✅ [Monitoring] Class loaded, awaiting initialization');
+console.log('✅ [Coordinator] Loaded and ready');
