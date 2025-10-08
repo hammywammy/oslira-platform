@@ -2,7 +2,7 @@
 // STATE MANAGER - State Management with Computed Values
 // Path: /public/core/state/StateManager.js
 // Dependencies: Store, Logger
-// =============================================================================
+// ============================================================================= 
 
 /**
  * @class StateManager
