@@ -78,18 +78,8 @@ Version: 2.0 - Bootstrap System
     <!-- ═══════════════════════════════════════════════════════════
          HEADER - Rendered immediately (inline)
          ═══════════════════════════════════════════════════════════ -->
-    <div id="home-header-container"></div>
-    
-    <script>
-        // Render header immediately (before bootstrap runs)
-        (function() {
-            if (window.HeaderManager) {
-                const headerManager = new window.HeaderManager();
-                headerManager.render('home-header-container', { type: 'home' });
-                console.log('✅ [Home] Header rendered immediately');
-            }
-        })();
-    </script>
+<div id="home-header-container"></div>
+<!-- Header rendered by HomeApp after Bootstrap initialization -->
 
     <!-- Beta Offer Urgency Banner -->
     <div class="urgency-banner">
