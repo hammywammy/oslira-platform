@@ -66,10 +66,23 @@ class Loader {
     /**
      * Get page name from script tag
      */
-    getPageName() {
-        const loaderScript = document.querySelector('script[src*="loader.js"]');
-        return loaderScript?.getAttribute('data-page') || null;
+getPageName() {
+    // Case-insensitive search for Loader.js
+    const loaderScript = document.querySelector('script[src*="Loader.js"], script[src*="loader.js"]');
+    if (loaderScript) {
+        return loaderScript.getAttribute('data-page') || null;
     }
+    
+    // Fallback: check body tag
+    const bodyPage = document.body?.getAttribute('data-page');
+    if (bodyPage) {
+        console.log('📄 [Loader] Page from body:', bodyPage);
+        return bodyPage;
+    }
+    
+    console.warn('⚠️ [Loader] No data-page attribute found');
+    return null;
+}
     
     // =========================================================================
     // CORE SCRIPTS (Sequential Loading)
