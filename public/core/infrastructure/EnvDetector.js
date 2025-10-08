@@ -518,7 +518,11 @@ constructor() {
 // =============================================================================
 window.OsliraEnvDetector = EnvDetector;
 
-// Create singleton instance immediately (no async needed)
-window.OsliraEnv = new EnvDetector();
-
+window.OsliraEnv = envDetector;
 console.log('✅ [EnvDetector] Loaded and initialized');
+
+// Register with Coordinator
+if (window.Oslira?.init) {
+    window.Oslira.init.register('EnvDetector', window.OsliraEnv);
+    console.log('📋 [EnvDetector] Registered with Coordinator');
+}
