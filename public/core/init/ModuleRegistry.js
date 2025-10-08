@@ -27,16 +27,13 @@ class ModuleRegistry {
             // =================================================================
             // HOME PAGE (Marketing Root)
             // =================================================================
-            home: {
-                appClass: 'HomeApp',
-                scripts: [
-                    '/core/ui/components/layouts/AppHeader.js',
-                    '/core/ui/components/layouts/AppFooter.js',
-                    '/pages/home/home-app.js'
-                ],
-                requiresAuth: false,
-                description: 'Marketing home page'
-            },
+home: {
+    appClass: 'HomeApp',
+    scripts: [
+        '/core/ui/components/layouts/AppHeader.js',
+        '/core/ui/components/layouts/AppFooter.js',
+        '/pages/www/HomeApp.js'  // ✅ CORRECT PATH
+    ],
             
             // =================================================================
             // AUTH PAGES
