@@ -652,7 +652,7 @@ class StateManager {
 
 // Create singleton instance (requires Store and Logger)
 const store = window.OsliraStore;
-const logger = window.OsliraLogger;
+const logger = window.OsliraLogger;  // ← Only ONE declaration
 const instance = new StateManager(store, logger);
 
 // Export to window
