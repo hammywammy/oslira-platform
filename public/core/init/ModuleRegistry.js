@@ -3,7 +3,7 @@
 // Path: /public/core/init/ModuleRegistry.js
 // Dependencies: None (pure configuration)
 // =============================================================================
-
+ 
 /**
  * @class ModuleRegistry
  * @description Defines which scripts to load for each page
