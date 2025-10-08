@@ -1,22 +1,21 @@
 // =============================================================================
-// HOME APP - Clean Class-Based Architecture
-// Path: /pages/home/home-app.js
-// Replaces: /pages/home/home.js
+// HOME APP - Production-Ready Homepage Application
+// Path: /public/pages/www/HomeApp.js
+// Dependencies: HeaderManager, FooterManager (loaded by Loader.js)
 // =============================================================================
 
 /**
- * HOME APP - Production-Ready Homepage Application
+ * @class HomeApp
+ * @description Homepage application controller
  * 
  * Responsibilities:
- * - Render header & footer (orchestrator guarantees managers loaded)
- * - Setup Instagram demo
- * - Initialize conversion optimizations
- * - Manage page interactions
+ * - Render header & footer components
+ * - Initialize Instagram demo functionality
+ * - Setup conversion optimizations (CTAs, social proof, urgency)
+ * - Manage all page interactions
  * 
- * Does NOT:
- * - Wait for dependencies (orchestrator handles this)
- * - Manually load scripts
- * - Use setTimeout fallbacks
+ * Initialization:
+ * Called by Bootstrap.js after all dependencies are loaded
  */
 
 class HomeApp {
@@ -25,12 +24,13 @@ class HomeApp {
         this.header = null;
         this.footer = null;
         this.demoInitialized = false;
+        this.socialProofInterval = null;
         
         console.log('🏠 [HomeApp] Instance created');
     }
     
     // ═══════════════════════════════════════════════════════════
-    // MAIN INITIALIZATION (Called by Orchestrator)
+    // MAIN INITIALIZATION (Called by Bootstrap)
     // ═══════════════════════════════════════════════════════════
     
     async init() {
@@ -42,7 +42,7 @@ class HomeApp {
         console.log('🚀 [HomeApp] Starting initialization...');
         
         try {
-            // Step 1: Render header (if not already rendered inline)
+            // Step 1: Render header
             await this.initializeHeader();
             
             // Step 2: Render footer
@@ -71,20 +71,18 @@ class HomeApp {
     // ═══════════════════════════════════════════════════════════
     
     async initializeHeader() {
-        // Check if header was already rendered inline in HTML
         const headerContainer = document.getElementById('home-header-container');
         if (!headerContainer) {
             console.warn('⚠️ [HomeApp] Header container not found');
             return;
         }
         
-        // Check if header already has content (rendered inline)
+        // Check if already rendered (shouldn't be, but defensive)
         if (headerContainer.innerHTML.trim().length > 0) {
-            console.log('✅ [HomeApp] Header already rendered inline, skipping');
+            console.log('✅ [HomeApp] Header already rendered, skipping');
             return;
         }
         
-        // Render header using HeaderManager
         console.log('🎨 [HomeApp] Rendering header...');
         this.header = new window.HeaderManager();
         this.header.render('home-header-container', { type: 'home' });
@@ -116,25 +114,15 @@ class HomeApp {
     async setupInstagramDemo() {
         console.log('🎯 [HomeApp] Setting up Instagram demo...');
         
-        // Get demo elements (MATCHING YOUR HTML IDs)
-        const usernameInput = document.getElementById('demo-handle-input'); // ← YOUR ID
-        const analyzeButton = document.getElementById('demo-analyze-btn');  // ← YOUR ID
+        // Get demo elements
+        const usernameInput = document.getElementById('demo-handle-input');
+        const analyzeButton = document.getElementById('demo-analyze-btn');
         const resultsContainer = document.getElementById('demo-results');
         
-        // Debug: Log what we found
-        console.log('🔍 [HomeApp] Demo elements check:', {
-            input: !!usernameInput,
-            button: !!analyzeButton,
-            results: !!resultsContainer,
-            inputValue: usernameInput?.id || 'not found',
-            buttonValue: analyzeButton?.id || 'not found',
-            resultsValue: resultsContainer?.id || 'not found'
-        });
-        
         if (!usernameInput || !analyzeButton || !resultsContainer) {
-            console.warn('⚠️ [HomeApp] Demo elements incomplete - waiting for DOM...');
+            console.warn('⚠️ [HomeApp] Demo elements not found, waiting for DOM...');
             
-            // Wait a bit for DOM to settle, then try again
+            // Wait briefly for DOM to settle
             await new Promise(resolve => setTimeout(resolve, 100));
             
             const retryInput = document.getElementById('demo-handle-input');
@@ -142,31 +130,26 @@ class HomeApp {
             const retryResults = document.getElementById('demo-results');
             
             if (!retryInput || !retryButton || !retryResults) {
-                console.warn('⚠️ [HomeApp] Demo elements still missing after retry:', {
-                    input: !!retryInput,
-                    button: !!retryButton,
-                    results: !!retryResults
-                });
+                console.error('❌ [HomeApp] Demo elements still missing after retry');
                 return;
             }
             
-            // Use retry elements
             this.setupDemoListeners(retryInput, retryButton, retryResults);
             this.demoInitialized = true;
             console.log('✅ [HomeApp] Instagram demo ready (after retry)');
             return;
         }
         
-        // Setup with found elements
         this.setupDemoListeners(usernameInput, analyzeButton, resultsContainer);
         this.demoInitialized = true;
         console.log('✅ [HomeApp] Instagram demo ready');
     }
     
     setupDemoListeners(usernameInput, analyzeButton, resultsContainer) {
-        // Setup demo event listeners
+        // Click handler
         analyzeButton.addEventListener('click', () => this.handleDemoAnalysis());
         
+        // Enter key handler
         usernameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -176,7 +159,7 @@ class HomeApp {
     }
     
     async handleDemoAnalysis() {
-        const usernameInput = document.getElementById('demo-handle-input'); // ← FIXED
+        const usernameInput = document.getElementById('demo-handle-input');
         const analyzeButton = document.getElementById('demo-analyze-btn');
         const resultsContainer = document.getElementById('demo-results');
         
@@ -201,28 +184,27 @@ class HomeApp {
         if (btnLoading) btnLoading.classList.remove('hidden');
         
         try {
-            // Call analysis handler (from homeHandlers.js)
-            if (!window.HomeHandlers || !window.HomeHandlers.analyzeLead) {
-                throw new Error('HomeHandlers not available');
-            }
+            // Generate demo results (mocked for now)
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
             
-            const result = await window.HomeHandlers.analyzeLead(username);
+            const demoData = {
+                username: username,
+                score: Math.floor(Math.random() * 25 + 70),
+                niche: 'Content Creator',
+                category: 'Business',
+                followers: `${(Math.random() * 50 + 5).toFixed(1)}K`,
+                outreach: `Hi ${username}! Loved your recent content. I help creators like you scale their online presence...`
+            };
             
-            if (result.success) {
-                this.showDemoSuccess(result.data);
-            } else {
-                this.showDemoError(result.message || 'Analysis failed');
-            }
+            this.showDemoSuccess(demoData);
             
         } catch (error) {
             console.error('❌ [HomeApp] Demo analysis failed:', error);
             this.showDemoError('Unable to analyze profile. Please try again.');
-        } finally {
-            // Reset button
-            analyzeButton.disabled = false;
-            const btnText = analyzeButton.querySelector('.demo-btn-text');
-            const btnLoading = analyzeButton.querySelector('.demo-btn-loading');
             
+        } finally {
+            // Reset button state
+            analyzeButton.disabled = false;
             if (btnText) btnText.classList.remove('hidden');
             if (btnLoading) btnLoading.classList.add('hidden');
         }
@@ -232,37 +214,34 @@ class HomeApp {
         const resultsContainer = document.getElementById('demo-results');
         if (!resultsContainer) return;
         
-        // Remove hidden class to show results
         resultsContainer.classList.remove('hidden');
         
         resultsContainer.innerHTML = `
             <div class="demo-result-card bg-white rounded-2xl shadow-xl p-8 animate-fadeIn">
                 <div class="demo-profile-info flex items-center space-x-4 mb-6">
                     <div class="demo-avatar w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                        ${data.username ? data.username.charAt(0).toUpperCase() : '👤'}
+                        ${data.username.charAt(0).toUpperCase()}
                     </div>
                     <div class="flex-1">
-                        <h4 class="demo-name text-xl font-bold text-gray-900">@${data.username || 'example_handle'}</h4>
-                        <p class="demo-analysis text-gray-600">${data.niche || 'Perfect fit'} • ${data.category || 'Content Creator'} • ${data.followers || '15K'} followers</p>
+                        <h4 class="demo-name text-xl font-bold text-gray-900">@${data.username}</h4>
+                        <p class="demo-analysis text-gray-600">${data.niche} • ${data.category} • ${data.followers} followers</p>
                     </div>
                     <div class="text-right">
-                        <div class="text-3xl font-bold text-blue-600">${data.score || 85}%</div>
+                        <div class="text-3xl font-bold text-blue-600">${data.score}%</div>
                         <div class="text-sm text-gray-600">Match</div>
                     </div>
                 </div>
                 
                 <div class="demo-outreach-preview bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 mb-4">
                     <h5 class="font-semibold text-gray-900 mb-2">Suggested Outreach:</h5>
-                    <p class="demo-message text-gray-700 italic">
-                        "${data.outreach || 'Hi! Loved your latest post about wellness routines. I help health coaches like you turn content into...'}"
-                    </p>
+                    <p class="demo-message text-gray-700 italic">"${data.outreach}"</p>
                 </div>
                 
                 <p class="demo-upgrade-hint text-center text-sm text-gray-600 mb-4">
                     ↑ See full analysis & 24 more leads like this with your free trial
                 </p>
                 
-                <a href="${window.OsliraEnv.getAuthUrl()}" class="block w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl text-center transition-all duration-200 shadow-lg hover:shadow-xl">
+                <a href="${window.OsliraEnv?.getAuthUrl() || '/auth'}" class="block w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl text-center transition-all duration-200 shadow-lg hover:shadow-xl">
                     Get Full Analysis Report →
                 </a>
             </div>
@@ -275,7 +254,6 @@ class HomeApp {
         const resultsContainer = document.getElementById('demo-results');
         if (!resultsContainer) return;
         
-        // Remove hidden class to show error
         resultsContainer.classList.remove('hidden');
         
         resultsContainer.innerHTML = `
@@ -293,32 +271,6 @@ class HomeApp {
         `;
     }
     
-    generateInsights(data) {
-        // Generate demo insights based on analysis data
-        const insights = [];
-        
-        if (data.score >= 80) {
-            insights.push('Highly qualified lead with strong engagement potential');
-        } else if (data.score >= 60) {
-            insights.push('Qualified lead with moderate engagement potential');
-        } else {
-            insights.push('Lead requires nurturing before outreach');
-        }
-        
-        if (data.followerCount) {
-            insights.push(`Audience size: ${data.followerCount.toLocaleString()} followers`);
-        }
-        
-        if (data.engagement) {
-            insights.push(`Engagement rate: ${data.engagement}% (above average)`);
-        }
-        
-        insights.push('Profile shows consistent content posting');
-        insights.push('Active community engagement detected');
-        
-        return insights.slice(0, 4); // Show max 4 insights
-    }
-    
     // ═══════════════════════════════════════════════════════════
     // CONVERSION OPTIMIZATIONS
     // ═══════════════════════════════════════════════════════════
@@ -329,16 +281,15 @@ class HomeApp {
         this.setupCTAOptimizations();
         this.setupSocialProofNotifications();
         this.setupUrgencyElements();
-        this.setupTimedTriggers();
         
         console.log('✅ [HomeApp] Conversion optimizations ready');
     }
     
     setupCTAOptimizations() {
-        // CTA hover effects and tracking
-        const ctaButtons = document.querySelectorAll('.cta-button, .home-cta-button');
+        const ctaButtons = document.querySelectorAll('.btn-primary-hero, .primary-cta-main, .cta-button-large, .mobile-cta-btn');
         
         ctaButtons.forEach(button => {
+            // Hover effects
             button.addEventListener('mouseenter', () => {
                 button.style.transform = 'translateY(-2px) scale(1.02)';
             });
@@ -346,105 +297,64 @@ class HomeApp {
             button.addEventListener('mouseleave', () => {
                 button.style.transform = 'translateY(0) scale(1)';
             });
+            
+            // Click tracking (if tracking available)
+            button.addEventListener('click', () => {
+                console.log('🎯 [HomeApp] CTA clicked:', button.textContent.trim());
+            });
         });
     }
     
     setupSocialProofNotifications() {
-        // Show social proof notifications periodically
         const notifications = [
-            { user: 'Sarah M.', action: 'just started a free trial', time: '2 min ago' },
-            { user: 'David K.', action: 'analyzed 15 leads', time: '5 min ago' },
-            { user: 'Emma R.', action: 'upgraded to Pro', time: '12 min ago' }
+            { name: 'Sarah M.', location: 'New York', action: 'signed up', time: '2 minutes ago' },
+            { name: 'Mike T.', location: 'Los Angeles', action: 'started trial', time: '5 minutes ago' },
+            { name: 'Alex P.', location: 'Chicago', action: 'analyzed a lead', time: '8 minutes ago' },
+            { name: 'Jordan K.', location: 'Miami', action: 'signed up', time: '12 minutes ago' }
         ];
         
         let currentIndex = 0;
         
         const showNotification = () => {
-            const notification = notifications[currentIndex];
-            const container = document.getElementById('social-proof-container');
+            const container = document.getElementById('social-proof-notifications');
+            if (!container) return;
             
-            if (container) {
-                container.innerHTML = `
-                    <div class="social-proof-notification animate-slideInRight">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full"></div>
-                            <div>
-                                <p class="text-sm font-semibold text-gray-900">${notification.user}</p>
-                                <p class="text-xs text-gray-600">${notification.action}</p>
-                            </div>
-                        </div>
-                        <span class="text-xs text-gray-500">${notification.time}</span>
+            const notification = notifications[currentIndex];
+            
+            const notificationEl = document.createElement('div');
+            notificationEl.className = 'social-proof-notification animate-slide-in';
+            notificationEl.innerHTML = `
+                <div class="notification-content">
+                    <div class="notification-avatar">${notification.name.charAt(0)}</div>
+                    <div class="notification-text">
+                        <strong>${notification.name}</strong> from ${notification.location} ${notification.action}
+                        <span class="notification-time">${notification.time}</span>
                     </div>
-                `;
-            }
+                </div>
+            `;
+            
+            container.appendChild(notificationEl);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                notificationEl.classList.add('animate-slide-out');
+                setTimeout(() => notificationEl.remove(), 500);
+            }, 5000);
             
             currentIndex = (currentIndex + 1) % notifications.length;
         };
         
-        // Show first notification after 5 seconds, then every 15 seconds
-        setTimeout(() => {
-            showNotification();
-            setInterval(showNotification, 15000);
-        }, 5000);
+        // Show first notification after 3 seconds
+        setTimeout(showNotification, 3000);
+        
+        // Show subsequent notifications every 15 seconds
+        this.socialProofInterval = setInterval(showNotification, 15000);
     }
     
     setupUrgencyElements() {
-        // Setup countdown timers or limited-time offers
-        const urgencyElements = document.querySelectorAll('.urgency-timer');
-        
-        urgencyElements.forEach(element => {
-            const endTime = new Date();
-            endTime.setHours(23, 59, 59, 999); // End of day
-            
-            const updateTimer = () => {
-                const now = new Date();
-                const diff = endTime - now;
-                
-                if (diff > 0) {
-                    const hours = Math.floor(diff / (1000 * 60 * 60));
-                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    
-                    element.textContent = `${hours}h ${minutes}m remaining`;
-                } else {
-                    element.textContent = 'Offer expired';
-                }
-            };
-            
-            updateTimer();
-            setInterval(updateTimer, 60000); // Update every minute
-        });
-    }
-    
-    setupTimedTriggers() {
-        // Show exit-intent popup after certain time or scroll depth
-        let exitIntentShown = false;
-        
-        document.addEventListener('mouseleave', (e) => {
-            if (e.clientY < 50 && !exitIntentShown) {
-                exitIntentShown = true;
-                this.showExitIntent();
-            }
-        });
-        
-        // Scroll depth trigger
-        let scrollTriggered = false;
-        window.addEventListener('scroll', () => {
-            const scrollPercent = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
-            
-            if (scrollPercent > 70 && !scrollTriggered) {
-                scrollTriggered = true;
-                // Track engagement
-                console.log('📊 [HomeApp] User scrolled 70% of page');
-            }
-        });
-    }
-    
-    showExitIntent() {
-        // Simple exit intent - can be enhanced
-        console.log('🚪 [HomeApp] Exit intent detected');
-        
-        // Could show a modal here offering a special deal
-        // For now, just log it
+        // Urgency banner close handler is in inline script
+        // This is just for additional urgency-related functionality
+        console.log('⏰ [HomeApp] Urgency elements initialized');
     }
     
     // ═══════════════════════════════════════════════════════════
@@ -465,43 +375,26 @@ class HomeApp {
                 }
             });
         });
+        
+        console.log('🎧 [HomeApp] Event listeners setup complete');
     }
     
     // ═══════════════════════════════════════════════════════════
-    // UTILITIES
+    // CLEANUP
     // ═══════════════════════════════════════════════════════════
     
-    async waitForElement(selector, timeout = 5000) {
-        return new Promise((resolve) => {
-            const element = document.querySelector(selector);
-            if (element) {
-                resolve(element);
-                return;
-            }
-            
-            const observer = new MutationObserver(() => {
-                const element = document.querySelector(selector);
-                if (element) {
-                    observer.disconnect();
-                    resolve(element);
-                }
-            });
-            
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-            
-            setTimeout(() => {
-                observer.disconnect();
-                resolve(null);
-            }, timeout);
-        });
+    destroy() {
+        if (this.socialProofInterval) {
+            clearInterval(this.socialProofInterval);
+        }
+        
+        this.initialized = false;
+        console.log('🧹 [HomeApp] Cleanup complete');
     }
 }
 
-// ═══════════════════════════════════════════════════════════
+// =============================================================================
 // GLOBAL EXPORT
-// ═══════════════════════════════════════════════════════════
+// =============================================================================
 window.HomeApp = HomeApp;
-console.log('✅ [HomeApp] Module loaded and ready');
+console.log('✅ [HomeApp] Class loaded and ready for Bootstrap initialization');
