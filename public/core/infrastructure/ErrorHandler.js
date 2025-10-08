@@ -537,3 +537,7 @@ setTimeout(() => {
 }, 100);
 
 console.log('✅ [ErrorHandler] Loaded, awaiting initialization');
+if (window.Oslira?.init) {
+    window.Oslira.init.register('Logger', window.OsliraLogger);
+    console.log('📋 [Logger] Registered with Coordinator');
+}
