@@ -209,38 +209,60 @@ async initializeInfrastructure() {
     // PHASE 2: SERVICES
     // =========================================================================
     
-    async initializeServices() {
-        console.log('⚙️ [Bootstrap] Initializing services...');
+   async initializeServices() {
+        console.log('🏗️ [Bootstrap] Phase 2: Services');
         
-        // 1. Wait for EventBus
-        const eventBus = await this.coordinator.waitFor('EventBus');
-        console.log('✅ [Bootstrap] EventBus ready');
-        
-        // 2. Wait for Store
-        const store = await this.coordinator.waitFor('Store');
-        console.log('✅ [Bootstrap] Store ready');
-        
-        // 3. Wait for StateManager
-        const stateManager = await this.coordinator.waitFor('StateManager');
-        console.log('✅ [Bootstrap] StateManager ready');
-        
-        // 4. Wait for Selectors
-        const selectors = await this.coordinator.waitFor('Selectors');
-        console.log('✅ [Bootstrap] Selectors ready');
-        
-        // 5. Wait for AuthManager
-        const auth = await this.coordinator.waitFor('AuthManager');
-        console.log('✅ [Bootstrap] AuthManager ready');
-        
-        // 6. Wait for DI Container
-        const container = await this.coordinator.waitFor('Container');
-        console.log('✅ [Bootstrap] Container ready');
-        
-        // 7. Initialize all services through DI Container
-        await container.initializeAll();
-        console.log('✅ [Bootstrap] All services initialized via DI');
-        
-        console.log('✅ [Bootstrap] Services phase complete');
+        try {
+            // =================================================================
+            // PATTERN A: Auto-Registered Services (wait only)
+            // =================================================================
+            
+            // 1. Wait for EventBus (auto-registered after instantiation)
+            const eventBus = await this.coordinator.waitFor('EventBus', 10000);
+            console.log('✅ [Bootstrap] EventBus ready');
+            
+            // 2. Wait for Store (auto-registered after instantiation)
+            const store = await this.coordinator.waitFor('Store', 10000);
+            console.log('✅ [Bootstrap] Store ready');
+            
+            // 3. Wait for StateManager (auto-registered after instantiation)
+            const stateManager = await this.coordinator.waitFor('StateManager', 10000);
+            console.log('✅ [Bootstrap] StateManager ready');
+            
+            // 4. Wait for Selectors (auto-registered after instantiation)
+            const selectors = await this.coordinator.waitFor('Selectors', 10000);
+            console.log('✅ [Bootstrap] Selectors ready');
+            
+            // =================================================================
+            // PATTERN B: Manual-Init Services (initialize then wait)
+            // =================================================================
+            
+            // 5. Initialize AuthManager (registers itself after init)
+            console.log('🔐 [Bootstrap] Initializing AuthManager...');
+            const auth = window.OsliraAuth;
+            if (auth && !auth.isInitialized) {
+                const config = window.OsliraConfig;
+                const logger = window.OsliraLogger;
+                await auth.initialize({ config, logger });
+                // AuthManager registers itself in initialize() method
+            }
+            console.log('✅ [Bootstrap] AuthManager ready');
+            
+            // 6. Initialize DI Container (registers itself after init)
+            console.log('📦 [Bootstrap] Initializing Container...');
+            const container = window.OsliraContainer;
+            if (container && !container.isInitialized) {
+                await container.initialize();
+                // Container registers itself in initialize() method
+            }
+            console.log('✅ [Bootstrap] Container ready');
+            
+            console.log('✅ [Bootstrap] Services phase complete');
+            
+        } catch (error) {
+            console.error('❌ [Bootstrap] Services phase failed:', error);
+            throw error;
+        }
     }
     
     // =========================================================================
