@@ -33,7 +33,7 @@ class HomeApp {
     // MAIN INITIALIZATION (Called by Bootstrap)
     // ═══════════════════════════════════════════════════════════
     
-    async init() {
+    async initialize() {
         if (this.initialized) {
             console.log('⚠️ [HomeApp] Already initialized');
             return;
