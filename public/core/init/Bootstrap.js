@@ -528,12 +528,8 @@ console.log('✅ [Bootstrap] Class loaded and ready');
     }
     
     // Register event listeners
-    if (window.OsliraEventBus) {
-        window.OsliraEventBus.on('oslira:scripts:loaded', onScriptsLoaded);
-    } else {
-        // Fallback: listen on window for custom event
-        window.addEventListener('oslira:scripts:loaded', onScriptsLoaded);
-    }
+    // Use native DOM events since EventBus isn't initialized yet
+    window.addEventListener('oslira:scripts:loaded', onScriptsLoaded);
     
     if (domReady) {
         onDomReady();
@@ -541,7 +537,7 @@ console.log('✅ [Bootstrap] Class loaded and ready');
         document.addEventListener('DOMContentLoaded', onDomReady);
         // Backup: if DOMContentLoaded already fired
         if (document.readyState !== 'loading') {
-            onDomReady();
+            setTimeout(onDomReady, 0);
         }
     }
     
