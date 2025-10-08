@@ -21,11 +21,14 @@ Version: 2.0 - Bootstrap System
     <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
     <link rel="shortcut icon" type="image/png" href="/assets/images/oslira-logo.png">
 
-    <!-- Tailwind CSS (blocking load for no FOUC) -->
-    <link rel="stylesheet" href="/assets/css/tailwind.css">
-    
-    <!-- Critical inline styles -->
-    <style>
+<!-- Tailwind CSS (blocking load for no FOUC) -->
+<link rel="stylesheet" href="/assets/css/tailwind.css">
+
+<!-- External Dependencies (must load before app initialization) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+
+<!-- Critical inline styles -->
+<style>
         /* Accessibility: Skip to main content link */
         .skip-to-main {
             position: absolute;
