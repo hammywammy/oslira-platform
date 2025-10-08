@@ -74,7 +74,13 @@ class Monitoring {
             this.startHealthChecks();
             
             this.isInitialized = true;
-            console.log('✅ [Monitoring] Initialized');
+        console.log('✅ [Monitoring] Initialization complete');
+        
+        // Register with Coordinator AFTER successful initialization (Pattern B)
+        if (window.Oslira?.init) {
+            window.Oslira.init.register('Monitoring', this);
+            console.log('📋 [Monitoring] Registered with Coordinator');
+        }
             
         } catch (error) {
             console.error('❌ [Monitoring] Initialization failed:', error);
