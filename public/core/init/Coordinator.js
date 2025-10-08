@@ -1,667 +1,317 @@
 // =============================================================================
-// MONITORING - Performance & Metrics Tracking (Complete)
-// Path: /public/core/infrastructure/Monitoring.js
-// Dependencies: Logger (optional)
+// COORDINATOR - Async Service Initialization Coordinator
+// Path: /public/core/init/Coordinator.js
+// Dependencies: None (loads early)
 // =============================================================================
 
 /**
- * @class Monitoring
- * @description Track performance metrics and system health
- * 
- * Features:
- * - Performance timing tracking
- * - Resource usage monitoring
- * - Custom metrics
- * - Health checks
- * - Performance budgets
- * - Real User Monitoring (RUM) metrics
+ * @class CoordinatorMonitoring
+ * @description Internal monitoring helper for Coordinator (simplified)
  */
 class CoordinatorMonitoring {
     constructor() {
-        this.isInitialized = false;
-        this.logger = null;
-        
-        // Metrics storage
         this.metrics = new Map();
-        this.timings = new Map();
-        this.marks = new Map();
+        this.startTime = null;
+        this.endTime = null;
         
-        // Performance budgets (ms)
-        this.budgets = {
-            pageLoad: 3000,
-            timeToInteractive: 5000,
-            firstContentfulPaint: 1500,
-            largestContentfulPaint: 2500,
-            cumulativeLayoutShift: 0.1,
-            firstInputDelay: 100
-        };
-        
-        // Health status
-        this.health = {
-            status: 'healthy',
-            lastCheck: null,
-            issues: []
-        };
-        
-        console.log('📊 [Monitoring] Instance created');
+        console.log('📊 [CoordinatorMonitoring] Instance created');
     }
     
-    // =========================================================================
-    // INITIALIZATION
-    // =========================================================================
-    
-    /**
-     * Initialize monitoring
-     */
-    async initialize(dependencies = {}) {
-        if (this.isInitialized) {
-            console.log('⚠️ [Monitoring] Already initialized');
-            return;
-        }
-        
-        try {
-            console.log('📊 [Monitoring] Initializing...');
-            
-            this.logger = dependencies.logger || window.OsliraLogger;
-            
-            // Setup performance observers
-            this.setupPerformanceObservers();
-            
-            // Track page load metrics
-            this.trackPageLoad();
-            
-            // Setup periodic health checks
-            this.startHealthChecks();
-            
-            this.isInitialized = true;
-            console.log('✅ [Monitoring] Initialized');
-            
-        } catch (error) {
-            console.error('❌ [Monitoring] Initialization failed:', error);
-            throw error;
-        }
+    start() {
+        this.startTime = Date.now();
     }
     
-    // =========================================================================
-    // PERFORMANCE OBSERVERS
-    // =========================================================================
-    
-    /**
-     * Setup performance observers for Web Vitals
-     */
-    setupPerformanceObservers() {
-        try {
-            // Observe navigation timing
-            if (window.PerformanceObserver) {
-                // First Contentful Paint
-                const fcpObserver = new PerformanceObserver((list) => {
-                    for (const entry of list.getEntries()) {
-                        if (entry.name === 'first-contentful-paint') {
-                            this.recordMetric('fcp', entry.startTime);
-                            this.checkBudget('firstContentfulPaint', entry.startTime);
-                        }
-                    }
-                });
-                fcpObserver.observe({ entryTypes: ['paint'] });
-                
-                // Largest Contentful Paint
-                const lcpObserver = new PerformanceObserver((list) => {
-                    const entries = list.getEntries();
-                    const lastEntry = entries[entries.length - 1];
-                    this.recordMetric('lcp', lastEntry.startTime);
-                    this.checkBudget('largestContentfulPaint', lastEntry.startTime);
-                });
-                lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
-                
-                // First Input Delay
-                const fidObserver = new PerformanceObserver((list) => {
-                    for (const entry of list.getEntries()) {
-                        this.recordMetric('fid', entry.processingStart - entry.startTime);
-                        this.checkBudget('firstInputDelay', entry.processingStart - entry.startTime);
-                    }
-                });
-                fidObserver.observe({ entryTypes: ['first-input'] });
-                
-                // Cumulative Layout Shift
-                let clsValue = 0;
-                const clsObserver = new PerformanceObserver((list) => {
-                    for (const entry of list.getEntries()) {
-                        if (!entry.hadRecentInput) {
-                            clsValue += entry.value;
-                            this.recordMetric('cls', clsValue);
-                            this.checkBudget('cumulativeLayoutShift', clsValue);
-                        }
-                    }
-                });
-                clsObserver.observe({ entryTypes: ['layout-shift'] });
-                
-                console.log('✅ [Monitoring] Performance observers setup');
-            }
-        } catch (error) {
-            console.error('❌ [Monitoring] Failed to setup observers:', error);
-        }
+    end() {
+        this.endTime = Date.now();
     }
     
-    // =========================================================================
-    // PAGE LOAD TRACKING
-    // =========================================================================
-    
-    /**
-     * Track page load performance
-     */
-    trackPageLoad() {
-        if (document.readyState === 'complete') {
-            this._capturePageLoadMetrics();
-        } else {
-            window.addEventListener('load', () => {
-                this._capturePageLoadMetrics();
-            });
-        }
-    }
-    
-    /**
-     * Capture page load metrics
-     */
-    _capturePageLoadMetrics() {
-        try {
-            const perfData = window.performance.timing;
-            const navigation = window.performance.getEntriesByType('navigation')[0];
-            
-            if (navigation) {
-                // Modern Navigation Timing API
-                this.recordMetric('domContentLoaded', navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart);
-                this.recordMetric('pageLoad', navigation.loadEventEnd - navigation.fetchStart);
-                this.recordMetric('domInteractive', navigation.domInteractive - navigation.fetchStart);
-                
-                this.checkBudget('pageLoad', navigation.loadEventEnd - navigation.fetchStart);
-            } else if (perfData) {
-                // Fallback to older Timing API
-                this.recordMetric('pageLoad', perfData.loadEventEnd - perfData.navigationStart);
-                this.recordMetric('domContentLoaded', perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart);
-                
-                this.checkBudget('pageLoad', perfData.loadEventEnd - perfData.navigationStart);
-            }
-            
-            if (this.logger) {
-                this.logger.info('[Monitoring] Page load metrics captured', this.getMetrics());
-            }
-        } catch (error) {
-            console.error('❌ [Monitoring] Failed to capture page load metrics:', error);
-        }
-    }
-    
-    // =========================================================================
-    // CUSTOM METRICS
-    // =========================================================================
-    
-    /**
-     * Record custom metric
-     */
     recordMetric(name, value) {
-        if (!this.metrics.has(name)) {
-            this.metrics.set(name, []);
-        }
-        
-        this.metrics.get(name).push({
+        this.metrics.set(name, {
             value,
             timestamp: Date.now()
         });
-        
-        // Keep only last 100 entries per metric
-        if (this.metrics.get(name).length > 100) {
-            this.metrics.get(name).shift();
-        }
     }
     
-    /**
-     * Get metric values
-     */
-    getMetric(name) {
-        return this.metrics.get(name) || [];
-    }
-    
-    /**
-     * Get latest metric value
-     */
-    getLatestMetric(name) {
-        const metric = this.metrics.get(name);
-        return metric && metric.length > 0 ? metric[metric.length - 1].value : null;
-    }
-    
-    /**
-     * Get all metrics
-     */
     getMetrics() {
-        const allMetrics = {};
-        
-        for (const [name, values] of this.metrics.entries()) {
-            allMetrics[name] = values[values.length - 1]?.value || null;
+        const result = {};
+        for (const [name, data] of this.metrics.entries()) {
+            result[name] = data.value;
         }
-        
-        return allMetrics;
+        return result;
     }
     
-    /**
-     * Clear metric
-     */
-    clearMetric(name) {
-        this.metrics.delete(name);
-    }
-    
-    /**
-     * Clear all metrics
-     */
-    clearAllMetrics() {
-        this.metrics.clear();
-    }
-    
-    // =========================================================================
-    // PERFORMANCE TIMING
-    // =========================================================================
-    
-    /**
-     * Start timing
-     */
-    startTiming(name) {
-        this.timings.set(name, performance.now());
-    }
-    
-    /**
-     * End timing and record metric
-     */
-    endTiming(name) {
-        const startTime = this.timings.get(name);
-        
-        if (!startTime) {
-            console.warn(`⚠️ [Monitoring] Timing "${name}" not found`);
+    getDuration() {
+        if (!this.startTime || !this.endTime) {
             return null;
         }
+        return this.endTime - this.startTime;
+    }
+}
+
+/**
+ * @class Coordinator
+ * @description Coordinates async service initialization with waitFor() pattern
+ * 
+ * Features:
+ * - Async service registration
+ * - waitFor() to prevent race conditions
+ * - Timeout handling
+ * - Service ready tracking
+ * - Progress monitoring
+ */
+class Coordinator {
+    constructor() {
+        this.services = new Map();
+        this.readyServices = new Set();
+        this.pendingWaiters = new Map();
+        this.monitoring = new CoordinatorMonitoring();
         
-        const duration = performance.now() - startTime;
-        this.timings.delete(name);
-        
-        this.recordMetric(name, duration);
-        
-        return duration;
+        console.log('🎯 [Coordinator] Instance created');
     }
     
+    // =========================================================================
+    // SERVICE REGISTRATION
+    // =========================================================================
+    
     /**
-     * Mark performance point
+     * Register a service as ready
+     * @param {string} name - Service name
+     * @param {Object} instance - Service instance
      */
-    mark(name) {
-        if (window.performance.mark) {
-            performance.mark(name);
+    register(name, instance) {
+        if (this.readyServices.has(name)) {
+            console.warn(`⚠️ [Coordinator] Service ${name} already registered`);
+            return;
         }
-        this.marks.set(name, performance.now());
+        
+        this.services.set(name, instance);
+        this.readyServices.add(name);
+        
+        console.log(`✅ [Coordinator] ${name} registered and ready`);
+        
+        // Resolve any pending waiters
+        this.resolvePendingWaiters(name, instance);
     }
     
     /**
-     * Measure between two marks
+     * Check if service is ready
+     * @param {string} name - Service name
+     * @returns {boolean}
      */
-    measure(name, startMark, endMark) {
-        try {
-            if (window.performance.measure) {
-                performance.measure(name, startMark, endMark);
-                
-                const measures = performance.getEntriesByName(name, 'measure');
-                if (measures.length > 0) {
-                    const duration = measures[measures.length - 1].duration;
-                    this.recordMetric(name, duration);
-                    return duration;
-                }
+    isReady(name) {
+        return this.readyServices.has(name);
+    }
+    
+    /**
+     * Get service if ready
+     * @param {string} name - Service name
+     * @returns {Object|null}
+     */
+    get(name) {
+        if (!this.isReady(name)) {
+            console.warn(`⚠️ [Coordinator] Service ${name} not ready yet`);
+            return null;
+        }
+        return this.services.get(name);
+    }
+    
+    // =========================================================================
+    // ASYNC WAITING
+    // =========================================================================
+    
+    /**
+     * Wait for service to be ready
+     * @param {string} name - Service name
+     * @param {number} timeout - Timeout in ms (default: 30000)
+     * @returns {Promise<Object>}
+     */
+    async waitFor(name, timeout = 30000) {
+        // If already ready, return immediately
+        if (this.isReady(name)) {
+            return this.services.get(name);
+        }
+        
+        console.log(`⏳ [Coordinator] Waiting for ${name}...`);
+        
+        // Create promise that resolves when service is ready
+        return new Promise((resolve, reject) => {
+            // Setup timeout
+            const timeoutId = setTimeout(() => {
+                this.removePendingWaiter(name, resolve);
+                reject(new Error(`Timeout waiting for ${name} (${timeout}ms)`));
+            }, timeout);
+            
+            // Add to pending waiters
+            if (!this.pendingWaiters.has(name)) {
+                this.pendingWaiters.set(name, []);
             }
             
-            // Fallback to manual calculation
-            const start = this.marks.get(startMark);
-            const end = this.marks.get(endMark);
-            
-            if (start && end) {
-                const duration = end - start;
-                this.recordMetric(name, duration);
-                return duration;
-            }
-        } catch (error) {
-            console.error('❌ [Monitoring] Measure failed:', error);
-        }
-        
-        return null;
-    }
-    
-    // =========================================================================
-    // PERFORMANCE BUDGETS
-    // =========================================================================
-    
-    /**
-     * Check if metric exceeds budget
-     */
-    checkBudget(name, value) {
-        const budget = this.budgets[name];
-        
-        if (!budget) {
-            return true;
-        }
-        
-        const exceedsBudget = value > budget;
-        
-        if (exceedsBudget) {
-            const message = `Performance budget exceeded: ${name} (${value.toFixed(2)}ms > ${budget}ms)`;
-            
-            console.warn(`⚠️ [Monitoring] ${message}`);
-            
-            if (this.logger) {
-                this.logger.warn(message, {
-                    component: 'Monitoring',
-                    metric: name,
-                    value,
-                    budget
-                });
-            }
-            
-            this.health.issues.push({
-                type: 'budget',
-                metric: name,
-                value,
-                budget,
-                timestamp: Date.now()
+            this.pendingWaiters.get(name).push({
+                resolve,
+                reject,
+                timeoutId
             });
+        });
+    }
+    
+    /**
+     * Wait for multiple services
+     * @param {string[]} names - Service names
+     * @param {number} timeout - Timeout in ms
+     * @returns {Promise<Object[]>}
+     */
+    async waitForAll(names, timeout = 30000) {
+        console.log(`⏳ [Coordinator] Waiting for ${names.length} services...`);
+        
+        const promises = names.map(name => this.waitFor(name, timeout));
+        return Promise.all(promises);
+    }
+    
+    /**
+     * Resolve pending waiters for a service
+     * @param {string} name - Service name
+     * @param {Object} instance - Service instance
+     */
+    resolvePendingWaiters(name, instance) {
+        const waiters = this.pendingWaiters.get(name);
+        
+        if (!waiters || waiters.length === 0) {
+            return;
         }
         
-        return !exceedsBudget;
+        console.log(`📢 [Coordinator] Resolving ${waiters.length} waiters for ${name}`);
+        
+        waiters.forEach(waiter => {
+            clearTimeout(waiter.timeoutId);
+            waiter.resolve(instance);
+        });
+        
+        this.pendingWaiters.delete(name);
     }
     
     /**
-     * Set performance budget
+     * Remove pending waiter
+     * @param {string} name - Service name
+     * @param {Function} resolve - Resolve function
      */
-    setBudget(name, value) {
-        this.budgets[name] = value;
-    }
-    
-    /**
-     * Get all budgets
-     */
-    getBudgets() {
-        return { ...this.budgets };
+    removePendingWaiter(name, resolve) {
+        const waiters = this.pendingWaiters.get(name);
+        
+        if (!waiters) {
+            return;
+        }
+        
+        const index = waiters.findIndex(w => w.resolve === resolve);
+        if (index > -1) {
+            clearTimeout(waiters[index].timeoutId);
+            waiters.splice(index, 1);
+        }
+        
+        if (waiters.length === 0) {
+            this.pendingWaiters.delete(name);
+        }
     }
     
     // =========================================================================
-    // RESOURCE MONITORING
+    // STATUS & DEBUGGING
     // =========================================================================
     
     /**
-     * Get memory usage (if available)
+     * Get all ready services
+     * @returns {string[]}
      */
-    getMemoryUsage() {
-        if (performance.memory) {
-            return {
-                used: Math.round(performance.memory.usedJSHeapSize / 1024 / 1024),
-                total: Math.round(performance.memory.totalJSHeapSize / 1024 / 1024),
-                limit: Math.round(performance.memory.jsHeapSizeLimit / 1024 / 1024),
-                usagePercent: Math.round((performance.memory.usedJSHeapSize / performance.memory.jsHeapSizeLimit) * 100)
-            };
-        }
-        return null;
+    getReadyServices() {
+        return Array.from(this.readyServices);
     }
     
     /**
-     * Get network information
+     * Get pending waiters info
+     * @returns {Object}
      */
-    getNetworkInfo() {
-        if (navigator.connection) {
-            return {
-                effectiveType: navigator.connection.effectiveType,
-                downlink: navigator.connection.downlink,
-                rtt: navigator.connection.rtt,
-                saveData: navigator.connection.saveData
-            };
+    getPendingWaiters() {
+        const pending = {};
+        
+        for (const [name, waiters] of this.pendingWaiters.entries()) {
+            pending[name] = waiters.length;
         }
-        return null;
+        
+        return pending;
     }
-    
-    /**
-     * Get device info
-     */
-    getDeviceInfo() {
-        return {
-            userAgent: navigator.userAgent,
-            platform: navigator.platform,
-            hardwareConcurrency: navigator.hardwareConcurrency,
-            deviceMemory: navigator.deviceMemory || null,
-            maxTouchPoints: navigator.maxTouchPoints || 0
-        };
-    }
-    
-    // =========================================================================
-    // HEALTH CHECKS
-    // =========================================================================
-    
-    /**
-     * Start periodic health checks
-     */
-    startHealthChecks() {
-        this.healthCheckInterval = setInterval(() => {
-            this.performHealthCheck();
-        }, 60000); // Every minute
-        
-        // Initial check
-        this.performHealthCheck();
-    }
-    
-    /**
-     * Stop health checks
-     */
-    stopHealthChecks() {
-        if (this.healthCheckInterval) {
-            clearInterval(this.healthCheckInterval);
-            this.healthCheckInterval = null;
-        }
-    }
-    
-    /**
-     * Perform health check
-     */
-    performHealthCheck() {
-        this.health.lastCheck = Date.now();
-        this.health.issues = [];
-        
-        // Check memory usage
-        const memory = this.getMemoryUsage();
-        if (memory && memory.usagePercent > 90) {
-            this.health.issues.push({
-                type: 'memory',
-                severity: 'high',
-                message: `High memory usage: ${memory.usagePercent}%`
-            });
-        }
-        
-        // Check error rate (if ErrorHandler available)
-        if (window.OsliraErrorHandler) {
-            const errorRate = window.OsliraErrorHandler.getErrorRate();
-            if (errorRate > 10) {
-                this.health.issues.push({
-                    type: 'errors',
-                    severity: 'medium',
-                    message: `High error rate: ${errorRate} errors/min`
-                });
-            }
-        }
-        
-        // Check performance metrics
-        const lcp = this.getLatestMetric('lcp');
-        if (lcp && lcp > this.budgets.largestContentfulPaint * 2) {
-            this.health.issues.push({
-                type: 'performance',
-                severity: 'medium',
-                message: `Poor LCP: ${lcp.toFixed(2)}ms`
-            });
-        }
-        
-        // Determine overall health status
-        if (this.health.issues.length === 0) {
-            this.health.status = 'healthy';
-        } else {
-            const hasHighSeverity = this.health.issues.some(i => i.severity === 'high');
-            this.health.status = hasHighSeverity ? 'critical' : 'degraded';
-        }
-        
-        if (this.logger && this.health.issues.length > 0) {
-            this.logger.warn('[Monitoring] Health issues detected', {
-                status: this.health.status,
-                issues: this.health.issues
-            });
-        }
-    }
-    
-    /**
-     * Get health status
-     */
-    getHealthStatus() {
-        return {
-            ...this.health,
-            memory: this.getMemoryUsage(),
-            network: this.getNetworkInfo()
-        };
-    }
-    
-    // =========================================================================
-    // WEB VITALS SUMMARY
-    // =========================================================================
-    
-    /**
-     * Get Web Vitals summary
-     */
-    getWebVitals() {
-        return {
-            fcp: this.getLatestMetric('fcp'),
-            lcp: this.getLatestMetric('lcp'),
-            fid: this.getLatestMetric('fid'),
-            cls: this.getLatestMetric('cls'),
-            ttfb: this.getLatestMetric('ttfb')
-        };
-    }
-    
-    /**
-     * Get Web Vitals score (0-100)
-     */
-    getWebVitalsScore() {
-        const vitals = this.getWebVitals();
-        let score = 100;
-        
-        // FCP score (deduct up to 20 points)
-        if (vitals.fcp) {
-            if (vitals.fcp > 3000) score -= 20;
-            else if (vitals.fcp > 1800) score -= 10;
-        }
-        
-        // LCP score (deduct up to 30 points)
-        if (vitals.lcp) {
-            if (vitals.lcp > 4000) score -= 30;
-            else if (vitals.lcp > 2500) score -= 15;
-        }
-        
-        // FID score (deduct up to 20 points)
-        if (vitals.fid) {
-            if (vitals.fid > 300) score -= 20;
-            else if (vitals.fid > 100) score -= 10;
-        }
-        
-        // CLS score (deduct up to 30 points)
-        if (vitals.cls) {
-            if (vitals.cls > 0.25) score -= 30;
-            else if (vitals.cls > 0.1) score -= 15;
-        }
-        
-        return Math.max(0, score);
-    }
-    
-    // =========================================================================
-    // REPORTING
-    // =========================================================================
-    
-    /**
-     * Generate performance report
-     */
-    generateReport() {
-        return {
-            timestamp: Date.now(),
-            metrics: this.getMetrics(),
-            webVitals: this.getWebVitals(),
-            webVitalsScore: this.getWebVitalsScore(),
-            health: this.getHealthStatus(),
-            memory: this.getMemoryUsage(),
-            network: this.getNetworkInfo(),
-            device: this.getDeviceInfo(),
-            budgets: this.getBudgets()
-        };
-    }
-    
-    /**
-     * Export report as JSON
-     */
-    exportReport() {
-        return JSON.stringify(this.generateReport(), null, 2);
-    }
-    
-    // =========================================================================
-    // STATISTICS
-    // =========================================================================
     
     /**
      * Get statistics
+     * @returns {Object}
      */
     getStats() {
         return {
-            totalMetrics: this.metrics.size,
-            activeTimings: this.timings.size,
-            marks: this.marks.size,
-            healthStatus: this.health.status,
-            healthIssues: this.health.issues.length,
-            lastHealthCheck: this.health.lastCheck
-        };
-    }
-    
-    // =========================================================================
-    // DEBUG
-    // =========================================================================
-    
-    /**
-     * Get debug info
-     */
-    getDebugInfo() {
-        return {
-            isInitialized: this.isInitialized,
-            stats: this.getStats(),
-            webVitals: this.getWebVitals(),
-            webVitalsScore: this.getWebVitalsScore(),
-            health: this.health,
-            recentMetrics: Array.from(this.metrics.keys()).slice(0, 10)
+            totalServices: this.services.size,
+            readyServices: this.readyServices.size,
+            pendingWaiters: this.pendingWaiters.size,
+            monitoring: this.monitoring.getMetrics()
         };
     }
     
     /**
-     * Print debug info
+     * Debug info
      */
     debug() {
-        console.group('📊 [Monitoring] Debug Info');
+        console.group('🎯 [Coordinator] Debug Info');
         console.log('Stats:', this.getStats());
-        console.log('Web Vitals:', this.getWebVitals());
-        console.log('Score:', this.getWebVitalsScore());
-        console.log('Health:', this.health);
+        console.log('Ready Services:', this.getReadyServices());
+        console.log('Pending Waiters:', this.getPendingWaiters());
         console.groupEnd();
     }
     
     /**
-     * Print full report
+     * List all services
      */
-    printReport() {
-        console.group('📊 [Monitoring] Performance Report');
-        console.log('Metrics:', this.getMetrics());
-        console.log('Web Vitals:', this.getWebVitals());
-        console.log('Score:', this.getWebVitalsScore());
-        console.log('Health:', this.getHealthStatus());
-        console.log('Memory:', this.getMemoryUsage());
-        console.log('Network:', this.getNetworkInfo());
-        console.log('Device:', this.getDeviceInfo());
+    listServices() {
+        console.group('🎯 [Coordinator] Registered Services');
+        
+        for (const name of this.readyServices) {
+            console.log(`✓ ${name}`);
+        }
+        
         console.groupEnd();
+    }
+    
+    // =========================================================================
+    // MONITORING
+    // =========================================================================
+    
+    /**
+     * Start monitoring
+     */
+    startMonitoring() {
+        this.monitoring.start();
+    }
+    
+    /**
+     * End monitoring
+     */
+    endMonitoring() {
+        this.monitoring.end();
+    }
+    
+    /**
+     * Record metric
+     * @param {string} name - Metric name
+     * @param {number} value - Metric value
+     */
+    recordMetric(name, value) {
+        this.monitoring.recordMetric(name, value);
+    }
+    
+    /**
+     * Get monitoring report
+     * @returns {Object}
+     */
+    getMonitoringReport() {
+        return {
+            duration: this.monitoring.getDuration(),
+            metrics: this.monitoring.getMetrics(),
+            services: this.getStats()
+        };
     }
     
     // =========================================================================
@@ -669,28 +319,36 @@ class CoordinatorMonitoring {
     // =========================================================================
     
     /**
-     * Destroy monitoring
+     * Clear all pending waiters
      */
-    destroy() {
-        this.stopHealthChecks();
-        this.clearAllMetrics();
-        this.timings.clear();
-        this.marks.clear();
-        this.isInitialized = false;
+    clearPendingWaiters() {
+        for (const [name, waiters] of this.pendingWaiters.entries()) {
+            waiters.forEach(waiter => {
+                clearTimeout(waiter.timeoutId);
+                waiter.reject(new Error(`Coordinator cleared while waiting for ${name}`));
+            });
+        }
         
-        console.log('🗑️ [Monitoring] Destroyed');
+        this.pendingWaiters.clear();
+    }
+    
+    /**
+     * Reset coordinator
+     */
+    reset() {
+        this.clearPendingWaiters();
+        this.services.clear();
+        this.readyServices.clear();
+        
+        console.log('🔄 [Coordinator] Reset complete');
     }
 }
 
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-// Export globally
 window.OsliraCoordinator = new Coordinator();
 window.Oslira = window.Oslira || {};
 window.Oslira.init = window.OsliraCoordinator;
-
-// Export monitoring utility separately
-window.OsliraCoordinatorMonitoring = CoordinatorMonitoring;  // ← Export renamed class
 
 console.log('✅ [Coordinator] Loaded and ready');
