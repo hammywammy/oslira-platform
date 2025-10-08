@@ -45,7 +45,7 @@ async initialize() {
         
         try {
             // Get service registry
-            this.registry = window.OsliraRegistry;
+            this.registry = window.OsliraServiceRegistry;
             
             if (!this.registry) {
                 throw new Error('ServiceRegistry not available');
