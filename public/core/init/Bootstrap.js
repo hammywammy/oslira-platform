@@ -312,16 +312,24 @@ async initializeInfrastructure() {
             attempts++;
         }
         
-        if (!window[appClass]) {
+if (!window[appClass]) {
             throw new Error(`App class ${appClass} not found after ${maxAttempts * 100}ms`);
         }
         
-        // Initialize app if it has initialize method
-        const app = window[appClass];
+        // Create app instance
+        const AppClass = window[appClass];
+        const appInstance = new AppClass();
         
-        if (app && typeof app.initialize === 'function') {
+        // Store instance for access
+        if (!window.Oslira.apps) {
+            window.Oslira.apps = {};
+        }
+        window.Oslira.apps[pageName] = appInstance;
+        
+        // Initialize app if it has initialize method
+        if (appInstance && typeof appInstance.initialize === 'function') {
             console.log(`🎯 [Bootstrap] Initializing ${appClass}...`);
-            await app.initialize();
+            await appInstance.initialize();
             console.log(`✅ [Bootstrap] ${appClass} initialized`);
         } else {
             console.log(`ℹ️ [Bootstrap] ${appClass} has no initialize method`);
