@@ -564,9 +564,20 @@ class EventBus {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraEventBus = EventBus;
 
-// Create singleton instance (initialize later via container)
-window.OsliraEvents = new EventBus();
+// Create singleton instance
+const instance = new EventBus();
 
-console.log('✅ [EventBus] Class loaded, awaiting initialization');
+// Export to window
+window.OsliraEventBus = instance;
+
+// Auto-initialize
+instance.initialize();
+
+console.log('✅ [EventBus] Loaded and initialized');
+
+// Register with Coordinator immediately (Pattern A)
+if (window.Oslira?.init) {
+    window.Oslira.init.register('EventBus', instance);
+    console.log('📋 [EventBus] Registered with Coordinator');
+}
