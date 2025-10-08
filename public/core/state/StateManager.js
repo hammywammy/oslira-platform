@@ -649,6 +649,19 @@ class StateManager {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraStateManager = StateManager;
 
-console.log('✅ [StateManager] Class loaded and ready');
+// Create singleton instance (requires Store and Logger)
+const store = window.OsliraStore;
+const logger = window.OsliraLogger;
+const instance = new StateManager(store, logger);
+
+// Export to window
+window.OsliraStateManager = instance;
+
+console.log('✅ [StateManager] Loaded and ready');
+
+// Register with Coordinator immediately (Pattern A)
+if (window.Oslira?.init) {
+    window.Oslira.init.register('StateManager', instance);
+    console.log('📋 [StateManager] Registered with Coordinator');
+}
