@@ -39,7 +39,7 @@ class Container {
     /**
      * Initialize container with service registry
      */
-    async initialize() {
+async initialize() {
         console.log('📦 [Container] Initializing...');
         this.startTime = performance.now();
         
@@ -64,8 +64,15 @@ class Container {
             await this.initializeAllServices();
             
             this.endTime = performance.now();
-            const duration = (this.endTime - this.startTime).toFixed(0);
+            this.isInitialized = true;
             
+            // Register with Coordinator AFTER successful initialization (Pattern B)
+            if (window.Oslira?.init) {
+                window.Oslira.init.register('Container', this);
+                console.log('📋 [Container] Registered with Coordinator');
+            }
+            
+            const duration = (this.endTime - this.startTime).toFixed(0);
             console.log(`✅ [Container] Initialization complete in ${duration}ms`);
             console.log(`📦 [Container] ${this.initCount} services initialized`);
             
@@ -597,9 +604,14 @@ class Container {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraContainer = Container;
 
-// Create singleton instance (initialize later via bootstrap)
-window.OsliraDI = new Container();
+// Create singleton instance (DO NOT initialize yet)
+const instance = new Container();
+
+// Export to window
+window.OsliraContainer = instance;
 
 console.log('✅ [Container] Class loaded, awaiting initialization');
+
+// NOTE: Container follows Pattern B (Manual-Init)
+// Registration happens inside the initialize() method
