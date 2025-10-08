@@ -562,22 +562,23 @@ class EventBus {
 }
 
 // =============================================================================
-// GLOBAL EXPORT
+// GLOBAL EXPORT (Safe Singleton Pattern)
 // =============================================================================
 
-// Create singleton instance
-const instance = new EventBus();
-
-// Export to window
-window.OsliraEventBus = instance;
-
-// Auto-initialize
-instance.initialize();
-
-console.log('✅ [EventBus] Loaded and initialized');
-
-// Register with Coordinator immediately (Pattern A)
-if (window.Oslira?.init) {
-    window.Oslira.init.register('EventBus', instance);
-    console.log('📋 [EventBus] Registered with Coordinator');
+if (!window.OsliraEventBus) {
+    const instance = new EventBus();
+    
+    window.OsliraEventBus = instance;
+    
+    // Auto-initialize
+    instance.initialize();
+    
+    console.log('✅ [EventBus] Loaded and initialized');
+    
+    if (window.Oslira?.init) {
+        window.Oslira.init.register('EventBus', instance);
+        console.log('📋 [EventBus] Registered with Coordinator');
+    }
+} else {
+    console.log('⚠️ [EventBus] Already loaded, skipping re-initialization');
 }
