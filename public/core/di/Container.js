@@ -602,16 +602,18 @@ async initialize() {
 }
 
 // =============================================================================
-// GLOBAL EXPORT
+// GLOBAL EXPORT (Safe Singleton Pattern)
 // =============================================================================
 
-// Create singleton instance (DO NOT initialize yet)
-const instance = new Container();
-
-// Export to window
-window.OsliraContainer = instance;
-
-console.log('✅ [Container] Class loaded, awaiting initialization');
-
-// NOTE: Container follows Pattern B (Manual-Init)
-// Registration happens inside the initialize() method
+if (!window.OsliraContainer) {
+    const instance = new Container();
+    
+    window.OsliraContainer = instance;
+    
+    console.log('✅ [Container] Class loaded, awaiting initialization');
+    
+    // NOTE: Container follows Pattern B (Manual-Init)
+    // Registration happens inside the initialize() method
+} else {
+    console.log('⚠️ [Container] Already loaded, skipping re-initialization');
+}
