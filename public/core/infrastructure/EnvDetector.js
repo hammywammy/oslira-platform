@@ -514,11 +514,16 @@ constructor() {
 }
 
 // =============================================================================
-// GLOBAL EXPORT
+// GLOBAL EXPORT & AUTO-INITIALIZATION
 // =============================================================================
-window.OsliraEnvDetector = EnvDetector;
 
+// Create singleton instance
+const envDetector = new EnvDetector();
+
+// Export class and instance
+window.OsliraEnvDetector = EnvDetector;
 window.OsliraEnv = envDetector;
+
 console.log('✅ [EnvDetector] Loaded and initialized');
 
 // Register with Coordinator
