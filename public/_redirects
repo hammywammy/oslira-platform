@@ -62,33 +62,8 @@ https://app.oslira.org/settings/billing    /pages/app/settings/billing.html     
 https://app.oslira.com/settings/usage      /pages/app/settings/usage.html       200
 https://app.oslira.org/settings/usage      /pages/app/settings/usage.html       200
 
-# Contact pages under app subdomain
-https://app.oslira.com/contact             /pages/app/contact/index.html        200
-https://app.oslira.org/contact             /pages/app/contact/index.html        200
-https://app.oslira.com/contact/bug-report  /pages/app/contact/bug-report/index.html 200
-https://app.oslira.org/contact/bug-report  /pages/app/contact/bug-report/index.html 200
-
-# Legal pages under app subdomain
-https://app.oslira.com/legal               /pages/app/legal/index.html          200
-https://app.oslira.org/legal               /pages/app/legal/index.html          200
-https://app.oslira.com/legal/privacy       /pages/app/legal/privacy/index.html  200
-https://app.oslira.org/legal/privacy       /pages/app/legal/privacy/index.html  200
-https://app.oslira.com/legal/terms         /pages/app/legal/terms/index.html    200
-https://app.oslira.org/legal/terms         /pages/app/legal/terms/index.html    200
-https://app.oslira.com/legal/refund        /pages/app/legal/refund/index.html   200
-https://app.oslira.org/legal/refund        /pages/app/legal/refund/index.html   200
-https://app.oslira.com/legal/disclaimer    /pages/app/legal/disclaimer/index.html 200
-https://app.oslira.org/legal/disclaimer    /pages/app/legal/disclaimer/index.html 200
-
-# Support pages under app subdomain
-https://app.oslira.com/support             /pages/app/support/index.html        200
-https://app.oslira.org/support             /pages/app/support/index.html        200
-https://app.oslira.com/sales               /pages/app/sales/index.html          200
-https://app.oslira.org/sales               /pages/app/sales/index.html          200
-https://app.oslira.com/security            /pages/app/security/index.html       200
-https://app.oslira.org/security            /pages/app/security/index.html       200
-https://app.oslira.com/status              /pages/app/status/index.html         200
-https://app.oslira.org/status              /pages/app/status/index.html         200
+https://app.oslira.com/security        /pages/app/security/index.html       200
+https://app.oslira.org/security        /pages/app/security/index.html       200
 
 # App subdomain catch-all (MUST be last for app subdomain)
 https://app.oslira.com/*                   /pages/app/dashboard/:splat          200
@@ -115,8 +90,6 @@ https://contact.oslira.com/bug-report      /pages/app/contact/bug-report/index.h
 https://contact.oslira.org/bug-report      /pages/app/contact/bug-report/index.html 200
 https://contact.oslira.com/support         /pages/app/support/index.html        200
 https://contact.oslira.org/support         /pages/app/support/index.html        200
-https://contact.oslira.com/security        /pages/app/security/index.html       200
-https://contact.oslira.org/security        /pages/app/security/index.html       200
 https://contact.oslira.com/sales           /pages/app/sales/index.html          200
 https://contact.oslira.org/sales           /pages/app/sales/index.html          200
 https://contact.oslira.com/*               /pages/app/contact/:splat            200
