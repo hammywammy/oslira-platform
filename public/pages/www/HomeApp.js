@@ -41,14 +41,11 @@ class HomeApp {
         
         console.log('🚀 [HomeApp] Starting initialization...');
         
-        try {
-            // Step 1: Render header
-            await this.initializeHeader();
+try {
+            // Header/footer are SSR'd in HTML - just initialize interactions
+            this.initializeHeaderInteractions();
             
-            // Step 2: Render footer
-            await this.initializeFooter();
-            
-            // Step 3: Setup Instagram demo
+            // Step 1: Setup Instagram demo
             await this.setupInstagramDemo();
             
             // Step 4: Initialize conversion optimizations
@@ -66,45 +63,31 @@ class HomeApp {
         }
     }
     
-    // ═══════════════════════════════════════════════════════════
-    // HEADER INITIALIZATION
-    // ═══════════════════════════════════════════════════════════
-    
-    async initializeHeader() {
-        const headerContainer = document.getElementById('home-header-container');
-        if (!headerContainer) {
-            console.warn('⚠️ [HomeApp] Header container not found');
-            return;
-        }
-        
-        // Check if already rendered (shouldn't be, but defensive)
-        if (headerContainer.innerHTML.trim().length > 0) {
-            console.log('✅ [HomeApp] Header already rendered, skipping');
-            return;
-        }
-        
-        console.log('🎨 [HomeApp] Rendering header...');
-        this.header = new window.HeaderManager();
-        this.header.render('home-header-container', { type: 'home' });
-        console.log('✅ [HomeApp] Header rendered');
-    }
-    
-    // ═══════════════════════════════════════════════════════════
-    // FOOTER INITIALIZATION
+// ═══════════════════════════════════════════════════════════
+    // HEADER INTERACTIONS (Progressive Enhancement)
     // ═══════════════════════════════════════════════════════════
     
-    async initializeFooter() {
-        const footerContainer = document.getElementById('footer-container');
+    initializeHeaderInteractions() {
+        console.log('🎨 [HomeApp] Initializing header interactions...');
         
-        if (!footerContainer) {
-            console.warn('⚠️ [HomeApp] Footer container not found in DOM');
-            return;
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // Close on outside click
+            document.addEventListener('click', (e) => {
+                if (!mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
         }
         
-        console.log('🦶 [HomeApp] Rendering footer...');
-        this.footer = new window.FooterManager();
-        this.footer.render('footer-container');
-        console.log('✅ [HomeApp] Footer rendered');
+        console.log('✅ [HomeApp] Header interactions ready');
     }
     
     // ═══════════════════════════════════════════════════════════
