@@ -120,24 +120,27 @@ async initialize() {
         // STEP 1: Ensure EnvDetector is ready
         await this._waitForEnvDetector();
         
-        // STEP 2: Ensure Supabase CDN is loaded
+        // STEP 2: Ensure ConfigProvider is ready and initialized
+        await this._waitForConfigProvider();
+        
+        // STEP 3: Ensure Supabase CDN is loaded
         await this._waitForSupabaseCDN();
         
-        // STEP 3: Initialize Supabase client
+        // STEP 4: Initialize Supabase client
         await this._initializeSupabase();
         
-        // STEP 4: Check URL for session tokens (cross-subdomain transfer)
+        // STEP 5: Check URL for session tokens (cross-subdomain transfer)
         const restoredFromUrl = await this._restoreSessionFromUrl();
         
-        // STEP 5: Load current session (only if not restored from URL)
+        // STEP 6: Load current session (only if not restored from URL)
         if (!restoredFromUrl) {
             await this._loadCurrentSession();
         }
         
-        // STEP 6: Setup auth state listener
+        // STEP 7: Setup auth state listener
         this._setupAuthListener();
         
-        // STEP 7: Start token refresher (background task)
+        // STEP 8: Start token refresher (background task)
         this._startTokenRefresher();
     }
     
@@ -158,6 +161,36 @@ async initialize() {
         }
         
         console.log('✅ [AuthManager] EnvDetector ready');
+    }
+
+  async _waitForConfigProvider() {
+        let attempts = 0;
+        const maxAttempts = 50; // 5 seconds
+        
+        // Wait for ConfigProvider to exist
+        while (!window.OsliraConfig && attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+        
+        if (!window.OsliraConfig) {
+            throw new Error('ConfigProvider not available after timeout');
+        }
+        
+        console.log('✅ [AuthManager] ConfigProvider found');
+        
+        // Initialize ConfigProvider if not already initialized
+        if (!window.OsliraConfig.isInitialized) {
+            if (typeof window.OsliraConfig.initialize !== 'function') {
+                throw new Error('ConfigProvider.initialize() method not available');
+            }
+            
+            console.log('🔧 [AuthManager] Initializing ConfigProvider...');
+            await window.OsliraConfig.initialize();
+            console.log('✅ [AuthManager] ConfigProvider initialized');
+        } else {
+            console.log('✅ [AuthManager] ConfigProvider already initialized');
+        }
     }
     
     /**
@@ -226,29 +259,44 @@ async initialize() {
      * Get Supabase URL from config
      */
     async _getSupabaseUrl() {
-        // Wait for ConfigProvider
-        let attempts = 0;
-        while (!window.OsliraConfig && attempts < 50) {
-            await new Promise(r => setTimeout(r, 100));
-            attempts++;
+        if (!window.OsliraConfig || !window.OsliraConfig.isInitialized) {
+            throw new Error('ConfigProvider not initialized');
         }
         
-        if (window.OsliraConfig?.getSupabaseUrl) {
-            return window.OsliraConfig.getSupabaseUrl();
+        if (typeof window.OsliraConfig.getSupabaseUrl !== 'function') {
+            throw new Error('ConfigProvider.getSupabaseUrl() not available');
         }
         
-        throw new Error('ConfigProvider not available');
+        const url = await window.OsliraConfig.getSupabaseUrl();
+        
+        if (!url) {
+            throw new Error('Supabase URL not configured');
+        }
+        
+        console.log('✅ [AuthManager] Supabase URL retrieved from config');
+        return url;
     }
     
     /**
-     * Get Supabase key from config
+     * Get Supabase anon key from ConfigProvider
      */
     async _getSupabaseKey() {
-        if (window.OsliraConfig?.getSupabaseAnonKey) {
-            return window.OsliraConfig.getSupabaseAnonKey();
+        if (!window.OsliraConfig || !window.OsliraConfig.isInitialized) {
+            throw new Error('ConfigProvider not initialized');
         }
         
-        throw new Error('ConfigProvider not available');
+        if (typeof window.OsliraConfig.getSupabaseAnonKey !== 'function') {
+            throw new Error('ConfigProvider.getSupabaseAnonKey() not available');
+        }
+        
+        const key = await window.OsliraConfig.getSupabaseAnonKey();
+        
+        if (!key) {
+            throw new Error('Supabase anon key not configured');
+        }
+        
+        console.log('✅ [AuthManager] Supabase anon key retrieved from config');
+        return key;
     }
     
     // =========================================================================
