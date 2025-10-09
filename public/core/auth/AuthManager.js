@@ -786,21 +786,75 @@ async _getSupabaseKey() {
     /**
      * Handle OAuth callback (creates user record, checks onboarding)
      */
-    async handleCallback() {
-        try {
-            console.log('🔐 [AuthManager] Processing OAuth callback...');
+async handleCallback() {
+    try {
+        console.log('🔐 [AuthManager] Processing OAuth callback...');
+        
+        // CRITICAL FIX: Exchange OAuth code for session
+        // Supabase automatically detects code/hash in URL and exchanges it
+        const { data, error } = await this.supabase.auth.getSession();
+        
+        // If no session yet, try to exchange code from URL
+        if (!data.session) {
+            console.log('🔄 [AuthManager] No stored session, checking URL for OAuth code...');
             
-            // Get session from Supabase
-            const { data, error } = await this.supabase.auth.getSession();
+            // Check for OAuth code in URL (PKCE flow)
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
             
-            if (error) {
-                console.error('❌ [AuthManager] Callback session error:', error);
-                throw error;
+            if (code) {
+                console.log('🔐 [AuthManager] Found OAuth code, exchanging for session...');
+                
+                // Exchange code for session (Supabase PKCE)
+                const { data: sessionData, error: exchangeError } = 
+                    await this.supabase.auth.exchangeCodeForSession(code);
+                
+                if (exchangeError) {
+                    console.error('❌ [AuthManager] Code exchange failed:', exchangeError);
+                    throw exchangeError;
+                }
+                
+                if (!sessionData?.session) {
+                    throw new Error('No session returned from code exchange');
+                }
+                
+                console.log('✅ [AuthManager] OAuth code exchanged successfully');
+                
+                // Use the exchanged session
+                data.session = sessionData.session;
+                
+            } else {
+                // No code in URL, check for hash (implicit flow - legacy)
+                const hash = window.location.hash;
+                
+                if (hash && hash.includes('access_token')) {
+                    console.log('🔐 [AuthManager] Found OAuth hash, processing...');
+                    
+                    // Let Supabase process the hash automatically
+                    const { data: hashData, error: hashError } = 
+                        await this.supabase.auth.getSession();
+                    
+                    if (hashError || !hashData?.session) {
+                        throw new Error('Failed to process OAuth hash');
+                    }
+                    
+                    console.log('✅ [AuthManager] OAuth hash processed successfully');
+                    data.session = hashData.session;
+                    
+                } else {
+                    throw new Error('No session found after OAuth');
+                }
             }
-            
-            if (!data.session) {
-                throw new Error('No session found after OAuth');
-            }
+        }
+        
+        if (error) {
+            console.error('❌ [AuthManager] Callback session error:', error);
+            throw error;
+        }
+        
+        if (!data.session) {
+            throw new Error('No session found after OAuth');
+        }
             
             console.log('✅ [AuthManager] OAuth session retrieved');
             
