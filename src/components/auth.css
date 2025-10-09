@@ -1,6 +1,8 @@
 @layer components {
   /* =============================================================================
-     SIMPLE MODERN AUTH PAGE
+     ENHANCED MODERN AUTH PAGE - Smooth Animations & Wave Background
+     Path: /src/components/auth.css
+     Version: 3.0 - Production Ready
      ============================================================================= */
   
   .auth-page-body {
@@ -11,6 +13,36 @@
     justify-content: center;
     padding: 1rem;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Animated wave background overlay */
+  .auth-page-body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 200%;
+    background: 
+      radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 40% 20%, rgba(102, 126, 234, 0.12) 0%, transparent 50%);
+    animation: waveFloat 20s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes waveFloat {
+    0%, 100% {
+      transform: translate(0, 0) rotate(0deg);
+    }
+    33% {
+      transform: translate(-5%, 5%) rotate(1deg);
+    }
+    66% {
+      transform: translate(5%, -5%) rotate(-1deg);
+    }
   }
 
   .auth-container {
@@ -19,8 +51,23 @@
     padding: 3rem 2.5rem;
     width: 100%;
     max-width: 440px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.25),
+      0 0 0 1px rgba(0, 0, 0, 0.05);
     position: relative;
+    z-index: 1;
+    animation: slideUp 0.4s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .auth-container::before {
@@ -41,6 +88,18 @@
   .auth-header {
     text-align: center;
     margin-bottom: 2.5rem;
+    animation: fadeIn 0.5s ease-out 0.1s both;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .auth-logo-container {
@@ -48,6 +107,11 @@
     align-items: center;
     gap: 0.75rem;
     margin-bottom: 2rem;
+    transition: transform 0.3s ease;
+  }
+
+  .auth-logo-container:hover {
+    transform: scale(1.02);
   }
 
   .auth-logo-image {
@@ -78,7 +142,7 @@
   }
 
   /* =============================================================================
-     BUTTONS
+     BUTTONS - Smooth Interactions
      ============================================================================= */
 
   .auth-method {
@@ -93,13 +157,38 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     margin-bottom: 1rem;
     letter-spacing: -0.01em;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-method::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+  }
+
+  .auth-method:hover::before {
+    width: 300px;
+    height: 300px;
   }
 
   .auth-method:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+  }
+
+  .auth-method:active {
+    transform: translateY(0);
+    transition: transform 0.1s;
   }
 
   .auth-method:disabled {
@@ -114,7 +203,7 @@
   }
 
   .auth-method.primary:hover:not(:disabled) {
-    box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.5);
   }
 
   .auth-method.secondary {
@@ -140,13 +229,38 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     margin-bottom: 1rem;
     letter-spacing: -0.01em;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+  }
+
+  .auth-button:hover::before {
+    width: 300px;
+    height: 300px;
   }
 
   .auth-button:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+  }
+
+  .auth-button:active {
+    transform: translateY(0);
+    transition: transform 0.1s;
   }
 
   .auth-button:disabled {
@@ -161,7 +275,7 @@
   }
 
   .auth-button.primary:hover:not(:disabled) {
-    box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.5);
   }
 
   .auth-button.secondary {
@@ -181,6 +295,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    z-index: 1;
   }
 
   .google-icon {
@@ -204,7 +320,7 @@
     content: '';
     flex: 1;
     height: 1px;
-    background: #e5e7eb;
+    background: linear-gradient(to right, transparent, #e5e7eb, transparent);
   }
 
   .auth-divider-text {
@@ -228,7 +344,7 @@
     content: '';
     flex: 1;
     height: 1px;
-    background: #e5e7eb;
+    background: linear-gradient(to right, transparent, #e5e7eb, transparent);
   }
 
   .divider span {
@@ -240,7 +356,7 @@
   }
 
   /* =============================================================================
-     FORM ELEMENTS
+     FORM ELEMENTS - Smooth Focus States
      ============================================================================= */
 
   .auth-form-group {
@@ -254,6 +370,7 @@
     color: #374151;
     margin-bottom: 0.5rem;
     letter-spacing: -0.01em;
+    transition: color 0.2s ease;
   }
 
   .auth-form-input {
@@ -264,7 +381,7 @@
     border-radius: 0.75rem;
     font-size: 1rem;
     background: #ffffff;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     color: #1f2937;
   }
 
@@ -272,6 +389,11 @@
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .auth-form-input:focus + .auth-form-label {
+    color: #667eea;
   }
 
   .auth-form-input::placeholder {
@@ -289,6 +411,7 @@
     font-weight: 600;
     color: #374151;
     margin-bottom: 0.5rem;
+    transition: color 0.2s ease;
   }
 
   .form-input {
@@ -299,7 +422,7 @@
     border-radius: 0.75rem;
     font-size: 1rem;
     background: #ffffff;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     color: #1f2937;
   }
 
@@ -307,6 +430,7 @@
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
   }
 
   .form-input::placeholder {
@@ -314,7 +438,7 @@
   }
 
   /* =============================================================================
-     STATES
+     STATES - Smooth Transitions
      ============================================================================= */
 
   .auth-step {
@@ -323,6 +447,7 @@
 
   .auth-step.active {
     display: block;
+    animation: fadeIn 0.3s ease-out;
   }
 
   .auth-loading-state {
@@ -332,25 +457,32 @@
 
   .auth-loading-state.show {
     display: block;
+    animation: fadeIn 0.3s ease-out;
   }
 
   .auth-loading-spinner {
     width: 2rem;
     height: 2rem;
     margin: 0 auto 1rem;
-    border: 2px solid #e5e7eb;
-    border-top: 2px solid #667eea;
+    border: 3px solid #e5e7eb;
+    border-top: 3px solid #667eea;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 0.8s linear infinite;
   }
 
   .auth-loading-text {
     color: #6b7280;
+    animation: pulse 2s ease-in-out infinite;
   }
 
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
   }
 
   .auth-success-state {
@@ -361,6 +493,7 @@
 
   .auth-success-state.show {
     display: block;
+    animation: fadeIn 0.4s ease-out;
   }
 
   .auth-success-icon {
@@ -368,6 +501,18 @@
     height: 4rem;
     margin: 0 auto 1.5rem;
     color: #10b981;
+    animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes scaleIn {
+    from {
+      transform: scale(0);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 
   .auth-success-title {
@@ -393,6 +538,7 @@
     border-radius: 0.75rem;
     font-size: 0.875rem;
     line-height: 1.5;
+    animation: slideUp 0.4s ease-out 0.2s both;
   }
 
   .auth-error-message {
@@ -405,10 +551,17 @@
     margin-bottom: 1.5rem;
     display: none;
     line-height: 1.5;
+    animation: shake 0.4s ease-out;
   }
 
   .auth-error-message.show {
     display: block;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
   }
 
   /* Support legacy states */
@@ -418,11 +571,13 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
   }
 
   .loading-content {
@@ -433,10 +588,10 @@
     width: 2rem;
     height: 2rem;
     margin: 0 auto 1rem;
-    border: 2px solid #e5e7eb;
-    border-top: 2px solid #667eea;
+    border: 3px solid #e5e7eb;
+    border-top: 3px solid #667eea;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 0.8s linear infinite;
   }
 
   .alert {
@@ -444,6 +599,7 @@
     border-radius: 0.75rem;
     margin-bottom: 1.5rem;
     display: none;
+    animation: slideUp 0.3s ease-out;
   }
 
   .alert.show {
@@ -467,6 +623,23 @@
     line-height: 1.5;
   }
 
+  .retry-btn {
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .retry-btn:hover {
+    background: #5568d3;
+    transform: translateY(-1px);
+  }
+
   /* =============================================================================
      FOOTER
      ============================================================================= */
@@ -476,6 +649,7 @@
     margin-top: 2.5rem;
     padding-top: 2rem;
     border-top: 1px solid #f3f4f6;
+    animation: fadeIn 0.5s ease-out 0.2s both;
   }
 
   .auth-note {
@@ -497,12 +671,27 @@
     text-decoration: none;
     font-size: 0.8125rem;
     font-weight: 500;
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .auth-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #764ba2;
+    transition: width 0.3s ease;
   }
 
   .auth-link:hover {
     color: #764ba2;
-    text-decoration: underline;
+  }
+
+  .auth-link:hover::after {
+    width: 100%;
   }
 
   /* =============================================================================
@@ -514,7 +703,7 @@
   }
 
   /* =============================================================================
-     RESPONSIVE
+     RESPONSIVE - Smooth Scaling
      ============================================================================= */
 
   @media (max-width: 480px) {
@@ -556,6 +745,21 @@
     
     .auth-title {
       font-size: 1.25rem;
+    }
+  }
+
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    
+    .auth-page-body::before {
+      animation: none;
     }
   }
 }
