@@ -1,24 +1,21 @@
 // =============================================================================
-// AUTH CALLBACK APP - OAuth Callback Processor
-// Path: /public/pages/auth/AuthCallbackApp.js
+// AUTH APP - OAuth Handler
+// Path: /public/pages/auth/AuthApp.js
 // Dependencies: AuthManager (Phase 4), EnvDetector (Phase 0)
 // =============================================================================
 
 /**
- * @class AuthCallbackApp
- * @description Handles OAuth callback from Google via Supabase
+ * @class AuthApp
+ * @description Handles both login page AND OAuth callback
  * 
- * Flow:
- * 1. Wait for oslira:scripts:loaded event
- * 2. Initialize AuthManager if needed
- * 3. Extract code from URL
- * 4. Let AuthManager process the callback
- * 5. Redirect to appropriate destination
+ * Pages:
+ * - / (login page) - Shows login button, does NOT process callback
+ * - /auth/callback (callback page) - Processes OAuth callback
  */
-class AuthCallbackApp {
+class AuthApp {
     constructor() {
         this.isInitialized = false;
-        console.log('🔐 [AuthCallbackApp] Instance created');
+        console.log('🔐 [AuthApp] Instance created');
         this.init();
     }
     
@@ -30,13 +27,13 @@ class AuthCallbackApp {
             });
             
         } catch (error) {
-            console.error('❌ [AuthCallbackApp] Initialization failed:', error);
-            this.showError('Failed to initialize callback handler');
+            console.error('❌ [AuthApp] Initialization failed:', error);
+            this.showError('Failed to initialize auth handler');
         }
     }
     
     async initialize() {
-        console.log('🔐 [AuthCallbackApp] Processing OAuth callback...');
+        console.log('🔐 [AuthApp] Initializing...');
         
         try {
             // Verify required dependencies
@@ -48,33 +45,112 @@ class AuthCallbackApp {
                 throw new Error('EnvDetector not available');
             }
             
-            // CRITICAL FIX: Initialize AuthManager if not already initialized
+            // CRITICAL: Determine which page we're on
+            const currentPath = window.location.pathname;
+            const isCallbackPage = currentPath.includes('/callback') || 
+                                   currentPath === '/auth/callback' ||
+                                   currentPath === '/callback';
+            
+            console.log('📍 [AuthApp] Current path:', currentPath);
+            console.log('📍 [AuthApp] Is callback page:', isCallbackPage);
+            
+            // Initialize AuthManager if not already initialized
             if (!window.OsliraAuth.isLoaded) {
-                console.log('🔧 [AuthCallbackApp] Initializing AuthManager...');
-                this.updateStatus('Initializing authentication...');
+                console.log('🔧 [AuthApp] Initializing AuthManager...');
                 await window.OsliraAuth.initialize();
             }
             
-            // Update status
+            // Route to appropriate handler
+            if (isCallbackPage) {
+                console.log('🔄 [AuthApp] Processing OAuth callback...');
+                await this.handleCallback();
+            } else {
+                console.log('🏠 [AuthApp] Login page - setting up UI...');
+                await this.setupLoginPage();
+            }
+            
+            this.isInitialized = true;
+            console.log('✅ [AuthApp] Initialization complete');
+            
+        } catch (error) {
+            console.error('❌ [AuthApp] Initialization failed:', error);
+            this.showError(error.message || 'Initialization failed');
+        }
+    }
+    
+    // =========================================================================
+    // LOGIN PAGE SETUP
+    // =========================================================================
+    
+    /**
+     * Setup login page (non-callback)
+     */
+    async setupLoginPage() {
+        console.log('🏠 [AuthApp] Setting up login page...');
+        
+        // Check if user is already logged in
+        if (window.OsliraAuth.isAuthenticated) {
+            console.log('✅ [AuthApp] User already authenticated, redirecting...');
+            window.location.href = window.OsliraEnv.getAppUrl('/dashboard');
+            return;
+        }
+        
+        // Setup login button if it exists
+        const loginButton = document.getElementById('google-signin-btn');
+        if (loginButton) {
+            loginButton.addEventListener('click', async (e) => {
+                e.preventDefault();
+                
+                try {
+                    console.log('🔐 [AuthApp] Starting Google sign-in...');
+                    loginButton.disabled = true;
+                    loginButton.textContent = 'Signing in...';
+                    
+                    await window.OsliraAuth.signInWithGoogle();
+                } catch (error) {
+                    console.error('❌ [AuthApp] Sign-in failed:', error);
+                    loginButton.disabled = false;
+                    loginButton.textContent = 'Sign in with Google';
+                    this.showError(error.message || 'Sign-in failed. Please try again.');
+                }
+            });
+            
+            console.log('✅ [AuthApp] Login button configured');
+        }
+        
+        console.log('✅ [AuthApp] Login page ready');
+    }
+    
+    // =========================================================================
+    // CALLBACK HANDLING
+    // =========================================================================
+    
+    /**
+     * Handle OAuth callback
+     */
+    async handleCallback() {
+        console.log('🔐 [AuthApp] Processing OAuth callback...');
+        
+        try {
             this.updateStatus('Processing authentication...');
             
-            // Log URL for debugging (careful not to log sensitive data in production)
+            // Log URL for debugging (be careful not to log sensitive data)
             const urlParams = new URLSearchParams(window.location.search);
             const hasHash = window.location.hash.length > 0;
             
-            console.log('🔐 [AuthCallbackApp] URL has hash:', hasHash);
-            console.log('🔐 [AuthCallbackApp] URL params:', Array.from(urlParams.keys()));
+            console.log('🔐 [AuthApp] URL has hash:', hasHash);
+            console.log('🔐 [AuthApp] URL params:', Array.from(urlParams.keys()));
             
             // Check for OAuth errors in URL
             const error = urlParams.get('error');
             const errorDescription = urlParams.get('error_description');
             
             if (error) {
-                console.error('❌ [AuthCallbackApp] OAuth error:', error, errorDescription);
+                console.error('❌ [AuthApp] OAuth error:', error, errorDescription);
                 throw new Error(this.getErrorMessage(error, errorDescription));
             }
             
-            // Let AuthManager handle the callback (it processes the code/hash automatically)
+            // Let AuthManager handle the callback
             this.updateStatus('Verifying credentials...');
             
             const result = await window.OsliraAuth.handleCallback();
@@ -83,13 +159,13 @@ class AuthCallbackApp {
                 throw new Error('No valid session received');
             }
             
-            console.log('✅ [AuthCallbackApp] Authentication successful');
-            console.log('👤 [AuthCallbackApp] User:', result.session.user.email);
+            console.log('✅ [AuthApp] Authentication successful');
+            console.log('👤 [AuthApp] User:', result.session.user.email);
             
             // Determine redirect destination
             const redirectUrl = this.getRedirectUrl(result);
             
-            console.log('🔐 [AuthCallbackApp] Redirecting to:', redirectUrl);
+            console.log('🔐 [AuthApp] Redirecting to:', redirectUrl);
             this.updateStatus('Success! Redirecting...');
             
             // Redirect after short delay for UX
@@ -97,10 +173,8 @@ class AuthCallbackApp {
                 window.location.href = redirectUrl;
             }, 500);
             
-            this.isInitialized = true;
-            
         } catch (error) {
-            console.error('❌ [AuthCallbackApp] Callback processing failed:', error);
+            console.error('❌ [AuthApp] Callback processing failed:', error);
             this.showError(error.message || 'Authentication failed. Please try again.');
         }
     }
@@ -131,7 +205,7 @@ class AuthCallbackApp {
                     return returnUrl;
                 }
             } catch (e) {
-                console.warn('⚠️ [AuthCallbackApp] Invalid return_to URL:', returnTo);
+                console.warn('⚠️ [AuthApp] Invalid return_to URL:', returnTo);
             }
         }
         
@@ -170,7 +244,7 @@ class AuthCallbackApp {
     // =========================================================================
     
     /**
-     * Update status message
+     * Update status message (for callback page)
      */
     updateStatus(message) {
         const statusEl = document.getElementById('status-text');
@@ -183,7 +257,7 @@ class AuthCallbackApp {
      * Show error state
      */
     showError(message) {
-        console.error('❌ [AuthCallbackApp] Showing error:', message);
+        console.error('❌ [AuthApp] Showing error:', message);
         
         // Hide loading
         const loadingState = document.getElementById('loading-state');
@@ -216,5 +290,5 @@ class AuthCallbackApp {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.AuthCallbackApp = new AuthCallbackApp();
-console.log('✅ [AuthCallbackApp] Module loaded and ready');
+window.AuthApp = new AuthApp();
+console.log('✅ [AuthApp] Module loaded and ready');
