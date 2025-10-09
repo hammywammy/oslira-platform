@@ -39,68 +39,110 @@ class AuthCallbackApp {
         }
     }
     
-    async initialize() {
-        console.log('🔐 [AuthCallbackApp] Processing OAuth callback...');
-        
+   /**
+ * Determine where to redirect user after successful auth
+ * CRITICAL: This is now the SINGLE source of truth for post-auth navigation
+ */
+getRedirectPath(result) {
+    console.log('🔐 [AuthCallbackApp] Determining redirect path...');
+    
+    // Priority 1: Check URL for return_to parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const returnTo = urlParams.get('return_to');
+    
+    if (returnTo) {
         try {
-            // Verify required dependencies
-            if (!window.OsliraAuth) {
-                throw new Error('AuthManager not available');
+            const returnUrl = decodeURIComponent(returnTo);
+            // Validate it's an Oslira domain
+            const url = new URL(returnUrl);
+            if (url.hostname.endsWith(window.OsliraEnv.rootDomain)) {
+                console.log('✅ [AuthCallbackApp] Using return_to parameter:', returnUrl);
+                return returnUrl;
             }
-            
-            if (!window.OsliraEnv) {
-                throw new Error('EnvDetector not available');
-            }
-            
-            // Update status
-            this.updateStatus('Processing authentication...');
-            
-            // Log URL for debugging (careful not to log sensitive data in production)
-            const urlParams = new URLSearchParams(window.location.search);
-            const hasHash = window.location.hash.length > 0;
-            
-            console.log('🔐 [AuthCallbackApp] URL has hash:', hasHash);
-            console.log('🔐 [AuthCallbackApp] URL params:', Array.from(urlParams.keys()));
-            
-            // Check for OAuth errors in URL
-            const error = urlParams.get('error');
-            const errorDescription = urlParams.get('error_description');
-            
-            if (error) {
-                console.error('❌ [AuthCallbackApp] OAuth error:', error, errorDescription);
-                throw new Error(this.getErrorMessage(error, errorDescription));
-            }
-            
-            // Let AuthManager handle the callback (it processes the hash automatically)
-            this.updateStatus('Verifying credentials...');
-            
-            const result = await window.OsliraAuth.handleCallback();
-            
-            if (!result || !result.session) {
-                throw new Error('No valid session received');
-            }
-            
-            console.log('✅ [AuthCallbackApp] Authentication successful');
-            console.log('👤 [AuthCallbackApp] User:', result.session.user.email);
-            
-            // Determine redirect destination
-            const redirectUrl = this.getRedirectUrl(result);
-            
-            console.log('🔐 [AuthCallbackApp] Redirecting to:', redirectUrl);
-            this.updateStatus('Success! Redirecting...');
-            
-            // Redirect after short delay for UX
-            setTimeout(() => {
-                window.location.href = redirectUrl;
-            }, 500);
-            
-            this.isInitialized = true;
-            
-        } catch (error) {
-            console.error('❌ [AuthCallbackApp] Callback processing failed:', error);
-            this.showError(error.message || 'Authentication failed. Please try again.');
+        } catch (e) {
+            console.warn('⚠️ [AuthCallbackApp] Invalid return_to URL:', returnTo);
         }
     }
+    
+    // Priority 2: Check if user needs onboarding
+    if (result.needsOnboarding) {
+        console.log('✅ [AuthCallbackApp] User needs onboarding');
+        return '/onboarding';
+    }
+    
+    // Priority 3: Default to dashboard
+    console.log('✅ [AuthCallbackApp] Redirecting to dashboard');
+    return '/dashboard';
+}
+
+async initialize() {
+    console.log('🔐 [AuthCallbackApp] Processing OAuth callback...');
+    
+    try {
+        // Verify required dependencies
+        if (!window.OsliraAuth) {
+            throw new Error('AuthManager not available');
+        }
+        
+        if (!window.OsliraEnv) {
+            throw new Error('EnvDetector not available');
+        }
+        
+        // Update status
+        this.updateStatus('Processing authentication...');
+        
+        // Log URL for debugging
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasHash = window.location.hash.length > 0;
+        
+        console.log('🔐 [AuthCallbackApp] URL has hash:', hasHash);
+        console.log('🔐 [AuthCallbackApp] URL params:', Array.from(urlParams.keys()));
+        
+        // Check for OAuth errors in URL
+        const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
+        
+        if (error) {
+            console.error('❌ [AuthCallbackApp] OAuth error:', error, errorDescription);
+            throw new Error(this.getErrorMessage(error, errorDescription));
+        }
+        
+        // ====================================================================
+        // CRITICAL FIX #4: Let AuthManager process callback
+        // It returns session data WITHOUT redirect URL
+        // ====================================================================
+        
+        this.updateStatus('Verifying credentials...');
+        
+        const result = await window.OsliraAuth.handleCallback();
+        
+        if (!result || !result.session) {
+            throw new Error('No valid session received');
+        }
+        
+        console.log('✅ [AuthCallbackApp] Authentication successful');
+        console.log('👤 [AuthCallbackApp] User:', result.session.user.email);
+        
+        // ====================================================================
+        // CRITICAL FIX #5: Determine destination path
+        // Then use AuthManager to build cross-subdomain URL
+        // ====================================================================
+        
+        const destinationPath = this.getRedirectPath(result);
+        
+        console.log('🔐 [AuthCallbackApp] Destination path:', destinationPath);
+        this.updateStatus('Success! Redirecting...');
+        
+        // Use AuthManager's cross-subdomain navigation
+        await window.OsliraAuth.navigateToApp(destinationPath);
+        
+        this.isInitialized = true;
+        
+    } catch (error) {
+        console.error('❌ [AuthCallbackApp] Callback processing failed:', error);
+        this.showError(error.message || 'Authentication failed. Please try again.');
+    }
+}
     
     // =========================================================================
     // REDIRECT LOGIC
