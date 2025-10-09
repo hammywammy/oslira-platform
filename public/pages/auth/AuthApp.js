@@ -1,7 +1,7 @@
 // =============================================================================
 // AUTH APP - Main Authentication Page Controller
 // Path: /public/pages/auth/AuthApp.js
-// Dependencies: AuthManager (Phase 2), NavigationHelper (Phase 1), EnvDetector (Phase 0)
+// Dependencies: AuthManager (Phase 4), NavigationHelper (Phase 1), EnvDetector (Phase 0)
 // =============================================================================
 
 /**
@@ -26,10 +26,13 @@ class AuthApp {
         this.isLoading = false;
         
         console.log('🔐 [AuthApp] Instance created');
+        
+        // Start initialization immediately
+        this.init();
     }
     
     // =========================================================================
-    // MAIN INITIALIZATION (Called by Bootstrap)
+    // MAIN INITIALIZATION
     // =========================================================================
     
     async init() {
@@ -41,11 +44,12 @@ class AuthApp {
         try {
             // Wait for all scripts to load
             window.addEventListener('oslira:scripts:loaded', async () => {
+                console.log('🔐 [AuthApp] Scripts loaded event received');
                 await this.initialize();
             });
             
         } catch (error) {
-            console.error('❌ [AuthApp] Initialization failed:', error);
+            console.error('❌ [AuthApp] Init setup failed:', error);
         }
     }
     
@@ -54,6 +58,11 @@ class AuthApp {
         
         try {
             // Verify required dependencies
+            console.log('🔐 [AuthApp] Checking dependencies...');
+            console.log('   - OsliraAuth available?', !!window.OsliraAuth);
+            console.log('   - OsliraEnv available?', !!window.OsliraEnv);
+            console.log('   - OsliraNav available?', !!window.OsliraNav);
+            
             if (!window.OsliraAuth) {
                 throw new Error('AuthManager not available');
             }
@@ -70,9 +79,6 @@ class AuthApp {
             
             // Handle URL error parameters
             this.handleUrlErrors();
-            
-            // Show page content (loading screen is auto-hidden by Loader.js)
-            // Body visibility is set by Loader.js after scripts load
             
             this.isInitialized = true;
             console.log('✅ [AuthApp] Initialization complete');
@@ -93,8 +99,11 @@ class AuthApp {
      */
     async checkExistingAuth() {
         try {
+            console.log('🔐 [AuthApp] Checking existing auth...');
+            
             // Wait for AuthManager to be ready
             if (!window.OsliraAuth.isLoaded) {
+                console.log('🔐 [AuthApp] Initializing AuthManager...');
                 await window.OsliraAuth.initialize();
             }
             
@@ -113,11 +122,13 @@ class AuthApp {
                 setTimeout(() => {
                     window.location.href = redirectUrl;
                 }, 1000);
+            } else {
+                console.log('🔐 [AuthApp] User not authenticated, showing sign-in');
             }
             
         } catch (error) {
             // Not authenticated or error checking - that's fine, let user sign in
-            console.log('🔐 [AuthApp] User not authenticated, showing sign-in');
+            console.log('🔐 [AuthApp] Auth check result: not authenticated');
         }
     }
     
@@ -134,10 +145,18 @@ class AuthApp {
         // Google sign-in button
         const googleBtn = document.getElementById('google-signin-btn');
         if (googleBtn) {
-            googleBtn.addEventListener('click', () => this.handleGoogleAuth());
+            console.log('🔐 [AuthApp] Found Google button, attaching listener');
+            
+            googleBtn.addEventListener('click', (e) => {
+                console.log('🔐 [AuthApp] Google button clicked!');
+                e.preventDefault();
+                this.handleGoogleAuth();
+            });
+            
             console.log('✅ [AuthApp] Google button listener attached');
         } else {
-            console.warn('⚠️ [AuthApp] Google sign-in button not found');
+            console.error('❌ [AuthApp] Google sign-in button not found in DOM!');
+            console.log('🔍 [AuthApp] Available buttons:', document.querySelectorAll('button'));
         }
         
         // Retry button (if error state visible)
@@ -203,11 +222,20 @@ class AuthApp {
                 throw new Error('Authentication system not available');
             }
             
+            console.log('🔐 [AuthApp] Checking if AuthManager has signInWithGoogle method...');
+            console.log('   - Method exists?', typeof window.OsliraAuth.signInWithGoogle === 'function');
+            
+            if (typeof window.OsliraAuth.signInWithGoogle !== 'function') {
+                throw new Error('signInWithGoogle method not available');
+            }
+            
             // Clear any existing errors
             this.hideError();
             
             // Show loading state
             this.showLoading('Connecting to Google...');
+            
+            console.log('🔐 [AuthApp] Calling signInWithGoogle...');
             
             // Initiate Google OAuth flow (will redirect to Google)
             await window.OsliraAuth.signInWithGoogle();
@@ -217,6 +245,12 @@ class AuthApp {
             
         } catch (error) {
             console.error('❌ [AuthApp] Google sign-in failed:', error);
+            console.error('   Error details:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
+            
             this.hideLoading();
             
             // Determine error message
@@ -338,4 +372,4 @@ class AuthApp {
 // GLOBAL EXPORT
 // =============================================================================
 window.AuthApp = new AuthApp();
-console.log('✅ [AuthApp] Module loaded, waiting for bootstrap');
+console.log('✅ [AuthApp] Module loaded and initialized');
