@@ -1,7 +1,7 @@
 // =============================================================================
 // STORE - Immutable State Store
 // Path: /public/core/state/Store.js
-// Dependencies: Logger
+// Dependencies: Logger (lazily resolved)
 // =============================================================================
 
 /**
@@ -15,15 +15,10 @@
  * - State history (last 50 changes)
  * - Change tracking
  * - Debug utilities
+ * - Lazy dependency resolution
  */
 class Store {
-    constructor(logger) {
-        if (!logger) {
-            throw new Error('[Store] Logger instance required');
-        }
-        
-        this.logger = logger;
-        
+    constructor() {
         // State storage
         this.state = {};
         
@@ -40,6 +35,26 @@ class Store {
         this.isInitialized = false;
         
         console.log('📦 [Store] Instance created');
+    }
+    
+    // =========================================================================
+    // LAZY DEPENDENCY RESOLUTION
+    // =========================================================================
+    
+    /**
+     * Get Logger instance (lazy)
+     */
+    get logger() {
+        if (!window.OsliraLogger) {
+            console.warn('[Store] Logger not yet available, using console');
+            return {
+                info: console.log.bind(console),
+                warn: console.warn.bind(console),
+                error: console.error.bind(console),
+                debug: console.log.bind(console)
+            };
+        }
+        return window.OsliraLogger;
     }
     
     // =========================================================================
@@ -531,8 +546,8 @@ class Store {
 // =============================================================================
 
 if (!window.OsliraStore) {
-    const logger = window.OsliraLogger;
-    const instance = new Store(logger);
+    // Create instance without dependencies (lazy resolution)
+    const instance = new Store();
     
     window.OsliraStore = instance;
     
