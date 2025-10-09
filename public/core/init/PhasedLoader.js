@@ -1,7 +1,7 @@
 // =============================================================================
 // PHASED LOADER - Parallel Script Loading with Dependency Management
 // Path: /public/core/init/PhasedLoader.js
-// Dependencies: None (loads first)
+// Dependencies: None (loaded by Loader.js)
 // =============================================================================
 
 /**
@@ -56,11 +56,11 @@ class PhasedLoader {
             id: index,
             name: phase.name || `Phase ${index + 1}`,
             scripts: phase.scripts || [],
-            critical: phase.critical || false,
+            critical: phase.critical !== undefined ? phase.critical : false,
             timeout: phase.timeout || this.config.timeout
         }));
         
-        console.log(`📋 [PhasedLoader] Defined ${this.phases.length} phases`);
+        console.log(`📋 [PhasedLoader] Defined ${this.phases.length} phases with ${this._getTotalScriptCount()} total scripts`);
         return this;
     }
     
@@ -69,6 +69,7 @@ class PhasedLoader {
      */
     configure(options) {
         this.config = { ...this.config, ...options };
+        console.log('⚙️ [PhasedLoader] Configuration updated:', this.config);
         return this;
     }
     
@@ -138,7 +139,7 @@ class PhasedLoader {
      */
     async loadPhase(phase) {
         const phaseStart = performance.now();
-        console.log(`📦 [PhasedLoader] Loading ${phase.name}...`);
+        console.log(`📦 [PhasedLoader] Phase ${phase.id}: ${phase.name} (${phase.scripts.length} scripts)...`);
         
         try {
             // Load all scripts in phase in parallel
@@ -149,7 +150,7 @@ class PhasedLoader {
             await Promise.all(loadPromises);
             
             const phaseTime = performance.now() - phaseStart;
-            console.log(`✅ [PhasedLoader] ${phase.name} complete in ${phaseTime.toFixed(2)}ms`);
+            console.log(`✅ [PhasedLoader] Phase ${phase.id} complete in ${phaseTime.toFixed(2)}ms`);
             
             if (this.onPhaseComplete) {
                 this.onPhaseComplete({
@@ -165,7 +166,7 @@ class PhasedLoader {
                 console.error(`❌ [PhasedLoader] Critical phase ${phase.name} failed:`, error);
                 throw error;
             } else {
-                console.warn(`⚠️ [PhasedLoader] Non-critical phase ${phase.name} failed:`, error);
+                console.warn(`⚠️ [PhasedLoader] Non-critical phase ${phase.name} had errors:`, error);
             }
         }
     }
@@ -182,7 +183,7 @@ class PhasedLoader {
         
         // Skip if previously failed and not critical
         if (this.failedScripts.has(scriptPath) && !critical) {
-            console.log(`⏭️ [PhasedLoader] Previously failed: ${scriptPath}`);
+            console.log(`⏭️ [PhasedLoader] Previously failed (skipping): ${scriptPath}`);
             return;
         }
         
@@ -197,7 +198,7 @@ class PhasedLoader {
                 this.loadedScripts.add(scriptPath);
                 this.loadTimes.set(scriptPath, loadTime);
                 
-                console.log(`✅ [PhasedLoader] Loaded: ${scriptPath} (${loadTime.toFixed(2)}ms)`);
+                console.log(`✅ [PhasedLoader] ${scriptPath} (${loadTime.toFixed(2)}ms)`);
                 
                 if (this.onProgress) {
                     this.onProgress({
@@ -214,10 +215,10 @@ class PhasedLoader {
                 retries++;
                 
                 if (retries <= this.config.maxRetries) {
-                    console.warn(`⚠️ [PhasedLoader] Retry ${retries}/${this.config.maxRetries} for: ${scriptPath}`);
+                    console.warn(`⚠️ [PhasedLoader] Retry ${retries}/${this.config.maxRetries}: ${scriptPath}`);
                     await this._delay(this.config.retryDelay * retries);
                 } else {
-                    console.error(`❌ [PhasedLoader] Failed to load: ${scriptPath}`, error);
+                    console.error(`❌ [PhasedLoader] Failed: ${scriptPath}`, error);
                     this.failedScripts.add(scriptPath);
                     
                     if (critical) {
@@ -241,7 +242,7 @@ class PhasedLoader {
             
             const timeout = setTimeout(() => {
                 cleanup();
-                reject(new Error(`Script load timeout: ${scriptPath}`));
+                reject(new Error(`Timeout: ${scriptPath}`));
             }, this.config.timeout);
             
             const cleanup = () => {
@@ -257,7 +258,7 @@ class PhasedLoader {
             
             script.onerror = () => {
                 cleanup();
-                reject(new Error(`Script load error: ${scriptPath}`));
+                reject(new Error(`Load error: ${scriptPath}`));
             };
             
             document.head.appendChild(script);
@@ -322,110 +323,30 @@ class PhasedLoader {
         this.startTime = null;
         console.log('🔄 [PhasedLoader] Reset complete');
     }
+    
+    /**
+     * Debug info
+     */
+    debug() {
+        console.group('🐛 [PhasedLoader] Debug Info');
+        console.log('Phases:', this.phases.length);
+        console.log('Total Scripts:', this._getTotalScriptCount());
+        console.log('Loaded:', this.loadedScripts.size);
+        console.log('Failed:', this.failedScripts.size);
+        console.log('Config:', this.config);
+        console.groupEnd();
+    }
 }
 
 // =============================================================================
-// PHASE DEFINITIONS
-// =============================================================================
-
-/**
- * Define standard phase structure
- */
-const STANDARD_PHASES = {
-    // Phase 0: Critical Infrastructure (No dependencies)
-    CRITICAL: {
-        name: 'Critical Infrastructure',
-        critical: true,
-        scripts: [
-            '/core/infrastructure/EnvDetector.js',
-            '/core/infrastructure/Logger.js',
-            '/core/infrastructure/ErrorHandler.js',
-            '/core/events/EventBus.js'
-        ]
-    },
-    
-    // Phase 1: Core Infrastructure (Depends on Phase 0)
-    INFRASTRUCTURE: {
-        name: 'Core Infrastructure',
-        critical: true,
-        scripts: [
-            '/core/infrastructure/HttpClient.js',
-            '/core/infrastructure/ConfigProvider.js',
-            '/core/state/Store.js',
-            '/core/state/StateManager.js',
-            '/core/utils/NavigationHelper.js'
-        ]
-    },
-    
-    // Phase 2: Services (Depends on Phase 1)
-    SERVICES: {
-        name: 'Services',
-        critical: true,
-        scripts: [
-            '/core/auth/AuthManager.js',
-            '/core/state/Selectors.js',
-            '/core/infrastructure/DependencyContainer.js'
-        ]
-    },
-    
-    // Phase 3: UI Components (Depends on Phase 2)
-    UI_CORE: {
-        name: 'UI Core',
-        critical: false,
-        scripts: [
-            '/core/ui/components/layouts/AppHeader.js',
-            '/core/ui/components/layouts/AppFooter.js',
-            '/core/ui/components/layouts/Sidebar.js'
-        ]
-    },
-    
-    // Phase 4: Page-Specific (Depends on Phase 3)
-    PAGE: {
-        name: 'Page Scripts',
-        critical: false,
-        scripts: [] // Will be populated based on current page
-    }
-};
-
-// =============================================================================
-// GLOBAL EXPORT & INITIALIZATION
+// GLOBAL EXPORT
 // =============================================================================
 
 // Create singleton instance
 const phasedLoader = new PhasedLoader();
 
-// Export
+// Export class and instance
 window.OsliraPhasedLoader = PhasedLoader;
 window.OsliraLoader = phasedLoader;
-window.STANDARD_PHASES = STANDARD_PHASES;
 
 console.log('✅ [PhasedLoader] Loaded and ready');
-
-// Example usage (will be called from bootstrap)
-/*
-window.OsliraLoader
-    .definePhases([
-        STANDARD_PHASES.CRITICAL,
-        STANDARD_PHASES.INFRASTRUCTURE,
-        STANDARD_PHASES.SERVICES,
-        STANDARD_PHASES.UI_CORE,
-        STANDARD_PHASES.PAGE
-    ])
-    .configure({
-        parallel: true,
-        maxRetries: 3,
-        timeout: 10000
-    })
-    .on('phaseComplete', (data) => {
-        console.log(`Phase complete: ${data.phase} in ${data.time}ms`);
-    })
-    .on('allComplete', (data) => {
-        console.log('All scripts loaded!', data);
-        // Emit event for app initialization
-        window.dispatchEvent(new Event('oslira:scripts:loaded'));
-    })
-    .on('error', (error) => {
-        console.error('Loading failed:', error);
-    })
-    .load();
-*/
