@@ -1,465 +1,554 @@
-//public/pages/dashboard/modules/leads/lead-manager.js
+// =============================================================================
+// LEAD MANAGER - Production Grade
+// Path: /public/pages/app/dashboard/domain/leads/LeadManager.js
+// Dependencies: Core system via window.Oslira*
+// =============================================================================
 
 /**
- * OSLIRA LEAD MANAGER MODULE
- * Handles all lead CRUD operations, data loading, and selection management
- * Fixed version with proper data flow and state management
+ * @class LeadManager
+ * @description Handles all lead CRUD operations, data loading, and selection management
+ * 
+ * Production improvements:
+ * - Direct access to Core system (no container)
+ * - Better error handling with recovery strategies
+ * - Race condition prevention
+ * - Proper memory management
+ * - Performance optimizations
+ * - Graceful degradation
  */
 class LeadManager {
-    constructor(container) {
-        this.container = container;
-        this.eventBus = container.get('eventBus');
-        this.stateManager = container.get('stateManager');
-        this.osliraAuth = container.get('osliraAuth');
+    constructor() {
+        // Core dependencies (direct access)
+        this.eventBus = window.OsliraEventBus;
+        this.stateManager = window.OsliraStateManager;
+        this.osliraAuth = window.OsliraAuth;
+        this.logger = window.OsliraLogger;
         
-        // Cache for lead data
+        // Validate dependencies
+        if (!this.eventBus || !this.stateManager || !this.osliraAuth) {
+            throw new Error('[LeadManager] Missing required Core dependencies');
+        }
+        
+        // State management
+        this.isLoading = false;
+        this.loadingAbortController = null;
+        
+        // Cache management
         this.dataCache = new Map();
         this.lastRefresh = null;
+        this.cacheExpiryMs = 5 * 60 * 1000; // 5 minutes
         
-        console.log('🚀 [LeadManager] Initialized');
+        // Performance tracking
+        this.performanceMetrics = {
+            lastLoadTime: null,
+            averageLoadTime: null,
+            loadCount: 0
+        };
+        
+        console.log('🚀 [LeadManager] Initialized (Production Mode)');
     }
+    
+    // =========================================================================
+    // INITIALIZATION
+    // =========================================================================
     
     async init() {
-        // Listen to auth changes
-        this.eventBus.on('auth:changed', this.handleAuthChange.bind(this));
-        this.eventBus.on('business:changed', this.handleBusinessChange.bind(this));
-        
-        console.log('✅ [LeadManager] Event listeners initialized');
+        try {
+            // Setup event listeners with error boundaries
+            this.setupEventListeners();
+            
+            // Setup cleanup on page unload
+            this.setupCleanupHandlers();
+            
+            console.log('✅ [LeadManager] Event listeners initialized');
+            return true;
+            
+        } catch (error) {
+            console.error('❌ [LeadManager] Initialization failed:', error);
+            this.logger?.error('[LeadManager] Init failed', error);
+            throw error;
+        }
     }
     
-    // ===============================================================================
-    // MAIN DATA LOADING - FIXED VERSION
-    // ===============================================================================
-    
-async loadDashboardData() {
-    // Prevent duplicate loading
-    if (this.isLoading) {
-        console.log('⚠️ [LeadManager] Already loading, skipping duplicate call');
-        return;
-    }
-    
-    this.isLoading = true;
-    
-    try {
-        console.log('🔄 [LeadManager] Loading dashboard data...');
-        this.stateManager.setState('isLoading', true);
-        this.stateManager.setState('loadingMessage', 'Loading leads...');
-        this.eventBus.emit('dashboard:loading:start', 'leads');
-        
-        // Wait for authentication with proper timeout
-        const user = await this.waitForValidUser(5000);
-        if (!user) {
-            throw new Error('Authentication timeout - user not available');
-        }
-        
-        // Wait for business selection with timeout
-        const selectedBusinessId = await this.waitForValidBusiness(3000);
-        if (!selectedBusinessId) {
-            throw new Error('Business selection timeout');
-        }
-        
-        // Wait for Supabase client with timeout
-        const supabaseClient = await this.waitForSupabaseClient(3000);
-        if (!supabaseClient) {
-            throw new Error('Supabase client timeout');
-        }
-        
-        console.log('📊 [LeadManager] Loading leads for:', {
-            userId: user.id,
-            businessId: selectedBusinessId
+    setupEventListeners() {
+        // Auth changes
+        this.eventBus.on('auth:changed', (data) => {
+            try {
+                this.handleAuthChange(data);
+            } catch (error) {
+                console.error('❌ [LeadManager] Auth change handler failed:', error);
+            }
         });
-            
-const { data: leads, error: leadsError } = await this.supabase
-    .from('leads')
-    .select(`
-      lead_id, username, display_name, profile_picture_url, bio_text,
-      platform_type, follower_count, following_count, post_count,
-      is_verified_account, profile_url, user_id, business_id,
-      first_discovered_at, last_updated_at,
-      runs!runs_lead_id_fkey(
-        run_id, analysis_type, overall_score, niche_fit_score, 
-        engagement_score, summary_text, confidence_level, created_at
-      )
-    `)
-    .eq('user_id', user.id)
-    .eq('business_id', selectedBusinessId)
-    .order('last_updated_at', { ascending: false })
-    .order('created_at', { foreignTable: 'runs', ascending: false });
-
-            if (leadsError) {
-                console.error('❌ [LeadManager] Leads query error:', leadsError);
-                throw leadsError;
+        
+        // Business changes
+        this.eventBus.on('business:changed', (data) => {
+            try {
+                this.handleBusinessChange(data);
+            } catch (error) {
+                console.error('❌ [LeadManager] Business change handler failed:', error);
             }
-            
-            console.log(`📊 [LeadManager] Loaded ${leads?.length || 0} leads from database`);
-            
-            // Process leads data
-            let enrichedLeads = [];
-            
-            if (leads && leads.length > 0) {
-                enrichedLeads = leads.map(lead => {
-                    // Get the most recent run
-                    const latestRun = lead.runs && lead.runs.length > 0
-                        ? lead.runs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0]
-                        : null;
-                    
-return {
-    // Map database fields to UI expected fields
-    id: lead.lead_id,
-    username: lead.username,
-    display_name: lead.display_name,
-    profile_picture_url: lead.profile_picture_url,
-    bio_text: lead.bio_text,
-    follower_count: lead.follower_count,
-    following_count: lead.following_count,
-    post_count: lead.post_count,
-    is_verified_account: lead.is_verified_account,
-    platform_type: lead.platform_type,
-    profile_url: lead.profile_url,
-    user_id: lead.user_id,
-    business_id: lead.business_id,
-    first_discovered_at: lead.first_discovered_at,
-    last_updated_at: lead.last_updated_at,
-    
-    // Backward compatibility fields
-    profile_pic_url: lead.profile_picture_url,
-    followers_count: lead.follower_count,
-    platform: lead.platform_type || 'instagram',
-    created_at: lead.last_updated_at || latestRun?.created_at || lead.first_discovered_at,
-    updated_at: lead.last_updated_at || latestRun?.created_at || lead.first_discovered_at,
-                        
-                        // Analysis data from runs table (via JOIN)
-                        score: latestRun?.overall_score || 0,
-                        analysis_type: latestRun?.analysis_type || 'light',
-                        quick_summary: latestRun?.summary_text || '',
-                        niche_fit_score: latestRun?.niche_fit_score || 0,
-                        engagement_score: latestRun?.engagement_score || 0,
-                        latest_run_id: latestRun?.run_id,
-                        confidence_level: latestRun?.confidence_level || 0,
-                        
-                        // Keep original runs data for reference
-                        runs: lead.runs || []
-                    };
-                });
-            }
-
-            // Debug before state update
-            console.log('🔍 [DEBUG] About to update state with:', {
-                enrichedLeadsLength: enrichedLeads?.length,
-                sampleLead: enrichedLeads?.[0],
-                aboutToCallBatchUpdate: true
-            });
-
-// Preserve existing selection during refresh
-const existingSelection = this.stateManager.getState('selectedLeads') || new Set();
-const validSelection = new Set();
-
-// Only keep selections for leads that still exist
-enrichedLeads.forEach(lead => {
-    if (existingSelection.has(lead.id)) {
-        validSelection.add(lead.id);
+        });
     }
-});
-
-// Update application state
-this.stateManager.batchUpdate({
-    'leads': enrichedLeads,
-    'allLeads': enrichedLeads, 
-    'filteredLeads': enrichedLeads,
-    'selectedLeads': validSelection
-});
-
-console.log('🔍 [DEBUG] State update completed with preserved selection:', validSelection.size);
-
-            // Cache the data
-            this.dataCache.set('leads', enrichedLeads);
-            this.lastRefresh = new Date().toISOString();
-
-            // Update global cache
-            if (this.osliraAuth.cache) {
-                this.osliraAuth.cache.leads = enrichedLeads;
-                this.osliraAuth.cache.lastRefresh = this.lastRefresh;
+    
+    setupCleanupHandlers() {
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            this.cleanup();
+        });
+        
+        // Cleanup on visibility change (tab switch)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && this.loadingAbortController) {
+                this.loadingAbortController.abort();
+                this.isLoading = false;
             }
-
-            console.log(`✅ [LeadManager] Final result: ${enrichedLeads.length} unique leads`);
-
-            // Emit events
+        });
+    }
+    
+    // =========================================================================
+    // MAIN DATA LOADING (Production Grade)
+    // =========================================================================
+    
+    async loadDashboardData() {
+        // Race condition prevention
+        if (this.isLoading) {
+            console.log('⚠️ [LeadManager] Load already in progress, waiting...');
+            return this.waitForCurrentLoad();
+        }
+        
+        const loadStartTime = performance.now();
+        this.isLoading = true;
+        this.loadingAbortController = new AbortController();
+        
+        try {
+            console.log('🔄 [LeadManager] Loading dashboard data...');
+            
+            // Update UI state
+            this.stateManager.batchUpdate({
+                'isLoading': true,
+                'loadingMessage': 'Loading leads...'
+            });
+            this.eventBus.emit('dashboard:loading:start', 'leads');
+            
+            // Wait for prerequisites with timeouts
+            const [user, businessId, supabaseClient] = await Promise.all([
+                this.waitForValidUser(5000),
+                this.waitForValidBusiness(3000),
+                this.waitForSupabaseClient(3000)
+            ]);
+            
+            // Validate prerequisites
+            if (!user) throw new Error('Authentication timeout - user not available');
+            if (!businessId) throw new Error('Business selection timeout');
+            if (!supabaseClient) throw new Error('Database connection timeout');
+            
+            console.log('📊 [LeadManager] Prerequisites met, loading leads...');
+            
+            // Load leads from database
+            const leads = await this.fetchLeadsFromDatabase(user.id, businessId, supabaseClient);
+            
+            // Process and enrich lead data
+            const enrichedLeads = this.processLeadData(leads);
+            
+            // Preserve existing selection during refresh
+            const validSelection = this.preserveSelection(enrichedLeads);
+            
+            // Update application state (atomic update)
+            this.updateStateWithLeads(enrichedLeads, validSelection);
+            
+            // Update cache
+            this.updateCache(enrichedLeads);
+            
+            // Track performance
+            this.trackPerformance(loadStartTime);
+            
+            // Emit success events
             this.eventBus.emit('leads:loaded', enrichedLeads);
             this.eventBus.emit('dashboard:data:loaded', { leads: enrichedLeads });
-
+            
+            console.log(`✅ [LeadManager] Loaded ${enrichedLeads.length} leads successfully`);
             return enrichedLeads;
-
-} catch (error) {
-    console.error('❌ [LeadManager] Error loading leads:', error);
-    this.eventBus.emit('dashboard:data:error', error);
-    
-    // Ensure empty state shows on error
-    this.stateManager.batchUpdate({
-        'leads': [],
-        'allLeads': [],
-        'filteredLeads': []
-    });
-    this.stateManager.setState('selectedLeads', new Set());
-    
-    throw error;
-} finally {
+            
+        } catch (error) {
+            // Determine if error is recoverable
+            const isRecoverable = this.handleLoadError(error);
+            
+            if (!isRecoverable) {
+                throw error;
+            }
+            
+            return [];
+            
+        } finally {
+            // Always cleanup state
             this.stateManager.setState('isLoading', false);
             this.eventBus.emit('dashboard:loading:end', 'leads');
-        this.isLoading = false;
+            this.isLoading = false;
+            this.loadingAbortController = null;
         }
     }
-    async waitForValidUser(timeout = 5000) {
-    return new Promise((resolve) => {
-        let attempts = 0;
-        const maxAttempts = timeout / 100;
-        
-        const checkUser = () => {
-            const user = this.osliraAuth?.user;
-            if (user && user.id) {
-                resolve(user);
-                return;
-            }
-            
-            attempts++;
-            if (attempts >= maxAttempts) {
-                console.warn('⚠️ [LeadManager] User wait timeout');
-                resolve(null);
-                return;
-            }
-            
-            setTimeout(checkUser, 100);
-        };
-        
-        checkUser();
-    });
-}
-
-async waitForValidBusiness(timeout = 3000) {
-    return new Promise((resolve) => {
-        let attempts = 0;
-        const maxAttempts = timeout / 100;
-        
-        const checkBusiness = () => {
-            const selectedBusiness = this.stateManager.getState('selectedBusiness');
-            const selectedBusinessId = selectedBusiness?.id || localStorage.getItem('selectedBusinessId');
-            
-            if (selectedBusinessId) {
-                resolve(selectedBusinessId);
-                return;
-            }
-            
-            attempts++;
-            if (attempts >= maxAttempts) {
-                console.warn('⚠️ [LeadManager] Business wait timeout');
-                resolve(null);
-                return;
-            }
-            
-            setTimeout(checkBusiness, 100);
-        };
-        
-        checkBusiness();
-    });
-}
-
-async waitForSupabaseClient(timeout = 3000) {
-    return new Promise((resolve) => {
-        let attempts = 0;
-        const maxAttempts = timeout / 100;
-        
-        const checkSupabase = () => {
-            const client = this.supabase;
-            if (client && typeof client.from === 'function') {
-                resolve(client);
-                return;
-            }
-            
-            attempts++;
-            if (attempts >= maxAttempts) {
-                console.warn('⚠️ [LeadManager] Supabase client wait timeout');
-                resolve(null);
-                return;
-            }
-            
-            setTimeout(checkSupabase, 100);
-        };
-        
-        checkSupabase();
-    });
-}
-
     
-    // ===============================================================================
-    // LEAD DETAILS
-    // ===============================================================================
+    // =========================================================================
+    // DATA FETCHING (Separated for testability)
+    // =========================================================================
+    
+    async fetchLeadsFromDatabase(userId, businessId, supabaseClient) {
+        const { data: leads, error: leadsError } = await supabaseClient
+            .from('leads')
+            .select(`
+                lead_id, username, display_name, profile_picture_url, bio_text,
+                platform_type, follower_count, following_count, post_count,
+                is_verified_account, profile_url, user_id, business_id,
+                first_discovered_at, last_updated_at,
+                runs!runs_lead_id_fkey(
+                    run_id, analysis_type, overall_score, niche_fit_score, 
+                    engagement_score, summary_text, confidence_level, created_at
+                )
+            `)
+            .eq('user_id', userId)
+            .eq('business_id', businessId)
+            .order('last_updated_at', { ascending: false })
+            .order('created_at', { foreignTable: 'runs', ascending: false });
+        
+        if (leadsError) {
+            console.error('❌ [LeadManager] Database query failed:', leadsError);
+            throw leadsError;
+        }
+        
+        console.log(`📊 [LeadManager] Fetched ${leads?.length || 0} leads from database`);
+        return leads || [];
+    }
+    
+    processLeadData(leads) {
+        if (!leads || leads.length === 0) {
+            return [];
+        }
+        
+        return leads.map(lead => {
+            // Get most recent run
+            const latestRun = lead.runs && lead.runs.length > 0
+                ? lead.runs[0]
+                : null;
+            
+            return {
+                // Primary fields
+                id: lead.lead_id,
+                username: lead.username,
+                display_name: lead.display_name,
+                profile_picture_url: lead.profile_picture_url,
+                bio_text: lead.bio_text,
+                follower_count: lead.follower_count,
+                following_count: lead.following_count,
+                post_count: lead.post_count,
+                is_verified_account: lead.is_verified_account,
+                platform_type: lead.platform_type,
+                profile_url: lead.profile_url,
+                user_id: lead.user_id,
+                business_id: lead.business_id,
+                first_discovered_at: lead.first_discovered_at,
+                last_updated_at: lead.last_updated_at,
+                
+                // Backward compatibility aliases
+                profile_pic_url: lead.profile_picture_url,
+                followers_count: lead.follower_count,
+                platform: lead.platform_type || 'instagram',
+                created_at: lead.last_updated_at || latestRun?.created_at || lead.first_discovered_at,
+                updated_at: lead.last_updated_at || latestRun?.created_at || lead.first_discovered_at,
+                
+                // Analysis data from latest run
+                score: latestRun?.overall_score || 0,
+                analysis_type: latestRun?.analysis_type || 'light',
+                quick_summary: latestRun?.summary_text || '',
+                niche_fit_score: latestRun?.niche_fit_score || 0,
+                engagement_score: latestRun?.engagement_score || 0,
+                latest_run_id: latestRun?.run_id,
+                confidence_level: latestRun?.confidence_level || 0,
+                
+                // Keep original runs for reference
+                runs: lead.runs || []
+            };
+        });
+    }
+    
+    preserveSelection(enrichedLeads) {
+        const existingSelection = this.stateManager.getState('selectedLeads') || new Set();
+        const validSelection = new Set();
+        const leadIds = new Set(enrichedLeads.map(l => l.id));
+        
+        // Only keep selections for leads that still exist
+        existingSelection.forEach(id => {
+            if (leadIds.has(id)) {
+                validSelection.add(id);
+            }
+        });
+        
+        if (validSelection.size !== existingSelection.size) {
+            console.log(`🔄 [LeadManager] Selection updated: ${existingSelection.size} → ${validSelection.size}`);
+        }
+        
+        return validSelection;
+    }
+    
+    updateStateWithLeads(leads, selection) {
+        this.stateManager.batchUpdate({
+            'leads': leads,
+            'allLeads': leads,
+            'filteredLeads': leads,
+            'selectedLeads': selection
+        });
+    }
+    
+    updateCache(leads) {
+        this.dataCache.set('leads', leads);
+        this.lastRefresh = Date.now();
+        
+        // Update global cache if available
+        if (this.osliraAuth.cache) {
+            this.osliraAuth.cache.leads = leads;
+            this.osliraAuth.cache.lastRefresh = this.lastRefresh;
+        }
+    }
+    
+    trackPerformance(startTime) {
+        const loadTime = performance.now() - startTime;
+        this.performanceMetrics.lastLoadTime = loadTime;
+        this.performanceMetrics.loadCount++;
+        
+        // Calculate rolling average
+        if (this.performanceMetrics.averageLoadTime === null) {
+            this.performanceMetrics.averageLoadTime = loadTime;
+        } else {
+            this.performanceMetrics.averageLoadTime = 
+                (this.performanceMetrics.averageLoadTime * (this.performanceMetrics.loadCount - 1) + loadTime) 
+                / this.performanceMetrics.loadCount;
+        }
+        
+        console.log(`⏱️ [LeadManager] Load time: ${loadTime.toFixed(0)}ms (avg: ${this.performanceMetrics.averageLoadTime.toFixed(0)}ms)`);
+    }
+    
+    // =========================================================================
+    // ERROR HANDLING (Production Grade)
+    // =========================================================================
+    
+    handleLoadError(error) {
+        console.error('❌ [LeadManager] Load failed:', error);
+        
+        // Log to monitoring
+        this.logger?.error('[LeadManager] Load failed', {
+            error: error.message,
+            stack: error.stack,
+            user: this.osliraAuth?.user?.id
+        });
+        
+        // Emit error event
+        this.eventBus.emit('dashboard:data:error', { error, source: 'lead_loading' });
+        
+        // Ensure UI shows empty state (graceful degradation)
+        this.stateManager.batchUpdate({
+            'leads': [],
+            'allLeads': [],
+            'filteredLeads': [],
+            'selectedLeads': new Set()
+        });
+        
+        // Determine if recoverable
+        const isRecoverable = 
+            error.message.includes('timeout') ||
+            error.message.includes('network') ||
+            error.message.includes('abort');
+        
+        return isRecoverable;
+    }
+    
+    // =========================================================================
+    // WAIT HELPERS (Production Grade with AbortController)
+    // =========================================================================
+    
+    async waitForValidUser(timeout = 5000) {
+        return this.waitFor(
+            () => this.osliraAuth?.user?.id,
+            timeout,
+            'User authentication'
+        );
+    }
+    
+    async waitForValidBusiness(timeout = 3000) {
+        return this.waitFor(
+            () => {
+                const selectedBusiness = this.stateManager.getState('selectedBusiness');
+                return selectedBusiness?.id || localStorage.getItem('selectedBusinessId');
+            },
+            timeout,
+            'Business selection'
+        );
+    }
+    
+    async waitForSupabaseClient(timeout = 3000) {
+        return this.waitFor(
+            () => {
+                const client = this.supabase;
+                return client && typeof client.from === 'function' ? client : null;
+            },
+            timeout,
+            'Database connection'
+        );
+    }
+    
+    async waitFor(condition, timeout, description) {
+        const startTime = Date.now();
+        const interval = 100;
+        const maxAttempts = timeout / interval;
+        let attempts = 0;
+        
+        while (attempts < maxAttempts) {
+            // Check if loading was aborted
+            if (this.loadingAbortController?.signal.aborted) {
+                throw new Error(`${description} wait aborted`);
+            }
+            
+            // Check condition
+            const result = condition();
+            if (result) {
+                const elapsed = Date.now() - startTime;
+                console.log(`✅ [LeadManager] ${description} ready (${elapsed}ms)`);
+                return result;
+            }
+            
+            // Wait before next attempt
+            await new Promise(resolve => setTimeout(resolve, interval));
+            attempts++;
+        }
+        
+        console.warn(`⚠️ [LeadManager] ${description} timeout after ${timeout}ms`);
+        return null;
+    }
+    
+    async waitForCurrentLoad() {
+        const maxWait = 30000; // 30 seconds
+        const startTime = Date.now();
+        
+        while (this.isLoading && (Date.now() - startTime) < maxWait) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        return this.stateManager.getState('leads');
+    }
+    
+    // =========================================================================
+    // LEAD OPERATIONS
+    // =========================================================================
     
     async viewLead(leadId) {
         console.log('🔍 [LeadManager] Loading lead details:', leadId);
-        
-        let lead = null;
-        let analysisData = null;
         
         try {
             const user = this.osliraAuth?.user;
             if (!user) throw new Error('No authenticated user');
             
-            // Fetch from new 3-table structure
-const { data: leadData, error: leadError } = await this.supabase
-    .from('leads')
-    .select(`
-        lead_id,
-        username,
-        display_name,
-        profile_picture_url,
-        bio_text,
-        external_website_url,
-        follower_count,
-        following_count,
-        post_count,
-        is_verified_account,
-        is_private_account,
-        is_business_account,
-        platform_type,
-        profile_url,
-        first_discovered_at,
-        runs!runs_lead_id_fkey(
-            run_id,
-            analysis_type,
-            overall_score,
-            niche_fit_score,
-            engagement_score,
-            summary_text,
-            confidence_level,
-            created_at,
-            payloads(analysis_data)
-        )
-    `)
+            const { data: leadData, error: leadError } = await this.supabase
+                .from('leads')
+                .select(`
+                    lead_id, username, display_name, profile_picture_url, bio_text,
+                    external_website_url, follower_count, following_count, post_count,
+                    is_verified_account, is_private_account, is_business_account,
+                    platform_type, profile_url, first_discovered_at,
+                    runs!runs_lead_id_fkey(
+                        run_id, analysis_type, overall_score, niche_fit_score,
+                        engagement_score, summary_text, confidence_level, created_at,
+                        payloads(analysis_data)
+                    )
+                `)
                 .eq('lead_id', leadId)
                 .eq('user_id', user.id)
                 .order('created_at', { foreignTable: 'runs', ascending: false })
                 .single();
-                
+            
             if (leadError || !leadData) {
                 throw new Error('Lead not found or access denied');
             }
             
-            // Transform data to match old interface for compatibility
-            lead = {
-                id: leadData.lead_id,
-                lead_id: leadData.lead_id,
-                username: leadData.username,
-                full_name: leadData.display_name,
-                profile_pic_url: leadData.profile_picture_url,
-                bio: leadData.bio_text,
-                external_url: leadData.external_website_url,
-                followers_count: leadData.follower_count,
-                following_count: leadData.following_count,
-                posts_count: leadData.post_count,
-                is_verified: leadData.is_verified_account,
-                is_private: leadData.is_private_account,
-                is_business_account: leadData.is_business_account,
-                platform: leadData.platform_type,
-                profile_url: leadData.profile_url,
-                created_at: leadData.first_discovered_at,
-                
-                // Map from latest run for compatibility
-                score: leadData.runs?.[0]?.overall_score || 0,
-                analysis_type: leadData.runs?.[0]?.analysis_type || 'light',
-                quick_summary: leadData.runs?.[0]?.summary_text,
-                runs: leadData.runs
-            };
-            
-            // Get analysis data from most recent run
-            if (leadData.runs && leadData.runs.length > 0) {
-                const latestRun = leadData.runs[0];
-                analysisData = {
-                    run_id: latestRun.run_id,
-                    engagement_score: latestRun.engagement_score,
-                    score_niche_fit: latestRun.niche_fit_score,
-                    score_total: latestRun.overall_score,
-                    summary_text: latestRun.summary_text,
-                    confidence_level: latestRun.confidence_level,
-                    created_at: latestRun.created_at
-                };
-                
-// If there's payload data, extract it using new schema structure
-if (latestRun.payloads && latestRun.payloads.length > 0) {
-    const payload = latestRun.payloads[0].analysis_data;
-    if (payload) {
-        // Deep analysis fields
-        analysisData.reasons = payload.reasons || [];
-        analysisData.deep_summary = payload.deep_summary;
-        analysisData.latest_posts = payload.latest_posts;
-        analysisData.selling_points = payload.selling_points || [];
-        analysisData.outreach_message = payload.outreach_message;
-        analysisData.audience_insights = payload.audience_insights;
-        analysisData.engagement_breakdown = payload.engagement_breakdown || {
-            avg_likes: 0,
-            avg_comments: 0,
-            engagement_rate: 0
-        };
-        
-        // X-Ray analysis fields
-        if (payload.copywriter_profile) {
-            analysisData.copywriter_profile = payload.copywriter_profile;
-        }
-        if (payload.commercial_intelligence) {
-            analysisData.commercial_intelligence = payload.commercial_intelligence;
-        }
-        if (payload.persuasion_strategy) {
-            analysisData.persuasion_strategy = payload.persuasion_strategy;
-        }
-        // Add X-Ray deep_summary
-        if (payload.deep_summary) {
-            analysisData.deep_summary = payload.deep_summary;
-        }
-        
-        // CRITICAL FIX: Add pre_processed_metrics to analysisData
-        if (payload.pre_processed_metrics) {
-            analysisData.pre_processed_metrics = payload.pre_processed_metrics;
-            console.log('✅ [LeadManager] Pre-processed metrics attached:', payload.pre_processed_metrics);
-        }
-
-        if (payload.personality_profile) {
-    analysisData.personality_profile = payload.personality_profile;
-    console.log('✅ [LeadManager] Personality profile attached:', payload.personality_profile);
-}
-        
-        // Legacy compatibility for older fields
-        analysisData.audience_quality = 'Medium'; // Default since not in new format
-        analysisData.engagement_insights = payload.audience_insights || 'No engagement insights available';
-    }
-}
-            }
+            // Transform and enrich data
+            const lead = this.transformLeadDetails(leadData);
+            const analysisData = this.extractAnalysisData(leadData);
             
             console.log('✅ [LeadManager] Lead loaded successfully');
             return { lead, analysisData };
             
         } catch (error) {
             console.error('❌ [LeadManager] Failed to load lead:', error);
+            this.logger?.error('[LeadManager] View lead failed', { leadId, error: error.message });
             throw error;
         }
     }
     
-    // ===============================================================================
-    // LEAD OPERATIONS
-    // ===============================================================================
+    transformLeadDetails(leadData) {
+        return {
+            id: leadData.lead_id,
+            lead_id: leadData.lead_id,
+            username: leadData.username,
+            full_name: leadData.display_name,
+            profile_pic_url: leadData.profile_picture_url,
+            bio: leadData.bio_text,
+            external_url: leadData.external_website_url,
+            followers_count: leadData.follower_count,
+            following_count: leadData.following_count,
+            posts_count: leadData.post_count,
+            is_verified: leadData.is_verified_account,
+            is_private: leadData.is_private_account,
+            is_business_account: leadData.is_business_account,
+            platform: leadData.platform_type,
+            profile_url: leadData.profile_url,
+            created_at: leadData.first_discovered_at,
+            score: leadData.runs?.[0]?.overall_score || 0,
+            analysis_type: leadData.runs?.[0]?.analysis_type || 'light',
+            quick_summary: leadData.runs?.[0]?.summary_text,
+            runs: leadData.runs
+        };
+    }
     
-    viewLatestLead(username) {
-        console.log('🔍 [LeadManager] Looking for latest lead:', username);
-        
-        const leads = this.stateManager.getState('leads');
-        const lead = leads.find(l => l.username.toLowerCase() === username.toLowerCase());
-        
-        if (lead) {
-            console.log('✅ [LeadManager] Found lead, opening details:', lead.id);
-            this.viewLead(lead.id);
-            return lead;
-        } else {
-            console.warn('⚠️ [LeadManager] Lead not found, refreshing data:', username);
-            this.loadDashboardData();
+    extractAnalysisData(leadData) {
+        if (!leadData.runs || leadData.runs.length === 0) {
             return null;
         }
+        
+        const latestRun = leadData.runs[0];
+        const analysisData = {
+            run_id: latestRun.run_id,
+            engagement_score: latestRun.engagement_score,
+            score_niche_fit: latestRun.niche_fit_score,
+            score_total: latestRun.overall_score,
+            summary_text: latestRun.summary_text,
+            confidence_level: latestRun.confidence_level,
+            created_at: latestRun.created_at
+        };
+        
+        // Extract payload data if available
+        if (latestRun.payloads && latestRun.payloads.length > 0) {
+            const payload = latestRun.payloads[0].analysis_data;
+            if (payload) {
+                Object.assign(analysisData, {
+                    reasons: payload.reasons || [],
+                    deep_summary: payload.deep_summary,
+                    latest_posts: payload.latest_posts,
+                    selling_points: payload.selling_points || [],
+                    outreach_message: payload.outreach_message,
+                    audience_insights: payload.audience_insights,
+                    engagement_breakdown: payload.engagement_breakdown || {
+                        avg_likes: 0,
+                        avg_comments: 0,
+                        engagement_rate: 0
+                    },
+                    copywriter_profile: payload.copywriter_profile,
+                    commercial_intelligence: payload.commercial_intelligence,
+                    persuasion_strategy: payload.persuasion_strategy,
+                    pre_processed_metrics: payload.pre_processed_metrics,
+                    personality_profile: payload.personality_profile,
+                    audience_quality: 'Medium' // Default
+                });
+            }
+        }
+        
+        return analysisData;
     }
     
     async deleteLead(leadId) {
@@ -468,61 +557,36 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
             
             const user = this.osliraAuth?.user;
             if (!this.supabase || !user) {
-                throw new Error('Database connection failed');
+                throw new Error('Database connection or authentication failed');
             }
             
-            // Delete from runs first (foreign key constraint)
-            const { error: runsError } = await this.supabase
-                .from('runs')
-                .delete()
-                .eq('lead_id', leadId);
-                
-            if (runsError) {
-                console.warn('⚠️ [LeadManager] Some run records could not be deleted:', runsError.message);
-            }
+            // Delete runs first (foreign key constraint)
+            await this.supabase.from('runs').delete().eq('lead_id', leadId);
             
-            // Delete from leads table
-            const { error: leadsError } = await this.supabase
+            // Delete lead
+            const { error } = await this.supabase
                 .from('leads')
                 .delete()
                 .eq('lead_id', leadId)
                 .eq('user_id', user.id);
-                
-            if (leadsError) {
-                throw leadsError;
-            }
             
-            // Remove from local state
-            const currentLeads = this.stateManager.getState('leads');
-            const updatedLeads = currentLeads.filter(lead => lead.id !== leadId);
+            if (error) throw error;
             
-            this.stateManager.batchUpdate({
-                'leads': updatedLeads,
-                'allLeads': updatedLeads,
-                'filteredLeads': updatedLeads
-            });
-            
-            // Remove from selection if selected
-            const selectedLeads = this.stateManager.getState('selectedLeads');
-            if (selectedLeads.has(leadId)) {
-                const newSelection = new Set(selectedLeads);
-                newSelection.delete(leadId);
-                this.stateManager.setState('selectedLeads', newSelection);
-            }
+            // Update local state
+            this.removeLeadFromState(leadId);
             
             this.eventBus.emit('lead:deleted', { leadId });
             console.log('✅ [LeadManager] Lead deleted successfully');
             
         } catch (error) {
-            console.error('❌ [LeadManager] Error deleting lead:', error);
-            this.eventBus.emit('dashboard:error', error);
+            console.error('❌ [LeadManager] Delete failed:', error);
+            this.logger?.error('[LeadManager] Delete lead failed', { leadId, error: error.message });
             throw error;
         }
     }
     
     async bulkDeleteLeads(leadIds = null) {
-        const selectedLeads = leadIds || this.stateManager.getState('selectedLeads');
-        const idsToDelete = leadIds || Array.from(selectedLeads);
+        const idsToDelete = leadIds || Array.from(this.stateManager.getState('selectedLeads') || []);
         
         if (idsToDelete.length === 0) {
             throw new Error('No leads selected for deletion');
@@ -533,29 +597,20 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
             
             const user = this.osliraAuth?.user;
             if (!this.supabase || !user) {
-                throw new Error('Database connection failed');
+                throw new Error('Database connection or authentication failed');
             }
             
-            // Delete from runs first (foreign key constraint)
-            const { error: runsError } = await this.supabase
-                .from('runs')
-                .delete()
-                .in('lead_id', idsToDelete);
-                
-            if (runsError) {
-                console.warn('⚠️ [LeadManager] Some run records could not be deleted:', runsError.message);
-            }
+            // Delete runs first
+            await this.supabase.from('runs').delete().in('lead_id', idsToDelete);
             
-            // Delete from leads table
-            const { error: leadsError } = await this.supabase
+            // Delete leads
+            const { error } = await this.supabase
                 .from('leads')
                 .delete()
                 .in('lead_id', idsToDelete)
                 .eq('user_id', user.id);
-                
-            if (leadsError) {
-                throw leadsError;
-            }
+            
+            if (error) throw error;
             
             // Update state
             const currentLeads = this.stateManager.getState('leads');
@@ -568,27 +623,43 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
                 'selectedLeads': new Set()
             });
             
-            this.eventBus.emit('leads:bulk_deleted', { 
-                leadIds: idsToDelete,
-                count: idsToDelete.length 
-            });
-            
+            this.eventBus.emit('leads:bulk_deleted', { leadIds: idsToDelete, count: idsToDelete.length });
             console.log('✅ [LeadManager] Bulk delete completed');
+            
             return { count: idsToDelete.length };
             
         } catch (error) {
             console.error('❌ [LeadManager] Bulk delete failed:', error);
-            this.eventBus.emit('dashboard:error', error);
+            this.logger?.error('[LeadManager] Bulk delete failed', { count: idsToDelete.length, error: error.message });
             throw error;
         }
     }
     
-    // ===============================================================================
+    removeLeadFromState(leadId) {
+        const currentLeads = this.stateManager.getState('leads');
+        const updatedLeads = currentLeads.filter(lead => lead.id !== leadId);
+        
+        this.stateManager.batchUpdate({
+            'leads': updatedLeads,
+            'allLeads': updatedLeads,
+            'filteredLeads': updatedLeads
+        });
+        
+        // Remove from selection
+        const selectedLeads = this.stateManager.getState('selectedLeads');
+        if (selectedLeads.has(leadId)) {
+            const newSelection = new Set(selectedLeads);
+            newSelection.delete(leadId);
+            this.stateManager.setState('selectedLeads', newSelection);
+        }
+    }
+    
+    // =========================================================================
     // SELECTION MANAGEMENT
-    // ===============================================================================
+    // =========================================================================
     
     toggleLeadSelection(leadId) {
-        const selectedLeads = this.stateManager.getState('selectedLeads');
+        const selectedLeads = this.stateManager.getState('selectedLeads') || new Set();
         const newSelection = new Set(selectedLeads);
         
         if (newSelection.has(leadId)) {
@@ -604,8 +675,6 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
             selectedLeads: newSelection,
             count: newSelection.size
         });
-        
-        console.log(`🎯 [LeadManager] Selection toggled: ${leadId} (${newSelection.size} selected)`);
     }
     
     selectAllLeads() {
@@ -613,23 +682,17 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
         const allIds = new Set(leads.map(lead => lead.id));
         
         this.stateManager.setState('selectedLeads', allIds);
-        this.eventBus.emit('selection:bulk', {
-            selectedLeads: allIds,
-            count: allIds.size
-        });
-        
-        console.log(`🎯 [LeadManager] All leads selected: ${allIds.size}`);
+        this.eventBus.emit('selection:bulk', { selectedLeads: allIds, count: allIds.size });
     }
     
     clearSelection() {
         this.stateManager.setState('selectedLeads', new Set());
         this.eventBus.emit('selection:cleared');
-        console.log('🎯 [LeadManager] Selection cleared');
     }
     
-    // ===============================================================================
+    // =========================================================================
     // FILTERING & SEARCH
-    // ===============================================================================
+    // =========================================================================
     
     filterLeads(filter = 'all') {
         const allLeads = this.stateManager.getState('allLeads');
@@ -649,10 +712,8 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
                 const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
                 filteredLeads = allLeads.filter(lead => new Date(lead.created_at) > weekAgo);
                 break;
-            case 'all':
             default:
                 filteredLeads = allLeads;
-                break;
         }
         
         this.stateManager.batchUpdate({
@@ -660,12 +721,7 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
             'filteredLeads': filteredLeads
         });
         
-        this.eventBus.emit('filter:changed', {
-            filter,
-            count: filteredLeads.length
-        });
-        
-        console.log(`🔍 [LeadManager] Filter applied: ${filter} (${filteredLeads.length} results)`);
+        this.eventBus.emit('filter:changed', { filter, count: filteredLeads.length });
         return filteredLeads;
     }
     
@@ -677,8 +733,10 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
             return this.filterLeads(currentFilter);
         }
         
+        const term = searchTerm.toLowerCase();
         const filteredLeads = allLeads.filter(lead =>
-            lead.username.toLowerCase().includes(searchTerm.toLowerCase())
+            lead.username.toLowerCase().includes(term) ||
+            lead.display_name?.toLowerCase().includes(term)
         );
         
         this.stateManager.batchUpdate({
@@ -686,18 +744,13 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
             'filteredLeads': filteredLeads
         });
         
-        this.eventBus.emit('search:changed', {
-            searchTerm,
-            count: filteredLeads.length
-        });
-        
-        console.log(`🔍 [LeadManager] Search applied: "${searchTerm}" (${filteredLeads.length} results)`);
+        this.eventBus.emit('search:changed', { searchTerm, count: filteredLeads.length });
         return filteredLeads;
     }
     
-    // ===============================================================================
+    // =========================================================================
     // EVENT HANDLERS
-    // ===============================================================================
+    // =========================================================================
     
     handleAuthChange(userData) {
         if (userData.user) {
@@ -713,28 +766,18 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
         console.log('🏢 [LeadManager] Business changed, reloading leads');
         this.loadDashboardData();
     }
-
-    // ===============================================================================
+    
+    // =========================================================================
     // SUPABASE CLIENT GETTER
-    // ===============================================================================
-
+    // =========================================================================
+    
     get supabase() {
-        try {
-            const client = this.container.get('supabase');
-            if (!client || typeof client.from !== 'function') {
-                console.warn('⚠️ [LeadManager] Supabase client not ready yet');
-                return null;
-            }
-            return client;
-        } catch (error) {
-            console.warn('⚠️ [LeadManager] Supabase client not available:', error.message);
-            return null;
-        }
+        return this.osliraAuth?.supabase || null;
     }
     
-    // ===============================================================================
+    // =========================================================================
     // UTILITY METHODS
-    // ===============================================================================
+    // =========================================================================
     
     clearData() {
         this.stateManager.batchUpdate({
@@ -764,7 +807,7 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
         
         return {
             total: leads.length,
-            selected: this.stateManager.getState('selectedLeads').size,
+            selected: (this.stateManager.getState('selectedLeads') || new Set()).size,
             deepAnalysis: leads.filter(l => l.analysis_type === 'deep').length,
             lightAnalysis: leads.filter(l => l.analysis_type === 'light').length,
             highScore: leads.filter(l => (l.score || 0) >= 80).length,
@@ -774,47 +817,65 @@ if (latestRun.payloads && latestRun.payloads.length > 0) {
         };
     }
     
-    async cleanup() {
-        console.log('🧹 [LeadManager] Cleaning up...');
-        this.clearData();
-        this.dataCache.clear();
-    }
-    /**
- * Refresh table with animation
- */
-async refreshWithAnimation() {
-    console.log('🔄 [LeadManager] Manual refresh triggered');
-    
-    // Trigger animation
-    const tableContainer = document.getElementById('leads-table-container');
-    if (tableContainer) {
-        tableContainer.style.transition = 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-        tableContainer.style.opacity = '0';
+    async refreshWithAnimation() {
+        console.log('🔄 [LeadManager] Manual refresh triggered');
         
-        // Wait for fade out
-        await new Promise(resolve => setTimeout(resolve, 400));
+        const tableContainer = document.getElementById('leads-table-container');
+        if (tableContainer) {
+            tableContainer.style.transition = 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            tableContainer.style.opacity = '0';
+            await new Promise(resolve => setTimeout(resolve, 400));
+        }
+        
+        await this.loadDashboardData();
+        
+        if (tableContainer) {
+            setTimeout(() => {
+                tableContainer.style.opacity = '1';
+            }, 50);
+        }
     }
     
-    // Reload data
-    await this.loadDashboardData();
-    
-    // Fade back in
-    if (tableContainer) {
-        setTimeout(() => {
-            tableContainer.style.opacity = '1';
-        }, 50);
+    cleanup() {
+        console.log('🧹 [LeadManager] Cleaning up...');
+        
+        // Abort any pending operations
+        if (this.loadingAbortController) {
+            this.loadingAbortController.abort();
+        }
+        
+        // Clear cache
+        this.dataCache.clear();
+        this.lastRefresh = null;
+        
+        // Reset state
+        this.isLoading = false;
     }
     
-    console.log('✅ [LeadManager] Refresh complete');
-}
+    // =========================================================================
+    // DEBUG & MONITORING
+    // =========================================================================
+    
+    getDebugInfo() {
+        return {
+            isLoading: this.isLoading,
+            lastRefresh: this.lastRefresh,
+            cacheSize: this.dataCache.size,
+            performanceMetrics: this.performanceMetrics,
+            hasDependencies: {
+                eventBus: !!this.eventBus,
+                stateManager: !!this.stateManager,
+                osliraAuth: !!this.osliraAuth,
+                logger: !!this.logger,
+                supabase: !!this.supabase
+            }
+        };
+    }
 }
 
-// Export for global use
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { LeadManager };
-} else {
-    window.LeadManager = LeadManager;
-}
-
-// Ensure immediate global availability
+// =============================================================================
+// GLOBAL EXPORT
+// =============================================================================
 window.LeadManager = LeadManager;
+
+console.log('✅ [LeadManager] Class loaded and ready');
