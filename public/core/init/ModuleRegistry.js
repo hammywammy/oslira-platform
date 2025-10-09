@@ -40,24 +40,28 @@ class ModuleRegistry {
                 description: 'Marketing homepage'
             },
             
-            // =================================================================
-            // AUTH PAGES - HAS JS
-            // =================================================================
-            auth: {
-                appClass: 'AuthApp',
-                scripts: [
-                    '/pages/app/auth/AuthApp.js'
-                ],
-                requiresAuth: false,
-                description: 'Login/signup page'
-            },
-            
-            'auth-callback': {
-                appClass: null,
-                scripts: [], // Inline script in HTML handles this
-                requiresAuth: false,
-                description: 'OAuth callback handler'
-            },
+// =================================================================
+// AUTH PAGES - Google OAuth Authentication
+// =================================================================
+auth: {
+    appClass: 'AuthApp',
+    scripts: [
+        '/core/services/AuthManager.js',  // Phase 2 - Core auth service
+        '/pages/auth/AuthApp.js'           // Phase 3 - Page controller
+    ],
+    requiresAuth: false,
+    description: 'Google OAuth sign-in page'
+},
+
+'auth-callback': {
+    appClass: 'AuthCallbackApp',
+    scripts: [
+        '/core/services/AuthManager.js',    // Phase 2 - Core auth service
+        '/pages/auth/AuthCallbackApp.js'    // Phase 3 - Callback handler
+    ],
+    requiresAuth: false,
+    description: 'OAuth callback processor'
+},
             
             // =================================================================
             // DASHBOARD - HAS JS
