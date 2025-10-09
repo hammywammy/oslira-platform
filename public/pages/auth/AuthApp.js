@@ -88,8 +88,10 @@ class AuthApp {
     async setupLoginPage() {
         console.log('🏠 [AuthApp] Setting up login page...');
         
-        // Check if user is already logged in
-        if (window.OsliraAuth.isAuthenticated) {
+        // ====================================================================
+        // CRITICAL FIX: Call isAuthenticated() as METHOD not property
+        // ====================================================================
+        if (window.OsliraAuth.isAuthenticated()) {
             console.log('✅ [AuthApp] User already authenticated, redirecting...');
             window.location.href = window.OsliraEnv.getAppUrl('/dashboard');
             return;
