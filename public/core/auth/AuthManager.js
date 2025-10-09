@@ -182,48 +182,97 @@ async initialize() {
         console.log('✅ [AuthManager] Supabase CDN ready');
     }
     
-    /**
-     * Initialize Supabase client with proper config
-     */
-    async _initializeSupabase() {
-        try {
-            // Get config from ConfigProvider (will be loaded by bootstrap)
-            const supabaseUrl = await this._getSupabaseUrl();
-            const supabaseKey = await this._getSupabaseKey();
-            
-            if (!supabaseUrl || !supabaseKey) {
-                throw new Error('Supabase configuration missing');
-            }
-            
-            // Detect root domain for cookie sharing
-            const rootDomain = window.OsliraEnv.rootDomain;
-            
-            console.log('🍪 [AuthManager] Cookie domain:', rootDomain);
-            
-            // Create Supabase client
-            this.supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
-                auth: {
-                    storageKey: 'oslira-auth',
-                    storage: window.localStorage,
-                    autoRefreshToken: true,
-                    persistSession: true,
-                    detectSessionInUrl: true,
-                    flowType: 'pkce',
-                    cookieOptions: {
-                        domain: rootDomain,
-                        path: '/',
-                        sameSite: 'lax'
+ /**
+ * Initialize Supabase client with proper config
+ */
+async _initializeSupabase() {
+    try {
+        // Get config from ConfigProvider
+        const supabaseUrl = await this._getSupabaseUrl();
+        const supabaseKey = await this._getSupabaseKey();
+        
+        if (!supabaseUrl || !supabaseKey) {
+            throw new Error('Supabase configuration missing');
+        }
+        
+        // CRITICAL FIX: Check for stale tokens BEFORE creating client
+        const storedSession = localStorage.getItem('oslira-auth');
+        if (storedSession) {
+            try {
+                const session = JSON.parse(storedSession);
+                
+                // Check if token is expired (more than 1 hour old)
+                if (session.expires_at) {
+                    const expiresAt = session.expires_at * 1000; // Convert to ms
+                    const now = Date.now();
+                    
+                    if (now > expiresAt) {
+                        console.log('🧹 [AuthManager] Clearing expired session from storage');
+                        localStorage.removeItem('oslira-auth');
                     }
                 }
-            });
-            
-            console.log('✅ [AuthManager] Supabase client initialized');
-            
-        } catch (error) {
-            console.error('❌ [AuthManager] Supabase initialization failed:', error);
-            throw error;
+            } catch (error) {
+                // Invalid session data - clear it
+                console.log('🧹 [AuthManager] Clearing invalid session data');
+                localStorage.removeItem('oslira-auth');
+            }
         }
+        
+        // Detect root domain for cookie sharing
+        const rootDomain = window.OsliraEnv.rootDomain;
+        
+        console.log('🍪 [AuthManager] Cookie domain:', rootDomain);
+        
+        // Create Supabase client with error suppression for initial refresh
+        this.supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
+            auth: {
+                storageKey: 'oslira-auth',
+                storage: window.localStorage,
+                autoRefreshToken: true,
+                persistSession: true,
+                detectSessionInUrl: true,
+                flowType: 'pkce',
+                // CRITICAL: Suppress errors during initial session recovery
+                debug: false,
+                cookieOptions: {
+                    domain: rootDomain,
+                    path: '/',
+                    sameSite: 'lax'
+                }
+            },
+            global: {
+                headers: {
+                    'x-client-info': 'oslira-web-app'
+                }
+            }
+        });
+        
+        // CRITICAL: Clear any failed session recovery attempts
+        // This prevents the "Already Used" error from propagating
+        try {
+            const { data: { session }, error } = await this.supabase.auth.getSession();
+            
+            if (error) {
+                console.log('🧹 [AuthManager] Session recovery failed, clearing storage');
+                localStorage.removeItem('oslira-auth');
+                
+                // Don't throw - just continue without session
+                console.log('ℹ️ [AuthManager] Continuing without stored session');
+            } else if (session) {
+                console.log('✅ [AuthManager] Valid session recovered');
+            }
+        } catch (sessionError) {
+            console.log('🧹 [AuthManager] Session check failed, clearing storage');
+            localStorage.removeItem('oslira-auth');
+        }
+        
+        console.log('✅ [AuthManager] Supabase client initialized');
+        
+    } catch (error) {
+        console.error('❌ [AuthManager] Supabase initialization failed:', error);
+        throw error;
     }
+}
 
 /**
  * Wait for ConfigProvider to be ready and initialize it
