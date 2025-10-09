@@ -111,21 +111,27 @@
     /**
      * Wait for dependencies to be available
      */
-    async function waitForDependencies() {
-        let attempts = 0;
+async function waitForDependencies() {
+    let attempts = 0;
+    
+    while (attempts < CONFIG.maxInitAttempts) {
+        // Check if dependencies are available
+        const registryReady = window.OsliraModuleRegistry && 
+                             typeof window.OsliraModuleRegistry.getPageConfig === 'function';
+        const loaderReady = window.OsliraLoader && 
+                           typeof window.OsliraLoader.definePhases === 'function';
         
-        while (attempts < CONFIG.maxInitAttempts) {
-            if (window.OsliraModuleRegistry && window.OsliraLoader && window.STANDARD_PHASES) {
-                console.log('✅ [Loader] Dependencies ready');
-                return true;
-            }
-            
-            await new Promise(resolve => setTimeout(resolve, CONFIG.initCheckInterval));
-            attempts++;
+        if (registryReady && loaderReady) {
+            console.log('✅ [Loader] Dependencies ready');
+            return true;
         }
         
-        throw new Error('Dependencies not available after timeout');
+        await new Promise(resolve => setTimeout(resolve, CONFIG.initCheckInterval));
+        attempts++;
     }
+    
+    throw new Error('Dependencies not available after timeout');
+}
     
     // =========================================================================
     // ORGANIZE SCRIPTS INTO PHASES
