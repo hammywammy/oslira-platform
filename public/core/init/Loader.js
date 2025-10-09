@@ -139,6 +139,10 @@
     
     /**
      * Organize page scripts into dependency phases
+     * 
+     * IMPORTANT: ModuleRegistry is the single source of truth for page scripts.
+     * This function ONLY organizes core infrastructure phases.
+     * All page-specific scripts (including UI components) come from ModuleRegistry.
      */
     function organizeIntoPhases(pageScripts) {
         const phases = [];
@@ -206,31 +210,8 @@
             ]
         });
         
-        // Phase 3: UI Core
-        const uiCoreScripts = [];
-        
-        // Add common UI components for all pages
-        if (pageScripts.some(s => s.includes('/layouts/'))) {
-            uiCoreScripts.push(
-                '/core/ui/components/layouts/AppHeader.js',
-                '/core/ui/components/layouts/AppFooter.js'
-            );
-        }
-        
-        if (pageScripts.some(s => s.includes('Sidebar'))) {
-            uiCoreScripts.push('/core/ui/components/layouts/Sidebar.js');
-        }
-        
-        if (uiCoreScripts.length > 0) {
-            phases.push({
-                name: 'UI Core',
-                critical: false,
-                scripts: uiCoreScripts
-            });
-        }
-        
-        // Phase 4: Page-Specific Scripts
-        // Filter out scripts that were already added in previous phases
+        // Phase 5: Page-Specific Scripts (from ModuleRegistry)
+        // Filter out scripts that were already added in core phases
         const loadedScripts = new Set(
             phases.flatMap(phase => phase.scripts)
         );
