@@ -5,22 +5,6 @@
 AUTH PAGE - OSLIRA UNIFIED BOOTSTRAP ARCHITECTURE
 Path: /public/pages/auth/index.html
 Version: 3.0 - Unified Loader System
-Last Updated: 2025
-═══════════════════════════════════════════════════════════════════
-
-Integration with New Bootstrap:
-- Uses Loader.js for all script loading
-- Phased parallel loading for performance
-- Proper loading screen with progress bar
-- Zero inline scripts (all logic in AuthApp.js)
-- Environment-aware navigation with data-nav
-
-Dependencies (Auto-loaded by Loader.js):
-- Phase 0: EnvDetector, Logger, ErrorHandler, EventBus
-- Phase 1: HttpClient, StateManager, NavigationHelper
-- Phase 2: AuthManager
-- Phase 3: AuthApp
-
 ═══════════════════════════════════════════════════════════════════
 -->
 <head>
@@ -32,7 +16,8 @@ Dependencies (Auto-loaded by Loader.js):
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
     
-<link rel="stylesheet" href="/assets/css/tailwind.css">
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="/assets/css/tailwind.css">
     
     <!-- ═══════════════════════════════════════════════════════════
          UNIFIED BOOTSTRAP - Single Script Loads Everything
@@ -40,7 +25,7 @@ Dependencies (Auto-loaded by Loader.js):
     <script src="/core/init/Loader.js" data-page="auth"></script>
 </head>
 
-<body style="visibility: hidden;">
+<body class="auth-page-body" style="visibility: hidden;">
     
     <!-- ═══════════════════════════════════════════════════════════
          LOADING SCREEN (Required by Loader.js)
@@ -94,8 +79,8 @@ Dependencies (Auto-loaded by Loader.js):
                 <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" class="auth-logo-image">
                 <span class="auth-logo-text">Oslira</span>
             </div>
-            <h1 id="auth-title" class="auth-title">Start your free trial</h1>
-            <p id="auth-subtitle" class="auth-subtitle">
+            <h1 class="auth-title">Start your free trial</h1>
+            <p class="auth-subtitle">
                 Get 25 free credits for lead analyses, then upgrade for more access to AI-powered lead generation.
             </p>
         </div>
@@ -128,8 +113,6 @@ Dependencies (Auto-loaded by Loader.js):
             </div>
         </div>
     </div>
-
-    <!-- NO INLINE SCRIPTS - All logic handled by AuthApp.js -->
 
 </body>
 </html>
