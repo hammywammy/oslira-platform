@@ -138,14 +138,16 @@ dashboard: {
             // =================================================================
             // ONBOARDING - HAS JS
             // =================================================================
-            onboarding: {
-                appClass: 'OnboardingApp',
-                scripts: [
-                    '/pages/app/onboarding/OnboardingApp.js'
-                ],
-                requiresAuth: true,
-                description: 'User onboarding flow'
-            },
+onboarding: {
+    appClass: 'OnboardingApp',
+    scripts: [
+        '/pages/app/onboarding/OnboardingRules.js',      // ← ADD THIS
+        '/pages/app/onboarding/OnboardingValidator.js',  // ← ADD THIS
+        '/pages/app/onboarding/OnboardingApp.js'         // ← Keep this last
+    ],
+    requiresAuth: true,
+    description: 'User onboarding flow'
+}
             
             // =================================================================
             // ADMIN - HAS JS
