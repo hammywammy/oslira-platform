@@ -10,9 +10,10 @@
  * 
  * Flow:
  * 1. Wait for oslira:scripts:loaded event
- * 2. Let AuthManager process OAuth callback
- * 3. Determine destination (onboarding vs dashboard)
- * 4. Use AuthManager to navigate with session transfer
+ * 2. Initialize AuthManager if needed
+ * 3. Let AuthManager process OAuth callback
+ * 4. Determine destination (onboarding vs dashboard)
+ * 5. Use AuthManager to navigate with session transfer
  * 
  * Features:
  * - Automatic OAuth processing
@@ -64,7 +65,7 @@ class AuthCallbackApp {
             console.log('🔐 [AuthCallbackApp] URL params:', Array.from(urlParams.keys()));
             
             // ====================================================================
-            // CRITICAL FIX: Check for OAuth errors and auto-redirect immediately
+            // CRITICAL FIX #1: Check for OAuth errors and auto-redirect immediately
             // ====================================================================
             const error = urlParams.get('error');
             const errorDescription = urlParams.get('error_description');
@@ -87,6 +88,20 @@ class AuthCallbackApp {
                 
                 // For other errors, show error message with retry button
                 throw new Error(this.getErrorMessage(error, errorDescription));
+            }
+            
+            // ====================================================================
+            // CRITICAL FIX #2: Initialize AuthManager BEFORE calling handleCallback
+            // This ensures supabase client is ready
+            // ====================================================================
+            
+            if (!window.OsliraAuth.isLoaded) {
+                console.log('🔧 [AuthCallbackApp] Initializing AuthManager...');
+                this.updateStatus('Initializing authentication system...');
+                
+                await window.OsliraAuth.initialize();
+                
+                console.log('✅ [AuthCallbackApp] AuthManager initialized');
             }
             
             // ====================================================================
@@ -242,4 +257,4 @@ class AuthCallbackApp {
 // GLOBAL EXPORT
 // =============================================================================
 window.AuthCallbackApp = new AuthCallbackApp();
-console.log('✅ [AuthCallbackApp] Module loaded and ready');
+console.log('✅ [AuthCallbackApp] Module loaded and ready')
