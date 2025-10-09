@@ -19,6 +19,7 @@
  * - Error handling with retry
  * - Loading state management
  * - Smart redirect logic
+ * - Auto-redirect on OAuth errors (cancelled sign-in)
  */
 class AuthCallbackApp {
     constructor() {
@@ -62,12 +63,29 @@ class AuthCallbackApp {
             console.log('🔐 [AuthCallbackApp] URL has hash:', hasHash);
             console.log('🔐 [AuthCallbackApp] URL params:', Array.from(urlParams.keys()));
             
-            // Check for OAuth errors in URL
+            // ====================================================================
+            // CRITICAL FIX: Check for OAuth errors and auto-redirect immediately
+            // ====================================================================
             const error = urlParams.get('error');
             const errorDescription = urlParams.get('error_description');
             
             if (error) {
                 console.error('❌ [AuthCallbackApp] OAuth error:', error, errorDescription);
+                
+                // For access_denied (user cancelled), redirect back to auth page immediately
+                if (error === 'access_denied') {
+                    console.log('🔄 [AuthCallbackApp] User cancelled sign-in, redirecting back to auth page...');
+                    this.updateStatus('Redirecting...');
+                    
+                    // Short delay for user to see the message, then redirect
+                    setTimeout(() => {
+                        window.location.href = window.OsliraEnv.getAuthUrl();
+                    }, 1000);
+                    
+                    return;
+                }
+                
+                // For other errors, show error message with retry button
                 throw new Error(this.getErrorMessage(error, errorDescription));
             }
             
