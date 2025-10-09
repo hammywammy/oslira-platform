@@ -1,12 +1,34 @@
 // =============================================================================
-// ONBOARDING APP - Bootstrap System Integration
-// Path: /pages/onboarding/onboarding-app.js
-// Replaces: /pages/onboarding/onboarding.js
+// ONBOARDING APP - Unified Loader System Integration
+// Path: /public/pages/app/onboarding/OnboardingApp.js
+// Version: 3.0 - New Loader Architecture
+// Dependencies: AuthManager, EnvDetector, ConfigProvider (loaded via Loader.js)
 // =============================================================================
 
+/**
+ * @class OnboardingApp
+ * @description Handles multi-step onboarding flow with AI business context generation
+ * 
+ * Flow:
+ * 1. Wait for oslira:scripts:loaded event (NEW PATTERN)
+ * 2. Verify authentication via AuthManager
+ * 3. Initialize validation system
+ * 4. Collect user data across 8 steps
+ * 5. Generate AI business context
+ * 6. Create business profile and subscription
+ * 7. Redirect to dashboard
+ * 
+ * Features:
+ * - 8-step onboarding wizard
+ * - Real-time validation
+ * - Progress tracking with smooth animations
+ * - AI-powered business context generation
+ * - Error handling with retry logic
+ * - Session management
+ */
 class OnboardingApp {
     constructor() {
-        this.initialized = false;
+        this.isInitialized = false;
         this.user = null;
         this.supabase = null;
         this.currentStep = 1;
@@ -17,92 +39,122 @@ class OnboardingApp {
         this.progressTracker = this.initializeProgressTracker();
         
         console.log('🎯 [OnboardingApp] Instance created');
+        this.init();
     }
     
-    // ═══════════════════════════════════════════════════════════
-    // MAIN INITIALIZATION (Called by Orchestrator)
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
+    // INITIALIZATION (NEW PATTERN)
+    // =========================================================================
     
     async init() {
-        if (this.initialized) {
+        try {
+            // CRITICAL: Wait for all scripts to load (NEW PATTERN)
+            window.addEventListener('oslira:scripts:loaded', async () => {
+                await this.initialize();
+            });
+            
+        } catch (error) {
+            console.error('❌ [OnboardingApp] Initialization failed:', error);
+            this.showError('Failed to initialize onboarding system');
+        }
+    }
+    
+    async initialize() {
+        console.log('🚀 [OnboardingApp] Initializing...');
+        
+        if (this.isInitialized) {
             console.log('⚠️ [OnboardingApp] Already initialized');
             return;
         }
         
-        console.log('🚀 [OnboardingApp] Starting initialization...');
-        
         try {
-            // Step 1: Initialize validation system
-            this.rules = new window.OnboardingRules();
-            this.validator = new window.OnboardingValidator();
-            this.totalSteps = this.rules.getTotalSteps();
+            // Verify required dependencies are loaded
+            if (!window.OsliraAuth) {
+                throw new Error('AuthManager not available');
+            }
             
-            // Step 2: Setup authentication
+            if (!window.OsliraEnv) {
+                throw new Error('EnvDetector not available');
+            }
+            
+            console.log('✅ [OnboardingApp] Core dependencies verified');
+            
+            // Step 1: Setup authentication
             await this.setupAuthentication();
             
-            // Step 3: Initialize validator
-            this.validator.initialize();
+            // Step 2: Initialize validation system (if available)
+            if (window.OnboardingRules && window.OnboardingValidator) {
+                this.rules = new window.OnboardingRules();
+                this.validator = new window.OnboardingValidator();
+                this.totalSteps = this.rules.getTotalSteps();
+                this.validator.initialize();
+                console.log('✅ [OnboardingApp] Validation system initialized');
+            } else {
+                console.warn('⚠️ [OnboardingApp] Validation system not available, using defaults');
+            }
             
-            // Step 4: Setup UI
+            // Step 3: Setup UI
             this.showOnboardingForm();
             
-            // Step 5: Setup event listeners
+            // Step 4: Setup event listeners
             this.setupEventListeners();
             
-            // Step 6: Make page visible
+            // Step 5: Make page visible
             document.body.style.visibility = 'visible';
             
-            this.initialized = true;
+            // Step 6: Hide loading screen
+            const loadingScreen = document.getElementById('app-loader');
+            if (loadingScreen) {
+                loadingScreen.style.display = 'none';
+            }
+            
+            this.isInitialized = true;
             console.log('✅ [OnboardingApp] Initialization complete');
             
         } catch (error) {
             console.error('❌ [OnboardingApp] Initialization failed:', error);
-            this.showError('Failed to load account setup. Please try refreshing the page.');
+            this.showError('Failed to load account setup. Please refresh the page.');
             throw error;
         }
     }
     
-    // ═══════════════════════════════════════════════════════════
-    // AUTHENTICATION
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
+    // AUTHENTICATION (UPDATED FOR NEW SYSTEM)
+    // =========================================================================
     
-async setupAuthentication() {
-    if (!window.OsliraAuth) {
-        throw new Error('OsliraAuth not available');
+    async setupAuthentication() {
+        console.log('🔐 [OnboardingApp] Setting up authentication...');
+        
+        if (!window.OsliraAuth) {
+            throw new Error('OsliraAuth not available');
+        }
+        
+        // Wait for AuthManager to be ready (it auto-initializes in Phase 2)
+        await window.OsliraAuth.waitForAuth();
+        
+        // Get current session
+        const session = window.OsliraAuth.getCurrentSession();
+        
+        if (!session || !session.user) {
+            console.log('❌ [OnboardingApp] No valid session, redirecting to auth');
+            window.location.href = window.OsliraEnv.getAuthUrl();
+            return;
+        }
+        
+        this.user = session.user;
+        this.supabase = window.OsliraAuth.supabase;
+        
+        console.log('✅ [OnboardingApp] User authenticated:', this.user.email);
+        
+        // Verify we have Supabase client
+        if (!this.supabase) {
+            throw new Error('Supabase client not available');
+        }
     }
     
-    // AuthManager.initialize() already restored session from URL if present
-    // Just wait for it to finish and check session
-    await window.OsliraAuth.waitForAuth();
-    const session = window.OsliraAuth.getCurrentSession();
-    
-    if (!session || !session.user) {
-        console.log('❌ [OnboardingApp] No valid session, redirecting to auth');
-        window.location.href = window.OsliraEnv.getAuthUrl();
-        return;
-    }
-    
-    this.user = session.user;
-    this.supabase = window.OsliraAuth.supabase;
-    
-    console.log('✅ [OnboardingApp] User authenticated:', this.user.email);
-    
-    // Initialize API client if not already done
-    if (!window.OsliraAPI) {
-        const config = window.OsliraConfig.getAll();
-        window.OsliraAPI = new window.OsliraApiClient(config, window.OsliraAuth);
-        console.log('✅ [OnboardingApp] API client initialized');
-    }
-    
-    // Verify API client is ready
-    if (typeof window.OsliraAPI.request !== 'function') {
-        throw new Error('API client not properly initialized');
-    }
-}
-    
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     // UI MANAGEMENT
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     
     showOnboardingForm() {
         this.hideElement('loading-state');
@@ -115,7 +167,7 @@ async setupAuthentication() {
         this.prefillUserData();
         this.prefillSignatureName();
         
-        console.log('[OnboardingApp] Onboarding form displayed, starting at step 1');
+        console.log('✅ [OnboardingApp] Onboarding form displayed, starting at step 1');
     }
     
     showError(message) {
@@ -168,7 +220,7 @@ async setupAuthentication() {
             if (submitButton) submitButton.style.display = 'none';
         }
         
-        console.log(`[OnboardingApp] Navigation buttons updated for step ${this.currentStep}/${this.totalSteps}`);
+        console.log(`📊 [OnboardingApp] Navigation updated for step ${this.currentStep}/${this.totalSteps}`);
     }
     
     updateProgress() {
@@ -181,15 +233,15 @@ async setupAuthentication() {
         if (progressStep) progressStep.textContent = this.currentStep;
         if (progressPercent) progressPercent.textContent = `${Math.round(progress)}%`;
         
-        console.log(`📊 [OnboardingApp] Progress updated: Step ${this.currentStep}/${this.totalSteps} (${Math.round(progress)}%)`);
+        console.log(`📊 [OnboardingApp] Progress: ${Math.round(progress)}%`);
     }
     
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     // STEP NAVIGATION
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     
     showStep(stepNumber) {
-        console.log(`[OnboardingApp] Showing step ${stepNumber}`);
+        console.log(`🔄 [OnboardingApp] Showing step ${stepNumber}`);
         
         // Hide all steps
         for (let i = 1; i <= this.totalSteps; i++) {
@@ -205,13 +257,12 @@ async setupAuthentication() {
         if (targetStep) {
             targetStep.classList.add('active');
             targetStep.style.display = 'block';
-            console.log(`[OnboardingApp] Step ${stepNumber} is now visible`);
             
             this.hideElement('error-state');
             this.hideElement('loading-state');
             this.showElement('onboarding-form');
         } else {
-            console.error(`[OnboardingApp] Step ${stepNumber} element not found!`);
+            console.error(`❌ [OnboardingApp] Step ${stepNumber} element not found!`);
         }
         
         this.updateProgress();
@@ -226,7 +277,9 @@ async setupAuthentication() {
     
     prevStep() {
         if (this.currentStep > 1) {
-            this.validator.clearAllErrors();
+            if (this.validator?.clearAllErrors) {
+                this.validator.clearAllErrors();
+            }
             
             const currentStepElement = document.getElementById(`step-${this.currentStep}`);
             if (currentStepElement) {
@@ -248,18 +301,23 @@ async setupAuthentication() {
             this.updateProgress();
             this.updateNavigationButtons();
             
-            console.log(`[OnboardingApp] Moved back to step ${this.currentStep}`);
+            console.log(`⬅️ [OnboardingApp] Moved back to step ${this.currentStep}`);
         }
     }
     
     nextStep() {
-        console.log(`[OnboardingApp] nextStep called, currentStep: ${this.currentStep}, totalSteps: ${this.totalSteps}`);
+        console.log(`➡️ [OnboardingApp] Next step requested (current: ${this.currentStep})`);
         
         if (this.currentStep < this.totalSteps) {
-            if (!this.validator.validateStep(this.currentStep, this.getFieldValue.bind(this))) {
-                console.log(`[OnboardingApp] Step ${this.currentStep} validation failed`);
-                this.validator.showStepValidationFailed();
-                return;
+            // Validate current step if validator available
+            if (this.validator?.validateStep) {
+                if (!this.validator.validateStep(this.currentStep, this.getFieldValue.bind(this))) {
+                    console.log(`❌ [OnboardingApp] Step ${this.currentStep} validation failed`);
+                    if (this.validator.showStepValidationFailed) {
+                        this.validator.showStepValidationFailed();
+                    }
+                    return;
+                }
             }
             
             this.currentStep++;
@@ -280,13 +338,11 @@ async setupAuthentication() {
         }
     }
     
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     // DATA COLLECTION
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     
     getFieldValue(fieldId) {
-        console.log(`[OnboardingApp] Getting field value for: ${fieldId}`);
-        
         // Special handling for specific fields
         const specialFields = {
             'signature-name': () => document.getElementById('signature-name')?.value.trim() || '',
@@ -313,38 +369,28 @@ async setupAuthentication() {
             return value;
         }
         
-        if (fieldId === 'industry-other') {
-            const input = document.getElementById('industry-other');
-            return input ? input.value.trim() : '';
-        }
-        
         // Check special fields
         if (specialFields[fieldId]) {
-            const value = specialFields[fieldId]();
-            console.log(`[OnboardingApp] ${fieldId} value:`, value);
-            return value;
+            return specialFields[fieldId]();
         }
         
         // Default: standard input/textarea/select
         const field = document.getElementById(fieldId);
-        const value = field ? field.value.trim() : '';
-        console.log(`[OnboardingApp] ${fieldId} value: ${value}`);
-        return value;
+        return field ? field.value.trim() : '';
     }
     
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     // PREFILLING
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     
     async prefillSignatureName() {
         try {
-            const authSystem = window.OsliraAuth || window.SimpleAuth;
-            if (!authSystem?.supabase) return;
+            if (!this.supabase) return;
             
-            const { data: { session } } = await authSystem.supabase.auth.getSession();
+            const { data: { session } } = await this.supabase.auth.getSession();
             if (!session) return;
             
-            const { data: userData, error } = await authSystem.supabase
+            const { data: userData, error } = await this.supabase
                 .from('users')
                 .select('full_name')
                 .eq('id', session.user.id)
@@ -359,12 +405,12 @@ async setupAuthentication() {
             if (signatureInput && !signatureInput.value) {
                 signatureInput.value = firstName;
                 
-                // Update character counter
-                if (this.validator && this.validator.updateCharacterCounter) {
+                // Update character counter if validator exists
+                if (this.validator?.updateCharacterCounter) {
                     this.validator.updateCharacterCounter('signature-name');
                 }
                 
-                console.log('✅ [OnboardingApp] Pre-filled signature name from user profile');
+                console.log('✅ [OnboardingApp] Pre-filled signature name from profile');
             }
         } catch (error) {
             console.warn('⚠️ [OnboardingApp] Could not prefill signature name:', error);
@@ -372,10 +418,10 @@ async setupAuthentication() {
     }
     
     prefillUserData() {
-        console.log('🔧 [OnboardingApp] Pre-filling user data from Google OAuth...');
+        console.log('🔧 [OnboardingApp] Pre-filling user data...');
         
         if (!this.user || !this.user.user_metadata) {
-            console.log('⚠️ [OnboardingApp] No user metadata available for pre-filling');
+            console.log('⚠️ [OnboardingApp] No user metadata available');
             return;
         }
         
@@ -387,12 +433,12 @@ async setupAuthentication() {
             }
         }
         
-        console.log('✅ [OnboardingApp] User data pre-filling complete');
+        console.log('✅ [OnboardingApp] User data pre-filled');
     }
     
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     // EVENT LISTENERS
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     
     setupEventListeners() {
         console.log('🔗 [OnboardingApp] Setting up event listeners...');
@@ -403,12 +449,12 @@ async setupAuthentication() {
         window.submitOnboarding = this.submitOnboarding.bind(this);
         window.skipStep = this.skipStep.bind(this);
         
-        console.log('✅ [OnboardingApp] Event listeners setup complete');
+        console.log('✅ [OnboardingApp] Event listeners configured');
     }
     
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     // PROGRESS TRACKING SYSTEM
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     
     initializeProgressTracker() {
         return {
@@ -553,7 +599,7 @@ async setupAuthentication() {
             stepTextEl.textContent = this.progressTracker.steps[stepIndex].name;
         }
         
-        console.log(`📊 Progress Target: ${Math.floor(this.progressTracker.targetProgress)}% - ${this.progressTracker.steps[stepIndex].name}`);
+        console.log(`📊 Progress: ${Math.floor(this.progressTracker.targetProgress)}% - ${this.progressTracker.steps[stepIndex].name}`);
     }
     
     updateSubmissionMessage(message) {
@@ -580,9 +626,9 @@ async setupAuthentication() {
         if (onboardingForm) onboardingForm.style.display = 'block';
     }
     
-    // ═══════════════════════════════════════════════════════════
-    // ONBOARDING SUBMISSION
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
+    // ONBOARDING SUBMISSION (UPDATED FOR NEW SYSTEM)
+    // =========================================================================
     
     async submitOnboarding() {
         if (this.isSubmissionInProgress) {
@@ -591,40 +637,35 @@ async setupAuthentication() {
         }
         
         this.isSubmissionInProgress = true;
-        console.log('📤 [OnboardingApp] Starting submission process');
+        console.log('📤 [OnboardingApp] Starting submission...');
         
         try {
             this.showSubmissionProgress();
             this.setProgressStep(0, 0.2);
             
-            const authSystem = window.OsliraAuth || window.SimpleAuth;
-            
+            // Verify we still have valid session
             if (!window.OsliraAuth?.supabase) {
                 throw new Error('Authentication system not available');
             }
             
             this.setProgressStep(0, 0.6);
             
-            const { data: sessionData, error: sessionError } = await authSystem.supabase.auth.getSession();
+            const { data: sessionData, error: sessionError } = await window.OsliraAuth.supabase.auth.getSession();
             if (sessionError || !sessionData?.session) {
                 console.error('❌ [OnboardingApp] No valid session:', sessionError);
-                throw new Error('Authentication expired. Please refresh the page and log in again.');
+                throw new Error('Authentication expired. Please refresh and log in again.');
             }
             
             const session = sessionData.session;
             const user = session.user;
             
-            console.log('✅ [OnboardingApp] Session verified:', {
-                userId: user.id,
-                email: user.email,
-                hasToken: !!session.access_token
-            });
+            console.log('✅ [OnboardingApp] Session verified:', user.email);
             
             this.setProgressStep(1, 0.1);
             
             // Save signature name to users table
             const signatureName = this.getFieldValue('signature-name');
-            const { error: nameUpdateError } = await authSystem.supabase
+            const { error: nameUpdateError } = await window.OsliraAuth.supabase
                 .from('users')
                 .update({ signature_name: signatureName })
                 .eq('id', user.id);
@@ -654,37 +695,28 @@ async setupAuthentication() {
                     'Main challenges: ' + this.getFieldValue('challenges').join(', ') : null,
                 value_proposition: 'Value proposition to be refined during campaign setup',
                 message_example: this.getFieldValue('communication-tone') ? 
-                    `Sample message using ${this.getFieldValue('communication-tone')} communication style - to be generated by AI` : null,
+                    `Sample message using ${this.getFieldValue('communication-tone')} communication style` : null,
                 success_outcome: this.getFieldValue('monthly-lead-goal') ? 
                     `Target: ${this.getFieldValue('monthly-lead-goal')} qualified leads per month` : null,
-                call_to_action: 'Call-to-action strategy to be developed during campaign creation',
+                call_to_action: 'Call-to-action strategy to be developed',
                 user_id: user.id
             };
             
             this.setProgressStep(1, 0.5);
-            console.log('📝 [OnboardingApp] Creating profile and generating business context...');
+            console.log('📝 [OnboardingApp] Creating business profile...');
             
-            let workerUrl;
-            if (window.OsliraEnv?.WORKER_URL) {
-                workerUrl = window.OsliraEnv.WORKER_URL;
-            } else if (window.OsliraConfig?.getWorkerUrl) {
-                workerUrl = await window.OsliraConfig.getWorkerUrl();
-            } else {
-                workerUrl = 'https://api-staging.oslira.com';
-            }
-            
+            // Get worker URL from EnvDetector (NEW SYSTEM)
+            const workerUrl = window.OsliraEnv.workerUrl;
             console.log('🔧 [OnboardingApp] Using API URL:', workerUrl);
             
             this.setProgressStep(1, 0.8);
             
-            console.log('📤 [OnboardingApp] Creating business profile...');
-            
+            // Create business profile
             const profileResponse = await fetch(`${workerUrl}/business-profiles`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`,
-                    'apikey': window.OsliraEnv.SUPABASE_ANON_KEY
+                    'Authorization': `Bearer ${session.access_token}`
                 },
                 body: JSON.stringify(formData)
             });
@@ -693,10 +725,9 @@ async setupAuthentication() {
                 const errorText = await profileResponse.text();
                 console.error('❌ [OnboardingApp] Profile creation failed:', {
                     status: profileResponse.status,
-                    statusText: profileResponse.statusText,
                     body: errorText
                 });
-                throw new Error(`Failed to create business profile: ${profileResponse.status} - ${errorText}`);
+                throw new Error(`Failed to create profile: ${profileResponse.status}`);
             }
             
             const profileResult = await profileResponse.json();
@@ -710,10 +741,10 @@ async setupAuthentication() {
             console.log('✅ [OnboardingApp] Profile created:', profileId);
             
             this.setProgressStep(2, 0.1);
-            
             this.updateSubmissionMessage('Generating AI business insights...');
             console.log('🤖 [OnboardingApp] Generating business context...');
             
+            // Generate AI business context (optional - continues even if fails)
             try {
                 this.setProgressStep(2, 0.3);
                 
@@ -721,8 +752,7 @@ async setupAuthentication() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.access_token}`,
-                        'apikey': window.OsliraEnv.SUPABASE_ANON_KEY
+                        'Authorization': `Bearer ${session.access_token}`
                     },
                     body: JSON.stringify({
                         business_data: formData,
@@ -737,21 +767,17 @@ async setupAuthentication() {
                     const contextResult = await contextResponse.json();
                     
                     if (contextResult && contextResult.success) {
-                        console.log('✅ [OnboardingApp] Business context generated successfully');
+                        console.log('✅ [OnboardingApp] Business context generated');
                         
                         this.setProgressStep(2, 0.9);
-                        
                         this.updateSubmissionMessage('Finalizing your profile...');
-                        console.log('📝 [OnboardingApp] Updating profile with AI context...');
                         
-                        this.setProgressStep(3, 0.2);
-                        
+                        // Update profile with AI context
                         const updateResponse = await fetch(`${workerUrl}/business-profiles/${profileId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${session.access_token}`,
-                                'apikey': window.OsliraEnv.SUPABASE_ANON_KEY
+                                'Authorization': `Bearer ${session.access_token}`
                             },
                             body: JSON.stringify({
                                 business_one_liner: contextResult.data.business_one_liner,
@@ -760,36 +786,26 @@ async setupAuthentication() {
                             })
                         });
                         
-                        this.setProgressStep(3, 0.5);
+                        this.setProgressStep(3, 0.2);
                         
                         if (updateResponse.ok) {
-                            const updateResult = await updateResponse.json();
-                            if (updateResult && updateResult.success) {
-                                console.log('✅ [OnboardingApp] Profile updated with business context');
-                            } else {
-                                console.warn('⚠️ [OnboardingApp] Failed to update profile with context, continuing anyway');
-                            }
+                            console.log('✅ [OnboardingApp] Profile updated with context');
                         } else {
-                            console.warn('⚠️ [OnboardingApp] Context update request failed, continuing anyway');
+                            console.warn('⚠️ [OnboardingApp] Context update failed, continuing');
                         }
-                    } else {
-                        console.warn('⚠️ [OnboardingApp] Context generation unsuccessful, continuing without it');
-                        this.setProgressStep(2, 1.0);
                     }
                 } else {
-                    console.warn('⚠️ [OnboardingApp] Context generation request failed, continuing without it');
-                    this.setProgressStep(2, 1.0);
+                    console.warn('⚠️ [OnboardingApp] Context generation failed, continuing');
                 }
             } catch (contextError) {
-                console.warn('⚠️ [OnboardingApp] Context generation failed, continuing without it:', contextError);
-                this.setProgressStep(2, 1.0);
+                console.warn('⚠️ [OnboardingApp] Context error, continuing:', contextError);
             }
             
-            this.setProgressStep(3, 0.7);
+            this.setProgressStep(3, 0.5);
             this.updateSubmissionMessage('Completing setup...');
             
             // Mark onboarding as complete
-            const { error: updateUserError } = await authSystem.supabase
+            const { error: updateUserError } = await window.OsliraAuth.supabase
                 .from('users')
                 .update({ onboarding_completed: true })
                 .eq('id', user.id);
@@ -798,9 +814,9 @@ async setupAuthentication() {
                 console.warn('⚠️ [OnboardingApp] Failed to update user status:', updateUserError);
             }
             
-            // Create subscription record with free plan defaults
-            console.log('💳 [OnboardingApp] Creating subscription record...');
-            const { error: subscriptionError } = await authSystem.supabase
+            // Create subscription with free plan
+            console.log('💳 [OnboardingApp] Creating subscription...');
+            const { error: subscriptionError } = await window.OsliraAuth.supabase
                 .from('subscriptions')
                 .insert({
                     user_id: user.id,
@@ -810,17 +826,18 @@ async setupAuthentication() {
                 });
             
             if (subscriptionError) {
-                console.error('❌ [OnboardingApp] Failed to create subscription:', subscriptionError);
-                throw new Error('Failed to initialize subscription. Please contact support.');
+                console.error('❌ [OnboardingApp] Subscription creation failed:', subscriptionError);
+                throw new Error('Failed to initialize subscription');
             }
             
-            console.log('✅ [OnboardingApp] Subscription record created');
+            console.log('✅ [OnboardingApp] Subscription created');
             
             this.setProgressStep(3, 1.0);
             this.updateSubmissionMessage('Setup complete! Redirecting...');
             
-            console.log('✅ [OnboardingApp] Onboarding complete, redirecting...');
+            console.log('✅ [OnboardingApp] Onboarding complete!');
             
+            // Redirect to dashboard (using EnvDetector - NEW SYSTEM)
             setTimeout(() => {
                 window.location.href = window.OsliraEnv.getAppUrl('/dashboard');
             }, 1000);
@@ -832,24 +849,24 @@ async setupAuthentication() {
             
             let errorMessage = 'An unexpected error occurred. Please try again.';
             
-            if (error.message.includes('Invalid signature')) {
-                errorMessage = 'Authentication expired. Please refresh the page and try again.';
-            } else if (error.message.includes('Authentication expired')) {
+            if (error.message.includes('Authentication')) {
                 errorMessage = 'Your session has expired. Please log in again.';
-            } else if (error.message.includes('Failed to create business profile')) {
-                errorMessage = 'Server error occurred while creating your profile. Please try again.';
+            } else if (error.message.includes('Failed to create profile')) {
+                errorMessage = 'Server error while creating profile. Please try again.';
             }
             
             this.cleanupProgressTracking();
             this.hideSubmissionProgress();
             
-            if (this.validator && this.validator.showSubmissionError) {
+            // Show error using validator if available
+            if (this.validator?.showSubmissionError) {
                 this.validator.showSubmissionError(errorMessage);
             } else {
                 alert(errorMessage);
             }
             
-            if (error.message.includes('Authentication') || error.message.includes('Invalid signature')) {
+            // Redirect to auth if session expired
+            if (error.message.includes('Authentication')) {
                 setTimeout(() => {
                     window.location.href = window.OsliraEnv.getAuthUrl();
                 }, 3000);
@@ -858,8 +875,11 @@ async setupAuthentication() {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
-// GLOBAL EXPORT (CRITICAL - Orchestrator needs this)
-// ═══════════════════════════════════════════════════════════
-window.OnboardingApp = OnboardingApp;
+// =============================================================================
+// GLOBAL EXPORT (CRITICAL - NEW PATTERN)
+// =============================================================================
+
+// Export class to window (instantiation happens automatically via constructor)
+window.OnboardingApp = new OnboardingApp();
+
 console.log('✅ [OnboardingApp] Module loaded and ready');
