@@ -667,7 +667,7 @@ async _getSupabaseKey() {
     
 /**
  * Sign in with Google OAuth
- * CRITICAL: Explicitly set callback URL to prevent Supabase from redirecting elsewhere
+ * CRITICAL: Always uses auth.oslira.com callback URL
  */
 async signInWithGoogle() {
     if (!this.supabase) {
@@ -675,70 +675,9 @@ async signInWithGoogle() {
     }
     
     try {
-        console.log('🔐 [AuthManager] Preparing Google OAuth sign-in...');
+        console.log('🔐 [AuthManager] Starting Google OAuth...');
         
-        // ====================================================================
-        // CRITICAL: Clear ALL auth-related storage before OAuth
-        // ====================================================================
-        
-        console.log('🧹 [AuthManager] Clearing all auth state...');
-        
-        // 1. Sign out from Supabase (clears session)
-        try {
-            await this.supabase.auth.signOut({ scope: 'local' });
-            console.log('✅ [AuthManager] Signed out from Supabase');
-        } catch (error) {
-            console.warn('⚠️ [AuthManager] Sign out warning:', error.message);
-        }
-        
-        // 2. Clear ALL localStorage keys related to auth
-        const keysToRemove = [];
-        
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && (
-                key.includes('auth') || 
-                key.includes('supabase') || 
-                key.includes('sb-') ||
-                key.includes('pkce') ||
-                key.includes('code-verifier') ||
-                key.startsWith('oslira-auth')
-            )) {
-                keysToRemove.push(key);
-            }
-        }
-        
-        keysToRemove.forEach(key => {
-            try {
-                localStorage.removeItem(key);
-                console.log(`✅ [AuthManager] Cleared: ${key}`);
-            } catch (error) {
-                console.warn(`⚠️ [AuthManager] Could not clear ${key}:`, error);
-            }
-        });
-        
-        console.log(`🧹 [AuthManager] Cleared ${keysToRemove.length} storage items`);
-        
-        // 3. Clear auth cookies across all subdomains
-        const cookiesToClear = document.cookie.split(';')
-            .map(c => c.trim())
-            .filter(c => {
-                const name = c.split('=')[0];
-                return name.includes('sb-') || 
-                       name.includes('auth') || 
-                       name.includes('supabase');
-            });
-        
-        cookiesToClear.forEach(cookie => {
-            const name = cookie.split('=')[0];
-            // Clear for current domain
-            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-            // Clear for root domain
-            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${window.OsliraEnv.rootDomain}`;
-            console.log(`✅ [AuthManager] Cleared cookie: ${name}`);
-        });
-        
-        // 4. Reset internal state
+        // Reset internal state
         this.session = null;
         this.user = null;
         this.businesses = [];
@@ -749,28 +688,31 @@ async signInWithGoogle() {
         await new Promise(resolve => setTimeout(resolve, 200));
         
         // ====================================================================
-        // CRITICAL: Build EXPLICIT callback URL
-        // This prevents Supabase from using Site URL as fallback
+        // CRITICAL FIX #1: Build EXPLICIT callback URL
+        // This MUST match your Supabase "Redirect URLs" allowlist
+        // NOT the "Site URL" - those are different!
         // ====================================================================
         
         const redirectTo = window.OsliraEnv.getAuthUrl('/auth/callback');
         
-        console.log('🔐 [AuthManager] Starting Google OAuth...');
+        console.log('🔐 [AuthManager] OAuth Configuration:');
         console.log('📍 [AuthManager] Callback URL:', redirectTo);
         console.log('📍 [AuthManager] Current URL:', window.location.href);
+        console.log('📍 [AuthManager] Environment:', window.OsliraEnv.environment);
         
         // ====================================================================
-        // Start OAuth flow with EXPLICIT redirectTo
+        // CRITICAL FIX #2: Use skipBrowserRedirect: false
+        // Let Supabase handle the redirect to Google
         // ====================================================================
         
         const { data, error } = await this.supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: redirectTo,  // CRITICAL: Must match Supabase dashboard config
-                skipBrowserRedirect: false,
+                redirectTo: redirectTo,  // CRITICAL: Must be in Supabase allowlist
+                skipBrowserRedirect: false,  // Let Supabase redirect
                 queryParams: {
                     access_type: 'offline',
-                    prompt: 'consent'
+                    prompt: 'consent'  // Always get refresh token
                 }
             }
         });
@@ -783,8 +725,8 @@ async signInWithGoogle() {
         console.log('✅ [AuthManager] OAuth redirect initiated');
         console.log('🔄 [AuthManager] Redirecting to Google...');
         
-        // At this point, the browser should redirect to Google
-        // Google will then redirect back to: redirectTo + ?code=XXX
+        // At this point, the browser redirects to Google
+        // Google will then redirect back to: https://auth.oslira.com/auth/callback?code=XXX
         
         return data;
         
@@ -804,6 +746,7 @@ async signInWithGoogle() {
         throw error;
     }
 }
+
     
     /**
      * Sign out user
@@ -881,15 +824,19 @@ async signInWithGoogle() {
     // OAUTH CALLBACK HANDLING
     // =========================================================================
     
-    /**
-     * Handle OAuth callback (creates user record, checks onboarding)
-     */
+/**
+ * Handle OAuth callback (creates user record, checks onboarding)
+ * CRITICAL FIX: No longer builds redirect URL - returns session data only
+ */
 async handleCallback() {
     try {
         console.log('🔐 [AuthManager] Processing OAuth callback...');
+        console.log('📍 [AuthManager] Current URL:', window.location.href);
         
-        // CRITICAL FIX: Exchange OAuth code for session
-        // Supabase automatically detects code/hash in URL and exchanges it
+        // ====================================================================
+        // STEP 1: Exchange OAuth code for session
+        // ====================================================================
+        
         const { data, error } = await this.supabase.auth.getSession();
         
         // If no session yet, try to exchange code from URL
@@ -953,39 +900,64 @@ async handleCallback() {
         if (!data.session) {
             throw new Error('No session found after OAuth');
         }
-            
-            console.log('✅ [AuthManager] OAuth session retrieved');
-            
-            // Ensure user record exists (with retry logic)
-            await this._ensureUserExists(data.session.user);
-            
-            // Check onboarding status
-            const needsOnboarding = await this._checkOnboardingStatus(data.session.user.id);
-            
-            // Build redirect URL with session tokens
-            const redirectUrl = this._buildRedirectUrl(data.session, needsOnboarding);
-            
-            console.log('🔐 [AuthManager] Callback complete, redirecting...');
-            
-            return {
-                session: data.session,
-                user: data.session.user,
-                needsOnboarding,
-                redirectTo: redirectUrl
-            };
-            
-        } catch (error) {
-            console.error('❌ [AuthManager] Callback processing failed:', error);
-            
-            if (window.Sentry) {
-                Sentry.captureException(error, {
-                    tags: { component: 'AuthManager', action: 'oauth-callback' }
-                });
-            }
-            
-            throw error;
+        
+        console.log('✅ [AuthManager] OAuth session retrieved');
+        
+        // ====================================================================
+        // STEP 2: Store session locally
+        // ====================================================================
+        
+        this.session = data.session;
+        this.user = data.session.user;
+        
+        console.log('✅ [AuthManager] Session stored locally');
+        console.log('👤 [AuthManager] User:', this.user.email);
+        
+        // ====================================================================
+        // STEP 3: Ensure user record exists in database
+        // ====================================================================
+        
+        await this._ensureUserExists(data.session.user);
+        
+        // ====================================================================
+        // STEP 4: Check onboarding status
+        // ====================================================================
+        
+        const needsOnboarding = await this._checkOnboardingStatus(data.session.user.id);
+        
+        console.log('✅ [AuthManager] Callback processing complete');
+        console.log('📊 [AuthManager] Onboarding needed:', needsOnboarding);
+        
+        // ====================================================================
+        // CRITICAL FIX #3: Return session data WITHOUT redirect URL
+        // Let the callback page (AuthCallbackApp.js) decide where to redirect
+        // This separates OAuth processing from navigation logic
+        // ====================================================================
+        
+        return {
+            session: data.session,
+            user: data.session.user,
+            needsOnboarding: needsOnboarding
+            // ❌ REMOVED: redirectTo - don't auto-redirect from here!
+        };
+        
+    } catch (error) {
+        console.error('❌ [AuthManager] OAuth callback failed:', error);
+        
+        if (window.Sentry) {
+            Sentry.captureException(error, {
+                tags: { 
+                    component: 'AuthManager',
+                    action: 'callback',
+                    hasSession: !!this.session
+                }
+            });
         }
+        
+        throw error;
     }
+}
+
     
     /**
      * Ensure user record exists in database
@@ -1058,45 +1030,93 @@ async handleCallback() {
     /**
      * Check if user needs onboarding
      */
-    async _checkOnboardingStatus(userId) {
-        try {
-            const { data, error } = await this.supabase
-                .from('users')
-                .select('onboarding_completed')
-                .eq('id', userId)
-                .single();
-            
-            if (error) {
-                console.warn('⚠️ [AuthManager] Onboarding check failed:', error);
-                return true; // Default to needs onboarding
-            }
-            
-            return !data.onboarding_completed;
-            
-        } catch (error) {
-            console.warn('⚠️ [AuthManager] Onboarding check error:', error);
-            return true;
+async _checkOnboardingStatus(userId) {
+    try {
+        const { data, error } = await this.supabase
+            .from('users')
+            .select('onboarding_completed')
+            .eq('id', userId)
+            .single();
+        
+        if (error) {
+            console.warn('⚠️ [AuthManager] Onboarding check failed:', error);
+            return true; // Default to needs onboarding
         }
+        
+        return !data.onboarding_completed;
+        
+    } catch (error) {
+        console.warn('⚠️ [AuthManager] Onboarding check error:', error);
+        return true;
+    }
+}
+    
+// =============================================================================
+// SECTION: Cross-Subdomain Session Transfer (SEPARATE CONCERN)
+// =============================================================================
+
+/**
+ * Build URL with session tokens for cross-subdomain transfer
+ * USE CASE: When manually navigating from auth.oslira.com to app.oslira.com
+ * NOT USED: During OAuth callback processing
+ * 
+ * @param {Object} session - Supabase session object
+ * @param {string} destinationPath - Path on app subdomain (e.g. '/dashboard' or '/onboarding')
+ * @returns {string} URL with session tokens in hash
+ */
+buildCrossSubdomainUrl(session, destinationPath = '/dashboard') {
+    console.log('🔐 [AuthManager] Building cross-subdomain URL...');
+    console.log('📍 [AuthManager] Destination:', destinationPath);
+    
+    if (!session) {
+        throw new Error('Session required for cross-subdomain transfer');
     }
     
-    /**
-     * Build redirect URL with session tokens in hash
-     */
-    _buildRedirectUrl(session, needsOnboarding) {
-        const path = needsOnboarding ? '/onboarding' : '/dashboard';
-        const appUrl = window.OsliraEnv.getAppUrl(path);
-        
-        // Encode tokens in URL-safe base64
-        const tokens = {
-            access_token: session.access_token,
-            refresh_token: session.refresh_token
-        };
-        
-        const base64 = btoa(JSON.stringify(tokens));
-        const urlSafeBase64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-        
-        return `${appUrl}#auth=${urlSafeBase64}`;
+    const appUrl = window.OsliraEnv.getAppUrl(destinationPath);
+    
+    // Encode tokens in URL-safe base64
+    const tokens = {
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+        expires_at: session.expires_at
+    };
+    
+    const base64 = btoa(JSON.stringify(tokens));
+    const urlSafeBase64 = base64
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+    
+    const finalUrl = `${appUrl}#auth=${urlSafeBase64}`;
+    
+    console.log('✅ [AuthManager] Cross-subdomain URL built');
+    
+    return finalUrl;
+}
+
+/**
+ * Navigate to app subdomain with session transfer
+ * USE CASE: Called by callback page to transfer to app after OAuth
+ * 
+ * @param {string} path - Destination path on app subdomain
+ */
+async navigateToApp(path = '/dashboard') {
+    console.log('🔐 [AuthManager] Navigating to app subdomain...');
+    console.log('📍 [AuthManager] Path:', path);
+    
+    if (!this.session) {
+        throw new Error('No active session for cross-subdomain transfer');
     }
+    
+    const url = this.buildCrossSubdomainUrl(this.session, path);
+    
+    console.log('🔄 [AuthManager] Redirecting to:', url);
+    
+    // Small delay for UX
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    window.location.href = url;
+}
     
     // =========================================================================
     // CREDIT MANAGEMENT
