@@ -111,27 +111,27 @@
     /**
      * Wait for dependencies to be available
      */
-async function waitForDependencies() {
-    let attempts = 0;
-    
-    while (attempts < CONFIG.maxInitAttempts) {
-        // Check if dependencies are available
-        const registryReady = window.OsliraModuleRegistry && 
-                             typeof window.OsliraModuleRegistry.getPageConfig === 'function';
-        const loaderReady = window.OsliraLoader && 
-                           typeof window.OsliraLoader.definePhases === 'function';
+    async function waitForDependencies() {
+        let attempts = 0;
         
-        if (registryReady && loaderReady) {
-            console.log('✅ [Loader] Dependencies ready');
-            return true;
+        while (attempts < CONFIG.maxInitAttempts) {
+            // Check if dependencies are available
+            const registryReady = window.OsliraModuleRegistry && 
+                                 typeof window.OsliraModuleRegistry.getPageConfig === 'function';
+            const loaderReady = window.OsliraLoader && 
+                               typeof window.OsliraLoader.definePhases === 'function';
+            
+            if (registryReady && loaderReady) {
+                console.log('✅ [Loader] Dependencies ready');
+                return true;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, CONFIG.initCheckInterval));
+            attempts++;
         }
         
-        await new Promise(resolve => setTimeout(resolve, CONFIG.initCheckInterval));
-        attempts++;
+        throw new Error('Dependencies not available after timeout');
     }
-    
-    throw new Error('Dependencies not available after timeout');
-}
     
     // =========================================================================
     // ORGANIZE SCRIPTS INTO PHASES
@@ -162,20 +162,47 @@ async function waitForDependencies() {
             scripts: [
                 '/core/infrastructure/HttpClient.js',
                 '/core/infrastructure/ConfigProvider.js',
-                '/core/state/Store.js',
-                '/core/state/StateManager.js',
-                '/core/utils/NavigationHelper.js'
+                '/core/infrastructure/Monitoring.js',
+                '/core/utils/NavigationHelper.js',
+                '/core/utils/ValidationUtils.js',
+                '/core/utils/DateUtils.js',
+                '/core/utils/FormatUtils.js',
+                '/core/utils/CryptoUtils.js'
             ]
         });
         
-        // Phase 2: Services
+        // Phase 2: State Layer (depends on Phase 1)
         phases.push({
-            name: 'Services',
+            name: 'State Layer',
+            critical: true,
+            scripts: [
+                '/core/state/Store.js',
+                '/core/state/StateManager.js'
+            ]
+        });
+        
+        // Phase 3: API Layer
+        phases.push({
+            name: 'API Layer',
+            critical: true,
+            scripts: [
+                '/core/api/ApiClient.js'
+            ]
+        });
+        
+        // Phase 4: Auth & Services
+        phases.push({
+            name: 'Auth & Services',
             critical: true,
             scripts: [
                 '/core/auth/AuthManager.js',
+                '/core/auth/SessionValidator.js',
+                '/core/auth/TokenRefresher.js',
                 '/core/state/Selectors.js',
-                '/core/infrastructure/DependencyContainer.js'
+                '/core/services/UserService.js',
+                '/core/services/BusinessService.js',
+                '/core/services/LeadService.js',
+                '/core/services/AnalyticsService.js'
             ]
         });
         
