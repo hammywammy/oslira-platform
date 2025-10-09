@@ -1,71 +1,87 @@
 // =============================================================================
 // ONBOARDING RULES & BUSINESS LOGIC
+// Path: /public/pages/app/onboarding/OnboardingRules.js
+// Dependencies: None (pure business logic)
 // =============================================================================
 
+/**
+ * @class OnboardingRules
+ * @description Validation rules and business logic for onboarding flow
+ * 
+ * Features:
+ * - Step-based validation rules
+ * - Character limit enforcement
+ * - Business name validation
+ * - Smart CTA defaults by industry
+ * - Field validation patterns
+ * 
+ * Note: This is a pure utility class with no external dependencies
+ */
 class OnboardingRules {
-constructor() {
-    this.TOTAL_STEPS = 8;
-    
-    this.STEP_FIELDS = {
-        1: ['signature-name'],
-        2: ['company-name', 'industry', 'company-size', 'website'],
-        3: ['primary-objective', 'monthly-lead-goal'],
-        4: ['challenges'],
-        5: ['target-description', 'target-size'],
-        6: ['communication', 'communication-tone'],
-        7: ['team-size', 'campaign-manager'],
-        8: []
-    };
-    
-this.VALIDATION_RULES = {
-    'signature-name': { required: true, minLength: 2 },
-    'company-name': { required: true, minLength: 2 },
-    'industry': { required: true },
-    'industry-other': { required: true, maxLength: 30 },
-        'company-size': { required: true },
-        'website': { required: false },
-        'primary-objective': { required: true },
-        'challenges': { required: true },
-        'target-description': { required: true, minLength: 10 },
-        'target-size': { required: true },
-        'communication': { required: true },
-        'communication-tone': { required: true },
-        'monthly-lead-goal': { required: true },
-        'team-size': { required: true },
-        'campaign-manager': { required: true }
-    };
+    constructor() {
+        this.TOTAL_STEPS = 8;
         
-this.CHARACTER_LIMITS = {
-    'signature-name': {
-        min: 2,
-        max: 50,
-        reason: 'Name used in outreach signatures'
-    },
-    'business-name': {
-        min: 2,
-        max: 100,
-        reason: 'Business names are typically 2-100 characters'
-    },
+        this.STEP_FIELDS = {
+            1: ['signature-name'],
+            2: ['company-name', 'industry', 'company-size', 'website'],
+            3: ['primary-objective', 'monthly-lead-goal'],
+            4: ['challenges'],
+            5: ['target-description', 'target-size'],
+            6: ['communication', 'communication-tone'],
+            7: ['team-size', 'campaign-manager'],
+            8: []
+        };
+        
+        this.VALIDATION_RULES = {
+            'signature-name': { required: true, minLength: 2 },
+            'company-name': { required: true, minLength: 2 },
+            'industry': { required: true },
+            'industry-other': { required: true, maxLength: 30 },
+            'company-size': { required: true },
+            'website': { required: false },
+            'primary-objective': { required: true },
+            'challenges': { required: true },
+            'target-description': { required: true, minLength: 10 },
+            'target-size': { required: true },
+            'communication': { required: true },
+            'communication-tone': { required: true },
+            'monthly-lead-goal': { required: true },
+            'team-size': { required: true },
+            'campaign-manager': { required: true }
+        };
+        
+        this.CHARACTER_LIMITS = {
+            'signature-name': {
+                min: 2,
+                max: 50,
+                reason: 'Name used in outreach signatures'
+            },
+            'business-name': {
+                min: 2,
+                max: 100,
+                reason: 'Business names are typically 2-100 characters'
+            },
             'industry-other': {
                 min: 2,
                 max: 30,
                 reason: 'Custom industry name should be concise'
             },
-'target-description': {
-    min: 20,
-    max: 500,
-    reason: 'Detailed audience description for AI analysis'
-},
+            'target-description': {
+                min: 20,
+                max: 500,
+                reason: 'Detailed audience description for AI analysis'
+            },
             'value-proposition': {
                 min: 20,
                 max: 300,
                 reason: 'Concise but detailed value prop (2-3 sentences ideal)'
             },
             'key-results': {
-                min: 0,  // Optional field
+                min: 0,
                 max: 800,
                 reason: 'Detailed success outcomes for AI summary generation'
-            }};
+            }
+        };
         
         // Business niche to CTA mapping for smart defaults
         this.CTA_DEFAULTS = {
@@ -86,11 +102,13 @@ this.CHARACTER_LIMITS = {
             'business-name': /^[a-zA-Z0-9\s\-'&\.]+$/,
             'email': /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         };
+        
+        console.log('✅ [OnboardingRules] Loaded with 8 steps and validation rules');
     }
     
-    // =============================================================================
+    // =========================================================================
     // STEP VALIDATION LOGIC
-    // =============================================================================
+    // =========================================================================
     
     getFieldsForStep(stepNumber) {
         return this.STEP_FIELDS[stepNumber] || [];
@@ -111,9 +129,9 @@ this.CHARACTER_LIMITS = {
         return null;
     }
     
-    // =============================================================================
+    // =========================================================================
     // BUSINESS VALIDATION RULES
-    // =============================================================================
+    // =========================================================================
     
     validateBusinessName(businessName) {
         const trimmed = businessName.trim();
@@ -130,7 +148,7 @@ this.CHARACTER_LIMITS = {
             return { valid: false, message: 'Business name must be 50 characters or less' };
         }
         
-const validPattern = /^[a-zA-Z0-9\s]+$/;
+        const validPattern = /^[a-zA-Z0-9\s]+$/;
         if (!validPattern.test(trimmed)) {
             return { 
                 valid: false, 
@@ -163,9 +181,9 @@ const validPattern = /^[a-zA-Z0-9\s]+$/;
         return { valid: true, message: '' };
     }
     
-    // =============================================================================
+    // =========================================================================
     // CHARACTER LIMIT VALIDATION
-    // =============================================================================
+    // =========================================================================
     
     validateCharacterLimit(fieldId, value) {
         const limits = this.getCharacterLimits(fieldId);
@@ -204,9 +222,9 @@ const validPattern = /^[a-zA-Z0-9\s]+$/;
         return 'normal';
     }
     
-    // =============================================================================
+    // =========================================================================
     // FORM DATA VALIDATION
-    // =============================================================================
+    // =========================================================================
     
     validateRequiredFields(formData) {
         const errors = [];
@@ -229,19 +247,22 @@ const validPattern = /^[a-zA-Z0-9\s]+$/;
         return errors;
     }
     
-    // =============================================================================
+    // =========================================================================
     // UTILITY FUNCTIONS
-    // =============================================================================
-
+    // =========================================================================
     
     getTotalSteps() {
         return this.TOTAL_STEPS;
     }
     
-isValidStep(stepNumber) {
-    return stepNumber >= 1 && stepNumber <= this.TOTAL_STEPS;
-}
+    isValidStep(stepNumber) {
+        return stepNumber >= 1 && stepNumber <= this.TOTAL_STEPS;
+    }
 }
 
-// Export to window for non-module usage
+// =============================================================================
+// GLOBAL EXPORT
+// =============================================================================
 window.OnboardingRules = OnboardingRules;
+
+console.log('✅ [OnboardingRules] Module loaded and ready');
