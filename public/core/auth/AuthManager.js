@@ -665,11 +665,9 @@ async _getSupabaseKey() {
     // AUTHENTICATION METHODS
     // =========================================================================
     
-    /**
-     * Sign in with Google OAuth
-     */
 /**
  * Sign in with Google OAuth
+ * CRITICAL FIX: Clear ALL auth state including PKCE verifiers before starting OAuth
  */
 async signInWithGoogle() {
     if (!this.supabase) {
@@ -677,68 +675,99 @@ async signInWithGoogle() {
     }
     
     try {
-        // CRITICAL: Clear ALL auth state before starting new OAuth flow
-        console.log('🔐 [AuthManager] Clearing all auth state before OAuth...');
+        console.log('🔐 [AuthManager] Preparing Google OAuth sign-in...');
         
-        // 1. Clear Supabase session (both storage and memory)
-        await this.supabase.auth.signOut({ scope: 'local' });
+        // ====================================================================
+        // CRITICAL: Clear ALL auth-related storage before OAuth
+        // This prevents PKCE verifier mismatches and session conflicts
+        // ====================================================================
         
-        // 2. Clear localStorage completely (removes PKCE verifiers)
-        const authKeys = [
-            'oslira-auth',
-            'sb-' + new URL(await this._getSupabaseUrl()).hostname.replace(/\./g, '-') + '-auth-token'
-        ];
+        console.log('🧹 [AuthManager] Clearing all auth state...');
         
-        authKeys.forEach(key => {
+        // 1. Sign out from Supabase (clears session)
+        try {
+            await this.supabase.auth.signOut({ scope: 'local' });
+            console.log('✅ [AuthManager] Signed out from Supabase');
+        } catch (error) {
+            console.warn('⚠️ [AuthManager] Sign out warning:', error.message);
+        }
+        
+        // 2. Clear ALL localStorage keys related to auth
+        const keysToRemove = [];
+        
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (
+                key.includes('auth') || 
+                key.includes('supabase') || 
+                key.includes('sb-') ||
+                key.includes('pkce') ||
+                key.includes('code-verifier') ||
+                key.startsWith('oslira-auth')
+            )) {
+                keysToRemove.push(key);
+            }
+        }
+        
+        keysToRemove.forEach(key => {
             try {
                 localStorage.removeItem(key);
-                console.log(`🧹 [AuthManager] Cleared: ${key}`);
-            } catch (e) {
-                console.warn(`⚠️ [AuthManager] Could not clear ${key}:`, e);
+                console.log(`✅ [AuthManager] Cleared: ${key}`);
+            } catch (error) {
+                console.warn(`⚠️ [AuthManager] Could not clear ${key}:`, error);
             }
         });
         
-        // 3. Clear any PKCE-related storage (Supabase stores these)
-        Object.keys(localStorage).forEach(key => {
-            if (key.includes('pkce') || key.includes('code-verifier') || key.includes('supabase')) {
-                try {
-                    localStorage.removeItem(key);
-                    console.log(`🧹 [AuthManager] Cleared PKCE key: ${key}`);
-                } catch (e) {
-                    console.warn(`⚠️ [AuthManager] Could not clear ${key}:`, e);
-                }
-            }
+        console.log(`🧹 [AuthManager] Cleared ${keysToRemove.length} storage items`);
+        
+        // 3. Clear auth cookies across all subdomains
+        const cookiesToClear = document.cookie.split(';')
+            .map(c => c.trim())
+            .filter(c => {
+                const name = c.split('=')[0];
+                return name.includes('sb-') || 
+                       name.includes('auth') || 
+                       name.includes('supabase');
+            });
+        
+        cookiesToClear.forEach(cookie => {
+            const name = cookie.split('=')[0];
+            // Clear for current domain
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+            // Clear for root domain
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${window.OsliraEnv.rootDomain}`;
+            console.log(`✅ [AuthManager] Cleared cookie: ${name}`);
         });
         
-        // 4. Clear session cookies
-        document.cookie.split(";").forEach(cookie => {
-            const name = cookie.split("=")[0].trim();
-            if (name.includes('sb-') || name.includes('auth') || name.includes('supabase')) {
-                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${window.OsliraEnv.rootDomain}`;
-                console.log(`🧹 [AuthManager] Cleared cookie: ${name}`);
-            }
-        });
-        
-        // 5. Reset internal state
+        // 4. Reset internal state
         this.session = null;
         this.user = null;
+        this.businesses = [];
         
-        console.log('✅ [AuthManager] All auth state cleared');
+        console.log('✅ [AuthManager] Internal state reset');
         
         // Small delay to ensure everything is cleared
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
         
-        // Build redirect URL
+        // ====================================================================
+        // Start fresh OAuth flow
+        // ====================================================================
+        
+        // Build callback URL
         const redirectTo = window.OsliraEnv.getAuthUrl('/auth/callback');
         
-        console.log('🔐 [AuthManager] Starting Google OAuth, redirect:', redirectTo);
+        console.log('🔐 [AuthManager] Starting Google OAuth...');
+        console.log('📍 [AuthManager] Redirect URL:', redirectTo);
         
-        // Start fresh OAuth flow
         const { data, error } = await this.supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
                 redirectTo,
-                skipBrowserRedirect: false
+                skipBrowserRedirect: false,
+                queryParams: {
+                    access_type: 'offline',
+                    prompt: 'consent'
+                }
             }
         });
         
@@ -747,6 +776,8 @@ async signInWithGoogle() {
             throw error;
         }
         
+        console.log('✅ [AuthManager] OAuth redirect initiated');
+        
         return data;
         
     } catch (error) {
@@ -754,7 +785,10 @@ async signInWithGoogle() {
         
         if (window.Sentry) {
             Sentry.captureException(error, {
-                tags: { component: 'AuthManager', action: 'google-signin' }
+                tags: { 
+                    component: 'AuthManager', 
+                    action: 'google-signin' 
+                }
             });
         }
         
