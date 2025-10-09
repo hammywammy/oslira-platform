@@ -147,7 +147,7 @@ onboarding: {
     ],
     requiresAuth: true,
     description: 'User onboarding flow'
-}
+},
             
             // =================================================================
             // ADMIN - HAS JS
