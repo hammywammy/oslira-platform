@@ -162,36 +162,6 @@ async initialize() {
         
         console.log('✅ [AuthManager] EnvDetector ready');
     }
-
-  async _waitForConfigProvider() {
-        let attempts = 0;
-        const maxAttempts = 50; // 5 seconds
-        
-        // Wait for ConfigProvider to exist
-        while (!window.OsliraConfig && attempts < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-        }
-        
-        if (!window.OsliraConfig) {
-            throw new Error('ConfigProvider not available after timeout');
-        }
-        
-        console.log('✅ [AuthManager] ConfigProvider found');
-        
-        // Initialize ConfigProvider if not already initialized
-        if (!window.OsliraConfig.isInitialized) {
-            if (typeof window.OsliraConfig.initialize !== 'function') {
-                throw new Error('ConfigProvider.initialize() method not available');
-            }
-            
-            console.log('🔧 [AuthManager] Initializing ConfigProvider...');
-            await window.OsliraConfig.initialize();
-            console.log('✅ [AuthManager] ConfigProvider initialized');
-        } else {
-            console.log('✅ [AuthManager] ConfigProvider already initialized');
-        }
-    }
     
     /**
      * Wait for Supabase CDN to load
@@ -254,50 +224,103 @@ async initialize() {
             throw error;
         }
     }
+
+/**
+ * Wait for ConfigProvider to be ready and initialize it
+ */
+async _waitForConfigProvider() {
+    let attempts = 0;
+    const maxAttempts = 50; // 5 seconds
     
-    /**
-     * Get Supabase URL from config
-     */
-    async _getSupabaseUrl() {
-        if (!window.OsliraConfig || !window.OsliraConfig.isInitialized) {
-            throw new Error('ConfigProvider not initialized');
-        }
-        
-        if (typeof window.OsliraConfig.getSupabaseUrl !== 'function') {
-            throw new Error('ConfigProvider.getSupabaseUrl() not available');
-        }
-        
-        const url = await window.OsliraConfig.getSupabaseUrl();
-        
-        if (!url) {
-            throw new Error('Supabase URL not configured');
-        }
-        
-        console.log('✅ [AuthManager] Supabase URL retrieved from config');
-        return url;
+    // Wait for ConfigProvider to exist
+    console.log('🔍 [AuthManager] Waiting for ConfigProvider...');
+    while (!window.OsliraConfig && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
     }
     
-    /**
-     * Get Supabase anon key from ConfigProvider
-     */
-    async _getSupabaseKey() {
-        if (!window.OsliraConfig || !window.OsliraConfig.isInitialized) {
-            throw new Error('ConfigProvider not initialized');
-        }
-        
-        if (typeof window.OsliraConfig.getSupabaseAnonKey !== 'function') {
-            throw new Error('ConfigProvider.getSupabaseAnonKey() not available');
-        }
-        
-        const key = await window.OsliraConfig.getSupabaseAnonKey();
-        
-        if (!key) {
-            throw new Error('Supabase anon key not configured');
-        }
-        
-        console.log('✅ [AuthManager] Supabase anon key retrieved from config');
-        return key;
+    if (!window.OsliraConfig) {
+        throw new Error('ConfigProvider not available after timeout');
     }
+    
+    console.log('✅ [AuthManager] ConfigProvider found');
+    
+    // CRITICAL FIX: ConfigProvider uses 'isLoaded', not 'isInitialized'
+    if (!window.OsliraConfig.isLoaded) {
+        if (typeof window.OsliraConfig.initialize !== 'function') {
+            throw new Error('ConfigProvider.initialize() method not available');
+        }
+        
+        console.log('🔧 [AuthManager] Initializing ConfigProvider...');
+        
+        try {
+            await window.OsliraConfig.initialize();
+            console.log('✅ [AuthManager] ConfigProvider initialized');
+        } catch (error) {
+            console.error('❌ [AuthManager] ConfigProvider initialization failed:', error);
+            throw error;
+        }
+    } else {
+        console.log('✅ [AuthManager] ConfigProvider already initialized');
+    }
+    
+    // Verify ConfigProvider has the methods we need
+    if (typeof window.OsliraConfig.getSupabaseUrl !== 'function') {
+        throw new Error('ConfigProvider.getSupabaseUrl() method not available');
+    }
+    
+    if (typeof window.OsliraConfig.getSupabaseAnonKey !== 'function') {
+        throw new Error('ConfigProvider.getSupabaseAnonKey() method not available');
+    }
+    
+    console.log('✅ [AuthManager] ConfigProvider ready with required methods');
+}
+
+/**
+ * Get Supabase URL from ConfigProvider
+ */
+async _getSupabaseUrl() {
+    // FIXED: Use 'isLoaded' instead of 'isInitialized'
+    if (!window.OsliraConfig || !window.OsliraConfig.isLoaded) {
+        throw new Error('ConfigProvider not initialized');
+    }
+    
+    if (typeof window.OsliraConfig.getSupabaseUrl !== 'function') {
+        throw new Error('ConfigProvider.getSupabaseUrl() not available');
+    }
+    
+    const url = window.OsliraConfig.getSupabaseUrl();
+    
+    if (!url) {
+        throw new Error('Supabase URL not configured in AWS Secrets Manager');
+    }
+    
+    console.log('✅ [AuthManager] Supabase URL retrieved from config');
+    return url;
+}
+
+/**
+ * Get Supabase anon key from ConfigProvider
+ */
+async _getSupabaseKey() {
+    // FIXED: Use 'isLoaded' instead of 'isInitialized'
+    if (!window.OsliraConfig || !window.OsliraConfig.isLoaded) {
+        throw new Error('ConfigProvider not initialized');
+    }
+    
+    if (typeof window.OsliraConfig.getSupabaseAnonKey !== 'function') {
+        throw new Error('ConfigProvider.getSupabaseAnonKey() not available');
+    }
+    
+    const key = window.OsliraConfig.getSupabaseAnonKey();
+    
+    if (!key) {
+        throw new Error('Supabase anon key not configured in AWS Secrets Manager');
+    }
+    
+    console.log('✅ [AuthManager] Supabase anon key retrieved from config');
+    return key;
+}
     
     // =========================================================================
     // SESSION RESTORATION (Cross-Subdomain)
