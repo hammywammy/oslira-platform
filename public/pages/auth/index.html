@@ -1,17 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- 
+<!--
 ═══════════════════════════════════════════════════════════════════
-AUTH PAGE - OSLIRA BOOTSTRAP ARCHITECTURE
+AUTH PAGE - OSLIRA UNIFIED BOOTSTRAP ARCHITECTURE
 Path: /public/pages/auth/index.html
-Version: 2.0 - Bootstrap System
+Version: 3.0 - Unified Loader System
+Last Updated: 2025
+═══════════════════════════════════════════════════════════════════
+
+Integration with New Bootstrap:
+- Uses Loader.js for all script loading
+- Phased parallel loading for performance
+- Proper loading screen with progress bar
+- Zero inline scripts (all logic in AuthApp.js)
+- Environment-aware navigation with data-nav
+
+Dependencies (Auto-loaded by Loader.js):
+- Phase 0: EnvDetector, Logger, ErrorHandler, EventBus
+- Phase 1: HttpClient, StateManager, NavigationHelper
+- Phase 2: AuthManager
+- Phase 3: AuthApp
+
 ═══════════════════════════════════════════════════════════════════
 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign up for Oslira - AI Lead Generation</title>
-    <meta name="description" content="Start your free trial with Oslira. Get 25 free credits for lead analyses, then upgrade for more access to AI-powered lead generation.">
+    <title>Sign in to Oslira - AI Lead Generation</title>
+    <meta name="description" content="Sign in to Oslira. Get 25 free credits for lead analyses, then upgrade for more access to AI-powered lead generation.">
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
@@ -19,30 +35,42 @@ Version: 2.0 - Bootstrap System
     <!-- Tailwind CSS -->
     <link rel="stylesheet" href="/assets/css/tailwind.css">
     
+    <!-- Auth Page Styles -->
+    <link rel="stylesheet" href="/assets/css/auth.css">
+    
     <!-- ═══════════════════════════════════════════════════════════
-         BOOTSTRAP SYSTEM - Load order matters
+         UNIFIED BOOTSTRAP - Single Script Loads Everything
          ═══════════════════════════════════════════════════════════ -->
-    <script src="/core/env-manager.js"></script>
-    <script src="/core/boot/loader.js"></script>
-    <script src="/core/registry/module-registry.js"></script>
-    <script src="/core/boot/orchestrator.js"></script>
-    <script src="/core/boot/bootstrap.js"></script>
+    <script src="/core/init/Loader.js" data-page="auth"></script>
 </head>
 
-<body class="auth-page-body" style="visibility: hidden;">
+<body style="visibility: hidden;">
+    
+    <!-- ═══════════════════════════════════════════════════════════
+         LOADING SCREEN (Required by Loader.js)
+         ═══════════════════════════════════════════════════════════ -->
+    <div id="app-loader" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="text-align: center;">
+            <img src="/assets/images/oslira-logo.png" alt="Oslira" style="width: 80px; margin-bottom: 20px;">
+            <div style="color: #6b7280; font-size: 14px; margin-bottom: 10px;">Loading authentication...</div>
+            <div style="width: 200px; height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden;">
+                <div id="load-progress" style="width: 0%; height: 100%; background: linear-gradient(to right, #3b82f6, #8b5cf6); transition: width 0.3s;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         AUTH CONTAINER
+         ═══════════════════════════════════════════════════════════ -->
     <div class="auth-container">
         
-        <!-- ═══════════════════════════════════════════════════════════
-             LOADING STATE
-             ═══════════════════════════════════════════════════════════ -->
+        <!-- LOADING STATE (Shown during OAuth flow) -->
         <div id="loading-state" class="auth-loading-state hidden">
             <div class="auth-loading-spinner"></div>
             <p id="loading-message" class="auth-loading-text">Loading...</p>
         </div>
 
-        <!-- ═══════════════════════════════════════════════════════════
-             ERROR STATE
-             ═══════════════════════════════════════════════════════════ -->
+        <!-- ERROR STATE -->
         <div id="error-state" class="auth-error-message hidden">
             <div class="alert-content">
                 <strong>Error</strong>
@@ -50,9 +78,7 @@ Version: 2.0 - Bootstrap System
             </div>
         </div>
 
-        <!-- ═══════════════════════════════════════════════════════════
-             SUCCESS STATE
-             ═══════════════════════════════════════════════════════════ -->
+        <!-- SUCCESS STATE -->
         <div id="success-state" class="auth-success-state hidden">
             <div class="auth-success-icon">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,9 +92,7 @@ Version: 2.0 - Bootstrap System
             </div>
         </div>
 
-        <!-- ═══════════════════════════════════════════════════════════
-             HEADER
-             ═══════════════════════════════════════════════════════════ -->
+        <!-- HEADER -->
         <div class="auth-header">
             <div class="auth-logo-container">
                 <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" class="auth-logo-image">
@@ -80,9 +104,7 @@ Version: 2.0 - Bootstrap System
             </p>
         </div>
 
-        <!-- ═══════════════════════════════════════════════════════════
-             GOOGLE SIGN-IN (Only Auth Option)
-             ═══════════════════════════════════════════════════════════ -->
+        <!-- GOOGLE SIGN-IN (Primary CTA) -->
         <div id="auth-options" class="auth-step active">
             <button type="button" class="auth-method primary" id="google-signin-btn">
                 <div class="auth-icon">
@@ -97,29 +119,21 @@ Version: 2.0 - Bootstrap System
             </button>
         </div>
 
-        <!-- ═══════════════════════════════════════════════════════════
-             FOOTER
-             ═══════════════════════════════════════════════════════════ -->
+        <!-- FOOTER -->
         <div class="auth-footer">
             <p class="auth-note">
                 By continuing, you agree to our Terms of Service and Privacy Policy.
             </p>
             <div class="auth-links">
-                <a href="#" data-legal-link="terms" class="auth-link">Terms of Service</a>
-                <a href="#" data-legal-link="privacy" class="auth-link">Privacy Policy</a>
-                <a href="#" data-legal-link="contact" class="auth-link">Contact Center</a>
+                <!-- Environment-aware navigation links -->
+                <a href="#" data-nav="terms" class="auth-link">Terms of Service</a>
+                <a href="#" data-nav="privacy" class="auth-link">Privacy Policy</a>
+                <a href="#" data-nav="contact" class="auth-link">Contact Center</a>
             </div>
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         MINIMAL INLINE JAVASCRIPT
-         All complex logic handled by AuthApp
-         ═══════════════════════════════════════════════════════════ -->
-    <script>
-        // Show content immediately to prevent FOUC
-        document.body.style.visibility = 'visible';
-        console.log('🔐 [Auth] Page loaded');
-    </script>
+    <!-- NO INLINE SCRIPTS - All logic handled by AuthApp.js -->
+
 </body>
 </html>
