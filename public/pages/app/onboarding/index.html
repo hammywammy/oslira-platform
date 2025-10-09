@@ -249,21 +249,21 @@ Last Updated: 2025
 
             <!-- Navigation -->
             <div class="onboarding-nav">
-                <button type="button" id="back-btn" class="onboarding-btn-back hover:bg-white/20 hover:scale-105" style="display: none;">
+                <button type="button" id="back-btn" class="onboarding-btn-back hover:bg-white/20 hover:scale-105" style="display: none;" onclick="prevStep()">
                     <i class="fas fa-arrow-left mr-2"></i>
                     Back
                 </button>
                 <div class="onboarding-nav-right">
-                    <button type="button" id="skip-btn" class="onboarding-btn-skip hover:bg-white/10">
+                    <button type="button" id="skip-btn" class="onboarding-btn-skip hover:bg-white/10" onclick="skipStep()">
                         Skip for now
                     </button>
-                    <button type="button" id="next-btn" class="onboarding-btn-primary hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button type="button" id="next-btn" class="onboarding-btn-primary hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed" onclick="nextStep()">
                         <span class="onboarding-btn-content">
                             <span id="next-text">Continue</span>
                             <i class="onboarding-btn-arrow group-hover:translate-x-1 fas fa-arrow-right"></i>
                         </span>
                     </button>
-                    <button type="button" id="finish-btn" class="onboarding-btn-success hover:scale-105 hover:shadow-xl" style="display: none;">
+                    <button type="button" id="finish-btn" class="onboarding-btn-success hover:scale-105 hover:shadow-xl" style="display: none;" onclick="submitOnboarding()">
                         <span class="onboarding-btn-content">
                             <i class="fas fa-rocket mr-3"></i>
                             Launch Dashboard
