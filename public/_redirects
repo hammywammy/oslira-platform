@@ -1,166 +1,263 @@
 # =============================================================================
-# NETLIFY _REDIRECTS FILE - Complete Multi-Domain Routing
+# NETLIFY _REDIRECTS FILE - Complete Multi-Environment Routing
 # Rules processed top-to-bottom, first match wins
-# Based on actual file structure analysis
+# Supports: Production (oslira.com) + Staging (staging.oslira.com + staging-*.oslira.com)
 # =============================================================================
 
 # =============================================================================
-# SUBDOMAIN: app.oslira.{com|org} - Main Application
+# STAGING SUBDOMAIN: staging-app.oslira.com - Main Application (Staging)
+# =============================================================================
+
+# Primary dashboard route
+https://staging-app.oslira.com/                    /pages/app/dashboard/index.html      200
+https://staging-app.oslira.com/dashboard           /pages/app/dashboard/index.html      200
+
+# Admin routes (MUST come before catch-all)
+https://staging-app.oslira.com/admin               /pages/app/admin/index.html          200
+https://staging-app.oslira.com/admin/*             /pages/app/admin/:splat              200
+
+# Analytics
+https://staging-app.oslira.com/analytics           /pages/app/analytics/index.html      200
+
+# Campaigns
+https://staging-app.oslira.com/campaigns           /pages/app/campaigns/index.html      200
+
+# Lead Research
+https://staging-app.oslira.com/leads               /pages/app/leadResearch/index.html   200
+https://staging-app.oslira.com/lead-research       /pages/app/leadResearch/index.html   200
+
+# Messages Center
+https://staging-app.oslira.com/messages            /pages/app/messagesCenter/index.html 200
+
+# Integrations
+https://staging-app.oslira.com/integrations        /pages/app/integrations/index.html   200
+
+# Subscription
+https://staging-app.oslira.com/subscription        /pages/app/subscription/index.html   200
+
+# Onboarding
+https://staging-app.oslira.com/onboarding          /pages/app/onboarding/index.html     200
+
+# Settings routes
+https://staging-app.oslira.com/settings            /pages/app/settings/profile.html     200
+https://staging-app.oslira.com/settings/profile    /pages/app/settings/profile.html     200
+https://staging-app.oslira.com/settings/account    /pages/app/settings/account.html     200
+https://staging-app.oslira.com/settings/billing    /pages/app/settings/billing.html     200
+https://staging-app.oslira.com/settings/usage      /pages/app/settings/usage.html       200
+
+# Security
+https://staging-app.oslira.com/security            /pages/app/security/index.html       200
+
+# App subdomain catch-all (MUST be last for staging-app subdomain)
+https://staging-app.oslira.com/*                   /pages/app/dashboard/:splat          200
+
+# =============================================================================
+# PRODUCTION SUBDOMAIN: app.oslira.com - Main Application (Production)
 # =============================================================================
 
 # Primary dashboard route
 https://app.oslira.com/                    /pages/app/dashboard/index.html      200
-https://app.oslira.org/                    /pages/app/dashboard/index.html      200
 https://app.oslira.com/dashboard           /pages/app/dashboard/index.html      200
-https://app.oslira.org/dashboard           /pages/app/dashboard/index.html      200
 
 # Admin routes (MUST come before catch-all)
 https://app.oslira.com/admin               /pages/app/admin/index.html          200
-https://app.oslira.org/admin               /pages/app/admin/index.html          200
 https://app.oslira.com/admin/*             /pages/app/admin/:splat              200
-https://app.oslira.org/admin/*             /pages/app/admin/:splat              200
 
 # Analytics
 https://app.oslira.com/analytics           /pages/app/analytics/index.html      200
-https://app.oslira.org/analytics           /pages/app/analytics/index.html      200
 
 # Campaigns
 https://app.oslira.com/campaigns           /pages/app/campaigns/index.html      200
-https://app.oslira.org/campaigns           /pages/app/campaigns/index.html      200
 
-# Lead Research (note: your file is leadResearch with capital R)
+# Lead Research
 https://app.oslira.com/leads               /pages/app/leadResearch/index.html   200
-https://app.oslira.org/leads               /pages/app/leadResearch/index.html   200
 https://app.oslira.com/lead-research       /pages/app/leadResearch/index.html   200
-https://app.oslira.org/lead-research       /pages/app/leadResearch/index.html   200
 
-# Messages Center (note: your file is messagesCenter)
+# Messages Center
 https://app.oslira.com/messages            /pages/app/messagesCenter/index.html 200
-https://app.oslira.org/messages            /pages/app/messagesCenter/index.html 200
 
 # Integrations
 https://app.oslira.com/integrations        /pages/app/integrations/index.html   200
-https://app.oslira.org/integrations        /pages/app/integrations/index.html   200
 
 # Subscription
 https://app.oslira.com/subscription        /pages/app/subscription/index.html   200
-https://app.oslira.org/subscription        /pages/app/subscription/index.html   200
 
 # Onboarding
 https://app.oslira.com/onboarding          /pages/app/onboarding/index.html     200
-https://app.oslira.org/onboarding          /pages/app/onboarding/index.html     200
 
 # Settings routes
 https://app.oslira.com/settings            /pages/app/settings/profile.html     200
-https://app.oslira.org/settings            /pages/app/settings/profile.html     200
 https://app.oslira.com/settings/profile    /pages/app/settings/profile.html     200
-https://app.oslira.org/settings/profile    /pages/app/settings/profile.html     200
 https://app.oslira.com/settings/account    /pages/app/settings/account.html     200
-https://app.oslira.org/settings/account    /pages/app/settings/account.html     200
 https://app.oslira.com/settings/billing    /pages/app/settings/billing.html     200
-https://app.oslira.org/settings/billing    /pages/app/settings/billing.html     200
 https://app.oslira.com/settings/usage      /pages/app/settings/usage.html       200
-https://app.oslira.org/settings/usage      /pages/app/settings/usage.html       200
 
-https://app.oslira.com/security        /pages/app/security/index.html       200
-https://app.oslira.org/security        /pages/app/security/index.html       200
+# Security
+https://app.oslira.com/security            /pages/app/security/index.html       200
 
 # App subdomain catch-all (MUST be last for app subdomain)
 https://app.oslira.com/*                   /pages/app/dashboard/:splat          200
-https://app.oslira.org/*                   /pages/app/dashboard/:splat          200
 
 # =============================================================================
-# SUBDOMAIN: auth.oslira.{com|org} - Authentication
+# STAGING SUBDOMAIN: staging-auth.oslira.com - Authentication (Staging)
+# =============================================================================
+https://staging-auth.oslira.com/                   /pages/app/auth/index.html           200
+https://staging-auth.oslira.com/callback           /pages/app/auth/callback.html        200
+https://staging-auth.oslira.com/auth/callback      /pages/app/auth/callback.html        200
+https://staging-auth.oslira.com/*                  /pages/app/auth/:splat               200
+
+# =============================================================================
+# PRODUCTION SUBDOMAIN: auth.oslira.com - Authentication (Production)
 # =============================================================================
 https://auth.oslira.com/                   /pages/app/auth/index.html           200
-https://auth.oslira.org/                   /pages/app/auth/index.html           200
 https://auth.oslira.com/callback           /pages/app/auth/callback.html        200
-https://auth.oslira.org/callback           /pages/app/auth/callback.html        200
 https://auth.oslira.com/auth/callback      /pages/app/auth/callback.html        200
-https://auth.oslira.org/auth/callback      /pages/app/auth/callback.html        200
 https://auth.oslira.com/*                  /pages/app/auth/:splat               200
-https://auth.oslira.org/*                  /pages/app/auth/:splat               200
 
 # =============================================================================
-# SUBDOMAIN: contact.oslira.{com|org}
+# STAGING SUBDOMAIN: staging-contact.oslira.com - Contact (Staging)
+# =============================================================================
+https://staging-contact.oslira.com/                /pages/app/contact/index.html        200
+https://staging-contact.oslira.com/bug-report      /pages/app/contact/bug-report/index.html 200
+https://staging-contact.oslira.com/support         /pages/app/support/index.html        200
+https://staging-contact.oslira.com/sales           /pages/app/sales/index.html          200
+https://staging-contact.oslira.com/*               /pages/app/contact/:splat            200
+
+# =============================================================================
+# PRODUCTION SUBDOMAIN: contact.oslira.com - Contact (Production)
 # =============================================================================
 https://contact.oslira.com/                /pages/app/contact/index.html        200
-https://contact.oslira.org/                /pages/app/contact/index.html        200
 https://contact.oslira.com/bug-report      /pages/app/contact/bug-report/index.html 200
-https://contact.oslira.org/bug-report      /pages/app/contact/bug-report/index.html 200
 https://contact.oslira.com/support         /pages/app/support/index.html        200
-https://contact.oslira.org/support         /pages/app/support/index.html        200
 https://contact.oslira.com/sales           /pages/app/sales/index.html          200
-https://contact.oslira.org/sales           /pages/app/sales/index.html          200
 https://contact.oslira.com/*               /pages/app/contact/:splat            200
-https://contact.oslira.org/*               /pages/app/contact/:splat            200
 
 # =============================================================================
-# SUBDOMAIN: legal.oslira.{com|org}
+# STAGING SUBDOMAIN: staging-legal.oslira.com - Legal (Staging)
+# =============================================================================
+https://staging-legal.oslira.com/                  /pages/app/legal/index.html          200
+https://staging-legal.oslira.com/privacy           /pages/app/legal/privacy/index.html  200
+https://staging-legal.oslira.com/terms             /pages/app/legal/terms/index.html    200
+https://staging-legal.oslira.com/refund            /pages/app/legal/refund/index.html   200
+https://staging-legal.oslira.com/disclaimer        /pages/app/legal/disclaimer/index.html 200
+https://staging-legal.oslira.com/*                 /pages/app/legal/:splat              200
+
+# =============================================================================
+# PRODUCTION SUBDOMAIN: legal.oslira.com - Legal (Production)
 # =============================================================================
 https://legal.oslira.com/                  /pages/app/legal/index.html          200
-https://legal.oslira.org/                  /pages/app/legal/index.html          200
 https://legal.oslira.com/privacy           /pages/app/legal/privacy/index.html  200
-https://legal.oslira.org/privacy           /pages/app/legal/privacy/index.html  200
 https://legal.oslira.com/terms             /pages/app/legal/terms/index.html    200
-https://legal.oslira.org/terms             /pages/app/legal/terms/index.html    200
 https://legal.oslira.com/refund            /pages/app/legal/refund/index.html   200
-https://legal.oslira.org/refund            /pages/app/legal/refund/index.html   200
 https://legal.oslira.com/disclaimer        /pages/app/legal/disclaimer/index.html 200
-https://legal.oslira.org/disclaimer        /pages/app/legal/disclaimer/index.html 200
 https://legal.oslira.com/*                 /pages/app/legal/:splat              200
-https://legal.oslira.org/*                 /pages/app/legal/:splat              200
 
 # =============================================================================
-# SUBDOMAIN: status.oslira.{com|org}
+# STAGING SUBDOMAIN: staging-status.oslira.com - Status (Staging)
+# =============================================================================
+https://staging-status.oslira.com/                 /pages/app/status/index.html         200
+https://staging-status.oslira.com/*                /pages/app/status/:splat             200
+
+# =============================================================================
+# PRODUCTION SUBDOMAIN: status.oslira.com - Status (Production)
 # =============================================================================
 https://status.oslira.com/                 /pages/app/status/index.html         200
-https://status.oslira.org/                 /pages/app/status/index.html         200
 https://status.oslira.com/*                /pages/app/status/:splat             200
-https://status.oslira.org/*                /pages/app/status/:splat             200
 
 # =============================================================================
-# ROOT DOMAIN: oslira.{com|org} - Marketing & Public Pages (pages/www)
+# STAGING ROOT DOMAIN: staging.oslira.com - Marketing & Public Pages (Staging)
 # =============================================================================
 
 # Homepage
-/                                          /pages/www/index.html                200
+https://staging.oslira.com/                                /pages/www/index.html                200
 
 # Public marketing pages
-/pricing                                   /pages/www/pricing/index.html        200
-/about                                     /pages/www/about/index.html          200
-/case-studies                              /pages/www/case-studies/index.html   200
-/docs                                      /pages/www/docs/index.html           200
-/api                                       /pages/www/api/index.html            200
-/security                                  /pages/www/security/index.html       200
-/help                                      /pages/www/help/index.html           200
+https://staging.oslira.com/pricing                         /pages/www/pricing/index.html        200
+https://staging.oslira.com/about                           /pages/www/about/index.html          200
+https://staging.oslira.com/case-studies                    /pages/www/case-studies/index.html   200
+https://staging.oslira.com/docs                            /pages/www/docs/index.html           200
+https://staging.oslira.com/api                             /pages/www/api/index.html            200
+https://staging.oslira.com/security                        /pages/www/security/index.html       200
+https://staging.oslira.com/help                            /pages/www/help/index.html           200
 
 # Root domain - App page fallbacks (redirect to pages/app)
-/dashboard                                 /pages/app/dashboard/index.html      200
-/admin                                     /pages/app/admin/index.html          200
-/analytics                                 /pages/app/analytics/index.html      200
-/auth                                      /pages/app/auth/index.html           200
-/auth/callback                             /pages/app/auth/callback.html        200
-/campaigns                                 /pages/app/campaigns/index.html      200
-/integrations                              /pages/app/integrations/index.html   200
-/leads                                     /pages/app/leadResearch/index.html   200
-/messages                                  /pages/app/messagesCenter/index.html 200
-/onboarding                                /pages/app/onboarding/index.html     200
-/subscription                              /pages/app/subscription/index.html   200
-/settings                                  /pages/app/settings/profile.html     200
-/settings/profile                          /pages/app/settings/profile.html     200
-/settings/account                          /pages/app/settings/account.html     200
-/settings/billing                          /pages/app/settings/billing.html     200
-/settings/usage                            /pages/app/settings/usage.html       200
-/contact                                   /pages/app/contact/index.html        200
-/legal                                     /pages/app/legal/index.html          200
-/support                                   /pages/app/support/index.html        200
-/status                                    /pages/app/status/index.html         200
+https://staging.oslira.com/dashboard                       /pages/app/dashboard/index.html      200
+https://staging.oslira.com/admin                           /pages/app/admin/index.html          200
+https://staging.oslira.com/analytics                       /pages/app/analytics/index.html      200
+https://staging.oslira.com/auth                            /pages/app/auth/index.html           200
+https://staging.oslira.com/auth/callback                   /pages/app/auth/callback.html        200
+https://staging.oslira.com/campaigns                       /pages/app/campaigns/index.html      200
+https://staging.oslira.com/integrations                    /pages/app/integrations/index.html   200
+https://staging.oslira.com/leads                           /pages/app/leadResearch/index.html   200
+https://staging.oslira.com/messages                        /pages/app/messagesCenter/index.html 200
+https://staging.oslira.com/onboarding                      /pages/app/onboarding/index.html     200
+https://staging.oslira.com/subscription                    /pages/app/subscription/index.html   200
+https://staging.oslira.com/settings                        /pages/app/settings/profile.html     200
+https://staging.oslira.com/settings/profile                /pages/app/settings/profile.html     200
+https://staging.oslira.com/settings/account                /pages/app/settings/account.html     200
+https://staging.oslira.com/settings/billing                /pages/app/settings/billing.html     200
+https://staging.oslira.com/settings/usage                  /pages/app/settings/usage.html       200
+https://staging.oslira.com/contact                         /pages/app/contact/index.html        200
+https://staging.oslira.com/legal                           /pages/app/legal/index.html          200
+https://staging.oslira.com/support                         /pages/app/support/index.html        200
+https://staging.oslira.com/status                          /pages/app/status/index.html         200
 
 # Favicon
-/favicon.ico                               /assets/images/oslira-logo.png       200
+https://staging.oslira.com/favicon.ico                     /assets/images/oslira-logo.png       200
+
+# Staging root catch-all
+https://staging.oslira.com/*                               /pages/www/:splat                    200
 
 # =============================================================================
-# CATCH-ALL FALLBACK - MUST BE LAST
+# PRODUCTION ROOT DOMAIN: oslira.com - Marketing & Public Pages (Production)
 # =============================================================================
+
+# Homepage
+https://oslira.com/                                        /pages/www/index.html                200
+
+# Public marketing pages
+https://oslira.com/pricing                                 /pages/www/pricing/index.html        200
+https://oslira.com/about                                   /pages/www/about/index.html          200
+https://oslira.com/case-studies                            /pages/www/case-studies/index.html   200
+https://oslira.com/docs                                    /pages/www/docs/index.html           200
+https://oslira.com/api                                     /pages/www/api/index.html            200
+https://oslira.com/security                                /pages/www/security/index.html       200
+https://oslira.com/help                                    /pages/www/help/index.html           200
+
+# Root domain - App page fallbacks (redirect to pages/app)
+https://oslira.com/dashboard                               /pages/app/dashboard/index.html      200
+https://oslira.com/admin                                   /pages/app/admin/index.html          200
+https://oslira.com/analytics                               /pages/app/analytics/index.html      200
+https://oslira.com/auth                                    /pages/app/auth/index.html           200
+https://oslira.com/auth/callback                           /pages/app/auth/callback.html        200
+https://oslira.com/campaigns                               /pages/app/campaigns/index.html      200
+https://oslira.com/integrations                            /pages/app/integrations/index.html   200
+https://oslira.com/leads                                   /pages/app/leadResearch/index.html   200
+https://oslira.com/messages                                /pages/app/messagesCenter/index.html 200
+https://oslira.com/onboarding                              /pages/app/onboarding/index.html     200
+https://oslira.com/subscription                            /pages/app/subscription/index.html   200
+https://oslira.com/settings                                /pages/app/settings/profile.html     200
+https://oslira.com/settings/profile                        /pages/app/settings/profile.html     200
+https://oslira.com/settings/account                        /pages/app/settings/account.html     200
+https://oslira.com/settings/billing                        /pages/app/settings/billing.html     200
+https://oslira.com/settings/usage                          /pages/app/settings/usage.html       200
+https://oslira.com/contact                                 /pages/app/contact/index.html        200
+https://oslira.com/legal                                   /pages/app/legal/index.html          200
+https://oslira.com/support                                 /pages/app/support/index.html        200
+https://oslira.com/status                                  /pages/app/status/index.html         200
+
+# Favicon
+https://oslira.com/favicon.ico                             /assets/images/oslira-logo.png       200
+
+# Production root catch-all
+https://oslira.com/*                                       /pages/www/:splat                    200
+
+# =============================================================================
+# FALLBACK CATCH-ALL - Relative paths (no hostname specified)
+# Used during local development or as last resort
+# =============================================================================
+/                                          /pages/www/index.html                200
+/pricing                                   /pages/www/pricing/index.html        200
+/about                                     /pages/www/about/index.html          200
+/favicon.ico                               /assets/images/oslira-logo.png       200
 /*                                         /pages/www/index.html                200
