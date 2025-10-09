@@ -1,107 +1,133 @@
 // =============================================================================
-// AUTH APP - Bootstrap System Integration
-// Path: /pages/auth/auth-app.js
-// Replaces: /pages/auth/auth.js
+// AUTH APP - Main Authentication Page Controller
+// Path: /public/pages/auth/AuthApp.js
+// Dependencies: AuthManager (Phase 2), NavigationHelper (Phase 1), EnvDetector (Phase 0)
 // =============================================================================
 
 /**
- * AUTH APP - Google OAuth Authentication
+ * @class AuthApp
+ * @description Controls the main authentication page (Google OAuth)
  * 
  * Responsibilities:
- * - Handle Google OAuth sign-in
+ * - Initialize page UI
+ * - Handle Google sign-in button
  * - Display loading/error/success states
  * - Handle URL error parameters
- * - Setup legal footer links
+ * - Setup environment-aware navigation links
  * 
- * Does NOT:
- * - Wait for dependencies (orchestrator handles this)
- * - Manually load scripts
- * - Use setTimeout fallbacks
+ * Integration:
+ * - Waits for oslira:scripts:loaded event
+ * - All dependencies loaded by Loader.js
+ * - Zero manual script loading
  */
-
 class AuthApp {
     constructor() {
-        this.initialized = false;
+        this.isInitialized = false;
         this.isLoading = false;
         
         console.log('🔐 [AuthApp] Instance created');
     }
     
-    // ═══════════════════════════════════════════════════════════
-    // MAIN INITIALIZATION (Called by Orchestrator)
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
+    // MAIN INITIALIZATION (Called by Bootstrap)
+    // =========================================================================
     
     async init() {
-        if (this.initialized) {
+        if (this.isInitialized) {
             console.log('⚠️ [AuthApp] Already initialized');
             return;
         }
         
+        try {
+            // Wait for all scripts to load
+            window.addEventListener('oslira:scripts:loaded', async () => {
+                await this.initialize();
+            });
+            
+        } catch (error) {
+            console.error('❌ [AuthApp] Initialization failed:', error);
+        }
+    }
+    
+    async initialize() {
         console.log('🔐 [AuthApp] Starting initialization...');
         
         try {
-            // Step 1: Setup legal footer links
-            this.setupLegalLinks();
+            // Verify required dependencies
+            if (!window.OsliraAuth) {
+                throw new Error('AuthManager not available');
+            }
             
-            // Step 2: Setup event listeners
+            if (!window.OsliraEnv) {
+                throw new Error('EnvDetector not available');
+            }
+            
+            // Check if user is already authenticated
+            await this.checkExistingAuth();
+            
+            // Setup event listeners
             this.setupEventListeners();
             
-            // Step 3: Handle URL error parameters
+            // Handle URL error parameters
             this.handleUrlErrors();
             
-            // Step 4: Show page content
-            document.body.style.visibility = 'visible';
+            // Show page content (loading screen is auto-hidden by Loader.js)
+            // Body visibility is set by Loader.js after scripts load
             
-            this.initialized = true;
+            this.isInitialized = true;
             console.log('✅ [AuthApp] Initialization complete');
             
         } catch (error) {
             console.error('❌ [AuthApp] Initialization failed:', error);
-            this.showError('Failed to load authentication system. Please refresh.');
+            this.showError('Failed to load authentication. Please refresh the page.');
             document.body.style.visibility = 'visible';
-            throw error;
         }
     }
     
-    // ═══════════════════════════════════════════════════════════
-    // LEGAL LINKS SETUP
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
+    // AUTH STATE CHECK
+    // =========================================================================
     
-    setupLegalLinks() {
-        console.log('🔗 [AuthApp] Setting up legal links...');
-        
-        if (!window.OsliraEnv) {
-            console.warn('⚠️ [AuthApp] OsliraEnv not available, skipping legal links');
-            return;
+    /**
+     * Check if user is already authenticated and redirect if so
+     */
+    async checkExistingAuth() {
+        try {
+            // Wait for AuthManager to be ready
+            if (!window.OsliraAuth.isLoaded) {
+                await window.OsliraAuth.initialize();
+            }
+            
+            // Check if user is authenticated
+            if (window.OsliraAuth.isAuthenticated()) {
+                console.log('✅ [AuthApp] User already authenticated, redirecting...');
+                
+                // Get appropriate redirect URL
+                const needsOnboarding = window.OsliraAuth.user?.user_metadata?.needs_onboarding;
+                const redirectUrl = needsOnboarding 
+                    ? window.OsliraEnv.getAppUrl('/onboarding')
+                    : window.OsliraEnv.getAppUrl('/dashboard');
+                
+                // Redirect after short delay
+                this.showSuccess('Already signed in! Redirecting...');
+                setTimeout(() => {
+                    window.location.href = redirectUrl;
+                }, 1000);
+            }
+            
+        } catch (error) {
+            // Not authenticated or error checking - that's fine, let user sign in
+            console.log('🔐 [AuthApp] User not authenticated, showing sign-in');
         }
-        
-        document.querySelectorAll('[data-legal-link]').forEach(link => {
-            const type = link.getAttribute('data-legal-link');
-            let targetUrl;
-            
-            switch (type) {
-                case 'terms':
-                    targetUrl = window.OsliraEnv.getLegalUrl('terms');
-                    break;
-                case 'privacy':
-                    targetUrl = window.OsliraEnv.getLegalUrl('privacy');
-                    break;
-                case 'contact':
-                    targetUrl = window.OsliraEnv.getContactUrl('');
-                    break;
-            }
-            
-            if (targetUrl) {
-                link.href = targetUrl;
-                console.log(`✅ [AuthApp] Set ${type} link to: ${targetUrl}`);
-            }
-        });
     }
     
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     // EVENT LISTENERS
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     
+    /**
+     * Setup all event listeners
+     */
     setupEventListeners() {
         console.log('🎯 [AuthApp] Setting up event listeners...');
         
@@ -114,17 +140,20 @@ class AuthApp {
             console.warn('⚠️ [AuthApp] Google sign-in button not found');
         }
         
-        // Retry button (if visible)
+        // Retry button (if error state visible)
         const retryBtn = document.getElementById('retry-btn');
         if (retryBtn) {
             retryBtn.addEventListener('click', () => window.location.reload());
         }
     }
     
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     // URL ERROR HANDLING
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     
+    /**
+     * Handle error parameters in URL (from redirects)
+     */
     handleUrlErrors() {
         const urlParams = new URLSearchParams(window.location.search);
         const error = urlParams.get('error');
@@ -135,33 +164,31 @@ class AuthApp {
         
         console.log('⚠️ [AuthApp] URL error parameter detected:', error);
         
-        let errorMessage = 'Authentication failed. Please try again.';
+        const errorMessages = {
+            'authentication-failed': 'Authentication failed. Please try again.',
+            'callback-failed': 'Login process failed. Please try again.',
+            'access-denied': 'Sign-in was cancelled.',
+            'session_expired': 'Your session expired. Please sign in again.',
+            'invalid_session': 'Invalid session. Please sign in again.'
+        };
         
-        switch (error) {
-            case 'authentication-failed':
-                errorMessage = 'Authentication failed. Please try again.';
-                break;
-            case 'callback-failed':
-                errorMessage = 'Login process failed. Please try again.';
-                break;
-            case 'access-denied':
-                errorMessage = 'Sign-in was cancelled.';
-                break;
-            case 'session_expired':
-                errorMessage = 'Your session expired. Please sign in again.';
-                break;
-            default:
-                errorMessage = 'An error occurred. Please try again.';
-        }
+        const message = errorMessages[error] || 'An error occurred. Please try again.';
         
-        // Show error after a brief delay for smoother UX
-        setTimeout(() => this.showError(errorMessage), 500);
+        // Show error after brief delay for smoother UX
+        setTimeout(() => this.showError(message), 500);
+        
+        // Clean up URL (remove error parameter)
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
     }
     
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     // GOOGLE OAUTH HANDLER
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     
+    /**
+     * Handle Google sign-in button click
+     */
     async handleGoogleAuth() {
         if (this.isLoading) {
             console.log('⚠️ [AuthApp] Already processing sign-in');
@@ -171,7 +198,7 @@ class AuthApp {
         console.log('🔐 [AuthApp] Google sign-in initiated');
         
         try {
-            // Check if OsliraAuth is available
+            // Verify AuthManager is available
             if (!window.OsliraAuth) {
                 throw new Error('Authentication system not available');
             }
@@ -182,7 +209,7 @@ class AuthApp {
             // Show loading state
             this.showLoading('Connecting to Google...');
             
-            // Initiate Google OAuth flow
+            // Initiate Google OAuth flow (will redirect to Google)
             await window.OsliraAuth.signInWithGoogle();
             
             // If we reach here, redirect is happening
@@ -207,10 +234,13 @@ class AuthApp {
         }
     }
     
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     // UI STATE MANAGEMENT
-    // ═══════════════════════════════════════════════════════════
+    // =========================================================================
     
+    /**
+     * Show loading state
+     */
     showLoading(message) {
         this.isLoading = true;
         console.log('⏳ [AuthApp] Showing loading:', message);
@@ -233,6 +263,9 @@ class AuthApp {
         });
     }
     
+    /**
+     * Hide loading state
+     */
     hideLoading() {
         this.isLoading = false;
         console.log('✅ [AuthApp] Hiding loading');
@@ -250,6 +283,9 @@ class AuthApp {
         });
     }
     
+    /**
+     * Show error state
+     */
     showError(message) {
         console.error('❌ [AuthApp] Showing error:', message);
         
@@ -266,6 +302,9 @@ class AuthApp {
         }
     }
     
+    /**
+     * Hide error state
+     */
     hideError() {
         const errorState = document.getElementById('error-state');
         
@@ -275,6 +314,9 @@ class AuthApp {
         }
     }
     
+    /**
+     * Show success state
+     */
     showSuccess(message) {
         console.log('✅ [AuthApp] Showing success:', message);
         
@@ -292,8 +334,8 @@ class AuthApp {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
+// =============================================================================
 // GLOBAL EXPORT
-// ═══════════════════════════════════════════════════════════
-window.AuthApp = AuthApp;
-console.log('✅ [AuthApp] Module loaded and ready');
+// =============================================================================
+window.AuthApp = new AuthApp();
+console.log('✅ [AuthApp] Module loaded, waiting for bootstrap');
