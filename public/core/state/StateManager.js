@@ -1,7 +1,7 @@
 // =============================================================================
 // STATE MANAGER - State Management with Computed Values
 // Path: /public/core/state/StateManager.js
-// Dependencies: Store, Logger
+// Dependencies: Store, Logger (lazily resolved)
 // ============================================================================= 
 
 /**
@@ -14,25 +14,46 @@
  * - State validation
  * - State persistence
  * - State history and undo/redo
+ * - Lazy dependency resolution
  */
 class StateManager {
-    constructor(store, logger) {
-        if (!store) {
-            throw new Error('[StateManager] Store instance required');
-        }
-        if (!logger) {
-            throw new Error('[StateManager] Logger instance required');
-        }
-        
-        this.store = store;
-        this.logger = logger;
-        
+    constructor() {
         this.isInitialized = false;
         
         // Computed state definitions
         this.computedState = new Map();
         
         console.log('🎯 [StateManager] Instance created');
+    }
+    
+    // =========================================================================
+    // LAZY DEPENDENCY RESOLUTION
+    // =========================================================================
+    
+    /**
+     * Get Store instance (lazy)
+     */
+    get store() {
+        if (!window.OsliraStore) {
+            throw new Error('[StateManager] Store not available yet');
+        }
+        return window.OsliraStore;
+    }
+    
+    /**
+     * Get Logger instance (lazy)
+     */
+    get logger() {
+        if (!window.OsliraLogger) {
+            console.warn('[StateManager] Logger not yet available, using console');
+            return {
+                info: console.log.bind(console),
+                warn: console.warn.bind(console),
+                error: console.error.bind(console),
+                debug: console.log.bind(console)
+            };
+        }
+        return window.OsliraLogger;
     }
     
     // =========================================================================
@@ -46,6 +67,11 @@ class StateManager {
         }
         
         try {
+            // Verify Store is available
+            if (!window.OsliraStore) {
+                throw new Error('[StateManager] Store instance required');
+            }
+            
             // Initialize default state structure
             this.initializeDefaultState();
             
@@ -651,10 +677,8 @@ class StateManager {
 // =============================================================================
 
 if (!window.OsliraStateManager) {
-    // Create singleton instance only if not exists
-    const store = window.OsliraStore;
-    const logger = window.OsliraLogger;
-    const instance = new StateManager(store, logger);
+    // Create singleton instance without dependencies (lazy resolution)
+    const instance = new StateManager();
     
     // Export to window
     window.OsliraStateManager = instance;
