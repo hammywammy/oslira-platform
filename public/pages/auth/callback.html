@@ -1,260 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- 
+<!--
 ═══════════════════════════════════════════════════════════════════
-CALLBACK PAGE - OSLIRA BOOTSTRAP ARCHITECTURE
-Path: /public/pages/auth/callback/index.html
-Version: 2.0 - Bootstrap System
+AUTH CALLBACK - OAuth Callback Handler
+Path: /public/pages/auth/callback.html
+Version: 3.0 - Unified Loader System
+Last Updated: 2025
+═══════════════════════════════════════════════════════════════════
+
+Purpose:
+- Receives OAuth callback from Google
+- Processes hash fragments from Supabase
+- Validates session
+- Redirects to appropriate destination
+
+Integration:
+- Uses same unified bootstrap as all pages
+- Registered as 'auth-callback' in ModuleRegistry
+- No JavaScript logic required (handled by AuthManager)
+
 ═══════════════════════════════════════════════════════════════════
 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Completing Sign In - Oslira</title>
+    <title>Authenticating - Oslira</title>
+    
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
     
-    <style>
-        /* Simple callback page styles */
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-        
-        .callback-container {
-            text-align: center;
-            padding: 2rem;
-            max-width: 500px;
-        }
-        
-        .logo {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-        }
-        
-        .status {
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255,255,255,0.3);
-            border-top: 4px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .error {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-top: 1rem;
-            display: none;
-        }
-        
-        .retry-btn {
-            background: white;
-            color: #4285f4;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            margin-top: 1rem;
-            display: none;
-        }
-        
-        .retry-btn:hover {
-            background: #f5f5f5;
-        }
-    </style>
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="/assets/css/tailwind.css">
+    
+    <!-- Auth Page Styles -->
+    <link rel="stylesheet" href="/assets/css/auth.css">
     
     <!-- ═══════════════════════════════════════════════════════════
-         BOOTSTRAP SYSTEM - Load order matters
+         UNIFIED BOOTSTRAP
          ═══════════════════════════════════════════════════════════ -->
-    <script src="/core/env-manager.js"></script>
-    <script src="/core/boot/loader.js"></script>
-    <script src="/core/registry/module-registry.js"></script>
-    <script src="/core/boot/orchestrator.js"></script>
-    <script src="/core/boot/bootstrap.js"></script>
+    <script src="/core/init/Loader.js" data-page="auth-callback"></script>
 </head>
 
-<body>
-    <div class="callback-container">
-        <div class="logo">Oslira</div>
-        
-        <!-- Loading State -->
-        <div id="loading-state">
-            <div class="spinner"></div>
-            <div class="status" id="status-text">Completing your sign-in...</div>
+<body style="visibility: hidden;">
+    
+    <!-- LOADING SCREEN (Required) -->
+    <div id="app-loader" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="text-align: center;">
+            <img src="/assets/images/oslira-logo.png" alt="Oslira" style="width: 80px; margin-bottom: 20px;">
+            <div style="color: #6b7280; font-size: 14px; margin-bottom: 10px;">Processing authentication...</div>
+            <div style="width: 200px; height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden;">
+                <div id="load-progress" style="width: 0%; height: 100%; background: linear-gradient(to right, #3b82f6, #8b5cf6); transition: width 0.3s;"></div>
+            </div>
         </div>
+    </div>
+
+    <!-- CALLBACK CONTAINER -->
+    <div class="auth-container">
         
-        <!-- Error State -->
-        <div id="error-state" class="error">
-            <div id="error-message">Sign-in failed. Please try again.</div>
+        <!-- LOADING STATE -->
+        <div id="loading-state" class="auth-loading-state">
+            <div class="auth-loading-spinner"></div>
+            <p id="status-text" class="auth-loading-text">Verifying your credentials...</p>
+        </div>
+
+        <!-- ERROR STATE -->
+        <div id="error-state" class="auth-error-message hidden">
+            <div class="alert-content">
+                <strong>Authentication Failed</strong>
+                <div id="error-message">Something went wrong. Please try again.</div>
+            </div>
             <button id="retry-btn" class="retry-btn">Try Again</button>
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         CALLBACK PROCESSING LOGIC
-         ═══════════════════════════════════════════════════════════ -->
-    <script>
-        console.log('🔐 [Callback] Starting OAuth callback processing...');
-        
-        // UI Helper Functions
-        function updateStatus(message) {
-            const statusEl = document.getElementById('status-text');
-            if (statusEl) statusEl.textContent = message;
-        }
-        
-        function showError(message) {
-            document.getElementById('loading-state').style.display = 'none';
-            const errorState = document.getElementById('error-state');
-            const errorMessage = document.getElementById('error-message');
-            const retryBtn = document.getElementById('retry-btn');
-            
-            if (errorMessage) errorMessage.textContent = message;
-            if (errorState) errorState.style.display = 'block';
-            if (retryBtn) retryBtn.style.display = 'inline-block';
-        }
-        
-        function redirectTo(url, delay = 500) {
-            setTimeout(() => {
-                console.log(`🔐 [Callback] Redirecting to: ${url}`);
-                window.location.href = url;
-            }, delay);
-        }
-        
-        // Wait for bootstrap to complete, then process callback
-        window.addEventListener('oslira:ready', async () => {
-            try {
-                console.log('🔐 [Callback] Bootstrap ready, processing OAuth callback...');
-                
-                updateStatus('Processing authentication...');
-                
-                // Verify OsliraAuth is available
-                if (!window.OsliraAuth) {
-                    throw new Error('Auth system not available');
-                }
-                
-                // Wait for auth system to be ready
-                await window.OsliraAuth.waitForAuth();
-                
-                // Log URL parameters for debugging
-                const urlParams = new URLSearchParams(window.location.search);
-                const urlHash = window.location.hash;
-                
-                console.log('🔐 [Callback] URL params:', urlParams.toString());
-                console.log('🔐 [Callback] URL hash:', urlHash ? 'present' : 'none');
-                
-                updateStatus('Verifying credentials...');
-                
-// Handle the OAuth callback (Supabase processes URL automatically)
-const result = await window.OsliraAuth.handleCallback();
-
-if (result && result.session) {
-    console.log('✅ [Callback] Authentication successful');
-    console.log('🔐 [Callback] User:', result.session.user.email);
-    
-    updateStatus('Sign-in successful! Redirecting...');
-    
-    // result.redirectTo already contains the auth hash from handleCallback()
-    // Just redirect directly - no double encoding
-    console.log('🔐 [Callback] Redirecting to:', result.redirectTo);
-    
-    redirectTo(result.redirectTo);
-    
-} else {
-    console.log('❌ [Callback] No valid session found');
-    throw new Error('No valid session found after authentication');
-}
-                
-            } catch (error) {
-                console.error('❌ [Callback] Callback processing failed:', error);
-                
-                // Determine error type and show appropriate message
-                let errorMessage = 'Sign-in failed. Please try again.';
-                
-                if (error.message.includes('access_denied')) {
-                    errorMessage = 'Google sign-in was cancelled.';
-                } else if (error.message.includes('invalid_request')) {
-                    errorMessage = 'Invalid authentication request.';
-                } else if (error.message.includes('network')) {
-                    errorMessage = 'Network error. Please check your connection.';
-                } else if (error.message.includes('Auth system not available')) {
-                    errorMessage = 'Authentication system failed to load.';
-                }
-                
-                showError(errorMessage);
-            }
-        });
-        
-        // Setup retry button
-        document.getElementById('retry-btn').addEventListener('click', () => {
-            console.log('🔐 [Callback] Retry button clicked, redirecting to auth');
-            if (window.OsliraEnv && window.OsliraEnv.getAuthUrl) {
-                window.location.href = window.OsliraEnv.getAuthUrl();
-            } else {
-                window.location.href = 'https://auth.oslira.com';
-            }
-        });
-        
-        // Check for OAuth error parameters in URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const errorParam = urlParams.get('error');
-        const errorDescription = urlParams.get('error_description');
-        
-        if (errorParam) {
-            console.log('❌ [Callback] OAuth error in URL:', errorParam, errorDescription);
-            
-            let errorMessage = 'Authentication failed.';
-            switch (errorParam) {
-                case 'access_denied':
-                    errorMessage = 'Google sign-in was cancelled.';
-                    break;
-                case 'invalid_request':
-                    errorMessage = 'Invalid authentication request.';
-                    break;
-                case 'server_error':
-                    errorMessage = 'Authentication server error. Please try again.';
-                    break;
-                default:
-                    errorMessage = errorDescription || 'Authentication failed.';
-            }
-            
-            // Show error immediately if we have error parameters
-            setTimeout(() => {
-                showError(errorMessage);
-            }, 500);
-        }
-        
-        // Fallback timeout - if nothing happens in 15 seconds, show error
-        setTimeout(() => {
-            const loadingState = document.getElementById('loading-state');
-            if (loadingState && loadingState.style.display !== 'none') {
-                console.error('❌ [Callback] Callback processing timeout');
-                showError('Authentication is taking too long. Please try again.');
-            }
-        }, 15000);
-        
-        console.log('🔐 [Callback] Waiting for bootstrap to complete...');
-    </script>
 </body>
 </html>
