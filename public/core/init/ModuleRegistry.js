@@ -46,8 +46,8 @@ class ModuleRegistry {
 auth: {
     appClass: 'AuthApp',
     scripts: [
-        '/core/services/AuthManager.js',  // Phase 2 - Core auth service
-        '/pages/auth/AuthApp.js'           // Phase 3 - Page controller
+        '/core/auth/AuthManager.js',      // Phase 2 - Core auth service
+        '/pages/auth/AuthApp.js'          // Phase 3 - Page controller
     ],
     requiresAuth: false,
     description: 'Google OAuth sign-in page'
@@ -56,8 +56,8 @@ auth: {
 'auth-callback': {
     appClass: 'AuthCallbackApp',
     scripts: [
-        '/core/services/AuthManager.js',    // Phase 2 - Core auth service
-        '/pages/auth/AuthCallbackApp.js'    // Phase 3 - Callback handler
+        '/core/auth/AuthManager.js',      // Phase 2 - Core auth service
+        '/pages/auth/AuthCallbackApp.js'  // Phase 3 - Callback handler
     ],
     requiresAuth: false,
     description: 'OAuth callback processor'
