@@ -78,7 +78,7 @@ dashboard: {
         // ============================================================
         // PHASE 1: SHARED COMPONENTS (Sidebar)
         // ============================================================
-        '/core/ui/components/layouts/Sidebar.js',
+        '/core/ui/components/layouts/AppSidebar.js',
         
         // ============================================================
         // PHASE 2: SHARED DATA (No dependencies)
@@ -127,7 +127,6 @@ dashboard: {
         // ============================================================
         '/pages/app/dashboard/ui/modals/ModalManager.js',
         '/pages/app/dashboard/ui/modals/FilterModal.js',
-        '/pages/app/dashboard/ui/modals/ResearchModal.js',
         '/pages/app/dashboard/ui/modals/ModalBuilder.js',
         
         // Modal Components (Plugin Architecture)
@@ -139,7 +138,8 @@ dashboard: {
         // Modal Configs
         '/pages/app/dashboard/ui/modals/configs/AnalysisConfig.js',
         '/pages/app/dashboard/ui/modals/configs/BulkModal.js',
-        '/pages/app/dashboard/ui/modals/configs/TabSystem.js',
+        '/pages/app/dashboard/ui/modals/configs/ResearchModal.js',
+        '/pages/app/dashboard/ui/modals/TabSystem.js',
         
         // ============================================================
         // PHASE 9: CORE ORCHESTRATION (Load Last)
