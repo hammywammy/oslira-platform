@@ -1,10 +1,19 @@
-//public/pages/dashboard/modules/core/dashboard-app.js
+// public/pages/app/dashboard/core/DashboardApp.js
 
 /**
- * DASHBOARD APP - Production-Grade Initialization System
- * Handles dependency injection, parallel loading, and graceful failure recovery
- * Designed to work with script-loader.js parallel loading architecture
+ * DASHBOARD APP - Core Orchestrator
+ * 
+ * PURPOSE: Dashboard-specific initialization and coordination
+ * DEPENDENCIES: All Core services via window.Oslira*
+ * 
+ * This file ONLY handles:
+ * 1. Dashboard module registration
+ * 2. Dashboard-specific initialization sequence
+ * 3. Business logic coordination
+ * 
+ * Core handles: Auth, EventBus, State, DI Container, HTTP, Errors
  */
+
 class DashboardApp {
     constructor() {
         this.container = null;
@@ -16,20 +25,21 @@ class DashboardApp {
     }
     
     /**
-     * Main initialization method with idempotent protection
+     * Main initialization - called by Core Loader after scripts load
      */
     async init() {
-        // Prevent multiple simultaneous initializations
+        // Prevent duplicate initialization
         if (this.initializationPromise) {
-            console.log('⏳ [DashboardApp] Initialization already in progress, waiting...');
+            console.log('⏳ [DashboardApp] Initialization in progress...');
             return this.initializationPromise;
         }
         
         if (this.initialized) {
-            console.log('⚠️ [DashboardApp] Already initialized');
+            console.log('✅ [DashboardApp] Already initialized');
             return true;
         }
         
+        // Start initialization
         this.initializationPromise = this._performInitialization();
         
         try {
@@ -46,49 +56,82 @@ class DashboardApp {
      */
     async _performInitialization() {
         try {
-            console.log('🔧 [DashboardApp] Setting up dependency container...');
+            console.log('🔧 [DashboardApp] Setting up dashboard...');
             
-            // Create and setup dependency container
+            // Step 1: Setup dependency container with Core services
             this.container = this.setupDependencyContainer();
             
-            // Validate container setup
+            // Step 2: Validate container
             const validation = this.container.validate();
             if (!validation.valid) {
-                console.error('❌ [DashboardApp] Dependency validation failed:', validation.issues);
+                console.error('❌ [DashboardApp] Validation failed:', validation.issues);
                 throw new Error('Dependency validation failed: ' + JSON.stringify(validation.issues));
             }
             
-            console.log('✅ [DashboardApp] Dependency validation passed');
+            console.log('✅ [DashboardApp] Container validated');
             
-            // Use DashboardCore for initialization (handles all async resolution)
-            await DashboardCore.initialize(this.container);
+            // Step 3: Pre-resolve async dependencies
+            await this.preResolveAsyncDependencies();
             
-            // Sync business to OsliraAuth after initialization
+            // Step 4: Initialize all modules
+            console.log('🔄 [DashboardApp] Initializing modules...');
+            await this.container.initialize();
+            
+            // Step 5: Initialize sidebar
+            console.log('🔧 [DashboardApp] Initializing sidebar...');
+            const sidebar = new window.SidebarManager();
+            await sidebar.render('#sidebar-container');
+            
+            // Step 6: Load business profiles
+            console.log('🏢 [DashboardApp] Loading businesses...');
             const businessManager = this.container.get('businessManager');
+            await businessManager.loadBusinesses();
+            
+            // Sync business to OsliraAuth
             const currentBusiness = businessManager.getCurrentBusiness();
             if (currentBusiness && window.OsliraAuth) {
                 window.OsliraAuth.business = currentBusiness;
-                console.log('✅ [DashboardApp] Business synced to OsliraAuth:', currentBusiness.business_name);
+                console.log('✅ [DashboardApp] Business synced:', currentBusiness.business_name);
             }
             
-            // Setup event system
+            // Step 7: Render dashboard UI
+            console.log('🎨 [DashboardApp] Rendering dashboard UI...');
+            await this.renderDashboardUI();
+            
+            // Step 8: Initialize components that need DOM
+            await this.initializeComponents();
+            
+            // Step 9: Populate modals
+            await this.populateModals();
+            
+            // Step 10: Load lead data
+            console.log('📊 [DashboardApp] Loading lead data...');
+            const leadManager = this.container.get('leadManager');
+            await leadManager.loadDashboardData();
+            
+            // Step 11: Setup event handlers
             console.log('📡 [DashboardApp] Setting up event handlers...');
             DashboardEventSystem.setupHandlers(
                 this.container.get('eventBus'),
                 this.container
             );
             
-this.exposePublicAPI();
-
-this.initialized = true;
-const initTime = Date.now() - this.initStartTime;
-
-// Make page visible
-document.body.style.visibility = 'visible';
-
-console.log(`✅ [DashboardApp] Initialization completed in ${initTime}ms`);
+            // Step 12: Setup filter and selection handlers
+            await this.setupHandlers();
             
-            // Emit initialization complete event
+            // Step 13: Expose public API
+            this.exposePublicAPI();
+            
+            // Complete initialization
+            this.initialized = true;
+            const initTime = Date.now() - this.initStartTime;
+            
+            // Make page visible
+            document.body.style.visibility = 'visible';
+            
+            console.log(`✅ [DashboardApp] Initialized in ${initTime}ms`);
+            
+            // Emit completion event
             this.container.get('eventBus').emit(window.DASHBOARD_EVENTS.INIT_COMPLETE, {
                 initTime,
                 moduleCount: this.container.list().length
@@ -96,160 +139,308 @@ console.log(`✅ [DashboardApp] Initialization completed in ${initTime}ms`);
             
         } catch (error) {
             console.error('❌ [DashboardApp] Initialization failed:', error);
-            DashboardErrorSystem.handleInitializationError(error);
+            window.OsliraErrorHandler.handle(error, { 
+                context: 'dashboard_init',
+                fatal: true 
+            });
             throw error;
         }
     }
     
     /**
-     * Setup dependency container with all required services
-     * Uses DependencyReadiness to handle parallel script loading
+     * Setup dependency container - registers all dashboard modules
+     * Uses CORE services (not dashboard duplicates)
      */
     setupDependencyContainer() {
-        const container = new DependencyContainer();
+        // Use Core's DependencyContainer
+        const container = new window.OsliraDependencyContainer();
         
-        // =========================================================================
-        // CORE INFRASTRUCTURE - Singletons
-        // =========================================================================
-        console.log('📋 [DashboardApp] Registering core dependencies...');
+        console.log('📋 [DashboardApp] Registering Core services...');
         
-        // EventBus - Pure singleton, no dependencies
-        container.registerSingleton('eventBus', new DashboardEventBus());
+        // =====================================================================
+        // CORE SERVICES - Use from window.Oslira*
+        // =====================================================================
         
-        // StateManager - Depends on eventBus, must wait for class
-        container.registerFactory('stateManager', (eventBus) => {
-            // Synchronous check - class should be loaded by now
-            if (!window.DashboardStateManager) {
-                throw new Error('DashboardStateManager not loaded');
-            }
-            return new window.DashboardStateManager(eventBus);
-        }, ['eventBus']);
+        container.registerSingleton('eventBus', window.OsliraEventBus);
+        container.registerSingleton('stateManager', window.OsliraState);
+        container.registerSingleton('errorHandler', window.OsliraErrorHandler);
+        container.registerSingleton('logger', window.OsliraLogger);
+        container.registerSingleton('http', window.OsliraHttp);
         
-        // OsliraAuth - Direct reference to global
+        // Auth & Database
         container.registerSingleton('osliraAuth', window.OsliraAuth);
+        container.registerSingleton('supabase', window.OsliraAuth.supabase);
         
-        // AnalysisFunctions - Check class availability
-        container.registerFactory('analysisFunctions', () => {
-            if (!window.AnalysisFunctions) {
-                throw new Error('AnalysisFunctions not loaded');
-            }
-            return new window.AnalysisFunctions(container);
-        }, []);
+        console.log('📋 [DashboardApp] Registering dashboard modules...');
         
-        // =========================================================================
-        // FEATURE MODULES - With availability checks
-        // =========================================================================
-        console.log('📋 [DashboardApp] Registering feature modules...');
+        // =====================================================================
+        // DASHBOARD DOMAIN MODULES
+        // =====================================================================
         
         container.registerFactory('leadManager', () => {
-            if (!window.LeadManager) {
-                throw new Error('LeadManager not loaded');
-            }
+            if (!window.LeadManager) throw new Error('LeadManager not loaded');
             return new window.LeadManager(container);
         }, []);
         
-        container.registerFactory('realtimeManager', () => {
-            if (!window.RealtimeManager) {
-                throw new Error('RealtimeManager not loaded');
-            }
-            return new window.RealtimeManager(container);
-        }, []);
-        
         container.registerFactory('businessManager', () => {
-            if (!window.BusinessManager) {
-                throw new Error('BusinessManager not loaded');
-            }
+            if (!window.BusinessManager) throw new Error('BusinessManager not loaded');
             return new window.BusinessManager(container);
         }, []);
         
-        container.registerFactory('modalManager', () => {
-            if (!window.ModalManager) {
-                throw new Error('ModalManager not loaded');
-            }
-            return new window.ModalManager(container);
-        }, []);
-        
-        container.registerFactory('researchHandlers', () => {
-            if (!window.ResearchHandlers) {
-                throw new Error('ResearchHandlers not loaded');
-            }
-            return new window.ResearchHandlers();
-        }, []);
-        
-        container.registerFactory('analysisQueue', () => {
-            if (!window.AnalysisQueue) {
-                throw new Error('AnalysisQueue not loaded');
-            }
-            return new window.AnalysisQueue(container);
-        }, []);
-        
-        container.registerFactory('leadRenderer', () => {
-            if (!window.LeadRenderer) {
-                throw new Error('LeadRenderer not loaded');
-            }
-            return new window.LeadRenderer(container);
-        }, []);
-        
         container.registerFactory('statsCalculator', () => {
-            if (!window.StatsCalculator) {
-                throw new Error('StatsCalculator not loaded');
-            }
+            if (!window.StatsCalculator) throw new Error('StatsCalculator not loaded');
             return new window.StatsCalculator(container);
         }, []);
         
-        // =========================================================================
-        // UI COMPONENTS - With availability checks
-        // =========================================================================
-        console.log('📋 [DashboardApp] Registering UI components...');
+        container.registerFactory('leadRenderer', () => {
+            if (!window.LeadRenderer) throw new Error('LeadRenderer not loaded');
+            return new window.LeadRenderer(container);
+        }, []);
+        
+        // =====================================================================
+        // ANALYSIS SYSTEM
+        // =====================================================================
+        
+        container.registerFactory('analysisQueue', () => {
+            if (!window.AnalysisQueue) throw new Error('AnalysisQueue not loaded');
+            return new window.AnalysisQueue(container);
+        }, []);
+        
+        container.registerFactory('analysisFunctions', () => {
+            if (!window.AnalysisFunctions) throw new Error('AnalysisFunctions not loaded');
+            return new window.AnalysisFunctions(container);
+        }, []);
+        
+        // =====================================================================
+        // INFRASTRUCTURE
+        // =====================================================================
+        
+        container.registerFactory('realtimeManager', () => {
+            if (!window.RealtimeManager) throw new Error('RealtimeManager not loaded');
+            return new window.RealtimeManager(container);
+        }, []);
+        
+        container.registerFactory('modalManager', () => {
+            if (!window.ModalManager) throw new Error('ModalManager not loaded');
+            return new window.ModalManager(container);
+        }, []);
+        
+        // =====================================================================
+        // HANDLERS
+        // =====================================================================
+        
+        container.registerFactory('researchHandlers', () => {
+            if (!window.ResearchHandlers) throw new Error('ResearchHandlers not loaded');
+            return new window.ResearchHandlers();
+        }, []);
+        
+        // =====================================================================
+        // UI COMPONENTS
+        // =====================================================================
         
         container.registerFactory('dashboardHeader', () => {
-            if (!window.DashboardHeader) {
-                throw new Error('DashboardHeader not loaded');
-            }
+            if (!window.DashboardHeader) throw new Error('DashboardHeader not loaded');
             return new window.DashboardHeader(container);
         }, []);
         
         container.registerFactory('statsCards', () => {
-            if (!window.StatsCards) {
-                throw new Error('StatsCards not loaded');
-            }
+            if (!window.StatsCards) throw new Error('StatsCards not loaded');
             return new window.StatsCards(container);
         }, []);
         
         container.registerFactory('leadsTable', () => {
-            if (!window.LeadsTable) {
-                throw new Error('LeadsTable not loaded');
-            }
+            if (!window.LeadsTable) throw new Error('LeadsTable not loaded');
             return new window.LeadsTable(container);
         }, []);
         
-container.registerFactory('insightsPanel', () => {
-    if (!window.InsightsPanel) {
-        throw new Error('InsightsPanel not loaded');
-    }
-    return new window.InsightsPanel(container);
-}, []);
-
-container.registerFactory('tipOfDay', () => {
-    if (!window.TipOfDay) {
-        throw new Error('TipOfDay not loaded');
-    }
-    return new window.TipOfDay(container);
-}, []);
+        container.registerFactory('insightsPanel', () => {
+            if (!window.InsightsPanel) throw new Error('InsightsPanel not loaded');
+            return new window.InsightsPanel(container);
+        }, []);
+        
+        container.registerFactory('tipOfDay', () => {
+            if (!window.TipOfDay) throw new Error('TipOfDay not loaded');
+            return new window.TipOfDay(container);
+        }, []);
         
         console.log('✅ [DashboardApp] All dependencies registered');
         return container;
     }
     
     /**
-     * Expose public API for external access
+     * Pre-resolve async dependencies
+     * (Moved from DashboardCore.js)
+     */
+    async preResolveAsyncDependencies() {
+        console.log('🔄 [DashboardApp] Resolving async dependencies...');
+        
+        // Resolve AnalysisFunctions
+        const analysisFunctions = await this.container.getAsync('analysisFunctions');
+        this.container.registerSingleton('analysisFunctions', analysisFunctions);
+        
+        console.log('✅ [DashboardApp] Async dependencies resolved');
+    }
+    
+    /**
+     * Render dashboard UI components
+     * (Moved from DashboardCore.js)
+     */
+    async renderDashboardUI() {
+        try {
+            // Header
+            const dashboardHeader = this.container.get('dashboardHeader');
+            if (dashboardHeader && dashboardHeader.renderHeader) {
+                document.getElementById('dashboard-header').innerHTML = dashboardHeader.renderHeader();
+            }
+            
+            // Stats Cards
+            const statsCards = this.container.get('statsCards');
+            if (statsCards) {
+                if (statsCards.renderPriorityCards) {
+                    document.getElementById('priority-cards').innerHTML = statsCards.renderPriorityCards();
+                }
+                if (statsCards.renderPerformanceMetrics) {
+                    document.getElementById('performance-metrics').innerHTML = statsCards.renderPerformanceMetrics();
+                }
+            }
+            
+            // Leads Table
+            const leadsTable = this.container.get('leadsTable');
+            if (leadsTable && leadsTable.renderTableContainer) {
+                const leadsSection = document.getElementById('leads-section');
+                if (leadsSection) {
+                    leadsSection.innerHTML = leadsTable.renderTableContainer();
+                    if (leadsTable.setupRefreshButton) {
+                        leadsTable.setupRefreshButton();
+                    }
+                }
+            }
+            
+            // Insights Panel
+            const insightsPanel = this.container.get('insightsPanel');
+            if (insightsPanel && insightsPanel.renderInsightsPanel) {
+                document.getElementById('insights-panel').innerHTML = insightsPanel.renderInsightsPanel();
+            }
+            
+            // Tip of Day
+            const tipOfDay = this.container.get('tipOfDay');
+            if (tipOfDay && tipOfDay.renderTip) {
+                document.getElementById('tip-of-day').innerHTML = tipOfDay.renderTip();
+                window.tipOfDay = tipOfDay;
+            }
+            
+            // Initialize feather icons
+            if (window.feather) {
+                window.feather.replace();
+            }
+            
+            console.log('✅ [DashboardApp] UI rendered');
+            
+        } catch (error) {
+            console.error('❌ [DashboardApp] UI rendering failed:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * Initialize components that need DOM elements
+     */
+    async initializeComponents() {
+        console.log('🔧 [DashboardApp] Initializing components...');
+        
+        // Dashboard Header
+        const dashboardHeader = this.container.get('dashboardHeader');
+        if (dashboardHeader && !dashboardHeader.initialized) {
+            await dashboardHeader.initialize();
+            console.log('✅ [DashboardApp] DashboardHeader initialized');
+        }
+        
+        // Lead Renderer
+        const leadRenderer = this.container.get('leadRenderer');
+        if (leadRenderer && !leadRenderer.initialized) {
+            leadRenderer.init();
+            leadRenderer.initialized = true;
+            console.log('✅ [DashboardApp] LeadRenderer initialized');
+        }
+    }
+    
+    /**
+     * Populate modal HTML
+     */
+    async populateModals() {
+        console.log('🔧 [DashboardApp] Populating modals...');
+        
+        // Research Modal
+        if (window.ResearchModal) {
+            const researchModal = new window.ResearchModal(this.container);
+            const modalHTML = researchModal.renderModal();
+            const modalContainer = document.getElementById('researchModal');
+            if (modalContainer) {
+                modalContainer.outerHTML = modalHTML;
+                console.log('✅ [DashboardApp] ResearchModal populated');
+            }
+        }
+        
+        // Bulk Modal
+        if (window.BulkModal) {
+            const bulkModal = new window.BulkModal(this.container);
+            const modalHTML = bulkModal.renderBulkModal();
+            const modalContainer = document.getElementById('bulkModal');
+            if (modalContainer) {
+                modalContainer.innerHTML = modalHTML;
+                bulkModal.setupEventHandlers();
+                console.log('✅ [DashboardApp] BulkModal populated');
+            }
+        }
+        
+        // Filter Modal
+        if (window.FilterModal) {
+            const filterModal = new window.FilterModal(this.container);
+            const modalHTML = filterModal.renderModal();
+            const modalContainer = document.getElementById('filter-modal-container');
+            if (modalContainer) {
+                modalContainer.innerHTML = modalHTML;
+                filterModal.setupEventHandlers();
+                console.log('✅ [DashboardApp] FilterModal populated');
+            }
+        }
+    }
+    
+    /**
+     * Setup event handlers after data is loaded
+     */
+    async setupHandlers() {
+        console.log('🔧 [DashboardApp] Setting up handlers...');
+        
+        const leadsTable = this.container.get('leadsTable');
+        
+        // Filter handlers
+        if (leadsTable && leadsTable.setupFilterHandlers) {
+            leadsTable.setupFilterHandlers();
+            console.log('✅ [DashboardApp] Filter handlers initialized');
+        }
+        
+        // Selection handlers
+        if (leadsTable && leadsTable.setupSelectionHandlers) {
+            leadsTable.setupSelectionHandlers();
+            console.log('✅ [DashboardApp] Selection handlers initialized');
+        }
+        
+        // Event handlers (toolbar buttons, etc.)
+        if (leadsTable && leadsTable.setupEventHandlers) {
+            leadsTable.setupEventHandlers();
+            console.log('✅ [DashboardApp] Event handlers initialized');
+        }
+    }
+    
+    /**
+     * Expose public API for global access
      */
     exposePublicAPI() {
-        // Expose instance globally
-        window.DashboardApp = window.DashboardApp || {};
-        window.DashboardApp.instance = this;
+        // Expose instance
+        window.dashboard = this;
         
-        // Expose managers for direct access (clean way)
+        // Expose managers
         window.DashboardManagers = {
             lead: this.container.get('leadManager'),
             analysis: this.container.get('analysisQueue'),
@@ -261,37 +452,38 @@ container.registerFactory('tipOfDay', () => {
             events: this.container.get('eventBus')
         };
         
-window.DashboardAPI = {
-    refreshData: () => this.refreshLeads(),
-    getState: (key) => this.container.get('stateManager').getState(key),
-    setState: (key, value) => this.container.get('stateManager').setState(key, value),
-    emit: (event, data) => this.container.get('eventBus').emit(event, data),
-    getManager: (name) => this.container.get(name)
-};
-
-// Expose refresh function for manual button
-window.refreshLeadsTable = async () => {
-    const btn = document.getElementById('manual-refresh-btn');
-    const icon = document.getElementById('refresh-icon');
-    
-    if (btn) btn.disabled = true;
-    if (icon) {
-        icon.style.transform = 'rotate(360deg)';
-        icon.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-    }
-    
-    try {
-        const leadManager = this.container.get('leadManager');
-        await leadManager.refreshWithAnimation();
-    } finally {
-        if (btn) btn.disabled = false;
-        if (icon) {
-            setTimeout(() => {
-                icon.style.transform = 'rotate(0deg)';
-            }, 100);
-        }
-    }
-};
+        // Expose API methods
+        window.DashboardAPI = {
+            refreshData: () => this.refreshLeads(),
+            getState: (key) => this.container.get('stateManager').getState(key),
+            setState: (key, value) => this.container.get('stateManager').setState(key, value),
+            emit: (event, data) => this.container.get('eventBus').emit(event, data),
+            getManager: (name) => this.container.get(name)
+        };
+        
+        // Expose refresh function for manual button
+        window.refreshLeadsTable = async () => {
+            const btn = document.getElementById('manual-refresh-btn');
+            const icon = document.getElementById('refresh-icon');
+            
+            if (btn) btn.disabled = true;
+            if (icon) {
+                icon.style.transform = 'rotate(360deg)';
+                icon.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            }
+            
+            try {
+                const leadManager = this.container.get('leadManager');
+                await leadManager.refreshWithAnimation();
+            } finally {
+                if (btn) btn.disabled = false;
+                if (icon) {
+                    setTimeout(() => {
+                        icon.style.transform = 'rotate(0deg)';
+                    }, 100);
+                }
+            }
+        };
         
         console.log('✅ [DashboardApp] Public API exposed');
     }
@@ -304,8 +496,8 @@ window.refreshLeadsTable = async () => {
         
         try {
             if (!this.initialized) {
-                console.warn('⚠️ [DashboardApp] Not initialized, attempting recovery...');
-                await this.init();
+                console.warn('⚠️ [DashboardApp] Not initialized yet');
+                return false;
             }
             
             const leadManager = this.container.get('leadManager');
@@ -320,12 +512,12 @@ window.refreshLeadsTable = async () => {
                 timestamp: Date.now()
             });
             
-            console.log('✅ [DashboardApp] Leads refreshed successfully');
+            console.log('✅ [DashboardApp] Leads refreshed');
             return true;
             
         } catch (error) {
-            console.error('❌ [DashboardApp] Failed to refresh leads:', error);
-            DashboardErrorSystem.handleRuntimeError(error, { context: 'refreshLeads' });
+            console.error('❌ [DashboardApp] Refresh failed:', error);
+            window.OsliraErrorHandler.handle(error, { context: 'refreshLeads' });
             return false;
         }
     }
@@ -363,7 +555,6 @@ window.refreshLeadsTable = async () => {
         try {
             return this.container.get('osliraAuth').user;
         } catch (error) {
-            console.error('❌ [DashboardApp] Failed to get current user:', error);
             return null;
         }
     }
@@ -372,17 +563,17 @@ window.refreshLeadsTable = async () => {
      * Cleanup dashboard
      */
     async cleanup() {
-        console.log('🧹 [DashboardApp] Starting cleanup...');
+        console.log('🧹 [DashboardApp] Cleaning up...');
         
         try {
             if (this.container) {
                 await this.container.cleanup();
             }
             
-            // Clear global references
-            delete window.DashboardApp.instance;
+            delete window.dashboard;
             delete window.DashboardManagers;
             delete window.DashboardAPI;
+            delete window.refreshLeadsTable;
             
             this.initialized = false;
             this.initializationPromise = null;
@@ -417,7 +608,23 @@ window.refreshLeadsTable = async () => {
     }
 }
 
-// Export for use in other modules
+// Initialize when Core Loader fires the event
+window.addEventListener('oslira:scripts:loaded', async () => {
+    console.log('🎯 [DashboardApp] Scripts loaded, starting initialization...');
+    
+    try {
+        const app = new DashboardApp();
+        await app.init();
+    } catch (error) {
+        console.error('❌ [DashboardApp] Fatal initialization error:', error);
+        window.OsliraErrorHandler.handle(error, { 
+            context: 'dashboard_bootstrap',
+            fatal: true 
+        });
+    }
+});
+
+// Export
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { DashboardApp };
 } else {
