@@ -66,20 +66,89 @@ auth: {
             // =================================================================
             // DASHBOARD - HAS JS
             // =================================================================
+// public/core/init/ModuleRegistry.js
+// DASHBOARD SECTION ONLY - Update this in your existing ModuleRegistry.js
+
+// =================================================================
+// DASHBOARD - UPDATED FOR NEW CORE STRUCTURE
+// =================================================================
 dashboard: {
+    appClass: 'DashboardApp',
     scripts: [
+        // ============================================================
+        // PHASE 1: SHARED COMPONENTS (Sidebar)
+        // ============================================================
         '/core/ui/components/layouts/Sidebar.js',
+        
+        // ============================================================
+        // PHASE 2: SHARED DATA (No dependencies)
+        // ============================================================
+        '/pages/app/dashboard/shared/DailyTips.js',
+        
+        // ============================================================
+        // PHASE 3: DOMAIN - DATA MANAGEMENT
+        // ============================================================
+        '/pages/app/dashboard/domain/leads/LeadManager.js',
+        '/pages/app/dashboard/domain/leads/LeadRenderer.js',
+        '/pages/app/dashboard/domain/business/BusinessManager.js',
+        '/pages/app/dashboard/domain/stats/StatsCalculator.js',
+        '/pages/app/dashboard/domain/bulk/BulkUpload.js',
+        
+        // ============================================================
+        // PHASE 4: ANALYSIS SYSTEM
+        // ============================================================
         '/pages/app/dashboard/domain/analysis/AnalysisQueue.js',
         '/pages/app/dashboard/domain/analysis/AnalysisQueueRenderer.js',
         '/pages/app/dashboard/domain/analysis/AnalysisQueueAnimator.js',
         '/pages/app/dashboard/domain/analysis/AnalysisFunctions.js',
+        
+        // ============================================================
+        // PHASE 5: INFRASTRUCTURE
+        // ============================================================
+        '/pages/app/dashboard/infrastructure/RealtimeManager.js',
+        
+        // ============================================================
+        // PHASE 6: HANDLERS
+        // ============================================================
         '/pages/app/dashboard/handlers/ResearchHandlers.js',
-        '/pages/app/dashboard/handlers/BulkHandlers.js',
+        '/pages/app/dashboard/handlers/LeadAnalysisHandlers.js',
+        
+        // ============================================================
+        // PHASE 7: UI COMPONENTS
+        // ============================================================
+        '/pages/app/dashboard/ui/components/DashboardHeader.js',
+        '/pages/app/dashboard/ui/components/StatsCards.js',
+        '/pages/app/dashboard/ui/components/LeadsTable.js',
+        '/pages/app/dashboard/ui/components/InsightsPanel.js',
+        '/pages/app/dashboard/ui/components/TipOfDay.js',
+        
+        // ============================================================
+        // PHASE 8: MODAL SYSTEM
+        // ============================================================
         '/pages/app/dashboard/ui/modals/ModalManager.js',
+        '/pages/app/dashboard/ui/modals/FilterModal.js',
+        '/pages/app/dashboard/ui/modals/ResearchModal.js',
+        '/pages/app/dashboard/ui/modals/ModalBuilder.js',
+        
+        // Modal Components (Plugin Architecture)
+        '/pages/app/dashboard/ui/modals/components/ModalComponentsCore.js',
+        '/pages/app/dashboard/ui/modals/components/ModalComponentsDeep.js',
+        '/pages/app/dashboard/ui/modals/components/ModalComponentsPersonality.js',
+        '/pages/app/dashboard/ui/modals/components/ModalComponentsXray.js',
+        
+        // Modal Configs
         '/pages/app/dashboard/ui/modals/configs/AnalysisConfig.js',
-        '/pages/app/dashboard/ui/ResultsRenderer.js',
-        '/pages/app/dashboard/DashboardApp.js'  // Main app loads last
-    ]
+        '/pages/app/dashboard/ui/modals/configs/BulkModal.js',
+        '/pages/app/dashboard/ui/modals/configs/TabSystem.js',
+        
+        // ============================================================
+        // PHASE 9: CORE ORCHESTRATION (Load Last)
+        // ============================================================
+        '/pages/app/dashboard/core/DashboardEventSystem.js',
+        '/pages/app/dashboard/core/DashboardApp.js'  // Main app initializes last
+    ],
+    requiresAuth: true,
+    description: 'Lead research dashboard'
 },
             
             // =================================================================
