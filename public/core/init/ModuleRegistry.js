@@ -62,15 +62,21 @@ class ModuleRegistry {
             // =================================================================
             // DASHBOARD - HAS JS
             // =================================================================
-            dashboard: {
-                appClass: 'DashboardApp',
-                scripts: [
-                    '/core/ui/components/layouts/AppSidebar.js',
-                    '/pages/app/dashboard/core/DashboardApp.js'
-                ],
-                requiresAuth: true,
-                description: 'Main dashboard'
-            },
+dashboard: {
+    scripts: [
+        '/core/ui/components/layouts/Sidebar.js',
+        '/pages/app/dashboard/domain/analysis/AnalysisQueue.js',
+        '/pages/app/dashboard/domain/analysis/AnalysisQueueRenderer.js',
+        '/pages/app/dashboard/domain/analysis/AnalysisQueueAnimator.js',
+        '/pages/app/dashboard/domain/analysis/AnalysisFunctions.js',
+        '/pages/app/dashboard/handlers/ResearchHandlers.js',
+        '/pages/app/dashboard/handlers/BulkHandlers.js',
+        '/pages/app/dashboard/ui/modals/ModalManager.js',
+        '/pages/app/dashboard/ui/modals/configs/AnalysisConfig.js',
+        '/pages/app/dashboard/ui/ResultsRenderer.js',
+        '/pages/app/dashboard/DashboardApp.js'  // Main app loads last
+    ]
+},
             
             // =================================================================
             // SETTINGS - HAS JS
@@ -412,9 +418,20 @@ class ModuleRegistry {
     /**
      * Get page configuration
      */
-    getPageConfig(pageName) {
-        return this.pages[pageName] || null;
+getPageConfig(pageName) {
+    const config = this.pages[pageName];
+    
+    if (!config) {
+        console.warn(`⚠️ [ModuleRegistry] No config found for page: ${pageName}`);
+        return null;
     }
+    
+    // Return copy with guaranteed scripts array
+    return {
+        ...config,
+        scripts: config.scripts || []
+    };
+}
     
     /**
      * Get scripts for a page
