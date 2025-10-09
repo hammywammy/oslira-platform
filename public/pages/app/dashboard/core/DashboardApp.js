@@ -139,7 +139,7 @@ class DashboardApp {
             
         } catch (error) {
             console.error('❌ [DashboardApp] Initialization failed:', error);
-            window.OsliraErrorHandler.handle(error, { 
+            window.ErrorHandler.handleError(error, { 
                 context: 'dashboard_init',
                 fatal: true 
             });
@@ -152,8 +152,8 @@ class DashboardApp {
      * Uses CORE services (not dashboard duplicates)
      */
     setupDependencyContainer() {
-        // Use Core's DependencyContainer
-        const container = new window.OsliraDependencyContainer();
+        // Use Core's DependencyContainer (correct name)
+        const container = new window.DependencyContainer();
         
         console.log('📋 [DashboardApp] Registering Core services...');
         
@@ -161,11 +161,11 @@ class DashboardApp {
         // CORE SERVICES - Use from window.Oslira*
         // =====================================================================
         
-        container.registerSingleton('eventBus', window.OsliraEventBus);
-        container.registerSingleton('stateManager', window.OsliraState);
-        container.registerSingleton('errorHandler', window.OsliraErrorHandler);
-        container.registerSingleton('logger', window.OsliraLogger);
-        container.registerSingleton('http', window.OsliraHttp);
+        container.registerSingleton('eventBus', window.EventBus);
+        container.registerSingleton('stateManager', window.StateManager);
+        container.registerSingleton('errorHandler', window.ErrorHandler);
+        container.registerSingleton('logger', window.Logger);
+        container.registerSingleton('http', window.HttpClient);
         
         // Auth & Database
         container.registerSingleton('osliraAuth', window.OsliraAuth);
@@ -517,7 +517,7 @@ class DashboardApp {
             
         } catch (error) {
             console.error('❌ [DashboardApp] Refresh failed:', error);
-            window.OsliraErrorHandler.handle(error, { context: 'refreshLeads' });
+            window.ErrorHandler.handleError(error, { context: 'refreshLeads' });
             return false;
         }
     }
@@ -617,7 +617,7 @@ window.addEventListener('oslira:scripts:loaded', async () => {
         await app.init();
     } catch (error) {
         console.error('❌ [DashboardApp] Fatal initialization error:', error);
-        window.OsliraErrorHandler.handle(error, { 
+        window.ErrorHandler.handleError(error, { 
             context: 'dashboard_bootstrap',
             fatal: true 
         });
