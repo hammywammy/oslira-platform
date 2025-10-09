@@ -123,9 +123,9 @@ class DashboardApp {
      */
     validateDependencies() {
         const required = [
-            'EventBus',
-            'StateManager',
-            'ErrorHandler',
+            'OsliraEventBus',
+            'OsliraStateManager',
+            'OsliraErrorHandler',
             'OsliraAuth',
             'LeadManager',
             'BusinessManager',
