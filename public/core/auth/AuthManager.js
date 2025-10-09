@@ -667,7 +667,7 @@ async _getSupabaseKey() {
     
 /**
  * Sign in with Google OAuth
- * CRITICAL FIX: Clear ALL auth state including PKCE verifiers before starting OAuth
+ * CRITICAL: Explicitly set callback URL to prevent Supabase from redirecting elsewhere
  */
 async signInWithGoogle() {
     if (!this.supabase) {
@@ -679,7 +679,6 @@ async signInWithGoogle() {
         
         // ====================================================================
         // CRITICAL: Clear ALL auth-related storage before OAuth
-        // This prevents PKCE verifier mismatches and session conflicts
         // ====================================================================
         
         console.log('🧹 [AuthManager] Clearing all auth state...');
@@ -750,19 +749,24 @@ async signInWithGoogle() {
         await new Promise(resolve => setTimeout(resolve, 200));
         
         // ====================================================================
-        // Start fresh OAuth flow
+        // CRITICAL: Build EXPLICIT callback URL
+        // This prevents Supabase from using Site URL as fallback
         // ====================================================================
         
-        // Build callback URL
         const redirectTo = window.OsliraEnv.getAuthUrl('/auth/callback');
         
         console.log('🔐 [AuthManager] Starting Google OAuth...');
-        console.log('📍 [AuthManager] Redirect URL:', redirectTo);
+        console.log('📍 [AuthManager] Callback URL:', redirectTo);
+        console.log('📍 [AuthManager] Current URL:', window.location.href);
+        
+        // ====================================================================
+        // Start OAuth flow with EXPLICIT redirectTo
+        // ====================================================================
         
         const { data, error } = await this.supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo,
+                redirectTo: redirectTo,  // CRITICAL: Must match Supabase dashboard config
                 skipBrowserRedirect: false,
                 queryParams: {
                     access_type: 'offline',
@@ -777,6 +781,10 @@ async signInWithGoogle() {
         }
         
         console.log('✅ [AuthManager] OAuth redirect initiated');
+        console.log('🔄 [AuthManager] Redirecting to Google...');
+        
+        // At this point, the browser should redirect to Google
+        // Google will then redirect back to: redirectTo + ?code=XXX
         
         return data;
         
@@ -787,7 +795,8 @@ async signInWithGoogle() {
             Sentry.captureException(error, {
                 tags: { 
                     component: 'AuthManager', 
-                    action: 'google-signin' 
+                    action: 'google-signin',
+                    redirectTo: window.OsliraEnv?.getAuthUrl('/auth/callback')
                 }
             });
         }
