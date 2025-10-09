@@ -1,328 +1,359 @@
 // =============================================================================
-// LOADER - Universal Script Loader
-// Path: /public/core/Loader.js
-// Dependencies: None (runs first)
+// LOADER - Main Script Loading Orchestrator
+// Path: /public/core/init/Loader.js
+// Dependencies: None (loads first, then loads PhasedLoader)
 // =============================================================================
 
 /**
  * @class Loader
- * @description Loads all core and page-specific scripts in correct order
+ * @description Main orchestrator that connects HTML → ModuleRegistry → PhasedLoader
  * 
- * Features:
- * - Sequential core script loading
- * - Parallel page script loading
- * - Script deduplication
- * - Error handling with retry
- * - Load event emission
+ * Flow:
+ * 1. Read data-page attribute from script tag
+ * 2. Load ModuleRegistry.js
+ * 3. Load PhasedLoader.js
+ * 4. Get scripts for page from ModuleRegistry
+ * 5. Organize scripts into phases
+ * 6. Hand to PhasedLoader for execution
  */
-class Loader {
-    constructor() {
-        this.loadedScripts = new Set();
-        this.loadingPromises = new Map();
-        this.failedScripts = new Set();
-        this.pageName = null;
-        
-        console.log('📦 [Loader] Instance created');
-    }
+(function() {
+    'use strict';
+    
+    console.log('🚀 [Loader] Starting...');
     
     // =========================================================================
-    // INITIALIZATION
+    // CONFIGURATION
     // =========================================================================
     
-    async load() {
-        try {
-            console.log('🚀 [Loader] Starting script loading...');
-            
-            // Get page name from data-page attribute
-            this.pageName = this.getPageName();
-            console.log(`📄 [Loader] Page: ${this.pageName}`);
-            
-            // Phase 1: Load core scripts sequentially
-            await this.loadCoreScripts();
-            
-            // Phase 2: Load page scripts in parallel
-            if (this.pageName) {
-                await this.loadPageScripts(this.pageName);
-            }
-            
-            // Emit loaded event
-            this.emitLoadedEvent();
-            
-            console.log('✅ [Loader] All scripts loaded successfully');
-            
-        } catch (error) {
-            console.error('❌ [Loader] Script loading failed:', error);
-            
-            if (window.Sentry) {
-                window.Sentry.captureException(error, {
-                    tags: { component: 'Loader', phase: 'load' }
-                });
-            }
-            
-            throw error;
-        }
-    }
+    const CONFIG = {
+        registryPath: '/core/init/ModuleRegistry.js',
+        phasedLoaderPath: '/core/init/PhasedLoader.js',
+        maxInitAttempts: 50,
+        initCheckInterval: 100
+    };
+    
+    // =========================================================================
+    // GET CURRENT PAGE
+    // =========================================================================
     
     /**
-     * Get page name from script tag
+     * Get page name from script tag data-page attribute
      */
-getPageName() {
-    // Case-insensitive search for Loader.js
-    const loaderScript = document.querySelector('script[src*="Loader.js"], script[src*="loader.js"]');
-    if (loaderScript) {
-        return loaderScript.getAttribute('data-page') || null;
-    }
-    
-    // Fallback: check body tag
-    const bodyPage = document.body?.getAttribute('data-page');
-    if (bodyPage) {
-        console.log('📄 [Loader] Page from body:', bodyPage);
-        return bodyPage;
-    }
-    
-    console.warn('⚠️ [Loader] No data-page attribute found');
-    return null;
-}
-    
-    // =========================================================================
-    // CORE SCRIPTS (Sequential Loading)
-    // =========================================================================
-    
-    async loadCoreScripts() {
-        console.log('📦 [Loader] Phase 1: Loading core scripts sequentially...');
+    function getCurrentPage() {
+        const loaderScript = document.currentScript || 
+                            document.querySelector('script[src*="Loader.js"]');
         
-        const coreScripts = [
-            // Phase 1: Init
-            { name: 'ModuleRegistry', path: '/core/init/ModuleRegistry.js' },
-            { name: 'Phases', path: '/core/init/Phases.js' },
-            { name: 'Coordinator', path: '/core/init/Coordinator.js' },
-            
-            // Phase 2: Infrastructure
-            { name: 'EnvDetector', path: '/core/infrastructure/EnvDetector.js' },
-            { name: 'ConfigProvider', path: '/core/infrastructure/ConfigProvider.js' },
-            { name: 'HttpClient', path: '/core/infrastructure/HttpClient.js' },
-            { name: 'Logger', path: '/core/infrastructure/Logger.js' },
-            { name: 'ErrorHandler', path: '/core/infrastructure/ErrorHandler.js' },
-            { name: 'Monitoring', path: '/core/infrastructure/Monitoring.js' },
-            
-            // Phase 3: Auth
-            { name: 'AuthManager', path: '/core/auth/AuthManager.js' },
-            { name: 'SessionValidator', path: '/core/auth/SessionValidator.js' },
-            { name: 'TokenRefresher', path: '/core/auth/TokenRefresher.js' },
-            
-            // Phase 4: State
-            { name: 'Store', path: '/core/state/Store.js' },
-            { name: 'StateManager', path: '/core/state/StateManager.js' },
-            { name: 'Selectors', path: '/core/state/Selectors.js' },
-            
-            // Phase 5: Events
-            { name: 'EventBus', path: '/core/events/EventBus.js' },
-            { name: 'EventTypes', path: '/core/events/EventTypes.js' },
-            
-            // Phase 6: DI
-            { name: 'ServiceRegistry', path: '/core/di/ServiceRegistry.js' },
-            { name: 'Container', path: '/core/di/Container.js' },
-            
-            // Phase 7: UI
-            { name: 'UIOrchestrator', path: '/core/ui/UIOrchestrator.js' },
-            { name: 'FormValidator', path: '/core/ui/FormValidator.js' },
-            
-            // Phase 8: API
-            { name: 'ApiClient', path: '/core/api/ApiClient.js' },
-            { name: 'AuthAPI', path: '/core/api/endpoints/AuthAPI.js' },
-            { name: 'LeadsAPI', path: '/core/api/endpoints/LeadsAPI.js' },
-            { name: 'BusinessAPI', path: '/core/api/endpoints/BusinessAPI.js' },
-            { name: 'AnalyticsAPI', path: '/core/api/endpoints/AnalyticsAPI.js' },
-            
-            // Phase 9: Services
-            { name: 'LeadService', path: '/core/services/LeadService.js' },
-            { name: 'AnalyticsService', path: '/core/services/AnalyticsService.js' },
-            { name: 'BusinessService', path: '/core/services/BusinessService.js' },
-            { name: 'UserService', path: '/core/services/UserService.js' },
-            
-            // Phase 10: Utils
-            { name: 'DateUtils', path: '/core/utils/DateUtils.js' },
-            { name: 'ValidationUtils', path: '/core/utils/ValidationUtils.js' },
-            { name: 'FormatUtils', path: '/core/utils/FormatUtils.js' },
-            { name: 'CryptoUtils', path: '/core/utils/CryptoUtils.js' },
-            
-            // Bootstrap (Must be last)
-            { name: 'Bootstrap', path: '/core/init/Bootstrap.js' }
-        ];
-        
-        // Load sequentially
-        for (const script of coreScripts) {
-            await this.loadScript(script.name, script.path);
+        if (!loaderScript) {
+            console.error('❌ [Loader] Could not find Loader.js script tag');
+            return null;
         }
         
-        console.log('✅ [Loader] Core scripts loaded successfully');
+        const pageName = loaderScript.getAttribute('data-page');
+        
+        if (!pageName) {
+            console.error('❌ [Loader] No data-page attribute found on Loader.js');
+            return null;
+        }
+        
+        console.log(`📄 [Loader] Current page: ${pageName}`);
+        return pageName;
     }
     
     // =========================================================================
-    // PAGE SCRIPTS (Parallel Loading)
+    // LOAD DEPENDENCIES
     // =========================================================================
-    
-    async loadPageScripts(pageName) {
-        console.log(`📄 [Loader] Phase 2: Loading scripts for page: ${pageName}`);
-        
-        // Get script list from registry
-        if (!window.OsliraModuleRegistry) {
-            throw new Error('ModuleRegistry not loaded');
-        }
-        
-        const scripts = window.OsliraModuleRegistry.getPageScripts(pageName);
-        
-        if (!scripts || scripts.length === 0) {
-            console.log(`⚠️ [Loader] No scripts registered for page: ${pageName}`);
-            return;
-        }
-        
-        console.log(`📦 [Loader] Loading ${scripts.length} scripts in parallel...`);
-        
-        try {
-            // Load all scripts in parallel for maximum speed
-            await Promise.all(
-                scripts.map(scriptPath => {
-                    const scriptName = this.extractScriptName(scriptPath);
-                    return this.loadScript(scriptName, scriptPath);
-                })
-            );
-            
-            console.log(`✅ [Loader] All scripts loaded for ${pageName}`);
-            
-        } catch (error) {
-            console.error(`❌ [Loader] Failed to load scripts for ${pageName}:`, error);
-            throw error;
-        }
-    }
     
     /**
-     * Extract script name from path
+     * Load a single script
      */
-    extractScriptName(path) {
-        return path.split('/').pop().replace('.js', '');
-    }
-    
-    // =========================================================================
-    // SCRIPT LOADING (With De-duplication)
-    // =========================================================================
-    
-    async loadScript(name, src) {
-        // Check if already loaded
-        if (this.loadedScripts.has(name)) {
-            console.log(`⏭️  [Loader] ${name} already loaded, skipping`);
-            return;
-        }
-        
-        // Check if currently loading (return existing promise)
-        if (this.loadingPromises.has(name)) {
-            console.log(`⏳ [Loader] ${name} already loading, waiting...`);
-            return this.loadingPromises.get(name);
-        }
-        
-        // Check DOM for script loaded before loader initialized
-        const existingScript = document.querySelector(`script[src="${src}"]`);
-        if (existingScript) {
-            console.log(`✅ [Loader] ${name} found in DOM, marking as loaded`);
-            this.loadedScripts.add(name);
-            return;
-        }
-        
-        // Check if previously failed
-        if (this.failedScripts.has(name)) {
-            console.warn(`⚠️ [Loader] ${name} previously failed, skipping`);
-            return;
-        }
-        
-        console.log(`📦 [Loader] Loading: ${name} from ${src}`);
-        
-        // Create loading promise
-        const loadPromise = new Promise((resolve, reject) => {
+    function loadScript(src) {
+        return new Promise((resolve, reject) => {
             const script = document.createElement('script');
             script.src = src;
-            script.async = false; // Maintain order
+            script.async = false; // Maintain order for these critical scripts
             
             script.onload = () => {
-                console.log(`✅ [Loader] ${name} loaded`);
-                this.loadedScripts.add(name);
-                this.loadingPromises.delete(name);
+                console.log(`✅ [Loader] Loaded: ${src}`);
                 resolve();
             };
             
-            script.onerror = (error) => {
-                console.error(`❌ [Loader] ${name} failed to load from ${src}`);
-                this.failedScripts.add(name);
-                this.loadingPromises.delete(name);
-                reject(new Error(`Failed to load ${name}`));
+            script.onerror = () => {
+                console.error(`❌ [Loader] Failed to load: ${src}`);
+                reject(new Error(`Failed to load: ${src}`));
             };
             
             document.head.appendChild(script);
         });
+    }
+    
+    /**
+     * Load ModuleRegistry and PhasedLoader
+     */
+    async function loadCoreDependencies() {
+        console.log('📦 [Loader] Loading core dependencies...');
         
-        this.loadingPromises.set(name, loadPromise);
+        try {
+            // Load ModuleRegistry first
+            await loadScript(CONFIG.registryPath);
+            
+            // Load PhasedLoader second
+            await loadScript(CONFIG.phasedLoaderPath);
+            
+            console.log('✅ [Loader] Core dependencies loaded');
+            return true;
+            
+        } catch (error) {
+            console.error('❌ [Loader] Failed to load core dependencies:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * Wait for dependencies to be available
+     */
+    async function waitForDependencies() {
+        let attempts = 0;
         
-        return loadPromise;
+        while (attempts < CONFIG.maxInitAttempts) {
+            if (window.OsliraModuleRegistry && window.OsliraLoader && window.STANDARD_PHASES) {
+                console.log('✅ [Loader] Dependencies ready');
+                return true;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, CONFIG.initCheckInterval));
+            attempts++;
+        }
+        
+        throw new Error('Dependencies not available after timeout');
     }
     
     // =========================================================================
-    // EVENTS
+    // ORGANIZE SCRIPTS INTO PHASES
     // =========================================================================
     
     /**
-     * Emit scripts loaded event
+     * Organize page scripts into dependency phases
      */
-    emitLoadedEvent() {
-        const event = new CustomEvent('oslira:scripts:loaded', {
-            detail: {
-                pageName: this.pageName,
-                loadedCount: this.loadedScripts.size,
-                failedCount: this.failedScripts.size
-            }
+    function organizeIntoPhases(pageScripts) {
+        const phases = [];
+        
+        // Phase 0: Critical Infrastructure (always loaded)
+        phases.push({
+            name: 'Critical Infrastructure',
+            critical: true,
+            scripts: [
+                '/core/infrastructure/EnvDetector.js',
+                '/core/infrastructure/Logger.js',
+                '/core/infrastructure/ErrorHandler.js',
+                '/core/events/EventBus.js'
+            ]
         });
         
-        window.dispatchEvent(event);
-        console.log('📡 [Loader] Event emitted: oslira:scripts:loaded');
+        // Phase 1: Core Infrastructure
+        phases.push({
+            name: 'Core Infrastructure',
+            critical: true,
+            scripts: [
+                '/core/infrastructure/HttpClient.js',
+                '/core/infrastructure/ConfigProvider.js',
+                '/core/state/Store.js',
+                '/core/state/StateManager.js',
+                '/core/utils/NavigationHelper.js'
+            ]
+        });
+        
+        // Phase 2: Services
+        phases.push({
+            name: 'Services',
+            critical: true,
+            scripts: [
+                '/core/auth/AuthManager.js',
+                '/core/state/Selectors.js',
+                '/core/infrastructure/DependencyContainer.js'
+            ]
+        });
+        
+        // Phase 3: UI Core
+        const uiCoreScripts = [];
+        
+        // Add common UI components for all pages
+        if (pageScripts.some(s => s.includes('/layouts/'))) {
+            uiCoreScripts.push(
+                '/core/ui/components/layouts/AppHeader.js',
+                '/core/ui/components/layouts/AppFooter.js'
+            );
+        }
+        
+        if (pageScripts.some(s => s.includes('Sidebar'))) {
+            uiCoreScripts.push('/core/ui/components/layouts/Sidebar.js');
+        }
+        
+        if (uiCoreScripts.length > 0) {
+            phases.push({
+                name: 'UI Core',
+                critical: false,
+                scripts: uiCoreScripts
+            });
+        }
+        
+        // Phase 4: Page-Specific Scripts
+        // Filter out scripts that were already added in previous phases
+        const loadedScripts = new Set(
+            phases.flatMap(phase => phase.scripts)
+        );
+        
+        const remainingPageScripts = pageScripts.filter(
+            script => !loadedScripts.has(script)
+        );
+        
+        if (remainingPageScripts.length > 0) {
+            phases.push({
+                name: 'Page Scripts',
+                critical: false,
+                scripts: remainingPageScripts
+            });
+        }
+        
+        // Log phase summary
+        console.log('📋 [Loader] Organized into phases:');
+        phases.forEach((phase, index) => {
+            console.log(`   Phase ${index}: ${phase.name} (${phase.scripts.length} scripts)`);
+        });
+        
+        return phases;
     }
     
     // =========================================================================
-    // DEBUG
+    // MAIN INITIALIZATION
     // =========================================================================
     
     /**
-     * Get loader stats
+     * Initialize the loading process
      */
-    getStats() {
-        return {
-            pageName: this.pageName,
-            loadedScripts: Array.from(this.loadedScripts),
-            loadedCount: this.loadedScripts.size,
-            failedScripts: Array.from(this.failedScripts),
-            failedCount: this.failedScripts.size,
-            loadingCount: this.loadingPromises.size
-        };
+    async function initialize() {
+        try {
+            // Step 1: Get current page
+            const pageName = getCurrentPage();
+            if (!pageName) {
+                throw new Error('Could not determine current page');
+            }
+            
+            // Step 2: Load core dependencies
+            await loadCoreDependencies();
+            await waitForDependencies();
+            
+            // Step 3: Get scripts for page from ModuleRegistry
+            const pageConfig = window.OsliraModuleRegistry.getPageConfig(pageName);
+            
+            if (!pageConfig) {
+                throw new Error(`No configuration found for page: ${pageName}`);
+            }
+            
+            console.log(`📄 [Loader] Page config:`, pageConfig);
+            
+            const pageScripts = pageConfig.scripts || [];
+            
+            if (pageScripts.length === 0) {
+                console.warn('⚠️ [Loader] No scripts defined for this page');
+            }
+            
+            // Step 4: Organize scripts into phases
+            const phases = organizeIntoPhases(pageScripts);
+            
+            // Step 5: Configure PhasedLoader
+            window.OsliraLoader
+                .definePhases(phases)
+                .configure({
+                    parallel: true,
+                    maxRetries: 3,
+                    timeout: 10000,
+                    cacheBust: false
+                })
+                .on('phaseComplete', (data) => {
+                    console.log(`✅ [Loader] ${data.phase} complete in ${data.time.toFixed(2)}ms`);
+                })
+                .on('progress', (data) => {
+                    const percent = Math.round((data.loaded / data.total) * 100);
+                    console.log(`📊 [Loader] Progress: ${percent}% (${data.loaded}/${data.total})`);
+                    
+                    // Update progress bar if it exists
+                    const progressBar = document.getElementById('load-progress');
+                    if (progressBar) {
+                        progressBar.style.width = percent + '%';
+                    }
+                })
+                .on('allComplete', (data) => {
+                    console.log(`🎉 [Loader] All scripts loaded in ${data.totalTime.toFixed(2)}ms`);
+                    console.log(`   - Loaded: ${data.loadedScripts.length} scripts`);
+                    console.log(`   - Failed: ${data.failedScripts.length} scripts`);
+                    
+                    // Hide loading screen
+                    const loadingScreen = document.getElementById('app-loader');
+                    if (loadingScreen) {
+                        loadingScreen.style.display = 'none';
+                    }
+                    
+                    // Make body visible
+                    document.body.style.visibility = 'visible';
+                    
+                    // Emit global event
+                    window.dispatchEvent(new CustomEvent('oslira:scripts:loaded', {
+                        detail: {
+                            page: pageName,
+                            stats: data
+                        }
+                    }));
+                })
+                .on('error', (error) => {
+                    console.error('❌ [Loader] Loading failed:', error);
+                    
+                    // Show error to user
+                    const loadingScreen = document.getElementById('app-loader');
+                    if (loadingScreen) {
+                        loadingScreen.innerHTML = `
+                            <div style="text-align: center; color: #dc2626;">
+                                <h2>Loading Error</h2>
+                                <p>Failed to load application resources.</p>
+                                <p style="font-size: 12px; color: #6b7280;">${error.message}</p>
+                                <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                                    Retry
+                                </button>
+                            </div>
+                        `;
+                    }
+                });
+            
+            // Step 6: Start loading
+            await window.OsliraLoader.load();
+            
+        } catch (error) {
+            console.error('❌ [Loader] Initialization failed:', error);
+            
+            // Show error to user
+            document.body.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: system-ui;">
+                    <div style="text-align: center; max-width: 500px; padding: 40px;">
+                        <h1 style="color: #dc2626; margin-bottom: 20px;">Failed to Load</h1>
+                        <p style="color: #6b7280; margin-bottom: 30px;">${error.message}</p>
+                        <button onclick="location.reload()" style="padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+                            Reload Page
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
     }
     
-    /**
-     * Debug info
-     */
-    debug() {
-        console.group('📦 [Loader] Debug Info');
-        console.log('Stats:', this.getStats());
-        console.groupEnd();
+    // =========================================================================
+    // AUTO-START
+    // =========================================================================
+    
+    // Start initialization when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initialize);
+    } else {
+        // DOM already loaded
+        initialize();
     }
-}
-
-// =============================================================================
-// AUTO-INITIALIZE
-// =============================================================================
-
-// Create global instance
-window.OsliraLoader = new Loader();
-
-// Auto-start loading
-window.OsliraLoader.load().catch(error => {
-    console.error('💥 [Loader] Critical failure:', error);
-    alert('Failed to load application. Please refresh the page.');
-});
-
-console.log('✅ [Loader] Class loaded and auto-starting...');
+    
+})();
