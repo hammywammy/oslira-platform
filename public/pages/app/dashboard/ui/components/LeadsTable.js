@@ -1,14 +1,24 @@
 //public/pages/dashboard/modules/ui/leads-table.js
 
+/**
+ * LEADS TABLE - Migrated to New System (No Container)
+ * Handles lead table rendering, filtering, sorting, and bulk operations
+ */
 class LeadsTable {
-    constructor(container) {
-        this.container = container;
-        this.eventBus = container.get('eventBus');
-        this.leadRenderer = container.get('leadRenderer');
+    constructor() {
+        // Use global window objects directly (no container)
+        this.eventBus = window.EventBus || window.OsliraEventBus;
+        this.stateManager = window.StateManager || window.OsliraStateManager;
+        this.osliraAuth = window.OsliraAuth;
+        
+        this.isExportDropdownOpen = false;
+        this.hideTimeout = null;
+        
+        console.log('📊 [LeadsTable] Instance created (Migrated System)');
     }
 
-renderTableContainer() {
-    return `
+    renderTableContainer() {
+        return `
 <!-- Recent Lead Research - Full Width -->
 <div class="mb-8">
     <div class="glass-white rounded-2xl overflow-hidden">
@@ -135,198 +145,194 @@ renderTableContainer() {
         </div>
     </div>
 </div>`;
-}
+    }
 
     /**
- * Setup refresh button handlers after table is rendered
- */
-/**
- * Setup refresh button as global function
- */
-setupRefreshButton() {
-    const self = this;
-    
-    window.refreshLeadsTableManual = async function() {
-        const refreshBtn = document.getElementById('manual-refresh-btn');
-        const refreshIcon = document.getElementById('refresh-icon');
+     * Setup refresh button as global function
+     */
+    setupRefreshButton() {
+        const self = this;
         
-        if (!refreshBtn || refreshBtn.disabled) return;
-        
-        console.log('🔄 [LeadsTable] Manual refresh triggered');
-        
-        refreshBtn.disabled = true;
-        
-        if (refreshIcon) {
-            refreshIcon.style.transform = 'rotate(360deg)';
-            refreshIcon.style.transition = 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)';
-        }
-        
-        const tableContainer = document.querySelector('.leads-table-container');
-        if (tableContainer) {
-            tableContainer.style.transition = 'opacity 0.35s ease-out';
-            tableContainer.style.opacity = '0.3';
-        }
-        
-        try {
-            const leadManager = self.container.get('leadManager');
-            await leadManager.loadDashboardData();
+        window.refreshLeadsTableManual = async function() {
+            const refreshBtn = document.getElementById('manual-refresh-btn');
+            const refreshIcon = document.getElementById('refresh-icon');
             
-            if (tableContainer) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-                tableContainer.style.opacity = '1';
-            }
+            if (!refreshBtn || refreshBtn.disabled) return;
             
-            console.log('✅ [LeadsTable] Refresh complete');
+            console.log('🔄 [LeadsTable] Manual refresh triggered');
             
-        } catch (error) {
-            console.error('❌ [LeadsTable] Refresh failed:', error);
-            if (tableContainer) {
-                tableContainer.style.opacity = '1';
-            }
-        } finally {
-            await new Promise(resolve => setTimeout(resolve, 700));
+            refreshBtn.disabled = true;
             
             if (refreshIcon) {
-                refreshIcon.style.transform = 'rotate(0deg)';
+                refreshIcon.style.transform = 'rotate(360deg)';
+                refreshIcon.style.transition = 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)';
             }
             
-            refreshBtn.disabled = false;
-        }
-    };
-    
-    console.log('✅ [LeadsTable] Refresh function exposed globally');
-}
-updatePagination(start, end, total) {
-    const startEl = document.getElementById('pagination-start');
-    const totalEl = document.getElementById('pagination-total');
-    
-    if (startEl) startEl.textContent = `${start}-${end}`;
-    if (totalEl) totalEl.textContent = total;
-}
-
-setupFilterHandlers() {
-    const stateManager = this.container.get('stateManager');
-    const leadRenderer = this.container.get('leadRenderer');
-    
-    // Platform filter handler
-    const platformFilter = document.getElementById('platform-filter');
-    if (platformFilter) {
-        platformFilter.addEventListener('change', (e) => {
-            const platformValue = e.target.value.toLowerCase();
-            const platform = platformValue === 'all platforms' ? 'all' : platformValue;
-            
-            console.log('🔍 [LeadsTable] Platform filter changed:', platform);
-            
-            // Get current leads
-            const allLeads = stateManager.getState('leads') || [];
-            
-            // Apply platform filter
-            const filteredLeads = platform === 'all' 
-                ? allLeads 
-                : allLeads.filter(lead => (lead.platform || '').toLowerCase() === platform);
-            
-            // Store filtered leads
-            stateManager.setState('filteredLeads', filteredLeads);
-            
-            // Apply current sort if exists
-            const sortValue = document.getElementById('sort-filter')?.value;
-            if (sortValue) {
-                this.applySorting(filteredLeads, sortValue);
-            } else {
-                // Display filtered leads
-                leadRenderer.displayLeads(filteredLeads);
+            const tableContainer = document.querySelector('.leads-table-container');
+            if (tableContainer) {
+                tableContainer.style.transition = 'opacity 0.35s ease-out';
+                tableContainer.style.opacity = '0.3';
             }
             
-            console.log(`✅ [LeadsTable] Platform filter applied: ${filteredLeads.length} leads`);
-        });
+            try {
+                // Use global LeadManager
+                if (window.LeadManager) {
+                    await window.LeadManager.loadDashboardData();
+                }
+                
+                if (tableContainer) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    tableContainer.style.opacity = '1';
+                }
+                
+                console.log('✅ [LeadsTable] Refresh complete');
+                
+            } catch (error) {
+                console.error('❌ [LeadsTable] Refresh failed:', error);
+                if (tableContainer) {
+                    tableContainer.style.opacity = '1';
+                }
+            } finally {
+                await new Promise(resolve => setTimeout(resolve, 700));
+                
+                if (refreshIcon) {
+                    refreshIcon.style.transform = 'rotate(0deg)';
+                }
+                
+                refreshBtn.disabled = false;
+            }
+        };
+        
+        console.log('✅ [LeadsTable] Refresh function exposed globally');
     }
-    
-    // Sort filter handler
-    const sortFilter = document.getElementById('sort-filter');
-    if (sortFilter) {
-        sortFilter.addEventListener('change', (e) => {
-            const sortValue = e.target.value;
-            console.log('🔽 [LeadsTable] Sort changed:', sortValue);
-            
-            // Get currently filtered leads or all leads
-            const leads = stateManager.getState('filteredLeads') || stateManager.getState('leads') || [];
-            
-            this.applySorting(leads, sortValue);
-        });
+
+    updatePagination(start, end, total) {
+        const startEl = document.getElementById('pagination-start');
+        const totalEl = document.getElementById('pagination-total');
+        
+        if (startEl) startEl.textContent = `${start}-${end}`;
+        if (totalEl) totalEl.textContent = total;
     }
-    
-    console.log('✅ [LeadsTable] Filter handlers attached');
-}
 
-applySorting(leads, sortValue) {
-    const leadRenderer = this.container.get('leadRenderer');
-    const stateManager = this.container.get('stateManager');
-    
-    const [sortBy, sortOrder] = sortValue.split('-');
-    let sortedLeads = [...leads];
-    
-    switch (sortBy) {
-        case 'date':
-            sortedLeads = leadRenderer.sortLeads(sortedLeads, 'date', sortOrder);
-            break;
-        case 'score':
-            sortedLeads = leadRenderer.sortLeads(sortedLeads, 'score', sortOrder);
-            break;
-        case 'followers':
-            sortedLeads = leadRenderer.sortLeads(sortedLeads, 'followers', sortOrder);
-            break;
-        case 'name':
-            sortedLeads = leadRenderer.sortLeads(sortedLeads, 'username', sortOrder);
-            break;
-        default:
-            console.warn('Unknown sort type:', sortBy);
-            sortedLeads = leads;
-    }
-    
-    // Update state with sorted leads
-    stateManager.setState('filteredLeads', sortedLeads);
-    
-    // Display sorted leads
-    leadRenderer.displayLeads(sortedLeads);
-    
-    console.log(`✅ [LeadsTable] Sort applied: ${sortBy} (${sortOrder})`);
-}
-
-setupEventHandlers() {
-    const stateManager = this.container.get('stateManager');
-    const leadRenderer = this.container.get('leadRenderer');
-    const leadManager = this.container.get('leadManager');
-
-    window.toggleToolbarCopyDropdown = () => {
-        const dropdown = document.getElementById('toolbar-copy-dropdown');
-        if (dropdown) {
-            dropdown.classList.toggle('hidden');
+    setupFilterHandlers() {
+        // Platform filter handler
+        const platformFilter = document.getElementById('platform-filter');
+        if (platformFilter) {
+            platformFilter.addEventListener('change', (e) => {
+                const platformValue = e.target.value.toLowerCase();
+                const platform = platformValue === 'all platforms' ? 'all' : platformValue;
+                
+                console.log('🔍 [LeadsTable] Platform filter changed:', platform);
+                
+                // Get current leads
+                const allLeads = this.stateManager.getState('leads') || [];
+                
+                // Apply platform filter
+                const filteredLeads = platform === 'all' 
+                    ? allLeads 
+                    : allLeads.filter(lead => (lead.platform || '').toLowerCase() === platform);
+                
+                // Store filtered leads
+                this.stateManager.setState('filteredLeads', filteredLeads);
+                
+                // Apply current sort if exists
+                const sortValue = document.getElementById('sort-filter')?.value;
+                if (sortValue) {
+                    this.applySorting(filteredLeads, sortValue);
+                } else {
+                    // Display filtered leads using global LeadRenderer
+                    if (window.LeadRenderer) {
+                        window.LeadRenderer.displayLeads(filteredLeads);
+                    }
+                }
+                
+                console.log(`✅ [LeadsTable] Platform filter applied: ${filteredLeads.length} leads`);
+            });
         }
-        const exportDropdown = document.getElementById('toolbar-export-dropdown');
-        if (exportDropdown) exportDropdown.classList.add('hidden');
-    };
-
-    window.toggleToolbarExportDropdown = () => {
-        const dropdown = document.getElementById('toolbar-export-dropdown');
-        if (dropdown) {
-            dropdown.classList.toggle('hidden');
+        
+        // Sort filter handler
+        const sortFilter = document.getElementById('sort-filter');
+        if (sortFilter) {
+            sortFilter.addEventListener('change', (e) => {
+                const sortValue = e.target.value;
+                console.log('🔽 [LeadsTable] Sort changed:', sortValue);
+                
+                // Get currently filtered leads or all leads
+                const leads = this.stateManager.getState('filteredLeads') || this.stateManager.getState('leads') || [];
+                
+                this.applySorting(leads, sortValue);
+            });
         }
-        const copyDropdown = document.getElementById('toolbar-copy-dropdown');
-        if (copyDropdown) copyDropdown.classList.add('hidden');
-    };
+        
+        console.log('✅ [LeadsTable] Filter handlers attached');
+    }
 
-    window.clearToolbarSelections = () => {
-        const selectedLeads = stateManager.getState('selectedLeads') || new Set();
-        stateManager.setState('selectedLeads', new Set());
-        this.updateBulkActionsBar(0);
-        this.updateBulkActionsToolbar(0);
-        this.updateSelectAllCheckbox();
-        leadRenderer.displayLeads();
-        console.log('🗑️ [LeadsTable] Cleared all selections');
-    };
+    applySorting(leads, sortValue) {
+        const [sortBy, sortOrder] = sortValue.split('-');
+        let sortedLeads = [...leads];
+        
+        // Use global LeadRenderer for sorting
+        if (window.LeadRenderer && window.LeadRenderer.sortLeads) {
+            switch (sortBy) {
+                case 'date':
+                    sortedLeads = window.LeadRenderer.sortLeads(sortedLeads, 'date', sortOrder);
+                    break;
+                case 'score':
+                    sortedLeads = window.LeadRenderer.sortLeads(sortedLeads, 'score', sortOrder);
+                    break;
+                case 'followers':
+                    sortedLeads = window.LeadRenderer.sortLeads(sortedLeads, 'followers', sortOrder);
+                    break;
+                case 'name':
+                    sortedLeads = window.LeadRenderer.sortLeads(sortedLeads, 'username', sortOrder);
+                    break;
+                default:
+                    console.warn('Unknown sort type:', sortBy);
+                    sortedLeads = leads;
+            }
+        }
+        
+        // Update state with sorted leads
+        this.stateManager.setState('filteredLeads', sortedLeads);
+        
+        // Display sorted leads
+        if (window.LeadRenderer) {
+            window.LeadRenderer.displayLeads(sortedLeads);
+        }
+        
+        console.log(`✅ [LeadsTable] Sort applied: ${sortBy} (${sortOrder})`);
+    }
 
+    setupEventHandlers() {
+        window.toggleToolbarCopyDropdown = () => {
+            const dropdown = document.getElementById('toolbar-copy-dropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+            }
+            const exportDropdown = document.getElementById('toolbar-export-dropdown');
+            if (exportDropdown) exportDropdown.classList.add('hidden');
+        };
 
+        window.toggleToolbarExportDropdown = () => {
+            const dropdown = document.getElementById('toolbar-export-dropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+            }
+            const copyDropdown = document.getElementById('toolbar-copy-dropdown');
+            if (copyDropdown) copyDropdown.classList.add('hidden');
+        };
 
+        window.clearToolbarSelections = () => {
+            const selectedLeads = this.stateManager.getState('selectedLeads') || new Set();
+            this.stateManager.setState('selectedLeads', new Set());
+            this.updateBulkActionsBar(0);
+            this.updateBulkActionsToolbar(0);
+            this.updateSelectAllCheckbox();
+            if (window.LeadRenderer) {
+                window.LeadRenderer.displayLeads();
+            }
+            console.log('🗑️ [LeadsTable] Cleared all selections');
+        };
 
         // Export data handlers
         window.exportData = (type) => {
@@ -357,7 +363,6 @@ setupEventHandlers() {
 
         window.scheduleReport = () => {
             console.log('📅 Opening scheduled report settings...');
-            // TODO: Implement scheduled report modal
             alert('Scheduled reports feature coming soon!');
         };
 
@@ -372,17 +377,17 @@ setupEventHandlers() {
             }
         });
 
-    // Close toolbar dropdowns when clicking outside
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('#toolbar-copy-btn') && !e.target.closest('#toolbar-copy-dropdown')) {
-        const toolbarCopyDropdown = document.getElementById('toolbar-copy-dropdown');
-        if (toolbarCopyDropdown) toolbarCopyDropdown.classList.add('hidden');
-    }
-    if (!e.target.closest('#toolbar-export-btn') && !e.target.closest('#toolbar-export-dropdown')) {
-        const toolbarExportDropdown = document.getElementById('toolbar-export-dropdown');
-        if (toolbarExportDropdown) toolbarExportDropdown.classList.add('hidden');
-    }
-});
+        // Close toolbar dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#toolbar-copy-btn') && !e.target.closest('#toolbar-copy-dropdown')) {
+                const toolbarCopyDropdown = document.getElementById('toolbar-copy-dropdown');
+                if (toolbarCopyDropdown) toolbarCopyDropdown.classList.add('hidden');
+            }
+            if (!e.target.closest('#toolbar-export-btn') && !e.target.closest('#toolbar-export-dropdown')) {
+                const toolbarExportDropdown = document.getElementById('toolbar-export-dropdown');
+                if (toolbarExportDropdown) toolbarExportDropdown.classList.add('hidden');
+            }
+        });
     }
 
     downloadCSV(leads, type) {
@@ -519,109 +524,110 @@ document.addEventListener('click', (e) => {
     }
 
     setupSelectionHandlers() {
-    const stateManager = this.container.get('stateManager');
-    const leadRenderer = this.container.get('leadRenderer');
-    const leadManager = this.container.get('leadManager');
-    
-window.toggleLeadSelection = (leadId, isChecked) => {
-    const selectedLeads = new Set(stateManager.getState('selectedLeads') || new Set());
-    
-    if (isChecked) {
-        selectedLeads.add(leadId);
-    } else {
-        selectedLeads.delete(leadId);
-    }
-    
-    stateManager.setState('selectedLeads', selectedLeads);
-    this.updateBulkActionsBar(selectedLeads.size);
-    this.updateSelectAllCheckbox();
-    
-    console.log(`✅ [LeadsTable] Lead ${leadId} ${isChecked ? 'selected' : 'deselected'}. Total: ${selectedLeads.size}`);
-};
-    
-    // Toggle all leads selection
-    window.toggleAllLeadSelections = (isChecked) => {
-        const leads = stateManager.getState('filteredLeads') || stateManager.getState('leads') || [];
-        const selectedLeads = new Set();
-        
-        if (isChecked) {
-            leads.forEach(lead => selectedLeads.add(lead.id));
-        }
-        
-        // Update all checkboxes
-        document.querySelectorAll('.lead-checkbox').forEach(checkbox => {
-            checkbox.checked = isChecked;
-        });
-        
-        stateManager.setState('selectedLeads', selectedLeads);
-        this.updateBulkActionsBar(selectedLeads.size);
-        
-        console.log(`✅ [LeadsTable] ${isChecked ? 'Selected' : 'Deselected'} all leads. Total: ${selectedLeads.size}`);
-    };
-    
-    // Delete selected leads
-    window.deleteSelectedLeads = async () => {
-        const selectedLeads = stateManager.getState('selectedLeads') || new Set();
-        
-        if (selectedLeads.size === 0) {
-            alert('No leads selected');
-            return;
-        }
-        
-        const confirmed = confirm(`Are you sure you want to delete ${selectedLeads.size} lead(s)? This action cannot be undone.`);
-        if (!confirmed) return;
-        
-        try {
-            const deleteBtn = document.getElementById('delete-selected-btn');
-            if (deleteBtn) {
-                deleteBtn.disabled = true;
-                deleteBtn.textContent = 'Deleting...';
+        window.toggleLeadSelection = (leadId, isChecked) => {
+            const selectedLeads = new Set(this.stateManager.getState('selectedLeads') || new Set());
+            
+            if (isChecked) {
+                selectedLeads.add(leadId);
+            } else {
+                selectedLeads.delete(leadId);
             }
             
-            await leadManager.bulkDeleteLeads(Array.from(selectedLeads));
-            
-            // Clear selection and hide bulk actions
-            stateManager.setState('selectedLeads', new Set());
-            this.updateBulkActionsBar(0);
+            this.stateManager.setState('selectedLeads', selectedLeads);
+            this.updateBulkActionsBar(selectedLeads.size);
             this.updateSelectAllCheckbox();
             
-            // Refresh leads display
-            leadRenderer.displayLeads();
+            console.log(`✅ [LeadsTable] Lead ${leadId} ${isChecked ? 'selected' : 'deselected'}. Total: ${selectedLeads.size}`);
+        };
+        
+        // Toggle all leads selection
+        window.toggleAllLeadSelections = (isChecked) => {
+            const leads = this.stateManager.getState('filteredLeads') || this.stateManager.getState('leads') || [];
+            const selectedLeads = new Set();
             
-            alert(`Successfully deleted ${selectedLeads.size} lead(s)`);
-            
-        } catch (error) {
-            console.error('❌ [LeadsTable] Delete failed:', error);
-            alert(`Failed to delete leads: ${error.message}`);
-        } finally {
-            const deleteBtn = document.getElementById('delete-selected-btn');
-            if (deleteBtn) {
-                deleteBtn.disabled = false;
-                deleteBtn.textContent = 'Delete';
+            if (isChecked) {
+                leads.forEach(lead => selectedLeads.add(lead.id));
             }
-        }
-    };
-    
-    // Copy/Export handlers
-    window.toggleCopyDropdown = () => {
-        const dropdown = document.getElementById('copy-dropdown');
-        if (dropdown) {
-            dropdown.classList.toggle('hidden');
-        }
-        // Close export dropdown if open
-        const exportDropdown = document.getElementById('export-dropdown');
-        if (exportDropdown) exportDropdown.classList.add('hidden');
-    };
-    
-    window.toggleExportDropdown = () => {
-        const dropdown = document.getElementById('export-dropdown');
-        if (dropdown) {
-            dropdown.classList.toggle('hidden');
-        }
-        // Close copy dropdown if open
-        const copyDropdown = document.getElementById('copy-dropdown');
-        if (copyDropdown) copyDropdown.classList.add('hidden');
-    };
+            
+            // Update all checkboxes
+            document.querySelectorAll('.lead-checkbox').forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+            
+            this.stateManager.setState('selectedLeads', selectedLeads);
+            this.updateBulkActionsBar(selectedLeads.size);
+            
+            console.log(`✅ [LeadsTable] ${isChecked ? 'Selected' : 'Deselected'} all leads. Total: ${selectedLeads.size}`);
+        };
+        
+        // Delete selected leads
+        window.deleteSelectedLeads = async () => {
+            const selectedLeads = this.stateManager.getState('selectedLeads') || new Set();
+            
+            if (selectedLeads.size === 0) {
+                alert('No leads selected');
+                return;
+            }
+            
+            const confirmed = confirm(`Are you sure you want to delete ${selectedLeads.size} lead(s)? This action cannot be undone.`);
+            if (!confirmed) return;
+            
+            try {
+                const deleteBtn = document.getElementById('delete-selected-btn');
+                if (deleteBtn) {
+                    deleteBtn.disabled = true;
+                    deleteBtn.textContent = 'Deleting...';
+                }
+                
+                // Use global LeadManager
+                if (window.LeadManager) {
+                    await window.LeadManager.bulkDeleteLeads(Array.from(selectedLeads));
+                }
+                
+                // Clear selection and hide bulk actions
+                this.stateManager.setState('selectedLeads', new Set());
+                this.updateBulkActionsBar(0);
+                this.updateSelectAllCheckbox();
+                
+                // Refresh leads display
+                if (window.LeadRenderer) {
+                    window.LeadRenderer.displayLeads();
+                }
+                
+                alert(`Successfully deleted ${selectedLeads.size} lead(s)`);
+                
+            } catch (error) {
+                console.error('❌ [LeadsTable] Delete failed:', error);
+                alert(`Failed to delete leads: ${error.message}`);
+            } finally {
+                const deleteBtn = document.getElementById('delete-selected-btn');
+                if (deleteBtn) {
+                    deleteBtn.disabled = false;
+                    deleteBtn.textContent = 'Delete';
+                }
+            }
+        };
+        
+        // Copy/Export handlers
+        window.toggleCopyDropdown = () => {
+            const dropdown = document.getElementById('copy-dropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+            }
+            // Close export dropdown if open
+            const exportDropdown = document.getElementById('export-dropdown');
+            if (exportDropdown) exportDropdown.classList.add('hidden');
+        };
+        
+        window.toggleExportDropdown = () => {
+            const dropdown = document.getElementById('export-dropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+            }
+            // Close copy dropdown if open
+            const copyDropdown = document.getElementById('copy-dropdown');
+            if (copyDropdown) copyDropdown.classList.add('hidden');
+        };
 
         window.closeExportDropdown = () => {
             const dropdown = document.getElementById('exportDropdown');
@@ -630,183 +636,181 @@ window.toggleLeadSelection = (leadId, isChecked) => {
                 this.isExportDropdownOpen = false;
             }
         };
-    
-    window.copySelectedAsFormat = (format) => {
-        const selectedLeads = this.getSelectedLeadsData();
-        if (selectedLeads.length === 0) {
-            alert('No leads selected');
-            return;
-        }
         
-        let content = '';
-        if (format === 'csv') {
-            content = this.convertToCSV(selectedLeads);
-        } else if (format === 'json') {
-            content = JSON.stringify(selectedLeads, null, 2);
-        }
-        
-        navigator.clipboard.writeText(content).then(() => {
-            alert(`Copied ${selectedLeads.length} lead(s) as ${format.toUpperCase()}`);
-            document.getElementById('copy-dropdown').classList.add('hidden');
-        }).catch(err => {
-            console.error('Failed to copy:', err);
-            alert('Failed to copy to clipboard');
-        });
-    };
-    
-    window.exportSelectedAsFormat = (format) => {
-        const selectedLeads = this.getSelectedLeadsData();
-        if (selectedLeads.length === 0) {
-            alert('No leads selected');
-            return;
-        }
-        
-        if (format === 'csv') {
-            this.downloadCSV(selectedLeads, 'selected');
-        } else if (format === 'json') {
-            this.downloadJSON(selectedLeads);
-        }
-        
-        document.getElementById('export-dropdown').classList.add('hidden');
-    };
-    
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('#copy-dropdown-btn') && !e.target.closest('#copy-dropdown')) {
-            const copyDropdown = document.getElementById('copy-dropdown');
-            if (copyDropdown) copyDropdown.classList.add('hidden');
-        }
-        if (!e.target.closest('#export-dropdown-btn') && !e.target.closest('#export-dropdown')) {
-            const exportDropdown = document.getElementById('export-dropdown');
-            if (exportDropdown) exportDropdown.classList.add('hidden');
-        }
-    });
-    
-    console.log('✅ [LeadsTable] Selection handlers attached');
-}
-
-updateBulkActionsBar(count) {
-    const bulkActionsBar = document.getElementById('bulk-actions-bar');
-    const filterBtn = document.getElementById('select-by-filter-btn');
-    
-    if (!bulkActionsBar) return;
-    
-    // Clear any pending hide timeout
-    if (this.hideTimeout) {
-        clearTimeout(this.hideTimeout);
-        this.hideTimeout = null;
-    }
-    
-if (count > 0) {
-        // Hide filter button
-        if (filterBtn) {
-            filterBtn.style.opacity = '0';
-            filterBtn.style.transform = 'translateY(-10px)';
-            setTimeout(() => filterBtn.classList.add('hidden'), 500);
-        }
-        
-        // Show bulk actions
-        bulkActionsBar.classList.remove('hidden');
-        this.updateBulkActionsToolbar(count);
-        bulkActionsBar.style.opacity = '0';
-        bulkActionsBar.style.transform = 'translateY(10px)';
-        
-        requestAnimationFrame(() => {
-            bulkActionsBar.style.opacity = '1';
-            bulkActionsBar.style.transform = 'translateY(0)';
-        });
-    } else {
-        // Show filter button
-        if (filterBtn) {
-            filterBtn.classList.remove('hidden');
-            requestAnimationFrame(() => {
-                filterBtn.style.opacity = '1';
-                filterBtn.style.transform = 'translateY(0)';
+        window.copySelectedAsFormat = (format) => {
+            const selectedLeads = this.getSelectedLeadsData();
+            if (selectedLeads.length === 0) {
+                alert('No leads selected');
+                return;
+            }
+            
+            let content = '';
+            if (format === 'csv') {
+                content = this.convertToCSV(selectedLeads);
+            } else if (format === 'json') {
+                content = JSON.stringify(selectedLeads, null, 2);
+            }
+            
+            navigator.clipboard.writeText(content).then(() => {
+                alert(`Copied ${selectedLeads.length} lead(s) as ${format.toUpperCase()}`);
+                document.getElementById('copy-dropdown').classList.add('hidden');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy to clipboard');
             });
-        }
+        };
         
-        // Hide bulk actions
-        bulkActionsBar.style.opacity = '0';
-        bulkActionsBar.style.transform = 'translateY(10px)';
+        window.exportSelectedAsFormat = (format) => {
+            const selectedLeads = this.getSelectedLeadsData();
+            if (selectedLeads.length === 0) {
+                alert('No leads selected');
+                return;
+            }
+            
+            if (format === 'csv') {
+                this.downloadCSV(selectedLeads, 'selected');
+            } else if (format === 'json') {
+                this.downloadJSON(selectedLeads);
+            }
+            
+            document.getElementById('export-dropdown').classList.add('hidden');
+        };
         
-this.hideTimeout = setTimeout(() => {
-            bulkActionsBar.classList.add('hidden');
-            this.updateBulkActionsToolbar(0); // Add this line
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#copy-dropdown-btn') && !e.target.closest('#copy-dropdown')) {
+                const copyDropdown = document.getElementById('copy-dropdown');
+                if (copyDropdown) copyDropdown.classList.add('hidden');
+            }
+            if (!e.target.closest('#export-dropdown-btn') && !e.target.closest('#export-dropdown')) {
+                const exportDropdown = document.getElementById('export-dropdown');
+                if (exportDropdown) exportDropdown.classList.add('hidden');
+            }
+        });
+        
+        console.log('✅ [LeadsTable] Selection handlers attached');
+    }
+
+    updateBulkActionsBar(count) {
+        const bulkActionsBar = document.getElementById('bulk-actions-bar');
+        const filterBtn = document.getElementById('select-by-filter-btn');
+        
+        if (!bulkActionsBar) return;
+        
+        // Clear any pending hide timeout
+        if (this.hideTimeout) {
+            clearTimeout(this.hideTimeout);
             this.hideTimeout = null;
-        }, 500);
-    }
-}
-
-updateBulkActionsToolbar(count) {
-    const toolbar = document.getElementById('bulk-actions-toolbar');
-    const selectionCount = document.getElementById('selection-count');
-    
-    if (!toolbar) return;
-    
-    if (count > 0) {
-        toolbar.classList.remove('hidden');
-        if (selectionCount) {
-            selectionCount.textContent = `${count} selected`;
         }
-    } else {
-        toolbar.classList.add('hidden');
+        
+        if (count > 0) {
+            // Hide filter button
+            if (filterBtn) {
+                filterBtn.style.opacity = '0';
+                filterBtn.style.transform = 'translateY(-10px)';
+                setTimeout(() => filterBtn.classList.add('hidden'), 500);
+            }
+            
+            // Show bulk actions
+            bulkActionsBar.classList.remove('hidden');
+            this.updateBulkActionsToolbar(count);
+            bulkActionsBar.style.opacity = '0';
+            bulkActionsBar.style.transform = 'translateY(10px)';
+            
+            requestAnimationFrame(() => {
+                bulkActionsBar.style.opacity = '1';
+                bulkActionsBar.style.transform = 'translateY(0)';
+            });
+        } else {
+            // Show filter button
+            if (filterBtn) {
+                filterBtn.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    filterBtn.style.opacity = '1';
+                    filterBtn.style.transform = 'translateY(0)';
+                });
+            }
+            
+            // Hide bulk actions
+            bulkActionsBar.style.opacity = '0';
+            bulkActionsBar.style.transform = 'translateY(10px)';
+            
+            this.hideTimeout = setTimeout(() => {
+                bulkActionsBar.classList.add('hidden');
+                this.updateBulkActionsToolbar(0);
+                this.hideTimeout = null;
+            }, 500);
+        }
     }
-}
 
-updateSelectAllCheckbox() {
-    const stateManager = this.container.get('stateManager');
-    const selectAllCheckbox = document.getElementById('select-all-checkbox');
-    if (!selectAllCheckbox) return;
-    
-    const leads = stateManager.getState('filteredLeads') || stateManager.getState('leads') || [];
-    const selectedLeads = stateManager.getState('selectedLeads') || new Set();
-    
-    if (leads.length === 0) {
-        selectAllCheckbox.checked = false;
-        selectAllCheckbox.indeterminate = false;
-    } else if (selectedLeads.size === leads.length) {
-        selectAllCheckbox.checked = true;
-        selectAllCheckbox.indeterminate = false;
-    } else if (selectedLeads.size > 0) {
-        selectAllCheckbox.checked = false;
-        selectAllCheckbox.indeterminate = true;
-    } else {
-        selectAllCheckbox.checked = false;
-        selectAllCheckbox.indeterminate = false;
+    updateBulkActionsToolbar(count) {
+        const toolbar = document.getElementById('bulk-actions-toolbar');
+        const selectionCount = document.getElementById('selection-count');
+        
+        if (!toolbar) return;
+        
+        if (count > 0) {
+            toolbar.classList.remove('hidden');
+            if (selectionCount) {
+                selectionCount.textContent = `${count} selected`;
+            }
+        } else {
+            toolbar.classList.add('hidden');
+        }
     }
-}
 
-getSelectedLeadsData() {
-    const stateManager = this.container.get('stateManager');
-    const selectedLeads = stateManager.getState('selectedLeads') || new Set();
-    const allLeads = stateManager.getState('leads') || [];
-    
-    return allLeads.filter(lead => selectedLeads.has(lead.id));
-}
+    updateSelectAllCheckbox() {
+        const selectAllCheckbox = document.getElementById('select-all-checkbox');
+        if (!selectAllCheckbox) return;
+        
+        const leads = this.stateManager.getState('filteredLeads') || this.stateManager.getState('leads') || [];
+        const selectedLeads = this.stateManager.getState('selectedLeads') || new Set();
+        
+        if (leads.length === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else if (selectedLeads.size === leads.length) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else if (selectedLeads.size > 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = true;
+        } else {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        }
+    }
 
-convertToCSV(leads) {
-    const headers = ['Username', 'Full Name', 'Platform', 'Score', 'Followers', 'Analysis Type', 'Date Added'];
-    const rows = leads.map(lead => [
-        lead.username || '',
-        lead.full_name || lead.display_name || '',
-        lead.platform || 'instagram',
-        lead.score || 0,
-        lead.followers_count || lead.follower_count || 0,
-        lead.analysis_type || '',
-        this.formatDate(lead.created_at || lead.first_discovered_at)
-    ]);
-    
-    return [headers, ...rows].map(row => row.join(',')).join('\n');
-}
+    getSelectedLeadsData() {
+        const selectedLeads = this.stateManager.getState('selectedLeads') || new Set();
+        const allLeads = this.stateManager.getState('leads') || [];
+        
+        return allLeads.filter(lead => selectedLeads.has(lead.id));
+    }
 
-downloadJSON(leads) {
-    const jsonContent = JSON.stringify(leads, null, 2);
-    const blob = new Blob([jsonContent], { type: 'application/json' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `leads-export-${new Date().toISOString().slice(0,10)}.json`;
-    link.click();
-}
+    convertToCSV(leads) {
+        const headers = ['Username', 'Full Name', 'Platform', 'Score', 'Followers', 'Analysis Type', 'Date Added'];
+        const rows = leads.map(lead => [
+            lead.username || '',
+            lead.full_name || lead.display_name || '',
+            lead.platform || 'instagram',
+            lead.score || 0,
+            lead.followers_count || lead.follower_count || 0,
+            lead.analysis_type || '',
+            this.formatDate(lead.created_at || lead.first_discovered_at)
+        ]);
+        
+        return [headers, ...rows].map(row => row.join(',')).join('\n');
+    }
+
+    downloadJSON(leads) {
+        const jsonContent = JSON.stringify(leads, null, 2);
+        const blob = new Blob([jsonContent], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `leads-export-${new Date().toISOString().slice(0,10)}.json`;
+        link.click();
+    }
 }
 
 if (typeof module !== 'undefined' && module.exports) {
@@ -814,3 +818,5 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
     window.LeadsTable = LeadsTable;
 }
+
+console.log('📊 [LeadsTable] Migrated version loaded successfully');
