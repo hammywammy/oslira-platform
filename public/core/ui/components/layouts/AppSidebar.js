@@ -292,45 +292,47 @@ getSidebarHTML() {
                     </div>
                 </nav>
                 
-                <!-- Account Section - Flush Design -->
-                <div class="sidebar-account-section">
-                    <!-- Dropdown (unchanged) -->
-                    <div class="account-dropdown" id="account-dropdown">
-                        <div class="account-dropdown-header">
-                            <div class="account-dropdown-name">Hw Models</div>
-                            <div class="account-dropdown-email">hw@example.com</div>
-                        </div>
-                        
-                        <div class="account-dropdown-section">
-                            <div class="account-section-title">Business</div>
-                            <select class="dropdown-select-clean" id="business-selector">
-                                <option>Personal Account</option>
-                            </select>
-                        </div>
-                        
-                        <div class="account-dropdown-section">
-                            <div class="account-section-title">Credits</div>
-                            <div class="credits-display-clean">0 / 25</div>
-                        </div>
-                        
-                        <div class="account-dropdown-actions-clean">
-                            <a href="${window.OsliraEnv.getAppUrl('/settings')}" class="dropdown-action-clean">Account Settings</a>
-                            <button class="dropdown-action-clean logout-action">Logout</button>
-                        </div>
-                    </div>
-                    
-                    <!-- Trigger Button - Grid Layout -->
-                    <button class="account-trigger" id="account-trigger-btn">
-                        <div class="account-avatar">H</div>
-                        <div class="account-info">
-                            <div class="account-name">hwmodels14</div>
-                            <div class="account-plan">Free Plan</div>
-                        </div>
-                        <svg class="account-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 9l6 6 6-6"/>
-                        </svg>
-                    </button>
-                </div>
+<!-- Account Section -->
+<div class="sidebar-account-section">
+    <!-- Dropdown -->
+    <div class="account-dropdown" id="account-dropdown">
+        <div class="account-dropdown-header">
+            <div class="account-dropdown-name">Hw Models</div>
+            <div class="account-dropdown-email">hw@example.com</div>
+        </div>
+        
+        <div class="account-dropdown-section">
+            <div class="account-section-title">Business</div>
+            <select class="dropdown-select-clean" id="business-selector">
+                <option>Personal Account</option>
+            </select>
+        </div>
+        
+        <div class="account-dropdown-section">
+            <div class="account-section-title">Credits</div>
+            <div class="credits-display-clean">0 / 25</div>
+        </div>
+        
+        <div class="account-dropdown-actions-clean">
+            <a href="${window.OsliraEnv.getAppUrl('/settings')}" class="dropdown-action-clean">Settings</a>
+            <a href="https://oslira.com/help" target="_blank" rel="noopener noreferrer" class="dropdown-action-clean">Get Help</a>
+            <a href="https://oslira.com/upgrade" target="_blank" rel="noopener noreferrer" class="dropdown-action-clean upgrade-action">Upgrade Plan</a>
+            <button class="dropdown-action-clean logout-action">Logout</button>
+        </div>
+    </div>
+    
+    <!-- Trigger Button -->
+    <button class="account-trigger" id="account-trigger-btn">
+        <div class="account-avatar">H</div>
+        <div class="account-info">
+            <div class="account-name">hwmodels14</div>
+            <div class="account-plan">Free Plan</div>
+        </div>
+        <svg class="account-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6"/>
+        </svg>
+    </button>
+</div>
             </div>
         </div>
     `;
