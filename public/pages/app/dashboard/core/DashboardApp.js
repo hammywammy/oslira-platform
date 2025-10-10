@@ -47,6 +47,17 @@ async _performInitialization() {
         // Validate dependencies
         this.validateDependencies();
         
+        // ✅ ADD THIS BLOCK - Initialize ApiClient
+        if (window.OsliraApiClient && !window.OsliraApiClient.initialized) {
+            console.log('🌐 [DashboardApp] Initializing ApiClient...');
+            await window.OsliraApiClient.initialize();
+            console.log('✅ [DashboardApp] ApiClient initialized');
+        } else if (!window.OsliraApiClient) {
+            console.error('❌ [DashboardApp] ApiClient class not loaded!');
+        } else {
+            console.log('✅ [DashboardApp] ApiClient already initialized');
+        }
+        
         // Initialize auth
         await this.initializeAuth();
         
