@@ -1,75 +1,38 @@
 // =============================================================================
-// SIDEBAR MANAGER - PRODUCTION READY COMPONENT
-// Core sidebar navigation system with proper width control and state management
+// SIDEBAR MANAGER - Enterprise Architecture + Full Auth Integration
+// Path: /public/core/ui/components/layouts/AppSidebar.js
+// Dependencies: OsliraAuth, OsliraEnv, EventBus (auto-loaded)
 // =============================================================================
 
 class SidebarManager {
     constructor() {
         this.isCollapsed = false;
         this.user = null;
+        this.businesses = [];
         this.sidebar = null;
         this.mainContent = null;
         
         console.log('🚀 [SidebarManager] Initializing...');
     }
 
-    async handleLogout() {
-    console.log('🔐 [SidebarManager] Logging out user...');
-    
-    try {
-        // Show loading state on button
-        const logoutBtn = document.querySelector('.sidebar-user-button');
-        if (logoutBtn) {
-            logoutBtn.disabled = true;
-            logoutBtn.textContent = 'Signing out...';
-        }
-        
-        // Use OsliraAuth for logout
-        if (window.OsliraAuth) {
-            await window.OsliraAuth.signOut();
-            console.log('✅ [SidebarManager] User signed out successfully');
-            
-            // Redirect to home page
-            window.location.href = '/';
-        } else {
-            console.error('❌ [SidebarManager] OsliraAuth not available');
-            throw new Error('Authentication system not available');
-        }
-    } catch (error) {
-        console.error('❌ [SidebarManager] Logout failed:', error);
-        
-        // Reset button state on error
-        const logoutBtn = document.querySelector('.sidebar-user-button');
-        if (logoutBtn) {
-            logoutBtn.disabled = false;
-            logoutBtn.textContent = 'Sign out';
-        }
-        
-        // Show error message
-        if (window.Alert && window.Alert.error) {
-            window.Alert.error('Failed to sign out. Please try again.');
-        }
-    }
-}
     // =========================================================================
-    // PUBLIC API - CORE METHODS
+    // PUBLIC API - RENDER METHOD
     // =========================================================================
 
     async render(container = '#sidebar-container') {
         try {
             console.log('🎨 [SidebarManager] Rendering sidebar...');
             
-            // Wait for container to exist if it's not found immediately
+            // Wait for container (up to 2 seconds)
             let targetElement = typeof container === 'string' 
                 ? document.querySelector(container)
                 : container;
 
             if (!targetElement && typeof container === 'string') {
-                // Wait up to 2 seconds for container to appear
                 console.log('🔍 [SidebarManager] Waiting for container:', container);
                 await new Promise((resolve, reject) => {
                     let attempts = 0;
-                    const maxAttempts = 20; // 2 seconds at 100ms intervals
+                    const maxAttempts = 20;
                     
                     const checkForElement = () => {
                         targetElement = document.querySelector(container);
@@ -78,7 +41,7 @@ class SidebarManager {
                         if (targetElement) {
                             resolve();
                         } else if (attempts >= maxAttempts) {
-                            reject(new Error(`Container element not found after waiting: ${container}`));
+                            reject(new Error(`Container element not found: ${container}`));
                         } else {
                             setTimeout(checkForElement, 100);
                         }
@@ -92,16 +55,12 @@ class SidebarManager {
                 throw new Error(`Container element not found: ${container}`);
             }
             
-            // Apply sidebar classes and inject HTML
-            targetElement.className = 'sidebar';
+            // Inject sidebar HTML
             targetElement.innerHTML = this.getSidebarHTML();
-
-            // Store references
             this.sidebar = targetElement;
             this.mainContent = document.querySelector('.main-content, [class*="content"], main');
-            
 
-            // Initialize functionality
+            // Initialize all functionality
             this.initializeSidebar();
 
             console.log('✅ [SidebarManager] Sidebar rendered successfully');
@@ -112,205 +71,31 @@ class SidebarManager {
             throw error;
         }
     }
-    async loadBusinessProfiles() {
-    console.log('💼 [SidebarManager] Loading business profiles...');
-    
-    try {
-        // Get businesses from Supabase
-        const businesses = await this.fetchBusinessProfiles();
-        const selectElement = document.getElementById('sidebar-business-select');
-        
-        if (!selectElement) {
-            console.warn('⚠️ [SidebarManager] Business select element not found');
-            return;
-        }
-        
-        // Clear any existing options
-        selectElement.innerHTML = '';
-        
-        if (!businesses || businesses.length === 0) {
-            // If no businesses, show a message
-            const option = document.createElement('option');
-            option.value = '';
-            option.textContent = 'No businesses found';
-            option.disabled = true;
-            selectElement.appendChild(option);
-            selectElement.disabled = true;
-            return;
-        }
-        
-        // Add all businesses without a placeholder
-        businesses.forEach((business, index) => {
-            const option = document.createElement('option');
-            option.value = business.id;
-            option.textContent = business.business_name;
-            selectElement.appendChild(option);
-        });
-        
-        // Auto-select the first business
-        if (businesses.length > 0) {
-            selectElement.value = businesses[0].id;
-            // Trigger the change event to load the first business
-            this.handleBusinessChange({ target: selectElement });
-        }
-        
-        console.log(`✅ [SidebarManager] Loaded ${businesses.length} business profiles`);
-        
-    } catch (error) {
-        console.error('❌ [SidebarManager] Failed to load business profiles:', error);
-    }
-}
-
-async fetchBusinessProfiles() {
-    try {
-        // Get current user
-const user = window.OsliraAuth?.user;
-if (!user) {
-    console.warn('⚠️ [SidebarManager] No authenticated user');
-            return [];
-        }
-        
-        // Fetch businesses from Supabase
-        const { data: businesses, error } = await window.OsliraAuth.supabase
-            .from('business_profiles')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
-        
-        if (error) throw error;
-        
-        return businesses || [];
-        
-    } catch (error) {
-        console.error('❌ [SidebarManager] Failed to fetch businesses:', error);
-        return [];
-    }
-}
-
-handleBusinessChange(event) {
-    const businessId = event.target.value;
-    if (!businessId) return;
-    
-    console.log('🔄 [SidebarManager] Business changed to:', businessId);
-    
-    // Emit event for other components to react
-    if (this.eventBus) {
-        this.eventBus.emit('business:changed', businessId);
-    }
-    
-    // Store selected business in localStorage for persistence
-    localStorage.setItem('selectedBusinessId', businessId);
-    
-    // Update business manager if available
-    if (window.businessManager) {
-        window.businessManager.setCurrentBusiness(businessId);
-    }
-}
-    updateSelectedBusiness(businessId) {
-    const selectElement = document.getElementById('sidebar-business-select');
-    if (selectElement && selectElement.value !== businessId) {
-        selectElement.value = businessId;
-        console.log('✅ [SidebarManager] Updated selected business in dropdown');
-    }
-}
-
-updateUserInfo() {
-    const user = window.OsliraAuth?.user;
-    if (!user) {
-        console.warn('⚠️ [SidebarManager] No user available for info update');
-        return;
-    }
-    
-    console.log('👤 [SidebarManager] Updating user info:', {
-        email: user.email,
-        name: user.signature_name,
-        credits: user.credits,
-        plan: user.plan_type
-    });
-    
-    // Update name (from signature_name)
-    const nameElements = document.querySelectorAll('#sidebar-name, #sidebar-name-trigger');
-    if (user.signature_name) {
-        nameElements.forEach(el => {
-            if (el) el.textContent = user.signature_name;
-        });
-    }
-    
-    // Update email
-    const emailElement = document.getElementById('sidebar-email');
-    if (emailElement && user.email) {
-        emailElement.textContent = user.email;
-    }
-    
-    // Update avatar initial (first letter of name)
-    const initialElement = document.getElementById('sidebar-user-initial');
-    if (initialElement && user.signature_name) {
-        initialElement.textContent = user.signature_name.charAt(0).toUpperCase();
-    }
-    
-    // Update plan
-    const planElement = document.getElementById('sidebar-plan');
-    if (planElement && user.plan_type) {
-        const planNames = {
-            'free': 'Free plan',
-            'starter': 'Starter plan',
-            'pro': 'Pro plan',
-            'max': 'Max plan'
-        };
-        planElement.textContent = planNames[user.plan_type] || 'Free plan';
-    }
-    
-    // Update credits
-    const creditsElement = document.getElementById('sidebar-credits');
-    if (creditsElement) {
-        creditsElement.textContent = user.credits !== undefined ?
-            user.credits.toLocaleString() : '--';
-    }
-}
-    setActiveMenuItem(pageId) {
-        console.log(`🎯 [SidebarManager] Setting active menu item: ${pageId}`);
-        
-        // Remove active class from all menu items
-        const menuItems = document.querySelectorAll('.nav-item');
-        menuItems.forEach(item => {
-            item.classList.remove('active');
-        });
-        
-        // Add active class to current page
-        const activeItem = document.querySelector(`[data-page="${pageId}"]`);
-        if (activeItem) {
-            activeItem.classList.add('active');
-            console.log(`✅ [SidebarManager] Active menu item set: ${pageId}`);
-        } else {
-            console.warn(`⚠️ [SidebarManager] Menu item not found: ${pageId}`);
-        }
-    }
 
     // =========================================================================
     // HTML TEMPLATE
     // =========================================================================
-getSidebarHTML() {
+    
+    getSidebarHTML() {
         return `
             <div class="sidebar-container">
-                <!-- Header with Logo and Toggle -->
+                <!-- Header -->
                 <div class="sidebar-header">
-                    <div class="sidebar-header-content">
-                        <a href="${window.OsliraEnv.getMarketingUrl()}" class="sidebar-logo-link">
-                            <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" class="sidebar-logo-image">
-                            <span class="sidebar-logo-text home-logo">Oslira</span>
-                        </a>
-<button id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle Sidebar">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sidebar-toggle-icon" style="display: block;">
-        <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor"></rect>
-        <path d="M9 3v18" fill="none" stroke="currentColor"></path>
-    </svg>
-</button>
-                    </div>
+                    <a href="${window.OsliraEnv.getMarketingUrl()}" class="sidebar-logo-link">
+                        <img src="/assets/images/oslira-logo.png" alt="Oslira" class="sidebar-logo-image">
+                        <span class="sidebar-logo-text">Oslira</span>
+                    </a>
+                    <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle Sidebar">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                            <path d="M9 3v18"></path>
+                        </svg>
+                    </button>
                 </div>
                 
                 <!-- Navigation -->
                 <nav class="sidebar-nav">
-                    <!-- Main Section - Collapsible -->
+                    <!-- Main Section -->
                     <div class="nav-section collapsible">
                         <div class="nav-section-header-wrapper" data-section="main">
                             <h4 class="nav-section-header">Main</h4>
@@ -319,22 +104,22 @@ getSidebarHTML() {
                             </svg>
                         </div>
                         <div class="nav-items">
-                            <a href="${window.OsliraEnv.getAppUrl('/dashboard')}" data-page="dashboard" data-tooltip="Dashboard" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/dashboard')}" data-page="dashboard" class="nav-item">
                                 <span class="nav-icon">📊</span>
                                 <span class="nav-text">Dashboard</span>
                             </a>
-                            <a href="${window.OsliraEnv.getAppUrl('/leads')}" data-page="leads" data-tooltip="Lead Research" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/leads')}" data-page="leads" class="nav-item">
                                 <span class="nav-icon">🔍</span>
                                 <span class="nav-text">Lead Research</span>
                             </a>
-                            <a href="${window.OsliraEnv.getAppUrl('/analytics')}" data-page="analytics" data-tooltip="Analytics" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/analytics')}" data-page="analytics" class="nav-item">
                                 <span class="nav-icon">📈</span>
                                 <span class="nav-text">Analytics</span>
                             </a>
                         </div>
                     </div>
                     
-                    <!-- Tools Section - Collapsible -->
+                    <!-- Tools Section -->
                     <div class="nav-section collapsible">
                         <div class="nav-section-header-wrapper" data-section="tools">
                             <h4 class="nav-section-header">Tools</h4>
@@ -343,11 +128,11 @@ getSidebarHTML() {
                             </svg>
                         </div>
                         <div class="nav-items">
-                            <a href="${window.OsliraEnv.getAppUrl('/campaigns')}" data-page="campaigns" data-tooltip="Campaigns" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/campaigns')}" data-page="campaigns" class="nav-item">
                                 <span class="nav-icon">🎯</span>
                                 <span class="nav-text">Campaigns</span>
                             </a>
-                            <a href="${window.OsliraEnv.getAppUrl('/automations')}" data-page="automations" data-tooltip="Automations" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/automations')}" data-page="automations" class="nav-item">
                                 <span class="nav-icon">⚡</span>
                                 <span class="nav-text">Automations</span>
                             </a>
@@ -355,303 +140,376 @@ getSidebarHTML() {
                     </div>
                 </nav>
                 
-                <!-- Account Section - Bottom Dropdown -->
+                <!-- Account Section -->
                 <div class="sidebar-account-section">
-<button class="account-trigger" id="account-trigger-btn">
-    <div class="account-trigger-content">
-        <div class="account-avatar" id="sidebar-avatar">
-            <span id="sidebar-user-initial">U</span>
-        </div>
-        <div class="account-info">
-            <div id="sidebar-name-trigger" class="account-name">Loading...</div>
-            <div id="sidebar-plan" class="account-plan">Free Plan</div>
-        </div>
-        <svg class="account-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M6 9l6 6 6-6"/>
-        </svg>
-    </div>
-</button>
+                    <button class="account-trigger" id="account-trigger-btn">
+                        <div class="account-avatar" id="sidebar-avatar">
+                            <span id="sidebar-user-initial">U</span>
+                        </div>
+                        <div class="account-info">
+                            <div id="sidebar-name-trigger" class="account-name">Loading...</div>
+                            <div id="sidebar-plan" class="account-plan">Free Plan</div>
+                        </div>
+                        <svg class="account-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
                     
-<!-- Dropdown Menu -->
-<div class="account-dropdown" id="account-dropdown">
-    <!-- User Info Header -->
-    <div class="account-dropdown-header">
-        <div id="sidebar-name" class="account-dropdown-name">Loading...</div>
-        <div id="sidebar-email" class="account-dropdown-email">Loading...</div>
-    </div>
-    
-    <!-- Business Selector -->
-    <div class="account-dropdown-section">
-        <div class="account-section-title">ACTIVE BUSINESS</div>
-        <select id="sidebar-business-select" 
-                onchange="window.sidebarManager && window.sidebarManager.handleBusinessChange(event)"
-                class="dropdown-select-clean">
-            <!-- Options dynamically loaded -->
-        </select>
-    </div>
-    
-    <!-- Credits Display -->
-    <div class="account-dropdown-section">
-        <div class="account-section-title">CREDITS</div>
-        <div class="credits-display-clean">
-            <span id="sidebar-credits">--</span>
-        </div>
-    </div>
-    
-    <!-- Action Buttons -->
-    <div class="account-dropdown-actions-clean">
-        <a href="${window.OsliraEnv.getAppUrl('/settings/profile')}" class="dropdown-action-clean">
-            Settings
-        </a>
-        <a href="${window.OsliraEnv.getAppUrl('/subscription')}" class="dropdown-action-clean">
-            Upgrade plan
-        </a>
-        <a href="${window.OsliraEnv.getMarketingUrl('/help')}" class="dropdown-action-clean">
-            Get help
-        </a>
-        <a href="${window.OsliraEnv.getMarketingUrl('/docs')}" class="dropdown-action-clean">
-            Learn more
-        </a>
-        <button onclick="window.sidebarManager && window.sidebarManager.handleLogout()" class="dropdown-action-clean logout-action">
-            Log out
-        </button>
-    </div>
-</div>
+                    <!-- Dropdown -->
+                    <div class="account-dropdown" id="account-dropdown">
+                        <div class="account-dropdown-header">
+                            <div id="sidebar-name" class="account-dropdown-name">Loading...</div>
+                            <div id="sidebar-email" class="account-dropdown-email">Loading...</div>
+                        </div>
+                        
+                        <div class="account-dropdown-section">
+                            <div class="account-section-title">ACTIVE BUSINESS</div>
+                            <select id="sidebar-business-select" 
+                                    onchange="window.sidebarManager && window.sidebarManager.handleBusinessChange(event)"
+                                    class="dropdown-select-clean">
+                                <option value="">Loading...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="account-dropdown-section">
+                            <div class="account-section-title">CREDITS</div>
+                            <div class="credits-display-clean">
+                                <span id="sidebar-credits">--</span>
+                            </div>
+                        </div>
+                        
+                        <div class="account-dropdown-actions-clean">
+                            <a href="${window.OsliraEnv.getAppUrl('/settings/profile')}" class="dropdown-action-clean">
+                                Settings
+                            </a>
+                            <a href="${window.OsliraEnv.getAppUrl('/subscription')}" class="dropdown-action-clean">
+                                Upgrade plan
+                            </a>
+                            <a href="${window.OsliraEnv.getMarketingUrl('/help')}" class="dropdown-action-clean">
+                                Get help
+                            </a>
+                            <a href="${window.OsliraEnv.getMarketingUrl('/docs')}" class="dropdown-action-clean">
+                                Learn more
+                            </a>
+                            <button onclick="window.sidebarManager && window.sidebarManager.handleLogout()" class="dropdown-action-clean logout-action">
+                                Log out
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
     }
 
     // =========================================================================
-    // SIDEBAR FUNCTIONALITY
+    // INITIALIZATION
     // =========================================================================
 
-initializeSidebar() {
-    console.log('⚙️ [SidebarManager] Initializing sidebar functionality...');
-    
-    // Initialize navigation
-    this.initializeNavigation();
-    
-    // Initialize collapsible sections
-    this.initializeCollapsibleSections();
-    
-    // Initialize internal toggle button
-    this.initializeToggleButton();
-    
-    // Initialize account dropdown
-    this.initializeAccountDropdown();
-    
-    // Initialize business integration
-    this.initializeBusinessIntegration();
-    
-    // Initialize user data integration
-    this.initializeUserIntegration();
-    
-    // Set initial state
-    this.updateSidebarState();
-    
-    // Initialize hover behavior for collapsed state
-    this.initializeCollapsedHover();
+    initializeSidebar() {
+        console.log('⚙️ [SidebarManager] Initializing sidebar functionality...');
+        
+        this.initializeNavigation();
+        this.initializeCollapsibleSections();
+        this.initializeToggleButton();
+        this.initializeAccountDropdown();
+        this.initializeAuthIntegration();
+        this.initializeBusinessIntegration();
+        
+        console.log('✅ [SidebarManager] Sidebar functionality initialized');
+    }
 
-    // After sidebar renders
-if (window.OsliraAuth?.user) {
-    this.updateUserInfo();
-}
-    
-    console.log('✅ [SidebarManager] Sidebar functionality initialized');
-}
+    // =========================================================================
+    // AUTH INTEGRATION (Core System)
+    // =========================================================================
 
-initializeCollapsibleSections() {
-    const sectionHeaders = document.querySelectorAll('.nav-section-header-wrapper');
-    
-    sectionHeaders.forEach(header => {
-        header.addEventListener('click', (e) => {
-            const section = header.closest('.nav-section');
-            const isCollapsed = section.classList.contains('section-collapsed');
+    initializeAuthIntegration() {
+        console.log('🔐 [SidebarManager] Initializing auth integration...');
+        
+        // Method 1: Check if OsliraAuth is already loaded with user
+        if (window.OsliraAuth?.user) {
+            this.updateUserInfo(window.OsliraAuth.user);
+            console.log('✅ [SidebarManager] User data loaded immediately');
+            return;
+        }
+        
+        // Method 2: Poll for OsliraAuth to load (handles async initialization)
+        const pollInterval = setInterval(() => {
+            if (window.OsliraAuth?.user) {
+                clearInterval(pollInterval);
+                this.updateUserInfo(window.OsliraAuth.user);
+                console.log('✅ [SidebarManager] User data loaded via polling');
+            }
+        }, 100);
+        
+        // Clear poll after 10 seconds to prevent infinite loop
+        setTimeout(() => clearInterval(pollInterval), 10000);
+        
+        // Method 3: Listen for auth state changes (handles sign in/out/updates)
+        window.addEventListener('auth:signed-in', (event) => {
+            console.log('🔐 [SidebarManager] User signed in event received');
+            if (event.detail?.user) {
+                this.updateUserInfo(event.detail.user);
+            }
+        });
+        
+        window.addEventListener('auth:signed-out', () => {
+            console.log('🔐 [SidebarManager] User signed out event received');
+            this.clearUserInfo();
+        });
+        
+        window.addEventListener('auth:user-updated', (event) => {
+            console.log('🔐 [SidebarManager] User updated event received');
+            if (event.detail?.user) {
+                this.updateUserInfo(event.detail.user);
+            }
+        });
+        
+        console.log('✅ [SidebarManager] Auth integration initialized');
+    }
+
+    updateUserInfo(user = null) {
+        // Use provided user or get from OsliraAuth
+        const userData = user || window.OsliraAuth?.user;
+        
+        if (!userData) {
+            console.warn('⚠️ [SidebarManager] No user data available');
+            return;
+        }
+        
+        console.log('👤 [SidebarManager] Updating user info:', {
+            email: userData.email,
+            name: userData.signature_name || userData.full_name,
+            credits: userData.credits,
+            plan: userData.plan_type
+        });
+        
+        // Store user reference
+        this.user = userData;
+        
+        // Update name
+        const nameElements = document.querySelectorAll('#sidebar-name, #sidebar-name-trigger');
+        const displayName = userData.signature_name || userData.full_name || userData.email?.split('@')[0] || 'User';
+        nameElements.forEach(el => {
+            if (el) el.textContent = displayName;
+        });
+        
+        // Update email
+        const emailElement = document.getElementById('sidebar-email');
+        if (emailElement && userData.email) {
+            emailElement.textContent = userData.email;
+        }
+        
+        // Update avatar initial
+        const initialElement = document.getElementById('sidebar-user-initial');
+        if (initialElement) {
+            const initial = displayName.charAt(0).toUpperCase();
+            initialElement.textContent = initial;
+        }
+        
+        // Update plan
+        const planElement = document.getElementById('sidebar-plan');
+        if (planElement && userData.plan_type) {
+            const planNames = {
+                'free': 'Free plan',
+                'starter': 'Starter plan',
+                'pro': 'Pro plan',
+                'max': 'Max plan'
+            };
+            planElement.textContent = planNames[userData.plan_type] || 'Free plan';
+        }
+        
+        // Update credits
+        const creditsElement = document.getElementById('sidebar-credits');
+        if (creditsElement) {
+            creditsElement.textContent = userData.credits !== undefined 
+                ? userData.credits.toLocaleString() 
+                : '--';
+        }
+        
+        console.log('✅ [SidebarManager] User info updated');
+    }
+
+    clearUserInfo() {
+        console.log('🧹 [SidebarManager] Clearing user info');
+        
+        this.user = null;
+        
+        document.querySelectorAll('#sidebar-name, #sidebar-name-trigger').forEach(el => {
+            if (el) el.textContent = 'User';
+        });
+        
+        const emailEl = document.getElementById('sidebar-email');
+        if (emailEl) emailEl.textContent = '';
+        
+        const initialEl = document.getElementById('sidebar-user-initial');
+        if (initialEl) initialEl.textContent = 'U';
+        
+        const planEl = document.getElementById('sidebar-plan');
+        if (planEl) planEl.textContent = 'Free plan';
+        
+        const creditsEl = document.getElementById('sidebar-credits');
+        if (creditsEl) creditsEl.textContent = '--';
+    }
+
+    async handleLogout() {
+        console.log('🔐 [SidebarManager] Logging out user...');
+        
+        try {
+            if (!window.OsliraAuth) {
+                throw new Error('OsliraAuth not available');
+            }
             
-            if (isCollapsed) {
-                section.classList.remove('section-collapsed');
+            // Use OsliraAuth.signOut() method
+            await window.OsliraAuth.signOut();
+            
+            console.log('✅ [SidebarManager] User signed out successfully');
+            
+            // Redirect to home (OsliraAuth should handle this, but fallback)
+            if (window.OsliraEnv) {
+                window.location.href = window.OsliraEnv.getMarketingUrl();
             } else {
-                section.classList.add('section-collapsed');
+                window.location.href = '/';
             }
             
-            console.log(`🔄 [SidebarManager] Section ${header.dataset.section} toggled`);
-        });
-    });
-    
-    console.log('✅ [SidebarManager] Collapsible sections initialized');
-}
-
-initializeToggleButton() {
-    const toggleBtn = document.getElementById('sidebar-toggle-btn');
-    
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            this.toggleSidebar();
-        });
-        console.log('✅ [SidebarManager] Toggle button initialized');
-    }
-}
-
-initializeAccountDropdown() {
-    const accountTrigger = document.getElementById('account-trigger-btn');
-    const accountDropdown = document.getElementById('account-dropdown');
-    
-    if (accountTrigger && accountDropdown) {
-        accountTrigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isOpen = accountDropdown.classList.contains('open');
+        } catch (error) {
+            console.error('❌ [SidebarManager] Logout failed:', error);
             
-            if (isOpen) {
-                accountDropdown.classList.remove('open');
-            } else {
-                accountDropdown.classList.add('open');
+            // Show error to user if possible
+            if (window.alert) {
+                alert('Failed to sign out. Please try again.');
+            }
+        }
+    }
+
+    // =========================================================================
+    // BUSINESS INTEGRATION
+    // =========================================================================
+
+    initializeBusinessIntegration() {
+        console.log('💼 [SidebarManager] Initializing business integration...');
+        
+        // Load businesses from OsliraAuth
+        this.loadBusinessProfiles();
+        
+        // Listen for business changes
+        window.addEventListener('business:changed', (event) => {
+            console.log('💼 [SidebarManager] Business changed event received');
+            if (event.detail?.businessId) {
+                this.updateSelectedBusiness(event.detail.businessId);
             }
         });
         
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!accountTrigger.contains(e.target) && !accountDropdown.contains(e.target)) {
-                accountDropdown.classList.remove('open');
-            }
-        });
-        
-        console.log('✅ [SidebarManager] Account dropdown initialized');
-    }
-}
-
-initializeCollapsedHover() {
-    if (!this.sidebar) return;
-    
-    this.sidebar.addEventListener('mouseenter', () => {
-        if (this.isCollapsed) {
-            const logoImage = this.sidebar.querySelector('.sidebar-logo-image');
-            const toggleBtn = this.sidebar.querySelector('#sidebar-toggle-btn');
-            
-            if (logoImage) logoImage.style.opacity = '0';
-            if (toggleBtn) toggleBtn.style.opacity = '1';
-        }
-    });
-    
-    this.sidebar.addEventListener('mouseleave', () => {
-        if (this.isCollapsed) {
-            const logoImage = this.sidebar.querySelector('.sidebar-logo-image');
-            const toggleBtn = this.sidebar.querySelector('#sidebar-toggle-btn');
-            
-            if (logoImage) logoImage.style.opacity = '1';
-            if (toggleBtn) toggleBtn.style.opacity = '0';
-        }
-    });
-}
-toggleSidebar() {
-    console.log('🔄 [SidebarManager] Toggling sidebar, current state:', this.isCollapsed);
-    
-    this.isCollapsed = !this.isCollapsed;
-    
-    // Get toggle button
-    const toggleBtn = document.getElementById('sidebar-toggle-btn');
-    
-    // Update classes and margins
-    if (this.isCollapsed) {
-        this.sidebar.classList.add('collapsed');
-        if (this.mainContent) {
-            this.mainContent.classList.add('sidebar-collapsed');
-            this.mainContent.style.marginLeft = '64px';
-        }
-        
-        // Update icon to panel-left-open (to show action of opening)
-        if (toggleBtn) {
-            toggleBtn.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sidebar-toggle-icon" style="display: block;">
-                    <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor"></rect>
-                    <path d="M15 3v18" fill="none" stroke="currentColor"></path>
-                    <path d="m10 15 3-3-3-3" fill="none" stroke="currentColor"></path>
-                </svg>
-            `;
-        }
-        
-        // Dispatch collapsed event
-        window.dispatchEvent(new CustomEvent('sidebar:collapsed'));
-    } else {
-        this.sidebar.classList.remove('collapsed');
-        if (this.mainContent) {
-            this.mainContent.classList.remove('sidebar-collapsed');
-            this.mainContent.style.marginLeft = '256px';
-        }
-        
-        // Update icon to panel-left (default state)
-        if (toggleBtn) {
-            toggleBtn.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sidebar-toggle-icon" style="display: block;">
-                    <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor"></rect>
-                    <path d="M9 3v18" fill="none" stroke="currentColor"></path>
-                </svg>
-            `;
-        }
-        
-        // Dispatch expanded event
-        window.dispatchEvent(new CustomEvent('sidebar:expanded'));
-    }
-    
-    // Save state to localStorage
-    localStorage.setItem('sidebarCollapsed', this.isCollapsed.toString());
-    
-    console.log('✅ [SidebarManager] Sidebar toggled to:', this.isCollapsed ? 'collapsed' : 'expanded');
-}
-    
-    updateSidebarState() {
-        if (!this.sidebar) return;
-        
-        console.log('🔄 [SidebarManager] Updating sidebar state to:', this.isCollapsed ? 'collapsed' : 'expanded');
-        
-        // Update classes only - let CSS handle styling
-        if (this.isCollapsed) {
-            this.sidebar.classList.add('collapsed');
-            if (this.mainContent) {
-                this.mainContent.classList.add('sidebar-collapsed');
-            }
-        } else {
-            this.sidebar.classList.remove('collapsed');
-            if (this.mainContent) {
-                this.mainContent.classList.remove('sidebar-collapsed');
-            }
-        }
-        
-        // Update all child elements
-        this.updateChildElements();
-        
-        console.log('✅ [SidebarManager] State updated');
+        console.log('✅ [SidebarManager] Business integration initialized');
     }
 
-    updateChildElements() {
-        if (!this.sidebar) return;
+    async loadBusinessProfiles() {
+        console.log('💼 [SidebarManager] Loading business profiles...');
         
-        const elementsToUpdate = [
-            '.sidebar-header',
-            '.sidebar-logo-container', 
-            '.sidebar-logo-text',
-            '.sidebar-nav',
-            '.nav-section',
-            '.nav-section-header',
-            '.nav-item',
-            '.nav-text',
-            '.sidebar-user-section',
-            '.sidebar-user-expanded',
-            '.sidebar-user-collapsed'
-        ];
-        
-        elementsToUpdate.forEach(selector => {
-            const elements = this.sidebar.querySelectorAll(selector);
-            elements.forEach(el => {
-                if (this.isCollapsed) {
-                    el.classList.add('collapsed');
-                } else {
-                    el.classList.remove('collapsed');
-                }
+        try {
+            const businesses = await this.fetchBusinessProfiles();
+            const selectElement = document.getElementById('sidebar-business-select');
+            
+            if (!selectElement) {
+                console.warn('⚠️ [SidebarManager] Business select element not found');
+                return;
+            }
+            
+            selectElement.innerHTML = '';
+            
+            if (!businesses || businesses.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No businesses found';
+                option.disabled = true;
+                selectElement.appendChild(option);
+                selectElement.disabled = true;
+                return;
+            }
+            
+            // Add businesses
+            businesses.forEach((business) => {
+                const option = document.createElement('option');
+                option.value = business.id;
+                option.textContent = business.business_name;
+                selectElement.appendChild(option);
             });
-        });
+            
+            // Auto-select first business or restore saved
+            if (businesses.length > 0) {
+                const savedBusinessId = localStorage.getItem('selectedBusinessId');
+                if (savedBusinessId && businesses.find(b => b.id === savedBusinessId)) {
+                    selectElement.value = savedBusinessId;
+                } else {
+                    selectElement.value = businesses[0].id;
+                }
+                
+                this.handleBusinessChange({ target: selectElement });
+            }
+            
+            console.log(`✅ [SidebarManager] Loaded ${businesses.length} business profiles`);
+            
+        } catch (error) {
+            console.error('❌ [SidebarManager] Failed to load business profiles:', error);
+        }
     }
-    
+
+    async fetchBusinessProfiles() {
+        try {
+            // Get from OsliraAuth first (if available)
+            if (window.OsliraAuth?.businesses && window.OsliraAuth.businesses.length > 0) {
+                console.log('✅ [SidebarManager] Using businesses from OsliraAuth');
+                return window.OsliraAuth.businesses;
+            }
+            
+            // Fallback: fetch from Supabase directly
+            if (!window.OsliraAuth?.supabase || !window.OsliraAuth?.user) {
+                console.warn('⚠️ [SidebarManager] No auth or user available');
+                return [];
+            }
+            
+            const { data: businesses, error } = await window.OsliraAuth.supabase
+                .from('business_profiles')
+                .select('*')
+                .eq('user_id', window.OsliraAuth.user.id)
+                .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            
+            return businesses || [];
+            
+        } catch (error) {
+            console.error('❌ [SidebarManager] Failed to fetch businesses:', error);
+            return [];
+        }
+    }
+
+    handleBusinessChange(event) {
+        const businessId = event.target.value;
+        if (!businessId) return;
+        
+        console.log('🔄 [SidebarManager] Business changed to:', businessId);
+        
+        // Save to localStorage
+        localStorage.setItem('selectedBusinessId', businessId);
+        
+        // Emit event for other components
+        window.dispatchEvent(new CustomEvent('business:changed', {
+            detail: { businessId }
+        }));
+    }
+
+    updateSelectedBusiness(businessId) {
+        const selectElement = document.getElementById('sidebar-business-select');
+        if (selectElement && selectElement.value !== businessId) {
+            selectElement.value = businessId;
+            console.log('✅ [SidebarManager] Updated selected business in dropdown');
+        }
+    }
+
+    // =========================================================================
+    // UI INTERACTIONS
+    // =========================================================================
+
     initializeNavigation() {
         const navItems = document.querySelectorAll('.nav-item[data-page]');
         
@@ -664,104 +522,81 @@ toggleSidebar() {
             });
         });
         
-        console.log('✅ [SidebarManager] Navigation event listeners attached');
+        console.log('✅ [SidebarManager] Navigation initialized');
     }
 
-    // =========================================================================
-// BUSINESS INTEGRATION
-// =========================================================================
-
-initializeBusinessIntegration() {
-    console.log('💼 [SidebarManager] Initializing business integration...');
-    
-    // Load business profiles and auto-select first one
-    this.loadBusinessProfiles().then(() => {
-        console.log('✅ [SidebarManager] Business profiles loaded and auto-selected');
+    setActiveMenuItem(pageId) {
+        console.log(`🎯 [SidebarManager] Setting active: ${pageId}`);
         
-        // Restore previously selected business if available
-        const savedBusinessId = localStorage.getItem('selectedBusinessId');
-        if (savedBusinessId) {
-            const selectElement = document.getElementById('sidebar-business-select');
-            if (selectElement && selectElement.querySelector(`option[value="${savedBusinessId}"]`)) {
-                selectElement.value = savedBusinessId;
-                this.handleBusinessChange({ target: selectElement });
-            }
-        }
-    });
-    
-    // Listen for business changes from other components
-    if (this.eventBus) {
-        this.eventBus.on('business:changed', (businessId) => {
-            this.updateSelectedBusiness(businessId);
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
         });
         
-        // Listen for business list updates
-        this.eventBus.on('businesses:updated', () => {
-            this.loadBusinessProfiles();
-        });
-    }
-}
-
-setBusinessManager(businessManager) {
-    this.businessManager = businessManager;
-    this.initializeBusinessIntegration();
-}
-    // =========================================================================
-// USER DATA INTEGRATION
-// =========================================================================
-initializeUserIntegration() {
-    console.log('👤 [SidebarManager] Initializing user integration...');
-    
-    // Poll for OsliraAuth user data (primary source)
-    const waitForUserData = setInterval(() => {
-        if (window.OsliraAuth?.user) {
-            clearInterval(waitForUserData);
-            this.updateUserInfo();
-            console.log('✅ [SidebarManager] User integration initialized');
+        const activeItem = document.querySelector(`[data-page="${pageId}"]`);
+        if (activeItem) {
+            activeItem.classList.add('active');
         }
-    }, 100);
-    
-    // Clear interval after 10 seconds to prevent infinite polling
-    setTimeout(() => clearInterval(waitForUserData), 10000);
-    
-// Also listen for auth state changes if available
-try {
-    if (window.OsliraAuth && typeof window.OsliraAuth.onAuthStateChange === 'function') {
-        window.OsliraAuth.onAuthStateChange((event, session) => {
-            if (session?.user && window.OsliraApp?.user) {
-                this.updateUserInfo(window.OsliraApp.user);
-            }
+    }
+
+    initializeCollapsibleSections() {
+        const sectionHeaders = document.querySelectorAll('.nav-section-header-wrapper');
+        
+        sectionHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                const section = header.closest('.nav-section');
+                section.classList.toggle('section-collapsed');
+            });
         });
-    } else {
-        console.log('👤 [SidebarManager] Auth state change listener not available, using polling only');
+        
+        console.log('✅ [SidebarManager] Collapsible sections initialized');
     }
-} catch (error) {
-    console.warn('⚠️ [SidebarManager] Could not setup auth state listener:', error.message);
-}
-}
 
-// Helper method to refresh user data from OsliraApp
-refreshUserData() {
-    if (window.OsliraApp?.user) {
-        this.updateUserInfo(window.OsliraApp.user);
-        console.log('🔄 [SidebarManager] User data refreshed');
-    } else {
-        console.warn('⚠️ [SidebarManager] No user data available to refresh');
+    initializeToggleButton() {
+        const toggleBtn = document.getElementById('sidebar-toggle-btn');
+        
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                this.toggleSidebar();
+            });
+            console.log('✅ [SidebarManager] Toggle button initialized');
+        }
     }
-}
 
-    // =========================================================================
-    // UTILITY METHODS
-    // =========================================================================
+    initializeAccountDropdown() {
+        const trigger = document.getElementById('account-trigger-btn');
+        const dropdown = document.getElementById('account-dropdown');
+        
+        if (trigger && dropdown) {
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle('open');
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('open');
+                }
+            });
+            
+            console.log('✅ [SidebarManager] Account dropdown initialized');
+        }
+    }
 
-    formatPlanName(plan) {
-        const planMap = {
-            'free': 'Free Plan',
-            'starter': 'Starter Plan',
-            'professional': 'Pro Plan',
-            'enterprise': 'Enterprise Plan'
-        };
-        return planMap[plan] || 'Subscription';
+    toggleSidebar() {
+        this.isCollapsed = !this.isCollapsed;
+        
+        if (this.sidebar) {
+            this.sidebar.classList.toggle('collapsed', this.isCollapsed);
+        }
+        
+        // Save state
+        localStorage.setItem('sidebarCollapsed', this.isCollapsed.toString());
+        
+        // Emit event
+        const eventName = this.isCollapsed ? 'sidebar:collapsed' : 'sidebar:expanded';
+        window.dispatchEvent(new CustomEvent(eventName));
+        
+        console.log('✅ [SidebarManager] Sidebar toggled:', this.isCollapsed ? 'collapsed' : 'expanded');
     }
 
     // =========================================================================
@@ -783,31 +618,22 @@ refreshUserData() {
     getState() {
         return {
             isCollapsed: this.isCollapsed,
-            user: this.user
+            user: this.user,
+            businesses: this.businesses
         };
     }
-
-    static refreshAllUserData() {
-    if (window.sidebarManager) {
-        window.sidebarManager.refreshUserData();
-    }
 }
-}
-
 
 // =============================================================================
 // GLOBAL INITIALIZATION
 // =============================================================================
 
-// Export for global use
 window.SidebarManager = SidebarManager;
-
-// Create global instance
 window.sidebarManager = new SidebarManager();
 
 console.log('✅ [SidebarManager] Module loaded and ready');
 
-// Auto-initialize if container exists
+// Auto-render if container exists (for legacy compatibility)
 document.addEventListener('DOMContentLoaded', () => {
     const container = document.querySelector('#sidebar-container');
     if (container) {
