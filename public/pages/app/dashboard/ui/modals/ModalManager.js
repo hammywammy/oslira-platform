@@ -1,22 +1,21 @@
 //public/pages/dashboard/modules/ui/modal-manager.js
 
 /**
- * OSLIRA MODAL MANAGER MODULE
+ * OSLIRA MODAL MANAGER MODULE - Migrated to New System (No Container)
  * Handles all modal operations, analysis forms, and bulk upload functionality
- * Extracted from dashboard.js - maintains exact functionality
  */
 class ModalManager {
-    constructor(container) {
-        this.container = container;
-        this.eventBus = container.get('eventBus');
-        this.stateManager = container.get('stateManager');
-        this.osliraAuth = container.get('osliraAuth');
+    constructor() {
+        // Use global window objects directly (no container)
+        this.eventBus = window.EventBus || window.OsliraEventBus;
+        this.stateManager = window.StateManager || window.OsliraStateManager;
+        this.osliraAuth = window.OsliraAuth;
         
         // Modal state
         this.activeModals = new Set();
         this.bulkUsernames = [];
         
-        console.log('🚀 [ModalManager] Initialized');
+        console.log('🚀 [ModalManager] Initialized (Migrated System)');
     }
     
     async init() {
@@ -30,77 +29,77 @@ class ModalManager {
     // MODAL CONTROL METHODS - EXTRACTED FROM ORIGINAL
     // ===============================================================================
     
-openModal(modalId, data = {}) {
-    console.log(`📖 [ModalManager] Opening modal: ${modalId}`);
-    
-    const modal = document.getElementById(modalId);
-    if (!modal) {
-        console.error(`❌ [ModalManager] Modal not found: ${modalId}`);
-        return null;
+    openModal(modalId, data = {}) {
+        console.log(`📖 [ModalManager] Opening modal: ${modalId}`);
+        
+        const modal = document.getElementById(modalId);
+        if (!modal) {
+            console.error(`❌ [ModalManager] Modal not found: ${modalId}`);
+            return null;
+        }
+        
+        // Close all other modals first
+        this.closeAllModals();
+        
+        // Open this modal
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        
+        // Show modal wrapper
+        const wrapper = modal.querySelector('.fixed.inset-0');
+        if (wrapper) {
+            wrapper.classList.remove('hidden');
+        }
+        
+        // Track as active
+        this.activeModals.add(modalId);
+        this.stateManager?.setState('activeModal', modalId);
+        
+        this.eventBus?.emit('MODAL_OPENED', { modalId, data });
+        console.log(`✅ [ModalManager] Modal opened: ${modalId}`);
+        
+        return modal;
     }
-    
-    // Close all other modals first
-    this.closeAllModals();
-    
-    // Open this modal
-    modal.classList.remove('hidden');
-    modal.style.display = 'flex';
-    
-    // Show modal wrapper
-    const wrapper = modal.querySelector('.fixed.inset-0');
-    if (wrapper) {
-        wrapper.classList.remove('hidden');
-    }
-    
-    // Track as active
-    this.activeModals.add(modalId);
-    this.stateManager?.setState('activeModal', modalId);
-    
-    this.eventBus?.emit('MODAL_OPENED', { modalId, data });
-    console.log(`✅ [ModalManager] Modal opened: ${modalId}`);
-    
-    return modal;
-}
 
-closeModal(modalId) {
-    console.log(`📕 [ModalManager] Closing modal: ${modalId}`);
-    
-    const modal = document.getElementById(modalId);
-    if (!modal) {
-        console.warn(`⚠️ [ModalManager] Modal not found: ${modalId}`);
-        return;
+    closeModal(modalId) {
+        console.log(`📕 [ModalManager] Closing modal: ${modalId}`);
+        
+        const modal = document.getElementById(modalId);
+        if (!modal) {
+            console.warn(`⚠️ [ModalManager] Modal not found: ${modalId}`);
+            return;
+        }
+        
+        // Hide modal
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        
+        // Hide wrapper
+        const wrapper = modal.querySelector('.fixed.inset-0');
+        if (wrapper) {
+            wrapper.classList.add('hidden');
+        }
+        
+        // Remove from active tracking
+        this.activeModals.delete(modalId);
+        
+        // Clear state if this was the active modal
+        const currentActive = this.stateManager?.getState('activeModal');
+        if (currentActive === modalId) {
+            this.stateManager?.setState('activeModal', null);
+        }
+        
+        // Clear form data
+        this.clearModalForm(modalId);
+        
+        this.eventBus?.emit('MODAL_CLOSED', { modalId });
+        console.log(`✅ [ModalManager] Modal closed: ${modalId}`);
     }
-    
-    // Hide modal
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
-    
-    // Hide wrapper
-    const wrapper = modal.querySelector('.fixed.inset-0');
-    if (wrapper) {
-        wrapper.classList.add('hidden');
-    }
-    
-    // Remove from active tracking
-    this.activeModals.delete(modalId);
-    
-    // Clear state if this was the active modal
-    const currentActive = this.stateManager?.getState('activeModal');
-    if (currentActive === modalId) {
-        this.stateManager?.setState('activeModal', null);
-    }
-    
-    // Clear form data
-    this.clearModalForm(modalId);
-    
-    this.eventBus?.emit('MODAL_CLOSED', { modalId });
-    console.log(`✅ [ModalManager] Modal closed: ${modalId}`);
-}
 
-closeAllModals() {
-    const modalIds = Array.from(this.activeModals);
-    modalIds.forEach(modalId => this.closeModal(modalId));
-}
+    closeAllModals() {
+        const modalIds = Array.from(this.activeModals);
+        modalIds.forEach(modalId => this.closeModal(modalId));
+    }
     
     
     
@@ -108,235 +107,237 @@ closeAllModals() {
     // ANALYSIS MODAL - EXTRACTED FROM dashboard.js
     // ===============================================================================
     
-showAnalysisModal(prefillUsername = '') {
-    console.log('🔍 [ModalManager] Opening analysis modal with username:', prefillUsername);
+    showAnalysisModal(prefillUsername = '') {
+        console.log('🔍 [ModalManager] Opening analysis modal with username:', prefillUsername);
+        
+        try {
+            const modal = this.openModal('analysisModal');
+            if (!modal) {
+                console.error('❌ [ModalManager] Failed to open analysisModal');
+                return;
+            }
+            
+            console.log('✅ [ModalManager] Analysis modal opened successfully');
+            
+            // Reset form
+            const form = document.getElementById('analysisForm');
+            if (form) {
+                form.reset();
+            }
+            
+            // Reset form fields
+            const analysisType = document.getElementById('analysis-type');
+            const profileInput = document.getElementById('username');
+            const inputContainer = document.getElementById('input-field-container');
+            
+            if (analysisType) {
+                analysisType.value = '';
+            }
+            if (profileInput) {
+                profileInput.value = prefillUsername; // Allow prefilling username
+            }
+            if (inputContainer) {
+                inputContainer.style.display = 'none';
+            }
+            
+            // Load business profiles (async with proper error handling)
+            setTimeout(async () => {
+                try {
+                    // Use global BusinessManager
+                    if (window.BusinessManager && window.BusinessManager.loadBusinessProfilesForModal) {
+                        await window.BusinessManager.loadBusinessProfilesForModal();
+                    }
+                } catch (error) {
+                    console.error('❌ [ModalManager] Failed to load business profiles:', error);
+                }
+            }, 100);
+            
+            // Focus on analysis type dropdown
+            setTimeout(() => {
+                if (analysisType) {
+                    analysisType.focus();
+                }
+            }, 200);
+            
+            console.log('✅ [ModalManager] Analysis modal opened');
+            
+        } catch (error) {
+            console.error('❌ [ModalManager] Failed to open analysis modal:', error);
+            if (window.OsliraApp) {
+                window.OsliraApp.showMessage('Failed to open analysis modal. Please try again.', 'error');
+            }
+        }
+    }
     
-    try {
-        const modal = this.openModal('analysisModal');
-        if (!modal) {
-            console.error('❌ [ModalManager] Failed to open analysisModal');
+    handleAnalysisTypeChange() {
+        const analysisType = document.getElementById('analysis-type')?.value;
+        const inputContainer = document.getElementById('input-field-container');
+        const profileInput = document.getElementById('username');
+        
+        if (analysisType && inputContainer) {
+            inputContainer.style.display = 'block';
+            
+            // Setup real-time validation listener
+            if (profileInput && !profileInput.dataset.validationSetup) {
+                profileInput.dataset.validationSetup = 'true';
+                
+                profileInput.addEventListener('input', () => {
+                    this.validateUsernameField(profileInput);
+                });
+                
+                profileInput.addEventListener('blur', () => {
+                    this.validateUsernameField(profileInput);
+                });
+            }
+            
+            // Focus on input field
+            setTimeout(() => {
+                if (profileInput) {
+                    profileInput.focus();
+                }
+            }, 100);
+        }
+        
+        // Update credit cost display
+        this.updateCreditCostDisplay(analysisType);
+        
+        // Update submit button
+        this.updateAnalysisSubmitButton(analysisType);
+    }
+
+    validateUsernameField(input) {
+        if (!input || !input.value) {
+            input.classList.remove('field-invalid', 'border-red-500');
+            input.classList.remove('field-valid', 'border-green-500');
+            this.hideUsernameError();
             return;
         }
         
-        console.log('✅ [ModalManager] Analysis modal opened successfully');
+        const username = input.value.trim();
+        const cleanUsername = username.replace(/^@/, '');
+        const validation = this.validateInstagramUsername(cleanUsername);
         
-        // Reset form
-        const form = document.getElementById('analysisForm');
-        if (form) {
-            form.reset();
+        if (validation.isValid) {
+            input.classList.remove('field-invalid', 'border-red-500');
+            input.classList.add('field-valid', 'border-green-500');
+            this.showUsernameSuccess();
+        } else {
+            input.classList.add('field-invalid', 'border-red-500');
+            input.classList.remove('field-valid', 'border-green-500');
+            this.showUsernameError(validation.error);
+        }
+    }
+
+    validateInstagramUsername(username) {
+        // Empty check
+        if (!username || username.length === 0) {
+            return { isValid: false, error: 'Username is required' };
         }
         
-        // Reset form fields
-        const analysisType = document.getElementById('analysis-type');
+        // Length check (1-30 characters)
+        if (username.length > 30) {
+            return { isValid: false, error: 'Username must be 30 characters or less' };
+        }
+        
+        // Character validation (letters, numbers, periods, underscores only)
+        const validCharsRegex = /^[a-zA-Z0-9._]+$/;
+        if (!validCharsRegex.test(username)) {
+            return { isValid: false, error: 'Username can only contain letters, numbers, periods (.), and underscores (_)' };
+        }
+        
+        // No leading dot
+        if (username.startsWith('.')) {
+            return { isValid: false, error: 'Username cannot start with a period' };
+        }
+        
+        // No trailing dot
+        if (username.endsWith('.')) {
+            return { isValid: false, error: 'Username cannot end with a period' };
+        }
+        
+        // No consecutive dots
+        if (username.includes('..')) {
+            return { isValid: false, error: 'Username cannot contain consecutive periods (..)' };
+        }
+        
+        return { isValid: true, error: null };
+    }
+
+    showUsernameError(message) {
         const profileInput = document.getElementById('username');
-        const inputContainer = document.getElementById('input-field-container');
+        if (!profileInput) return;
         
-        if (analysisType) {
-            analysisType.value = '';
-        }
-        if (profileInput) {
-            profileInput.value = prefillUsername; // Allow prefilling username
-        }
-        if (inputContainer) {
-            inputContainer.style.display = 'none';
+        // Remove existing error
+        const existingError = document.getElementById('username-validation-error');
+        if (existingError) {
+            existingError.remove();
         }
         
-        // Load business profiles (async with proper error handling)
-        setTimeout(async () => {
-            try {
-                const businessManager = this.container.get('businessManager');
-                if (businessManager) {
-                    await businessManager.loadBusinessProfilesForModal();
-                }
-            } catch (error) {
-                console.error('❌ [ModalManager] Failed to load business profiles:', error);
-            }
-        }, 100);
+        // Create new error message with icon
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'username-validation-error';
+        errorDiv.className = 'username-validation-error';
+        errorDiv.innerHTML = `
+            <svg class="validation-message-icon validation-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>${message}</span>
+        `;
         
-        // Focus on analysis type dropdown
+        // Insert after input
+        profileInput.parentNode.insertBefore(errorDiv, profileInput.nextSibling);
+    }
+
+    showUsernameSuccess() {
+        const profileInput = document.getElementById('username');
+        if (!profileInput) return;
+        
+        // Remove existing messages
+        const existingError = document.getElementById('username-validation-error');
+        const existingSuccess = document.getElementById('username-validation-success');
+        if (existingError) existingError.remove();
+        if (existingSuccess) existingSuccess.remove();
+        
+        // Create success message with icon
+        const successDiv = document.createElement('div');
+        successDiv.id = 'username-validation-success';
+        successDiv.className = 'username-validation-success';
+        successDiv.innerHTML = `
+            <svg class="validation-message-icon validation-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Valid Instagram username</span>
+        `;
+        
+        // Insert after input
+        profileInput.parentNode.insertBefore(successDiv, profileInput.nextSibling);
+        
+        // Auto-remove success message after 2 seconds
         setTimeout(() => {
-            if (analysisType) {
-                analysisType.focus();
+            if (successDiv.parentNode) {
+                successDiv.style.opacity = '0';
+                successDiv.style.transform = 'translateY(-5px)';
+                setTimeout(() => successDiv.remove(), 300);
             }
-        }, 200);
-        
-        console.log('✅ [ModalManager] Analysis modal opened');
-        
-    } catch (error) {
-        console.error('❌ [ModalManager] Failed to open analysis modal:', error);
-        this.osliraApp?.showMessage('Failed to open analysis modal. Please try again.', 'error');
+        }, 2000);
     }
-}
-    
-handleAnalysisTypeChange() {
-    const analysisType = document.getElementById('analysis-type')?.value;
-    const inputContainer = document.getElementById('input-field-container');
-    const profileInput = document.getElementById('username');
-    
-    if (analysisType && inputContainer) {
-        inputContainer.style.display = 'block';
+
+    hideUsernameError() {
+        const existingError = document.getElementById('username-validation-error');
+        const existingSuccess = document.getElementById('username-validation-success');
         
-        // Setup real-time validation listener
-        if (profileInput && !profileInput.dataset.validationSetup) {
-            profileInput.dataset.validationSetup = 'true';
-            
-            profileInput.addEventListener('input', () => {
-                this.validateUsernameField(profileInput);
-            });
-            
-            profileInput.addEventListener('blur', () => {
-                this.validateUsernameField(profileInput);
-            });
+        if (existingError) {
+            existingError.style.opacity = '0';
+            existingError.style.transform = 'translateY(-5px)';
+            setTimeout(() => existingError.remove(), 300);
         }
         
-        // Focus on input field
-        setTimeout(() => {
-            if (profileInput) {
-                profileInput.focus();
-            }
-        }, 100);
-    }
-    
-    // Update credit cost display
-    this.updateCreditCostDisplay(analysisType);
-    
-    // Update submit button
-    this.updateAnalysisSubmitButton(analysisType);
-}
-
-validateUsernameField(input) {
-    if (!input || !input.value) {
-        input.classList.remove('field-invalid', 'border-red-500');
-        input.classList.remove('field-valid', 'border-green-500');
-        this.hideUsernameError();
-        return;
-    }
-    
-    const username = input.value.trim();
-    const cleanUsername = username.replace(/^@/, '');
-    const validation = this.validateInstagramUsername(cleanUsername);
-    
-    if (validation.isValid) {
-        input.classList.remove('field-invalid', 'border-red-500');
-        input.classList.add('field-valid', 'border-green-500');
-        this.showUsernameSuccess();  // Add this line
-    } else {
-        input.classList.add('field-invalid', 'border-red-500');
-        input.classList.remove('field-valid', 'border-green-500');
-        this.showUsernameError(validation.error);
-    }
-}
-
-validateInstagramUsername(username) {
-    // Empty check
-    if (!username || username.length === 0) {
-        return { isValid: false, error: 'Username is required' };
-    }
-    
-    // Length check (1-30 characters)
-    if (username.length > 30) {
-        return { isValid: false, error: 'Username must be 30 characters or less' };
-    }
-    
-    // Character validation (letters, numbers, periods, underscores only)
-    const validCharsRegex = /^[a-zA-Z0-9._]+$/;
-    if (!validCharsRegex.test(username)) {
-        return { isValid: false, error: 'Username can only contain letters, numbers, periods (.), and underscores (_)' };
-    }
-    
-    // No leading dot
-    if (username.startsWith('.')) {
-        return { isValid: false, error: 'Username cannot start with a period' };
-    }
-    
-    // No trailing dot
-    if (username.endsWith('.')) {
-        return { isValid: false, error: 'Username cannot end with a period' };
-    }
-    
-    // No consecutive dots
-    if (username.includes('..')) {
-        return { isValid: false, error: 'Username cannot contain consecutive periods (..)' };
-    }
-    
-    return { isValid: true, error: null };
-}
-
-showUsernameError(message) {
-    const profileInput = document.getElementById('username');
-    if (!profileInput) return;
-    
-    // Remove existing error
-    const existingError = document.getElementById('username-validation-error');
-    if (existingError) {
-        existingError.remove();
-    }
-    
-    // Create new error message with icon
-    const errorDiv = document.createElement('div');
-    errorDiv.id = 'username-validation-error';
-    errorDiv.className = 'username-validation-error';
-    errorDiv.innerHTML = `
-        <svg class="validation-message-icon validation-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <span>${message}</span>
-    `;
-    
-    // Insert after input
-    profileInput.parentNode.insertBefore(errorDiv, profileInput.nextSibling);
-}
-
-showUsernameSuccess() {
-    const profileInput = document.getElementById('username');
-    if (!profileInput) return;
-    
-    // Remove existing messages
-    const existingError = document.getElementById('username-validation-error');
-    const existingSuccess = document.getElementById('username-validation-success');
-    if (existingError) existingError.remove();
-    if (existingSuccess) existingSuccess.remove();
-    
-    // Create success message with icon (optional - remove if you don't want this)
-    const successDiv = document.createElement('div');
-    successDiv.id = 'username-validation-success';
-    successDiv.className = 'username-validation-success';
-    successDiv.innerHTML = `
-        <svg class="validation-message-icon validation-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <span>Valid Instagram username</span>
-    `;
-    
-    // Insert after input
-    profileInput.parentNode.insertBefore(successDiv, profileInput.nextSibling);
-    
-    // Auto-remove success message after 2 seconds (optional)
-    setTimeout(() => {
-        if (successDiv.parentNode) {
-            successDiv.style.opacity = '0';
-            successDiv.style.transform = 'translateY(-5px)';
-            setTimeout(() => successDiv.remove(), 300);
+        if (existingSuccess) {
+            existingSuccess.style.opacity = '0';
+            existingSuccess.style.transform = 'translateY(-5px)';
+            setTimeout(() => existingSuccess.remove(), 300);
         }
-    }, 2000);
-}
-
-hideUsernameError() {
-    const existingError = document.getElementById('username-validation-error');
-    const existingSuccess = document.getElementById('username-validation-success');
-    
-    if (existingError) {
-        existingError.style.opacity = '0';
-        existingError.style.transform = 'translateY(-5px)';
-        setTimeout(() => existingError.remove(), 300);
     }
-    
-    if (existingSuccess) {
-        existingSuccess.style.opacity = '0';
-        existingSuccess.style.transform = 'translateY(-5px)';
-        setTimeout(() => existingSuccess.remove(), 300);
-    }
-}
     
     updateCreditCostDisplay(analysisType) {
         const costDisplay = document.getElementById('analysis-cost-display');
@@ -360,61 +361,66 @@ hideUsernameError() {
         }
     }
     
-async processAnalysisForm(event) {
-    event.preventDefault();
-    
-    try {
-        console.log('🔍 [ModalManager] Processing analysis form...');
+    async processAnalysisForm(event) {
+        event.preventDefault();
         
-        // Get form data
-        const formData = new FormData(event.target);
-        const username = formData.get('username')?.trim();
-        const analysisType = formData.get('analysisType');
-        const businessId = formData.get('businessId');
-        
-        // Validate inputs
-        if (!username || !analysisType || !businessId) {
-            throw new Error('Please fill in all required fields');
-        }
-        
-        // Clean username
-        const cleanUsername = this.cleanUsername(username);
-        const validation = this.validateInstagramUsername(cleanUsername);
-        
-        if (!validation.isValid) {
-            // Show validation error on the field
-            const profileInput = document.getElementById('username');
-            if (profileInput) {
-                profileInput.classList.add('field-invalid', 'border-red-500');
-                this.showUsernameError(validation.error);
-            }
-            throw new Error(validation.error);
-        }
+        try {
+            console.log('🔍 [ModalManager] Processing analysis form...');
             
+            // Get form data
+            const formData = new FormData(event.target);
+            const username = formData.get('username')?.trim();
+            const analysisType = formData.get('analysisType');
+            const businessId = formData.get('businessId');
+            
+            // Validate inputs
+            if (!username || !analysisType || !businessId) {
+                throw new Error('Please fill in all required fields');
+            }
+            
+            // Clean username
+            const cleanUsername = this.cleanUsername(username);
+            const validation = this.validateInstagramUsername(cleanUsername);
+            
+            if (!validation.isValid) {
+                // Show validation error on the field
+                const profileInput = document.getElementById('username');
+                if (profileInput) {
+                    profileInput.classList.add('field-invalid', 'border-red-500');
+                    this.showUsernameError(validation.error);
+                }
+                throw new Error(validation.error);
+            }
+                
             // Close modal
             this.closeModal('analysisModal');
             
-            // Start analysis
-            const analysisQueue = this.container.get('analysisQueue');
-            const result = await analysisQueue.startSingleAnalysis({
-                username: cleanUsername,
-                analysisType,
-                businessId
-            });
-            
-            this.osliraApp?.showMessage(
-                `Analysis started for @${cleanUsername}`,
-                'success'
-            );
-            
-            console.log('✅ [ModalManager] Analysis form processed:', result);
+            // Start analysis using global AnalysisQueue
+            if (window.AnalysisQueue) {
+                const result = await window.AnalysisQueue.startSingleAnalysis({
+                    username: cleanUsername,
+                    analysisType,
+                    businessId
+                });
+                
+                if (window.OsliraApp) {
+                    window.OsliraApp.showMessage(
+                        `Analysis started for @${cleanUsername}`,
+                        'success'
+                    );
+                }
+                
+                console.log('✅ [ModalManager] Analysis form processed:', result);
+            }
             
         } catch (error) {
             console.error('❌ [ModalManager] Analysis form processing failed:', error);
-            this.osliraApp?.showMessage(
-                `Analysis failed: ${error.message}`,
-                'error'
-            );
+            if (window.OsliraApp) {
+                window.OsliraApp.showMessage(
+                    `Analysis failed: ${error.message}`,
+                    'error'
+                );
+            }
         }
     }
     
@@ -422,31 +428,31 @@ async processAnalysisForm(event) {
     // BULK MODAL - EXTRACTED FROM dashboard.js
     // ===============================================================================
     
-resetBulkModal() {
-    // Reset form
-    const form = document.getElementById('bulkForm');
-    if (form) {
-        form.reset();
-    }
-    
-    // Clear file input display
-    const fileDisplay = document.getElementById('file-display');
-    if (fileDisplay) {
-        fileDisplay.innerHTML = '';
-    }
-    
-    // Hide validation bars on initial load
-    const successBar = document.getElementById('validation-success');
-    const errorBar = document.getElementById('validation-error');
-    if (successBar) successBar.classList.add('hidden');
-    if (errorBar) errorBar.classList.add('hidden');
-    
-    // Reset validation state
-    const submitBtn = document.getElementById('bulk-submit-btn');
-    if (submitBtn) {
-        submitBtn.disabled = true;
-    }
+    resetBulkModal() {
+        // Reset form
+        const form = document.getElementById('bulkForm');
+        if (form) {
+            form.reset();
+        }
         
+        // Clear file input display
+        const fileDisplay = document.getElementById('file-display');
+        if (fileDisplay) {
+            fileDisplay.innerHTML = '';
+        }
+        
+        // Hide validation bars on initial load
+        const successBar = document.getElementById('validation-success');
+        const errorBar = document.getElementById('validation-error');
+        if (successBar) successBar.classList.add('hidden');
+        if (errorBar) errorBar.classList.add('hidden');
+        
+        // Reset validation state
+        const submitBtn = document.getElementById('bulk-submit-btn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+        }
+            
         // Clear usernames
         this.bulkUsernames = [];
     }
@@ -485,7 +491,9 @@ resetBulkModal() {
             
         } catch (error) {
             console.error('❌ [ModalManager] File processing failed:', error);
-            this.osliraApp?.showMessage(`File processing failed: ${error.message}`, 'error');
+            if (window.OsliraApp) {
+                window.OsliraApp.showMessage(`File processing failed: ${error.message}`, 'error');
+            }
             
             // Reset file input
             event.target.value = '';
@@ -498,12 +506,16 @@ resetBulkModal() {
         const allowedTypes = ['text/csv', 'text/plain', 'application/vnd.ms-excel'];
         
         if (file.size > maxSize) {
-            this.osliraApp?.showMessage('File too large. Maximum size is 5MB.', 'error');
+            if (window.OsliraApp) {
+                window.OsliraApp.showMessage('File too large. Maximum size is 5MB.', 'error');
+            }
             return false;
         }
         
         if (!allowedTypes.includes(file.type) && !file.name.endsWith('.csv') && !file.name.endsWith('.txt')) {
-            this.osliraApp?.showMessage('Please upload a CSV or TXT file.', 'error');
+            if (window.OsliraApp) {
+                window.OsliraApp.showMessage('Please upload a CSV or TXT file.', 'error');
+            }
             return false;
         }
         
@@ -636,7 +648,7 @@ resetBulkModal() {
     
     checkBulkCredits() {
         const creditCost = this.calculateBulkCreditCost();
-        const availableCredits = this.osliraApp?.credits || 0;
+        const availableCredits = this.osliraAuth?.user?.credits || 0;
         
         return availableCredits >= creditCost;
     }
@@ -668,23 +680,28 @@ resetBulkModal() {
             // Convert usernames to lead objects
             const leads = usernames.map(username => ({ username }));
             
-            // Use the analysis queue for bulk processing
-            const analysisQueue = this.container.get('analysisQueue');
-            const result = await analysisQueue.startBulkAnalysis(leads, analysisType, businessId);
-            
-            this.osliraApp?.showMessage(
-                `Bulk analysis started: ${leads.length} profiles queued`,
-                'success'
-            );
-            
-            console.log('✅ [ModalManager] Bulk upload initiated:', result);
+            // Use the global AnalysisQueue for bulk processing
+            if (window.AnalysisQueue) {
+                const result = await window.AnalysisQueue.startBulkAnalysis(leads, analysisType, businessId);
+                
+                if (window.OsliraApp) {
+                    window.OsliraApp.showMessage(
+                        `Bulk analysis started: ${leads.length} profiles queued`,
+                        'success'
+                    );
+                }
+                
+                console.log('✅ [ModalManager] Bulk upload initiated:', result);
+            }
             
         } catch (error) {
             console.error('❌ [ModalManager] Bulk upload failed:', error);
-            this.osliraApp?.showMessage(
-                `Bulk upload failed: ${error.message}`,
-                'error'
-            );
+            if (window.OsliraApp) {
+                window.OsliraApp.showMessage(
+                    `Bulk upload failed: ${error.message}`,
+                    'error'
+                );
+            }
         }
     }
     
@@ -710,9 +727,12 @@ resetBulkModal() {
         `;
         
         try {
-            // Get lead details
-            const leadManager = this.container.get('leadManager');
-            const leadData = await leadManager.getLeadDetails(leadId);
+            // Get lead details using global LeadManager
+            if (!window.LeadManager) {
+                throw new Error('LeadManager not available');
+            }
+            
+            const leadData = await window.LeadManager.getLeadDetails(leadId);
             
             if (!leadData) {
                 throw new Error('Lead not found');
@@ -730,7 +750,7 @@ resetBulkModal() {
                 <div class="error-state">
                     <h3 style="margin: 0; color: var(--error);">Error Loading Lead</h3>
                     <p style="color: var(--text-secondary);">${error.message}</p>
-                    <button onclick="modalManager.showLeadDetailsModal('${leadId}')" 
+                    <button onclick="window.ModalManager.showLeadDetailsModal('${leadId}')" 
                             class="btn btn-primary" style="margin-top: 16px;">
                         Try Again
                     </button>
@@ -759,10 +779,10 @@ resetBulkModal() {
                 ${analysis ? this.renderAnalysisDetails(analysis) : ''}
                 
                 <div class="lead-actions">
-                    <button class="btn btn-primary" onclick="modalManager.copyText('outreach-message')">
+                    <button class="btn btn-primary" onclick="window.ModalManager.copyText('outreach-message')">
                         Copy Message
                     </button>
-                    <button class="btn btn-secondary" onclick="modalManager.closeModal('leadDetailsModal')">
+                    <button class="btn btn-secondary" onclick="window.ModalManager.closeModal('leadDetailsModal')">
                         Close
                     </button>
                 </div>
@@ -827,10 +847,10 @@ resetBulkModal() {
         const buttonContainer = document.createElement('div');
         buttonContainer.className = 'edit-buttons';
         buttonContainer.innerHTML = `
-            <button class="btn btn-primary btn-small" onclick="dashboard.saveEditedMessage('${leadId}')">
+            <button class="btn btn-primary btn-small" onclick="window.ModalManager.saveEditedMessage('${leadId}')">
                 Save
             </button>
-            <button class="btn btn-secondary btn-small" onclick="dashboard.cancelEditMessage('${leadId}')">
+            <button class="btn btn-secondary btn-small" onclick="window.ModalManager.cancelEditMessage('${leadId}')">
                 Cancel
             </button>
         `;
@@ -856,18 +876,23 @@ resetBulkModal() {
         const newMessage = textarea.value.trim();
         
         try {
-            // Save to database
-            const leadManager = this.container.get('leadManager');
-            await leadManager.updateLeadMessage(leadId, newMessage);
-            
-            // Update UI
-            messageElement.innerHTML = `<p>${newMessage}</p>`;
-            
-            this.osliraApp?.showMessage('Message updated successfully', 'success');
+            // Save to database using global LeadManager
+            if (window.LeadManager) {
+                await window.LeadManager.updateLeadMessage(leadId, newMessage);
+                
+                // Update UI
+                messageElement.innerHTML = `<p>${newMessage}</p>`;
+                
+                if (window.OsliraApp) {
+                    window.OsliraApp.showMessage('Message updated successfully', 'success');
+                }
+            }
             
         } catch (error) {
             console.error('❌ [ModalManager] Failed to save message:', error);
-            this.osliraApp?.showMessage('Failed to save message', 'error');
+            if (window.OsliraApp) {
+                window.OsliraApp.showMessage('Failed to save message', 'error');
+            }
         }
     }
     
@@ -957,3 +982,5 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
     window.ModalManager = ModalManager;
 }
+
+console.log('🚀 [ModalManager] Migrated version loaded successfully');
