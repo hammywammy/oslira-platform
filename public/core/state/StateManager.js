@@ -217,6 +217,28 @@ class StateManager {
     setState(path, value) {
         this.store.setState(path, value);
     }
+
+    /**
+ * Batch update multiple state paths at once
+ * @param {Object} updates - Object with path-value pairs
+ * @param {boolean} silent - If true, suppress logging
+ */
+batchUpdate(updates, silent = false) {
+    if (!updates || typeof updates !== 'object') {
+        this.logger.warn('[StateManager] batchUpdate requires an object');
+        return;
+    }
+    
+    Object.entries(updates).forEach(([path, value]) => {
+        this.setState(path, value);
+    });
+    
+    if (!silent) {
+        this.logger.debug('[StateManager] Batch update complete', {
+            paths: Object.keys(updates).length
+        });
+    }
+}
     
     /**
      * Update state at path (merge with existing)
