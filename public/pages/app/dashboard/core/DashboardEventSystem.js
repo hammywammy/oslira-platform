@@ -1,7 +1,7 @@
 // public/pages/app/dashboard/core/DashboardEventSystem.js
 
 /**
- * DASHBOARD EVENT SYSTEM - Event Coordination Layer
+ * DASHBOARD EVENT SYSTEM - Event Coordination Layer (MIGRATED)
  * 
  * PURPOSE: Dashboard-specific event handling and business logic coordination
  * DEPENDENCIES: Core EventBus (window.OsliraEventBus), Core ErrorHandler
@@ -12,30 +12,32 @@
  * 3. Dashboard error handling delegation
  * 
  * Core handles: Event infrastructure, error logging, state management
+ * 
+ * ✅ MIGRATED: No longer uses container.get() - uses window.* directly
  */
 
 class DashboardEventSystem {
     
     /**
      * Setup all event handlers for the dashboard
-     * Called by DashboardApp after container is ready
+     * Called by DashboardApp after initialization
      * 
      * @param {OsliraEventBus} eventBus - Core's EventBus instance (window.OsliraEventBus)
-     * @param {OsliraDependencyContainer} container - Dashboard's DI container
+     * @param {Object} dashboard - Dashboard app instance (for compatibility)
      */
-    static setupHandlers(eventBus, container) {
+    static setupHandlers(eventBus, dashboard = null) {
         console.log('📡 [DashboardEventSystem] Setting up event handlers...');
         
         // Verify we're using Core's EventBus
-        if (eventBus !== window.EventBus) {
+        if (eventBus !== window.EventBus && eventBus !== window.OsliraEventBus) {
             console.warn('⚠️ [DashboardEventSystem] Not using Core EventBus!');
         }
         
-        this.setupDataEvents(eventBus, container);
-        this.setupAnalysisEvents(eventBus, container);
-        this.setupBusinessEvents(eventBus, container);
-        this.setupErrorEvents(eventBus, container);
-        this.setupConnectionEvents(eventBus, container);
+        this.setupDataEvents(eventBus);
+        this.setupAnalysisEvents(eventBus);
+        this.setupBusinessEvents(eventBus);
+        this.setupErrorEvents(eventBus);
+        this.setupConnectionEvents(eventBus);
         
         console.log('✅ [DashboardEventSystem] Event handlers ready');
     }
@@ -43,13 +45,18 @@ class DashboardEventSystem {
     /**
      * Data refresh and loading events
      */
-    static setupDataEvents(eventBus, container) {
+    static setupDataEvents(eventBus) {
         // Data refresh requested
         eventBus.on(DASHBOARD_EVENTS.LOADING_START, async (data) => {
             console.log('🔄 [DashboardEventSystem] Data refresh requested:', data?.reason);
             
             try {
-                const leadManager = container.get('leadManager');
+                // Use global window reference instead of container
+                const leadManager = window.LeadManager;
+                if (!leadManager) {
+                    throw new Error('LeadManager not available');
+                }
+                
                 await leadManager.loadDashboardData();
                 
                 eventBus.emit(DASHBOARD_EVENTS.DATA_REFRESH_COMPLETE, {
@@ -76,16 +83,20 @@ class DashboardEventSystem {
         
         // Data loading start
         eventBus.on(DASHBOARD_EVENTS.DATA_LOADING_START, (data) => {
-            const stateManager = container.get('stateManager');
-            stateManager.setState('isLoading', true);
-            stateManager.setState('loadingMessage', data?.message || 'Loading...');
+            const stateManager = window.StateManager || window.OsliraStateManager;
+            if (stateManager) {
+                stateManager.setState('isLoading', true);
+                stateManager.setState('loadingMessage', data?.message || 'Loading...');
+            }
         });
         
         // Data loading end
         eventBus.on(DASHBOARD_EVENTS.DATA_LOADING_END, () => {
-            const stateManager = container.get('stateManager');
-            stateManager.setState('isLoading', false);
-            stateManager.setState('loadingMessage', null);
+            const stateManager = window.StateManager || window.OsliraStateManager;
+            if (stateManager) {
+                stateManager.setState('isLoading', false);
+                stateManager.setState('loadingMessage', null);
+            }
         });
         
         // Data refresh complete
@@ -97,20 +108,24 @@ class DashboardEventSystem {
     /**
      * Analysis completion and queue events
      */
-    static setupAnalysisEvents(eventBus, container) {
+    static setupAnalysisEvents(eventBus) {
         // Analysis completed - refresh dashboard data
         eventBus.on(DASHBOARD_EVENTS.ANALYSIS_COMPLETED, async (data) => {
             const username = data?.username || data?.analysis?.username;
             console.log('🎯 [DashboardEventSystem] Analysis completed:', username);
             
             try {
-                // Refresh dashboard data
-                const leadManager = container.get('leadManager');
-                await leadManager.loadDashboardData();
+                // Refresh dashboard data using global window references
+                const leadManager = window.LeadManager;
+                if (leadManager) {
+                    await leadManager.loadDashboardData();
+                }
                 
                 // Update stats
-                const statsCalculator = container.get('statsCalculator');
-                await statsCalculator.refreshStats();
+                const statsCalculator = window.StatsCalculator;
+                if (statsCalculator) {
+                    await statsCalculator.refreshStats();
+                }
                 
                 // Notify UI
                 eventBus.emit(DASHBOARD_EVENTS.UI_UPDATE, {
@@ -156,45 +171,55 @@ class DashboardEventSystem {
         
         // Analysis queue updates
         eventBus.on(DASHBOARD_EVENTS.ANALYSIS_QUEUE_UPDATE, (data) => {
-            const stateManager = container.get('stateManager');
-            stateManager.setState('analysisQueue', data?.queue);
-            stateManager.setState('analysisInProgress', data?.inProgress);
+            const stateManager = window.StateManager || window.OsliraStateManager;
+            if (stateManager) {
+                stateManager.setState('analysisQueue', data?.queue);
+                stateManager.setState('analysisInProgress', data?.inProgress);
+            }
         });
     }
     
     /**
      * Business profile change events
      */
-    static setupBusinessEvents(eventBus, container) {
+    static setupBusinessEvents(eventBus) {
         // Business changed - reload all business-dependent data
         eventBus.on(DASHBOARD_EVENTS.BUSINESS_CHANGED, async (data) => {
             console.log('🏢 [DashboardEventSystem] Business changed:', data?.businessId);
             
             try {
-                const stateManager = container.get('stateManager');
+                const stateManager = window.StateManager || window.OsliraStateManager;
                 
-                // Update state first
-                stateManager.setState('selectedBusiness', data?.business);
-                stateManager.setState('isLoading', true);
-                stateManager.setState('loadingMessage', 'Switching business...');
+                if (stateManager) {
+                    // Update state first
+                    stateManager.setState('selectedBusiness', data?.business);
+                    stateManager.setState('isLoading', true);
+                    stateManager.setState('loadingMessage', 'Switching business...');
+                }
                 
                 // Reload data for new business
-                const leadManager = container.get('leadManager');
-                await leadManager.loadDashboardData();
+                const leadManager = window.LeadManager;
+                if (leadManager) {
+                    await leadManager.loadDashboardData();
+                }
                 
                 // Update stats
-                const statsCalculator = container.get('statsCalculator');
-                await statsCalculator.refreshStats();
+                const statsCalculator = window.StatsCalculator;
+                if (statsCalculator) {
+                    await statsCalculator.refreshStats();
+                }
                 
                 // Update real-time subscription
-                const realtimeManager = container.get('realtimeManager');
+                const realtimeManager = window.RealtimeManager;
                 if (realtimeManager && realtimeManager.updateSubscription) {
                     await realtimeManager.updateSubscription(data?.businessId);
                 }
                 
                 // Update loading state
-                stateManager.setState('isLoading', false);
-                stateManager.setState('loadingMessage', null);
+                if (stateManager) {
+                    stateManager.setState('isLoading', false);
+                    stateManager.setState('loadingMessage', null);
+                }
                 
                 // Emit completion event
                 eventBus.emit(DASHBOARD_EVENTS.BUSINESS_CHANGE_COMPLETE, {
@@ -215,9 +240,11 @@ class DashboardEventSystem {
                 });
                 
                 // Update state
-                const stateManager = container.get('stateManager');
-                stateManager.setState('isLoading', false);
-                stateManager.setState('loadingMessage', null);
+                const stateManager = window.StateManager || window.OsliraStateManager;
+                if (stateManager) {
+                    stateManager.setState('isLoading', false);
+                    stateManager.setState('loadingMessage', null);
+                }
                 
                 eventBus.emit(DASHBOARD_EVENTS.DATA_ERROR, {
                     source: 'business_change',
@@ -230,8 +257,10 @@ class DashboardEventSystem {
         // Business list updated
         eventBus.on(DASHBOARD_EVENTS.BUSINESS_LIST_UPDATED, (data) => {
             console.log('📋 [DashboardEventSystem] Business list updated');
-            const stateManager = container.get('stateManager');
-            stateManager.setState('businesses', data?.businesses);
+            const stateManager = window.StateManager || window.OsliraStateManager;
+            if (stateManager) {
+                stateManager.setState('businesses', data?.businesses);
+            }
         });
         
         // Business loaded
@@ -243,7 +272,7 @@ class DashboardEventSystem {
     /**
      * Error and system events
      */
-    static setupErrorEvents(eventBus, container) {
+    static setupErrorEvents(eventBus) {
         // Global dashboard error
         eventBus.on(DASHBOARD_EVENTS.ERROR, (errorData) => {
             console.error('🚨 [DashboardEventSystem] Dashboard error:', errorData);
@@ -255,14 +284,14 @@ class DashboardEventSystem {
                 metadata: errorData?.context
             });
             
-            this.handleDashboardError(errorData, container);
+            this.handleDashboardError(errorData);
         });
         
         // Data-specific errors
         eventBus.on(DASHBOARD_EVENTS.DATA_ERROR, (errorData) => {
             console.error('📊 [DashboardEventSystem] Data error:', errorData?.source);
             
-            this.handleDataError(errorData, container);
+            this.handleDataError(errorData);
         });
         
         // Warning events
@@ -270,21 +299,26 @@ class DashboardEventSystem {
             console.warn('⚠️ [DashboardEventSystem] Warning:', warningData?.message);
             
             // Log to Core's logger
-            window.Logger?.warn('[Dashboard]', warningData?.message, warningData?.context);
+            const logger = window.Logger || window.OsliraLogger;
+            if (logger && logger.warn) {
+                logger.warn('[Dashboard]', warningData?.message, warningData?.context);
+            }
         });
     }
     
     /**
      * Connection and real-time events
      */
-    static setupConnectionEvents(eventBus, container) {
+    static setupConnectionEvents(eventBus) {
         // Connection status changed
         eventBus.on(DASHBOARD_EVENTS.CONNECTION_STATUS_CHANGED, (data) => {
             console.log('🔌 [DashboardEventSystem] Connection status:', data?.status);
             
-            const stateManager = container.get('stateManager');
-            stateManager.setState('connectionStatus', data?.status);
-            stateManager.setState('lastConnectionUpdate', Date.now());
+            const stateManager = window.StateManager || window.OsliraStateManager;
+            if (stateManager) {
+                stateManager.setState('connectionStatus', data?.status);
+                stateManager.setState('lastConnectionUpdate', Date.now());
+            }
         });
         
         // Real-time connected
@@ -307,8 +341,10 @@ class DashboardEventSystem {
                 case 'lead_updated':
                 case 'lead_deleted':
                     // Refresh lead data
-                    const leadManager = container.get('leadManager');
-                    await leadManager.loadDashboardData();
+                    const leadManager = window.LeadManager;
+                    if (leadManager) {
+                        await leadManager.loadDashboardData();
+                    }
                     break;
                     
                 case 'analysis_completed':
@@ -326,16 +362,21 @@ class DashboardEventSystem {
             
             if (data?.status === 'signed_out') {
                 // Clear sensitive data
-                const stateManager = container.get('stateManager');
-                stateManager.batchUpdate({
-                    leads: [],
-                    businesses: [],
-                    selectedBusiness: null,
-                    user: null
-                }, true); // Silent update
+                const stateManager = window.StateManager || window.OsliraStateManager;
+                if (stateManager) {
+                    stateManager.batchUpdate({
+                        leads: [],
+                        businesses: [],
+                        selectedBusiness: null,
+                        user: null
+                    }, true); // Silent update
+                }
                 
                 // Redirect to auth using Core's navigation helper
-                window.NavigationHelper.navigateTo('auth');
+                const nav = window.NavigationHelper || window.OsliraNav;
+                if (nav && nav.navigateTo) {
+                    nav.navigateTo('auth');
+                }
             }
         });
     }
@@ -344,16 +385,18 @@ class DashboardEventSystem {
      * Handle dashboard errors
      * Coordinates error recovery and user notification
      */
-    static handleDashboardError(errorData, container) {
+    static handleDashboardError(errorData) {
         const { source, error, context } = errorData;
         
         // Update state
-        const stateManager = container.get('stateManager');
-        stateManager.setState('lastError', {
-            source,
-            message: error?.message || String(error),
-            timestamp: Date.now()
-        });
+        const stateManager = window.StateManager || window.OsliraStateManager;
+        if (stateManager) {
+            stateManager.setState('lastError', {
+                source,
+                message: error?.message || String(error),
+                timestamp: Date.now()
+            });
+        }
         
         // Handle specific error types
         switch (source) {
@@ -386,20 +429,22 @@ class DashboardEventSystem {
     /**
      * Handle data-specific errors
      */
-    static handleDataError(errorData, container) {
+    static handleDataError(errorData) {
         const { source, error } = errorData;
         
         // Stop loading state
-        const stateManager = container.get('stateManager');
-        stateManager.setState('isLoading', false);
-        stateManager.setState('loadingMessage', null);
-        
-        // Update error state
-        stateManager.setState('lastError', {
-            source,
-            message: error?.message || String(error),
-            timestamp: Date.now()
-        });
+        const stateManager = window.StateManager || window.OsliraStateManager;
+        if (stateManager) {
+            stateManager.setState('isLoading', false);
+            stateManager.setState('loadingMessage', null);
+            
+            // Update error state
+            stateManager.setState('lastError', {
+                source,
+                message: error?.message || String(error),
+                timestamp: Date.now()
+            });
+        }
         
         // Show user-friendly message
         const message = this.getErrorMessage(source, error);
