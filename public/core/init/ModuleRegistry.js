@@ -187,9 +187,16 @@ dashboard: {
         '/core/ui/components/layouts/AppSidebar.js',
         
         // ============================================================
-        // PHASE 22: EVENT SYSTEM (MUST BE LAST)
+        // PHASE 22: EVENT SYSTEM (MUST BE LAST FOR MAIN FILES)
         // ============================================================
-        '/pages/app/dashboard/core/DashboardEventSystem.js'
+        '/pages/app/dashboard/core/DashboardEventSystem.js', 
+
+                
+        // ============================================================
+        // PHASE 99: DEVCONSOLE (Load last)
+        // ============================================================
+        '/core/dev/tests/DashboardTest.js',   // Dashboard tests
+        '/core/dev/DevConsole.js'
     ],
     requiresAuth: true,
     description: 'Lead research dashboard'
