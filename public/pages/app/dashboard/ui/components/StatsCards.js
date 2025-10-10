@@ -108,8 +108,8 @@ class StatsCards {
 </div>`;
     }
     
-    renderPerformanceMetrics() {
-        return `
+   renderPerformanceMetrics() {
+    return `
 <!-- Monthly Metrics -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <!-- Credits Remaining -->
@@ -118,10 +118,10 @@ class StatsCards {
             <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
                 ${window.IconComponents.getCreditsIcon()}
             </div>
-            <span id="credits-percent" class="text-xs text-gray-500">0% used</span>
+            <span id="credits-percent" class="text-xs text-gray-500">--% used</span>
         </div>
         <h3 class="text-2xl font-bold text-gray-800">
-            <span id="credits-used">300</span> / <span id="credits-total">300</span>
+            <span id="credits-used">--</span> / <span id="credits-total">25</span>
         </h3>
         <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Credits Remaining This Month</p>
     </div>
@@ -132,9 +132,9 @@ class StatsCards {
             <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                 ${window.IconComponents.getSearchIcon()}
             </div>
-            <span class="text-xs text-green-600 font-semibold">+23% from last month</span>
+            <span id="leads-trend" class="text-xs text-gray-500 font-semibold">--%</span>
         </div>
-        <h3 class="text-2xl font-bold text-gray-800" id="leads-researched">4</h3>
+        <h3 class="text-2xl font-bold text-gray-800" id="leads-researched">--</h3>
         <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Leads Researched This Month</p>
     </div>
     
@@ -144,10 +144,10 @@ class StatsCards {
             <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                 ${window.IconComponents.getBarChartIcon()}
             </div>
-            <span class="text-xs text-red-600 font-semibold">NEEDS IMPROVEMENT</span>
+            <span id="quality-status" class="text-xs text-gray-500 font-semibold">--</span>
         </div>
         <h3 class="text-2xl font-bold text-gray-800">
-            <span id="avg-quality">47</span> / 100
+            <span id="avg-quality">--</span> / 100
         </h3>
         <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Avg quality score</p>
     </div>
@@ -160,11 +160,11 @@ class StatsCards {
             </div>
             <span id="premium-view-link" class="text-xs text-blue-600 font-semibold cursor-pointer hover:text-blue-700 transition-colors">VIEW</span>
         </div>
-        <h3 class="text-2xl font-bold text-gray-800" id="premium-leads">1</h3>
+        <h3 class="text-2xl font-bold text-gray-800" id="premium-leads">--</h3>
         <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Premium leads (80+)</p>
     </div>
 </div>`;
-    }
+}
 
     updateStats(stats) {
         const elements = {
