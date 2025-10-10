@@ -156,9 +156,7 @@ const DAILY_TIPS = [
 `Gratitude turns scarcity into enough and enough into abundance. Thankful for two clients? That energy attracts three more. Scarcity mindset repels them. 🙏`
 ];
 
-// Export
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { DAILY_TIPS };
-} else {
-    window.DAILY_TIPS = DAILY_TIPS;
+if (typeof window !== 'undefined') {
+    window.DailyTips = new DailyTips();
+    console.log('✅ [DailyTips] Auto-initialized and available globally');
 }
