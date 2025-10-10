@@ -570,9 +570,11 @@ class DashboardHeader {
         console.log('📊 [DashboardHeader] Opening bulk modal...');
         
         // Try accessing via global window objects (NEW SYSTEM)
-        if (window.ModalManager) {
-            window.ModalManager.openModal('bulkModal');
-        } else {
+if (window.modalManagerInstance) {
+    window.modalManagerInstance.openModal('bulkModal');
+} else if (this.modalManager) {
+    this.modalManager.openModal('bulkModal');
+} else {
             console.error('❌ [DashboardHeader] ModalManager not available on window');
         }
     }
