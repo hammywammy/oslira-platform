@@ -267,13 +267,13 @@ getSidebarHTML() {
                             </svg>
                         </div>
                         <div class="nav-items">
-                            <a href="${window.OsliraEnv.getAppUrl('/campaigns')}" data-page="campaigns" class="nav-item">
-                               data-page="campaigns" 
-                               class="nav-item"
-                               data-tooltip="Campaigns">
-                                <span class="nav-icon">🎯</span>
-                                <span class="nav-text">Campaigns</span>
-                            </a>
+<a href="${window.OsliraEnv.getAppUrl('/campaigns')}" 
+   data-page="campaigns" 
+   class="nav-item"
+   data-tooltip="Campaigns">
+   <span class="nav-icon">🎯</span>
+   <span class="nav-text">Campaigns</span>
+</a>
                             <a href="${window.OsliraEnv.getAppUrl('/messages')}" data-page="messages" class="nav-item">
                                data-page="messages" 
                                class="nav-item"
