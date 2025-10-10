@@ -547,24 +547,25 @@ class DashboardHeader {
         });
     }
 
-openResearchModal() {
-    console.log('🔍 [DashboardHeader] Opening research modal...');
-    const modal = document.getElementById('researchModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.style.display = 'flex';
-    }
-}
-
-/**
- * Open bulk modal - Direct DOM manipulation
- */
 openBulkModal() {
     console.log('📊 [DashboardHeader] Opening bulk modal...');
     const modal = document.getElementById('bulkModal');
     if (modal) {
         modal.classList.remove('hidden');
-        modal.style.display = 'flex';
+        console.log('✅ Bulk modal opened');
+    } else {
+        console.error('❌ bulkModal element not found');
+    }
+}
+
+openResearchModal() {
+    console.log('🔍 [DashboardHeader] Opening research modal...');
+    const modal = document.getElementById('researchModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        console.log('✅ Research modal opened');
+    } else {
+        console.error('❌ researchModal element not found');
     }
 }
 
