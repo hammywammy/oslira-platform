@@ -122,21 +122,34 @@ class TooltipManager {
     // SHOW/HIDE
     // =========================================================================
 
-    show(target) {
-        const text = target.dataset.tooltip;
-        if (!text) return;
-        
-        // Set content
-        this.tooltip.textContent = text;
-        
-        // Position tooltip
-        this.position(target);
-        
-        // Fade in
-        requestAnimationFrame(() => {
-            this.tooltip.style.opacity = '1';
-        });
+show(target) {
+    const text = target.dataset.tooltip;
+    if (!text) return;
+    
+    // CHECK: Only show tooltip if sidebar is collapsed
+    const sidebar = document.querySelector('#sidebar-container');
+    const isInSidebar = sidebar?.contains(target);
+    
+    if (isInSidebar) {
+        const isCollapsed = sidebar?.classList.contains('collapsed');
+        if (!isCollapsed) {
+            // Sidebar is expanded - don't show tooltip
+            return;
+        }
     }
+    // If not in sidebar, always show tooltip (for other UI elements)
+    
+    // Set content
+    this.tooltip.textContent = text;
+    
+    // Position tooltip
+    this.position(target);
+    
+    // Fade in
+    requestAnimationFrame(() => {
+        this.tooltip.style.opacity = '1';
+    });
+}
 
     hide() {
         this.tooltip.style.opacity = '0';
