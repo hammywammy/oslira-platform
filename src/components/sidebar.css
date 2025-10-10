@@ -1,7 +1,7 @@
 /* =============================================================================
-   SIDEBAR - Enterprise Architecture CSS
-   Pure CSS custom properties + flexbox layout
-   Zero !important, zero fighting, zero alignment battles
+   ENTERPRISE SIDEBAR - Pure Flexbox Architecture
+   Following audit report: Self-contained layout cells
+   Zero position hacks, zero margin manipulation
    ============================================================================= */
 
 /* =============================================================================
@@ -41,7 +41,8 @@
 }
 
 /* =============================================================================
-   APP LAYOUT - Flexbox Container (Sidebar + Main Content)
+   APP LAYOUT - Flexbox Container (Enterprise Pattern)
+   Sidebar is a FLEX CHILD, not a fixed overlay
    ============================================================================= */
 
 body {
@@ -52,12 +53,19 @@ body {
   overflow-x: hidden;
 }
 
-/* Sidebar container - fixed width, flexbox child */
+/* =============================================================================
+   SIDEBAR CONTAINER - Flex Child
+   This is the layout cell that takes up space in the flexbox
+   ============================================================================= */
+
 #sidebar-container {
   flex: 0 0 var(--sidebar-width);
   width: var(--sidebar-width);
   transition: flex-basis var(--transition-speed) var(--transition-timing),
               width var(--transition-speed) var(--transition-timing);
+  position: relative;  /* NOT fixed */
+  height: 100vh;
+  overflow: hidden;
 }
 
 #sidebar-container.collapsed {
@@ -65,37 +73,38 @@ body {
   width: var(--sidebar-collapsed-width);
 }
 
-/* Main content - flexible, takes remaining space */
+/* =============================================================================
+   MAIN CONTENT - Flex Child
+   No margin hacks needed - flexbox handles everything
+   ============================================================================= */
+
 .main-content {
   flex: 1;
-  min-width: 0; /* Prevents flex child overflow */
+  min-width: 0;
   overflow-x: auto;
+  /* NO margin-left - that's the old broken way */
 }
 
 /* =============================================================================
-   SIDEBAR COMPONENT
+   SIDEBAR COMPONENT - Self-Contained
+   No position: fixed - it's a flexbox child now
    ============================================================================= */
 
 .sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  width: var(--sidebar-width);
+  /* CRITICAL FIX: Changed from position: fixed to relative */
+  position: relative;  /* Self-contained within its flex parent */
+  width: 100%;
+  height: 100%;
   background: var(--sidebar-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-right: 1px solid var(--sidebar-border);
   display: flex;
   flex-direction: column;
-  transition: width var(--transition-speed) var(--transition-timing);
   z-index: 40;
   box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   overflow: hidden;
-}
-
-.sidebar.collapsed {
-  width: var(--sidebar-collapsed-width);
+  /* NO width transition - parent handles it via CSS variables */
 }
 
 .sidebar-container {
@@ -149,7 +158,7 @@ body {
   transition: opacity var(--transition-speed);
 }
 
-.sidebar.collapsed .sidebar-logo-text {
+#sidebar-container.collapsed .sidebar-logo-text {
   opacity: 0;
   width: 0;
   overflow: hidden;
@@ -179,18 +188,14 @@ body {
   display: block;
 }
 
-.sidebar.collapsed .sidebar-toggle-btn {
+#sidebar-container.collapsed .sidebar-toggle-btn {
   opacity: 0;
   pointer-events: none;
 }
 
-.sidebar.collapsed:hover .sidebar-toggle-btn {
+#sidebar-container.collapsed:hover .sidebar-toggle-btn {
   opacity: 1;
   pointer-events: auto;
-}
-
-.sidebar.collapsed:hover .sidebar-logo-image {
-  opacity: 0;
 }
 
 /* =============================================================================
@@ -207,7 +212,7 @@ body {
   gap: var(--section-gap);
 }
 
-.sidebar.collapsed .sidebar-nav {
+#sidebar-container.collapsed .sidebar-nav {
   padding: var(--sidebar-collapsed-padding);
   align-items: center;
 }
@@ -262,7 +267,7 @@ body {
   transition: opacity var(--transition-speed);
 }
 
-.sidebar.collapsed .nav-section-header {
+#sidebar-container.collapsed .nav-section-header {
   opacity: 0;
   width: 0;
   overflow: hidden;
@@ -278,7 +283,7 @@ body {
   transform: rotate(-90deg);
 }
 
-.sidebar.collapsed .section-chevron {
+#sidebar-container.collapsed .section-chevron {
   display: none;
 }
 
@@ -340,7 +345,7 @@ body {
   justify-content: center;
 }
 
-.sidebar.collapsed .nav-item {
+#sidebar-container.collapsed .nav-item {
   justify-content: center;
   padding: 0.625rem;
 }
@@ -352,7 +357,7 @@ body {
   text-overflow: ellipsis;
 }
 
-.sidebar.collapsed .nav-text {
+#sidebar-container.collapsed .nav-text {
   opacity: 0;
   width: 0;
 }
@@ -387,7 +392,7 @@ body {
   border-color: #d1d5db;
 }
 
-.sidebar.collapsed .account-trigger {
+#sidebar-container.collapsed .account-trigger {
   justify-content: center;
   padding: 0.625rem;
 }
@@ -413,7 +418,7 @@ body {
   transition: opacity var(--transition-speed);
 }
 
-.sidebar.collapsed .account-info {
+#sidebar-container.collapsed .account-info {
   opacity: 0;
   width: 0;
   overflow: hidden;
@@ -440,7 +445,7 @@ body {
   flex-shrink: 0;
 }
 
-.sidebar.collapsed .account-chevron {
+#sidebar-container.collapsed .account-chevron {
   opacity: 0;
   width: 0;
 }
@@ -477,7 +482,7 @@ body {
   transform: translateY(0);
 }
 
-.sidebar.collapsed .account-dropdown {
+#sidebar-container.collapsed .account-dropdown {
   left: calc(100% + 0.5rem);
   right: auto;
   bottom: 0;
