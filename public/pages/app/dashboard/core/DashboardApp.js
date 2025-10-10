@@ -359,39 +359,53 @@ class DashboardApp {
         console.log('✅ [DashboardApp] Stats cards rendered');
     }
     
-    async renderLeadsTable() {
-        if (!window.LeadsTable) return;
+async renderLeadsTable() {
+    if (!window.LeadsTable) return;
+    
+    console.log('📋 [DashboardApp] Rendering leads table...');
+    
+    this.components.leadsTable = new window.LeadsTable();
+    const tableEl = document.getElementById('leads-table-container');
+    
+    if (tableEl && typeof this.components.leadsTable.renderTableContainer === 'function') {
+        tableEl.innerHTML = this.components.leadsTable.renderTableContainer(); // ✅ CHANGED: was render()
         
-        console.log('📋 [DashboardApp] Rendering leads table...');
-        
-        this.components.leadsTable = new window.LeadsTable();
-        const tableEl = document.getElementById('leads-table-container');
-        
-        if (tableEl && typeof this.components.leadsTable.render === 'function') {
-            tableEl.innerHTML = this.components.leadsTable.render();
-            
-            if (typeof this.components.leadsTable.initialize === 'function') {
-                await this.components.leadsTable.initialize();
-            }
-            
-            window.leadsTableInstance = this.components.leadsTable;
-            console.log('✅ [DashboardApp] Leads table rendered');
+        if (typeof this.components.leadsTable.setupEventHandlers === 'function') {
+            this.components.leadsTable.setupEventHandlers(); // ✅ ADDED: Setup handlers
         }
         
-        // Setup lead renderer
-        if (window.LeadRenderer) {
-            this.components.leadRenderer = new window.LeadRenderer();
-            window.leadRendererInstance = this.components.leadRenderer;
-            
-            // Listen for leads loaded
-            if (window.OsliraEventBus) {
-                window.OsliraEventBus.on('leads:loaded', (leadsData) => {
-                    const leads = Array.isArray(leadsData) ? leadsData : (leadsData.leads || leadsData);
-                    this.renderLeads(leads);
-                });
-            }
+        window.leadsTableInstance = this.components.leadsTable;
+        console.log('✅ [DashboardApp] Leads table rendered');
+    }
+    
+    // Setup lead renderer
+    if (window.LeadRenderer) {
+        this.components.leadRenderer = new window.LeadRenderer();
+        window.leadRendererInstance = this.components.leadRenderer;
+        
+        // Listen for leads loaded
+        if (window.OsliraEventBus) {
+            window.OsliraEventBus.on('leads:loaded', (leadsData) => {
+                const leads = Array.isArray(leadsData) ? leadsData : (leadsData.leads || leadsData);
+                this.renderLeads(leads);
+            });
         }
     }
+}
+
+async renderTipOfDay() {
+    if (!window.TipOfDay) return;
+    
+    console.log('💡 [DashboardApp] Rendering tip of day...');
+    
+    this.components.tipOfDay = new window.TipOfDay();
+    const tipEl = document.getElementById('tip-of-day');
+    
+    if (tipEl && typeof this.components.tipOfDay.renderTip === 'function') {
+        tipEl.innerHTML = this.components.tipOfDay.renderTip(); // ✅ CHANGED: was render()
+        console.log('✅ [DashboardApp] Tip of day rendered');
+    }
+}
     
     async renderInsightsPanel() {
         if (!window.InsightsPanel) return;
@@ -411,26 +425,6 @@ class DashboardApp {
             console.log('✅ [DashboardApp] Insights panel rendered');
         }
     }
-    
-    async renderTipOfDay() {
-        if (!window.TipOfDay) return;
-        
-        console.log('💡 [DashboardApp] Rendering tip of day...');
-        
-        this.components.tipOfDay = new window.TipOfDay();
-        const tipEl = document.getElementById('tip-of-day');
-        
-        if (tipEl && typeof this.components.tipOfDay.render === 'function') {
-            tipEl.innerHTML = this.components.tipOfDay.render();
-            
-            if (typeof this.components.tipOfDay.initialize === 'function') {
-                await this.components.tipOfDay.initialize();
-            }
-            
-            console.log('✅ [DashboardApp] Tip of day rendered');
-        }
-    }
-    
     renderLeads(leads) {
         try {
             if (!this.components.leadRenderer) return;
