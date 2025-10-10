@@ -5,15 +5,15 @@
  * Core queue management logic - delegates rendering/animation to submodules
  */
 class AnalysisQueue {
-    constructor(container) {
-        this.container = container;
-        this.eventBus = container.get('eventBus');
-        this.stateManager = container.get('stateManager');
-        this.supabase = container.get('supabase');
-        this.osliraAuth = container.get('osliraAuth');
+    constructor() {
+        // Use global window objects directly (no container)
+        this.eventBus = window.EventBus || window.OsliraEventBus;
+        this.stateManager = window.StateManager || window.OsliraStateManager;
+        this.supabase = window.OsliraAuth?.supabase;
+        this.osliraAuth = window.OsliraAuth;
 
         if (!this.supabase) {
-            console.warn('⚠️ [AnalysisQueue] No Supabase client from container, will use OsliraAuth fallback');
+            console.warn('⚠️ [AnalysisQueue] No Supabase client from OsliraAuth, will use fallback');
         }
 
         // Queue configuration
@@ -77,23 +77,23 @@ class AnalysisQueue {
 
             if (!analysisId) return;
 
-switch (action) {
-    case 'minimize':
-        this.toggleMinimize(analysisId);
-        break;
-    case 'remove':
-        const analysis = this.activeAnalyses.get(analysisId);
-        if (analysis && (analysis.status === 'starting' || analysis.status === 'analyzing')) {
-            // Confirm cancellation for active analyses
-            if (confirm(`Cancel analysis for @${analysis.username}?`)) {
-                this.cancelAnalysis(analysisId);
+            switch (action) {
+                case 'minimize':
+                    this.toggleMinimize(analysisId);
+                    break;
+                case 'remove':
+                    const analysis = this.activeAnalyses.get(analysisId);
+                    if (analysis && (analysis.status === 'starting' || analysis.status === 'analyzing')) {
+                        // Confirm cancellation for active analyses
+                        if (confirm(`Cancel analysis for @${analysis.username}?`)) {
+                            this.cancelAnalysis(analysisId);
+                        }
+                    } else {
+                        // Just remove completed/failed analyses
+                        this.removeAnalysis(analysisId);
+                    }
+                    break;
             }
-        } else {
-            // Just remove completed/failed analyses
-            this.removeAnalysis(analysisId);
-        }
-        break;
-}
         });
 
         console.log('✅ [AnalysisQueue] Event delegation setup complete');
@@ -147,36 +147,35 @@ switch (action) {
 
         document.body.appendChild(wrapper);
 
-        // Setup toggle functionality
-// Setup toggle functionality with multiple event types for reliability
-const toggleBtn = document.getElementById('queue-toggle-btn');
-const queueWrapper = document.getElementById('analysis-queue-wrapper');
+        // Setup toggle functionality with multiple event types for reliability
+        const toggleBtn = document.getElementById('queue-toggle-btn');
+        const queueWrapper = document.getElementById('analysis-queue-wrapper');
 
-const toggleQueue = (e) => {
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-    
-    const isCollapsed = queueWrapper.classList.contains('collapsed');
-    
-    console.log('🔄 [AnalysisQueue] Toggle clicked, collapsed:', isCollapsed);
-    
-    if (isCollapsed) {
-        queueWrapper.classList.remove('collapsed');
-        const svg = toggleBtn.querySelector('svg');
-        if (svg) svg.style.transform = 'rotate(180deg)';
-    } else {
-        queueWrapper.classList.add('collapsed');
-        const svg = toggleBtn.querySelector('svg');
-        if (svg) svg.style.transform = 'rotate(0deg)';
-    }
-};
+        const toggleQueue = (e) => {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            const isCollapsed = queueWrapper.classList.contains('collapsed');
+            
+            console.log('🔄 [AnalysisQueue] Toggle clicked, collapsed:', isCollapsed);
+            
+            if (isCollapsed) {
+                queueWrapper.classList.remove('collapsed');
+                const svg = toggleBtn.querySelector('svg');
+                if (svg) svg.style.transform = 'rotate(180deg)';
+            } else {
+                queueWrapper.classList.add('collapsed');
+                const svg = toggleBtn.querySelector('svg');
+                if (svg) svg.style.transform = 'rotate(0deg)';
+            }
+        };
 
-// Add multiple event listeners for reliability
-toggleBtn.addEventListener('click', toggleQueue, true);
-toggleBtn.addEventListener('mousedown', toggleQueue, true);
-toggleBtn.addEventListener('touchstart', toggleQueue, true);
+        // Add multiple event listeners for reliability
+        toggleBtn.addEventListener('click', toggleQueue, true);
+        toggleBtn.addEventListener('mousedown', toggleQueue, true);
+        toggleBtn.addEventListener('touchstart', toggleQueue, true);
 
         console.log('✅ [AnalysisQueue] Collapsible container created');
     }
@@ -292,32 +291,33 @@ toggleBtn.addEventListener('touchstart', toggleQueue, true);
 
         console.log(`${success ? '✅' : '❌'} [AnalysisQueue] ${success ? 'Completed' : 'Failed'}: @${analysis.username}`);
     }
-cancelAnalysis(analysisId) {
-    const analysis = this.activeAnalyses.get(analysisId);
-    if (!analysis) return;
 
-    console.log(`🚫 [AnalysisQueue] Cancelling analysis: ${analysisId}`);
-    
-    // Stop any running intervals
-    if (analysis.progressInterval) {
-        clearInterval(analysis.progressInterval);
+    cancelAnalysis(analysisId) {
+        const analysis = this.activeAnalyses.get(analysisId);
+        if (!analysis) return;
+
+        console.log(`🚫 [AnalysisQueue] Cancelling analysis: ${analysisId}`);
+        
+        // Stop any running intervals
+        if (analysis.progressInterval) {
+            clearInterval(analysis.progressInterval);
+        }
+        if (analysis.stageInterval) {
+            clearInterval(analysis.stageInterval);
+        }
+        
+        // Update status to cancelled
+        analysis.status = 'failed';
+        analysis.message = 'Analysis cancelled';
+        analysis.endTime = Date.now();
+        
+        // Trigger immediate removal
+        setTimeout(() => {
+            this.removeAnalysis(analysisId);
+        }, 500);
+        
+        this.renderQueue();
     }
-    if (analysis.stageInterval) {
-        clearInterval(analysis.stageInterval);
-    }
-    
-    // Update status to cancelled
-    analysis.status = 'failed';
-    analysis.message = 'Analysis cancelled';
-    analysis.endTime = Date.now();
-    
-    // Trigger immediate removal
-    setTimeout(() => {
-        this.removeAnalysis(analysisId);
-    }, 500);
-    
-    this.renderQueue();
-}
     
     removeAnalysis(analysisId) {
         const analysis = this.activeAnalyses.get(analysisId);
@@ -369,126 +369,127 @@ cancelAnalysis(analysisId) {
     // ANALYSIS EXECUTION
     // ===============================================================================
 
-  async startSingleAnalysis(username, analysisType, businessId, requestData) {
-    console.log('🚀 [AnalysisQueue] Starting single analysis:', { username, analysisType, businessId });
+    async startSingleAnalysis(username, analysisType, businessId, requestData) {
+        console.log('🚀 [AnalysisQueue] Starting single analysis:', { username, analysisType, businessId });
 
-    if (!this.supabase) {
-        console.error('❌ [AnalysisQueue] No Supabase client available');
-        throw new Error('Database connection not configured');
-    }
-
-    let supabaseClient = this.supabase;
-
-    if (!supabaseClient.supabaseUrl && window.OsliraAuth?.supabase) {
-        console.log('🔄 [AnalysisQueue] Getting fresh Supabase client from OsliraAuth');
-        supabaseClient = window.OsliraAuth.supabase;
+        // Get supabase client with fallback
+        let supabaseClient = this.supabase || window.OsliraAuth?.supabase;
 
         if (!supabaseClient) {
-            throw new Error('Unable to get Supabase client from OsliraAuth');
+            console.error('❌ [AnalysisQueue] No Supabase client available');
+            throw new Error('Database connection not configured');
+        }
+
+        if (!supabaseClient.supabaseUrl && window.OsliraAuth?.supabase) {
+            console.log('🔄 [AnalysisQueue] Getting fresh Supabase client from OsliraAuth');
+            supabaseClient = window.OsliraAuth.supabase;
+
+            if (!supabaseClient) {
+                throw new Error('Unable to get Supabase client from OsliraAuth');
+            }
+        }
+
+        const analysisId = this.addAnalysis(username, analysisType, businessId);
+        this.animator.startStageBasedProgress(analysisId);
+
+        try {
+            // Get worker URL
+            const workerUrl = window.OsliraConfig?.workerUrl || 
+                              window.OsliraEnv?.WORKER_URL || 
+                              'https://api.oslira.com';
+
+            // Get auth token
+            const session = await supabaseClient.auth.getSession();
+            const authToken = session?.data?.session?.access_token;
+
+            if (!authToken) {
+                throw new Error('No authentication token available');
+            }
+
+            console.log('📡 [AnalysisQueue] Calling worker:', workerUrl);
+
+            // Call Cloudflare Worker
+            const response = await fetch(`${workerUrl}/v1/analyze`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify({
+                    profile_url: `https://instagram.com/${requestData.username}`,
+                    analysis_type: requestData.analysis_type,
+                    business_id: requestData.business_id,
+                    user_id: requestData.user_id
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+                throw new Error(errorData.error || `Analysis failed: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const result = data?.data || data;
+
+            console.log('📥 [AnalysisQueue] Response data:', { 
+                status: response.status, 
+                success: data.success, 
+                error: data.error,
+                hasResult: !!result 
+            });
+
+            // Check for profile not found errors (backend returns 400 with specific error messages)
+            const isProfileNotFound = 
+                !data.success && 
+                data.error && 
+                (data.error.includes('does not exist') || 
+                 data.error.includes('not found') || 
+                 data.error.includes('Profile scraping failed: Instagram profile not found'));
+
+            if (isProfileNotFound) {
+                console.warn('⚠️ [AnalysisQueue] Profile not found');
+                const errorMsg = data.error || 'User does not exist. 1 token has been charged.';
+                this.completeAnalysis(analysisId, false, errorMsg);
+                return { success: false, analysisId, error: errorMsg };
+            }
+
+            if (result && data.success) {
+                this.completeAnalysis(analysisId, true, 'Analysis completed!');
+                
+                // Refresh credits after successful analysis
+                if (window.OsliraAuth?.refreshCredits) {
+                    await window.OsliraAuth.refreshCredits();
+                    console.log('💳 [AnalysisQueue] Credits refreshed after analysis');
+                }
+
+                setTimeout(() => {
+                    this.eventBus.emit(window.DASHBOARD_EVENTS.DATA_REFRESH);
+                }, 1000);
+
+                return { success: true, analysisId, result };
+            } else {
+                console.error('❌ [AnalysisQueue] Analysis failed:', result?.error || data.error);
+                this.completeAnalysis(analysisId, false, result?.error || data.error || 'Analysis failed');
+                return { success: false, analysisId, error: result?.error || data.error };
+            }
+        } catch (error) {
+            console.error('❌ [AnalysisQueue] Analysis exception:', error);
+
+            let errorMessage = 'Network error occurred';
+            if (error.message.includes('session')) {
+                errorMessage = 'Please refresh and log in again';
+            } else if (error.message.includes('timeout')) {
+                errorMessage = 'Analysis timed out - please try again';
+            } else if (error.message.includes('credits')) {
+                errorMessage = 'Insufficient credits for analysis';
+            } else {
+                errorMessage = error.message;
+            }
+
+            this.completeAnalysis(analysisId, false, errorMessage);
+            return { success: false, analysisId, error: error.message };
         }
     }
-
-    const analysisId = this.addAnalysis(username, analysisType, businessId);
-    this.animator.startStageBasedProgress(analysisId);
-
-    try {
-        // Get worker URL
-        const workerUrl = window.OsliraConfig?.workerUrl || 
-                          window.OsliraEnv?.WORKER_URL || 
-                          'https://api.oslira.com';
-
-        // Get auth token
-        const session = await supabaseClient.auth.getSession();
-        const authToken = session?.data?.session?.access_token;
-
-        if (!authToken) {
-            throw new Error('No authentication token available');
-        }
-
-        console.log('📡 [AnalysisQueue] Calling worker:', workerUrl);
-
-        // Call Cloudflare Worker
-        const response = await fetch(`${workerUrl}/v1/analyze`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authToken}`
-            },
-            body: JSON.stringify({
-                profile_url: `https://instagram.com/${requestData.username}`,
-                analysis_type: requestData.analysis_type,
-                business_id: requestData.business_id,
-                user_id: requestData.user_id
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Network error' }));
-            throw new Error(errorData.error || `Analysis failed: ${response.status}`);
-        }
-
-const data = await response.json();
-const result = data?.data || data;
-
-console.log('📥 [AnalysisQueue] Response data:', { 
-    status: response.status, 
-    success: data.success, 
-    error: data.error,
-    hasResult: !!result 
-});
-
-// Check for profile not found errors (backend returns 400 with specific error messages)
-const isProfileNotFound = 
-    !data.success && 
-    data.error && 
-    (data.error.includes('does not exist') || 
-     data.error.includes('not found') || 
-     data.error.includes('Profile scraping failed: Instagram profile not found'));
-
-if (isProfileNotFound) {
-    console.warn('⚠️ [AnalysisQueue] Profile not found');
-    const errorMsg = data.error || 'User does not exist. 1 token has been charged.';
-    this.completeAnalysis(analysisId, false, errorMsg);
-    return { success: false, analysisId, error: errorMsg };
-}
-
-if (result && data.success) {
-    this.completeAnalysis(analysisId, true, 'Analysis completed!');
-    
-    // Refresh credits after successful analysis
-    if (window.OsliraAuth?.refreshCredits) {
-        await window.OsliraAuth.refreshCredits();
-        console.log('💳 [AnalysisQueue] Credits refreshed after analysis');
-    }
-
-    setTimeout(() => {
-        this.eventBus.emit(window.DASHBOARD_EVENTS.DATA_REFRESH);
-    }, 1000);
-
-    return { success: true, analysisId, result };
-} else {
-    console.error('❌ [AnalysisQueue] Analysis failed:', result?.error || data.error);
-    this.completeAnalysis(analysisId, false, result?.error || data.error || 'Analysis failed');
-    return { success: false, analysisId, error: result?.error || data.error };
-}
-    } catch (error) {
-        console.error('❌ [AnalysisQueue] Analysis exception:', error);
-
-        let errorMessage = 'Network error occurred';
-        if (error.message.includes('session')) {
-            errorMessage = 'Please refresh and log in again';
-        } else if (error.message.includes('timeout')) {
-            errorMessage = 'Analysis timed out - please try again';
-        } else if (error.message.includes('credits')) {
-            errorMessage = 'Insufficient credits for analysis';
-        } else {
-            errorMessage = error.message;
-        }
-
-        this.completeAnalysis(analysisId, false, errorMessage);
-        return { success: false, analysisId, error: error.message };
-    }
-}
 
     async startBulkAnalysis(leads, analysisType, businessId) {
         console.log(`🚀 [AnalysisQueue] Starting bulk analysis: ${leads.length} leads (${analysisType})`);
@@ -533,13 +534,13 @@ if (result && data.success) {
         const successCount = results.filter(r => r.success).length;
         const failedCount = results.length - successCount;
 
-            console.log('✅ [AnalysisQueue] Bulk analysis completed');
+        console.log('✅ [AnalysisQueue] Bulk analysis completed');
     
-    // ⚠️ ADD THIS HERE:
-    if (window.OsliraAuth?.refreshCredits) {
-        await window.OsliraAuth.refreshCredits();
-        console.log('💳 [AnalysisQueue] Credits refreshed after bulk analysis');
-    }
+        // Refresh credits after bulk analysis
+        if (window.OsliraAuth?.refreshCredits) {
+            await window.OsliraAuth.refreshCredits();
+            console.log('💳 [AnalysisQueue] Credits refreshed after bulk analysis');
+        }
 
         this.eventBus.emit(window.DASHBOARD_EVENTS.DATA_REFRESH);
 
