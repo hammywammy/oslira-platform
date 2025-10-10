@@ -216,12 +216,9 @@ class SidebarManager {
                         <img src="/assets/images/oslira-logo.png" alt="Oslira" class="sidebar-logo-image">
                         <span class="sidebar-logo-text">Oslira</span>
                     </a>
-                    <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle Sidebar">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                            <path d="M9 3v18"></path>
-                        </svg>
-                    </button>
+<button id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle Sidebar">
+    <span class="sidebar-toggle-icon" role="img" aria-label="Toggle sidebar"></span>
+</button>
                 </div>
                 
                 <!-- Navigation -->
