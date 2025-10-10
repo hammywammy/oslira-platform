@@ -10,17 +10,22 @@
  * - window.EventBus for event coordination
  */
 class ResearchHandlers {
-    constructor() {
-        // Use global window objects directly (no container)
-        this.eventBus = window.EventBus || window.OsliraEventBus;
-        this.osliraAuth = window.OsliraAuth;
-        this.osliraAPI = window.OsliraAPI;
-        this.osliraEnv = window.OsliraEnv;
-        
-        this.setupGlobalHandlers();
-        
-        console.log('🔍 [ResearchHandlers] Initialized with Core system');
+constructor() {
+    // Use global window objects directly (no container)
+    this.eventBus = window.EventBus || window.OsliraEventBus;
+    this.osliraAuth = window.OsliraAuth;
+    this.osliraAPI = window.OsliraApiClient;  // ✅ FIXED - correct name
+    this.osliraEnv = window.OsliraEnv;
+    
+    // Add validation
+    if (!this.osliraAPI) {
+        console.error('❌ [ResearchHandlers] OsliraApiClient not found!');
     }
+    
+    this.setupGlobalHandlers();
+    
+    console.log('🔍 [ResearchHandlers] Initialized with Core system');
+}
 
     setupGlobalHandlers() {
         window.submitResearch = () => this.submitResearch();
