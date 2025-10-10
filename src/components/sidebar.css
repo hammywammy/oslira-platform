@@ -79,6 +79,16 @@ body {
   width: var(--sidebar-collapsed-width);
 }
 
+.upgrade-action {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.upgrade-action:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
 /* =============================================================================
    MAIN CONTENT - Flex Child
    No margin hacks needed - flexbox handles everything
