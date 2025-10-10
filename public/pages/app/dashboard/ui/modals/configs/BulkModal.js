@@ -34,9 +34,9 @@ class BulkModal {
         return 1500;
     }
 
-    renderBulkModal() {
-        return `
-<div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden">
+renderBulkModal() {
+    return `
+<div id="bulkModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden">
     <div class="flex items-center justify-center min-h-screen p-6">
         <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full overflow-hidden">
             
