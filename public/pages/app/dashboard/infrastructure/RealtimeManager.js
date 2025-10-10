@@ -6,12 +6,12 @@
  * Extracted from dashboard.js - maintains exact functionality
  */
 class RealtimeManager {
-    constructor(container) {
-        this.container = container;
-        this.eventBus = container.get('eventBus');
-        this.stateManager = container.get('stateManager');
-        this.supabase = container.get('supabase');
-        this.osliraAuth = container.get('osliraAuth');
+    constructor() {
+        // Use global window objects directly (no container)
+        this.eventBus = window.EventBus || window.OsliraEventBus;
+        this.stateManager = window.StateManager || window.OsliraStateManager;
+        this.supabase = window.OsliraAuth?.supabase;
+        this.osliraAuth = window.OsliraAuth;
         
         // Real-time state - EXACT FROM ORIGINAL
         this.realtimeSubscription = null;
@@ -20,7 +20,7 @@ class RealtimeManager {
         this.lastUpdateTimestamp = null;
         this.connectionAttempts = 0;
         this.maxConnectionAttempts = 3;
-        this.pollingIntervalMs = 60000; // 30 seconds
+        this.pollingIntervalMs = 60000; // 60 seconds
         
         // Bind methods for event listeners
         this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
@@ -57,9 +57,15 @@ class RealtimeManager {
                 return;
             }
             
-            const user = this.osliraApp?.user;
+            const user = this.osliraAuth?.user;
             if (!user) {
                 throw new Error('No authenticated user found');
+            }
+            
+            // Get supabase client
+            const supabase = this.supabase || window.OsliraAuth?.supabase;
+            if (!supabase) {
+                throw new Error('No Supabase client available');
             }
             
             // Clean up any existing subscription
@@ -68,7 +74,7 @@ class RealtimeManager {
             console.log(`🔗 [RealtimeManager] Subscribing to leads table for user: ${user.id}`);
             
             // Create the subscription - EXACT FROM ORIGINAL
-            this.realtimeSubscription = this.supabase
+            this.realtimeSubscription = supabase
                 .channel('leads-changes')
                 .on(
                     'postgres_changes',
@@ -116,21 +122,21 @@ class RealtimeManager {
                     }
                 });
                 
-// Connection timeout with cleanup
-this.connectionTimeout = setTimeout(() => {
-    if (!this.isRealtimeActive) {
-        console.warn('⚠️ [RealtimeManager] Real-time connection timeout, using polling');
-        this.cleanup().then(() => {
-            this.setupPollingFallback();
-        });
-    }
-}, 10000); // Increased to 10 seconds
+            // Connection timeout with cleanup
+            this.connectionTimeout = setTimeout(() => {
+                if (!this.isRealtimeActive) {
+                    console.warn('⚠️ [RealtimeManager] Real-time connection timeout, using polling');
+                    this.cleanup().then(() => {
+                        this.setupPollingFallback();
+                    });
+                }
+            }, 10000); // Increased to 10 seconds
 
-// Clear timeout if connection succeeds
-if (this.isRealtimeActive && this.connectionTimeout) {
-    clearTimeout(this.connectionTimeout);
-    this.connectionTimeout = null;
-}
+            // Clear timeout if connection succeeds
+            if (this.isRealtimeActive && this.connectionTimeout) {
+                clearTimeout(this.connectionTimeout);
+                this.connectionTimeout = null;
+            }
             
         } catch (error) {
             console.error('❌ [RealtimeManager] Failed to setup real-time subscription:', error);
@@ -148,29 +154,29 @@ if (this.isRealtimeActive && this.connectionTimeout) {
     }
 
     // ===============================================================================
-// CONNECTION STATE MANAGEMENT
-// ===============================================================================
+    // CONNECTION STATE MANAGEMENT
+    // ===============================================================================
 
-resetConnectionState() {
-    console.log('🔄 [RealtimeManager] Resetting connection state...');
-    
-    this.isRealtimeActive = false;
-    this.connectionAttempts = 0;
-    this.lastUpdateTimestamp = null;
-    
-    if (this.connectionTimeout) {
-        clearTimeout(this.connectionTimeout);
-        this.connectionTimeout = null;
+    resetConnectionState() {
+        console.log('🔄 [RealtimeManager] Resetting connection state...');
+        
+        this.isRealtimeActive = false;
+        this.connectionAttempts = 0;
+        this.lastUpdateTimestamp = null;
+        
+        if (this.connectionTimeout) {
+            clearTimeout(this.connectionTimeout);
+            this.connectionTimeout = null;
+        }
+        
+        this.stateManager.batchUpdate({
+            'isRealtimeActive': false,
+            'connectionStatus': 'disconnected',
+            'lastUpdateTimestamp': null
+        });
+        
+        console.log('✅ [RealtimeManager] Connection state reset');
     }
-    
-    this.stateManager.batchUpdate({
-        'isRealtimeActive': false,
-        'connectionStatus': 'disconnected',
-        'lastUpdateTimestamp': null
-    });
-    
-    console.log('✅ [RealtimeManager] Connection state reset');
-}
     
     // ===============================================================================
     // REALTIME UPDATE HANDLER - EXTRACTED FROM dashboard.js lines 5200-5350
@@ -199,7 +205,7 @@ resetConnectionState() {
                     console.log('📨 [RealtimeManager] New lead added:', newRecord.username);
                     
                     // Show notification
-                    this.osliraApp?.showMessage(
+                    this.osliraAuth?.showMessage(
                         `New lead analyzed: @${newRecord.username}`,
                         'success'
                     );
@@ -255,32 +261,31 @@ resetConnectionState() {
         
         console.log('🔄 [RealtimeManager] Starting polling fallback...');
         
-this.pollingInterval = setInterval(async () => {
-    if (!document.hidden && !this.isRealtimeActive) {
-        // Silent background refresh - only log occasionally
-        if (Date.now() % 150000 < 30000) {
-            console.log('📊 [RealtimeManager] Background polling...');
-        }
-        
-        // Get current state before refresh
-        const stateManager = this.container.get('stateManager');
-        const currentSelection = new Set(stateManager.getState('selectedLeads') || new Set());
-        const currentScroll = window.scrollY;
-        
-        // Emit refresh event
-        this.eventBus.emit(DASHBOARD_EVENTS.DATA_REFRESH, {
-            reason: 'polling',
-            timestamp: Date.now(),
-            preserveSelection: true,
-            currentSelection: currentSelection
-        });
-        
-        // Restore scroll position after a brief delay
-        setTimeout(() => {
-            window.scrollTo(0, currentScroll);
-        }, 100);
-    }
-}, this.pollingIntervalMs);
+        this.pollingInterval = setInterval(async () => {
+            if (!document.hidden && !this.isRealtimeActive) {
+                // Silent background refresh - only log occasionally
+                if (Date.now() % 150000 < 30000) {
+                    console.log('📊 [RealtimeManager] Background polling...');
+                }
+                
+                // Get current state before refresh
+                const currentSelection = new Set(this.stateManager.getState('selectedLeads') || new Set());
+                const currentScroll = window.scrollY;
+                
+                // Emit refresh event
+                this.eventBus.emit(DASHBOARD_EVENTS.DATA_REFRESH, {
+                    reason: 'polling',
+                    timestamp: Date.now(),
+                    preserveSelection: true,
+                    currentSelection: currentSelection
+                });
+                
+                // Restore scroll position after a brief delay
+                setTimeout(() => {
+                    window.scrollTo(0, currentScroll);
+                }, 100);
+            }
+        }, this.pollingIntervalMs);
         
         this.stateManager.setState('connectionStatus', 'polling');
         console.log(`✅ [RealtimeManager] Polling started (${this.pollingIntervalMs}ms intervals)`);
@@ -305,29 +310,29 @@ this.pollingInterval = setInterval(async () => {
     // CONNECTION MANAGEMENT
     // ===============================================================================
     
-handleConnectionFailure() {
-    this.connectionAttempts++;
-    
-    if (this.connectionAttempts < this.maxConnectionAttempts) {
-        console.log(`🔄 [RealtimeManager] Retrying connection (${this.connectionAttempts}/${this.maxConnectionAttempts})...`);
+    handleConnectionFailure() {
+        this.connectionAttempts++;
         
-        // Exponential backoff with maximum delay
-        const retryDelay = Math.min(1000 * Math.pow(2, this.connectionAttempts), 30000);
-        
-        // Clear any existing subscription before retrying
-        this.cleanup().then(() => {
-            setTimeout(() => {
-                this.setupRealtimeSubscription();
-            }, retryDelay);
-        });
-        
-    } else {
-        console.warn('⚠️ [RealtimeManager] Max connection attempts reached, falling back to polling');
-        this.cleanup().then(() => {
-            this.setupPollingFallback();
-        });
+        if (this.connectionAttempts < this.maxConnectionAttempts) {
+            console.log(`🔄 [RealtimeManager] Retrying connection (${this.connectionAttempts}/${this.maxConnectionAttempts})...`);
+            
+            // Exponential backoff with maximum delay
+            const retryDelay = Math.min(1000 * Math.pow(2, this.connectionAttempts), 30000);
+            
+            // Clear any existing subscription before retrying
+            this.cleanup().then(() => {
+                setTimeout(() => {
+                    this.setupRealtimeSubscription();
+                }, retryDelay);
+            });
+            
+        } else {
+            console.warn('⚠️ [RealtimeManager] Max connection attempts reached, falling back to polling');
+            this.cleanup().then(() => {
+                this.setupPollingFallback();
+            });
+        }
     }
-}
     
     // EXTRACTED FROM dashboard.js lines 5600-5680
     handleVisibilityChange() {
@@ -353,36 +358,36 @@ handleConnectionFailure() {
     // AUTHENTICATION HANDLING - EXTRACTED FROM dashboard.js lines 5700-5780
     // ===============================================================================
     
-async waitForAuth(timeout = 5000) {
-    console.log('🔐 [RealtimeManager] Waiting for authentication...');
-    
-    return new Promise((resolve) => {
-        let attempts = 0;
-        const maxAttempts = timeout / 100;
+    async waitForAuth(timeout = 5000) {
+        console.log('🔐 [RealtimeManager] Waiting for authentication...');
         
-        const checkAuth = async () => {
-            const user = this.osliraApp?.user;
+        return new Promise((resolve) => {
+            let attempts = 0;
+            const maxAttempts = timeout / 100;
             
-            // Simplified auth check - just verify user exists
-            if (user && user.id) {
-                console.log('✅ [RealtimeManager] User authentication confirmed');
-                resolve(true);
-                return;
-            }
+            const checkAuth = async () => {
+                const user = this.osliraAuth?.user;
                 
-            attempts++;
-            if (attempts >= maxAttempts) {
-                console.warn('⚠️ [RealtimeManager] Authentication timeout after', timeout, 'ms');
-                resolve(false);
-                return;
-            }
+                // Simplified auth check - just verify user exists
+                if (user && user.id) {
+                    console.log('✅ [RealtimeManager] User authentication confirmed');
+                    resolve(true);
+                    return;
+                }
+                    
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    console.warn('⚠️ [RealtimeManager] Authentication timeout after', timeout, 'ms');
+                    resolve(false);
+                    return;
+                }
+                
+                setTimeout(checkAuth, 100);
+            };
             
-            setTimeout(checkAuth, 100);
-        };
-        
-        checkAuth();
-    });
-}
+            checkAuth();
+        });
+    }
     
     handleAuthChange(authData) {
         if (authData.user) {
@@ -419,7 +424,12 @@ async waitForAuth(timeout = 5000) {
     // Test connection with a simple query
     async testConnection() {
         try {
-            const { data, error } = await this.supabase
+            const supabase = this.supabase || window.OsliraAuth?.supabase;
+            if (!supabase) {
+                throw new Error('No Supabase client available');
+            }
+            
+            const { data, error } = await supabase
                 .from('leads')
                 .select('id')
                 .limit(1);
@@ -485,8 +495,8 @@ async waitForAuth(timeout = 5000) {
             connectionAttempts: this.connectionAttempts,
             lastUpdate: this.lastUpdateTimestamp ? new Date(this.lastUpdateTimestamp).toISOString() : null,
             connectionStatus: this.stateManager.getState('connectionStatus'),
-            supabaseConnected: !!this.supabase,
-            userAuthenticated: !!this.osliraApp?.user
+            supabaseConnected: !!(this.supabase || window.OsliraAuth?.supabase),
+            userAuthenticated: !!this.osliraAuth?.user
         };
     }
     
