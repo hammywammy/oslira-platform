@@ -81,7 +81,8 @@ dashboard: {
         // ============================================================
         // PHASE 3: UI COMPONENTS (MUST BE BEFORE ANYTHING THAT USES THEM)
         // ============================================================
-        '/pages/app/dashboard/ui/components/IconComponents.js',  // ✅ ADD THIS LINE
+        '/pages/app/dashboard/ui/components/IconComponents.js',
+        '/pages/app/dashboard/ui/styles/DashboardStyles.js',
         '/pages/app/dashboard/ui/components/LeadsTable.js',
         
         // ============================================================
