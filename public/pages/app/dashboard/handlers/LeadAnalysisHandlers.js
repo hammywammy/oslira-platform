@@ -1,8 +1,22 @@
 //public/pages/dashboard/modules/handlers/lead-analysis-handlers.js
 
+/**
+ * LEAD ANALYSIS HANDLERS - Migrated to Core System
+ * 
+ * Uses:
+ * - window.LeadManager for lead data operations
+ * - window.EventBus for event coordination
+ * - No container dependencies
+ */
 class LeadAnalysisHandlers {
     constructor() {
+        // Use global window objects directly (no container)
+        this.leadManager = window.LeadManager;
+        this.eventBus = window.EventBus || window.OsliraEventBus;
+        
         this.setupGlobalHandlers();
+        
+        console.log('📊 [LeadAnalysisHandlers] Initialized with Core system');
     }
 
     setupGlobalHandlers() {
@@ -16,17 +30,14 @@ class LeadAnalysisHandlers {
             try {
                 console.log('📊 [LeadAnalysis] Loading data for:', leadId);
                 
-                const modalManager = window.modalManager;
-                if (!modalManager || !modalManager.container) {
-                    throw new Error('Modal manager not available');
+                // Use global LeadManager directly (no container)
+                if (!this.leadManager) {
+                    throw new Error('Lead manager not available');
                 }
                 
-                const leadManager = modalManager.container.get('leadManager');
-                if (!leadManager) {
-                    throw new Error('Lead manager not found');
-                }
+                // Use LeadManager's viewLead method
+                const leadData = await this.leadManager.viewLead(leadId);
                 
-                const leadData = await leadManager.viewLead(leadId);
                 if (!leadData) {
                     throw new Error('Lead not found');
                 }
@@ -75,6 +86,15 @@ class LeadAnalysisHandlers {
             container.style.transition = 'opacity 0.3s ease-out';
             container.style.opacity = '1';
         }, 100);
+        
+        // Emit event for analytics
+        if (this.eventBus) {
+            this.eventBus.emit('lead:analysis:viewed', {
+                leadId: lead.id,
+                username: lead.username,
+                analysisType: lead.analysis_type
+            });
+        }
     }
 
     updateProfileHeader(lead) {
@@ -157,7 +177,7 @@ class LeadAnalysisHandlers {
         const analysisType = runData?.analysis_type || lead.analysis_type || 'light';
         const isAdvancedAnalysis = analysisType === 'deep' || analysisType === 'xray';
         
-const overallScore = runData?.overall_score || analysisData?.score_total || lead.score || 0;
+        const overallScore = runData?.overall_score || analysisData?.score_total || lead.score || 0;
         const engagementScore = runData?.engagement_score || analysisData?.engagement_score || 0;
         const nicheFitScore = runData?.niche_fit_score || analysisData?.score_niche_fit || 0;
         const confidenceLevel = runData?.confidence_level || analysisData?.confidence_level;
@@ -429,11 +449,11 @@ const overallScore = runData?.overall_score || analysisData?.score_total || lead
                     <h3 class="text-lg font-medium text-gray-900 mb-2">Error Loading Analysis</h3>
                     <p class="text-gray-500 mb-4">${message}</p>
                     <div class="flex space-x-3">
-                        <button onclick="this.closest('.fixed').remove(); loadLeadAnalysisData('${leadId}', document.querySelector('.lead-modal-content'))" 
+                        <button onclick="this.closest('.fixed').remove(); window.loadLeadAnalysisData('${leadId}', document.querySelector('.lead-modal-content'))" 
                                 class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
                             Try Again
                         </button>
-                        <button onclick="this.closest('.fixed').remove(); closeLeadAnalysisModal()" 
+                        <button onclick="this.closest('.fixed').remove(); window.closeLeadAnalysisModal && window.closeLeadAnalysisModal()" 
                                 class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
                             Close
                         </button>
@@ -446,8 +466,11 @@ const overallScore = runData?.overall_score || analysisData?.score_total || lead
     }
 }
 
+// Export
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = LeadAnalysisHandlers;
 } else {
     window.LeadAnalysisHandlers = LeadAnalysisHandlers;
 }
+
+console.log('📊 [LeadAnalysisHandlers] Migrated version loaded successfully');
