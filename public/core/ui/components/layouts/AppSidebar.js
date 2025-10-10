@@ -80,25 +80,214 @@ class SidebarManager {
     // INITIALIZATION
     // =========================================================================
 
-    initializeSidebar() {
-        // Load saved state
-        const savedState = localStorage.getItem('sidebarCollapsed');
-        if (savedState === 'true') {
-            this.isCollapsed = true;
-            // CRITICAL: Toggle on #sidebar-container, not .sidebar
-            if (this.sidebarContainer) {
-                this.sidebarContainer.classList.add('collapsed');
-            }
+async initializeSidebar() {
+    // Load saved state
+    const savedState = localStorage.getItem('sidebarCollapsed');
+    if (savedState === 'true') {
+        this.isCollapsed = true;
+        if (this.sidebarContainer) {
+            this.sidebarContainer.classList.add('collapsed');
         }
-
-        // Initialize components
-        this.initializeToggleButton();
-        this.initializeActiveNavItem();
-        this.initializeCollapsibleSections();
-        this.initializeAccountDropdown();
-        
-        console.log('✅ [SidebarManager] Sidebar initialized');
     }
+
+    // Initialize components
+    this.initializeToggleButton();
+    this.initializeActiveNavItem();
+    this.initializeCollapsibleSections();
+    this.initializeAccountDropdown();
+    
+    // CRITICAL: Load auth data after initialization
+    await this.loadAuthData();  // ← ADD THIS LINE
+    
+    console.log('✅ [SidebarManager] Sidebar initialized');
+}
+
+    async loadAuthData() {
+    try {
+        console.log('🔐 [SidebarManager] Loading auth data...');
+        
+        // Wait for auth to be ready
+        if (!window.OsliraAuth) {
+            console.warn('⚠️ [SidebarManager] OsliraAuth not available yet');
+            return;
+        }
+        
+        // Get user data
+        this.user = window.OsliraAuth.user;
+        
+        if (!this.user) {
+            console.warn('⚠️ [SidebarManager] No authenticated user');
+            return;
+        }
+        
+        // Load businesses from Supabase
+        await this.loadBusinesses();
+        
+        // Update UI with real data
+        this.updateUserUI();
+        
+        console.log('✅ [SidebarManager] Auth data loaded:', {
+            user: this.user.email,
+            businesses: this.businesses.length
+        });
+        
+    } catch (error) {
+        console.error('❌ [SidebarManager] Failed to load auth data:', error);
+    }
+}
+
+// =========================================================================
+// ADD THIS METHOD AFTER loadAuthData()
+// =========================================================================
+
+async loadBusinesses() {
+    try {
+        // Get Supabase client
+        const supabase = window.supabase?.createClient(
+            'https://your-project.supabase.co',  // Replace with your URL
+            'your-anon-key'  // Replace with your key
+        );
+        
+        if (!supabase) {
+            console.warn('⚠️ [SidebarManager] Supabase not available');
+            return;
+        }
+        
+        // Fetch user's businesses
+        const { data, error } = await supabase
+            .from('businesses')
+            .select('*')
+            .eq('owner_id', this.user.id);
+        
+        if (error) {
+            console.error('❌ [SidebarManager] Failed to load businesses:', error);
+            return;
+        }
+        
+        this.businesses = data || [];
+        
+    } catch (error) {
+        console.error('❌ [SidebarManager] Business load error:', error);
+    }
+}
+
+// =========================================================================
+// ADD THIS METHOD AFTER loadBusinesses()
+// =========================================================================
+
+updateUserUI() {
+    if (!this.user) return;
+    
+    // Update dropdown header
+    const nameEl = document.querySelector('.account-dropdown-name');
+    const emailEl = document.querySelector('.account-dropdown-email');
+    
+    if (nameEl) {
+        nameEl.textContent = this.user.user_metadata?.full_name || 
+                            this.user.email?.split('@')[0] || 
+                            'User';
+    }
+    
+    if (emailEl) {
+        emailEl.textContent = this.user.email || '';
+    }
+    
+    // Update trigger button
+    const triggerNameEl = document.querySelector('.account-name');
+    const avatarEl = document.querySelector('.account-avatar');
+    
+    if (triggerNameEl) {
+        const displayName = this.user.user_metadata?.full_name?.split(' ')[0] || 
+                           this.user.email?.split('@')[0] || 
+                           'User';
+        triggerNameEl.textContent = displayName;
+    }
+    
+    if (avatarEl) {
+        const initial = (this.user.user_metadata?.full_name?.[0] || 
+                        this.user.email?.[0] || 
+                        'U').toUpperCase();
+        avatarEl.textContent = initial;
+    }
+    
+    // Update business selector
+    this.updateBusinessSelector();
+    
+    // Update credits display
+    this.updateCreditsDisplay();
+    
+    console.log('✅ [SidebarManager] UI updated with user data');
+}
+
+// =========================================================================
+// ADD THIS METHOD AFTER updateUserUI()
+// =========================================================================
+
+updateBusinessSelector() {
+    const selector = document.getElementById('business-selector');
+    if (!selector) return;
+    
+    // Clear existing options
+    selector.innerHTML = '';
+    
+    // Add personal account
+    const personalOption = document.createElement('option');
+    personalOption.value = 'personal';
+    personalOption.textContent = 'Personal Account';
+    selector.appendChild(personalOption);
+    
+    // Add businesses
+    this.businesses.forEach(business => {
+        const option = document.createElement('option');
+        option.value = business.id;
+        option.textContent = business.name;
+        selector.appendChild(option);
+    });
+    
+    // Set current selection from localStorage
+    const currentBusiness = localStorage.getItem('currentBusiness') || 'personal';
+    selector.value = currentBusiness;
+}
+
+// =========================================================================
+// ADD THIS METHOD AFTER updateBusinessSelector()
+// =========================================================================
+
+async updateCreditsDisplay() {
+    try {
+        // Get current business context
+        const currentBusiness = localStorage.getItem('currentBusiness') || 'personal';
+        
+        // Fetch credits from your API or Supabase
+        // This is a placeholder - adjust to your actual credits table/API
+        const supabase = window.supabase?.createClient(
+            'https://your-project.supabase.co',
+            'your-anon-key'
+        );
+        
+        if (!supabase) return;
+        
+        const { data, error } = await supabase
+            .from('user_credits')  // Adjust table name
+            .select('credits_used, credits_total')
+            .eq('user_id', this.user.id)
+            .single();
+        
+        if (error || !data) {
+            console.warn('⚠️ [SidebarManager] Could not load credits');
+            return;
+        }
+        
+        // Update credits display
+        const creditsEl = document.querySelector('.credits-display-clean');
+        if (creditsEl) {
+            creditsEl.textContent = `${data.credits_used || 0} / ${data.credits_total || 25}`;
+        }
+        
+    } catch (error) {
+        console.error('❌ [SidebarManager] Credits update error:', error);
+    }
+}
 
     initializeActiveNavItem() {
         const currentPath = window.location.pathname;
