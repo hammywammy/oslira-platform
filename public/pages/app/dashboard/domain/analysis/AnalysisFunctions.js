@@ -7,118 +7,203 @@
  * Handles all analysis modal, form processing, and build analysis functionality
  */
 class AnalysisFunctions {
-constructor(container) {
-    this.container = container;
-    this.eventBus = container.get('eventBus');
-    this.stateManager = container.get('stateManager');
-    this.osliraAuth = container.get('osliraAuth');
-    this.isProcessing = false;
-    this.bulkUsernames = [];
-    
-    console.log('🔍 [AnalysisFunctions] Initialized');
-}
+    constructor() {
+        // Use global window objects directly (no container)
+        this.eventBus = window.EventBus || window.OsliraEventBus;
+        this.stateManager = window.StateManager || window.OsliraStateManager;
+        this.osliraAuth = window.OsliraAuth;
+        this.isProcessing = false;
+        this.bulkUsernames = [];
+        
+        console.log('🔍 [AnalysisFunctions] Initialized');
+    }
 
     init() {
-    console.log('🔧 [AnalysisFunctions] Initializing...');
-    
-    // Setup global methods for onclick handlers
-    this.setupGlobalMethods();
-    
-    // Setup event listeners
-    this.setupEventListeners();
-    
-    console.log('✅ [AnalysisFunctions] Initialization complete');
-    return this;
-}
-    
-async openLeadAnalysisModal(leadId) {
-    console.log('🔍 Opening lead analysis modal for:', leadId);
-    
-    try {
-        // Use 'this' context instead of window.modalManager to avoid re-initialization
-        const leadManager = this.container.get('leadManager');
-        if (!leadManager) {
-            throw new Error('Lead manager not found');
-        }
+        console.log('🔧 [AnalysisFunctions] Initializing...');
         
-        // Add loading modal with timeout protection
-        this.showLoadingModal();
-        const loadingTimeout = setTimeout(() => {
-            this.removeExistingModals();
-            this.showErrorModal('Analysis modal timed out. Please try again.');
-        }, 10000);
+        // Setup global methods for onclick handlers
+        this.setupGlobalMethods();
+        
+        // Setup event listeners
+        this.setupEventListeners();
+        
+        console.log('✅ [AnalysisFunctions] Initialization complete');
+        return this;
+    }
+    
+    async openLeadAnalysisModal(leadId) {
+        console.log('🔍 Opening lead analysis modal for:', leadId);
         
         try {
-            const { lead, analysisData } = await leadManager.viewLead(leadId);
-            clearTimeout(loadingTimeout);
-            
-            if (!lead) {
-                throw new Error('Lead not found');
+            // Get leadManager from window
+            const leadManager = window.LeadManager;
+            if (!leadManager) {
+                throw new Error('Lead manager not found');
             }
+            
+            // Add loading modal with timeout protection
+            this.showLoadingModal();
+            const loadingTimeout = setTimeout(() => {
+                this.removeExistingModals();
+                this.showErrorModal('Analysis modal timed out. Please try again.');
+            }, 10000);
+            
+            try {
+                const { lead, analysisData } = await leadManager.viewLead(leadId);
+                clearTimeout(loadingTimeout);
+                
+                if (!lead) {
+                    throw new Error('Lead not found');
+                }
 
-            removeExistingModals();
-            createLeadAnalysisModalStructure();
-            buildAnalysisModalHTML(lead, analysisData, leadId);
+                this.removeExistingModals();
+                this.createLeadAnalysisModalStructure();
+                this.buildAnalysisModalHTML(lead, analysisData, leadId);
+            } catch (error) {
+                clearTimeout(loadingTimeout);
+                throw error;
+            }
+            
+            // Animate modal entry
+            setTimeout(() => {
+                const modal = document.getElementById('leadAnalysisModal');
+                if (modal) {
+                    modal.style.opacity = '1';
+                    const container = modal.querySelector('div');
+                    if (container) {
+                        container.style.transform = 'scale(1)';
+                    }
+                }
+            }, 10);
+            
+            document.body.style.overflow = 'hidden';
+            
         } catch (error) {
-            clearTimeout(loadingTimeout);
-            throw error;
+            console.error('❌ Failed to load lead analysis:', error);
+            this.removeExistingModals();
+            this.showErrorModal(error.message);
+        }
+    }
+    
+    // ===============================================================================
+    // SIMPLIFIED MODAL BUILDING WITH MODULAR SYSTEM
+    // ===============================================================================
+
+    buildAnalysisModalHTML(lead, analysisData, leadId) {
+        const modalContent = document.getElementById('modalContent');
+        if (!modalContent) {
+            console.error('❌ Modal content container not found');
+            return;
+        }
+
+        console.log('🎨 [AnalysisFunctions] Building modular modal:', {
+            username: lead.username,
+            analysisType: lead.analysis_type,
+            hasAnalysisData: !!analysisData
+        });
+
+        // Initialize modal builder if not exists
+        if (!window.modalBuilder) {
+            window.modalBuilder = new ModalBuilder();
+        }
+
+        // Build and inject modal content
+        modalContent.innerHTML = window.modalBuilder.buildAnalysisModal(lead, analysisData);
+    }
+
+    // Helper function for copying outreach message
+    copyOutreachMessage() {
+        const messageElement = document.getElementById('outreachMessage');
+        if (messageElement) {
+            navigator.clipboard.writeText(messageElement.textContent).then(() => {
+                // Show success notification
+                const button = event.target.closest('button');
+                const originalText = button.innerHTML;
+                button.innerHTML = `
+                    <span class="relative z-10 flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span>Copied!</span>
+                    </span>
+                `;
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy message:', err);
+            });
+        }
+    }
+
+    animateScoreAndCircle(scoreElement, circleElement, targetScore) {
+        let currentScore = 0;
+        const duration = 2000;
+        const frameDuration = 16;
+        const totalFrames = duration / frameDuration;
+        const increment = targetScore / totalFrames;
+        
+        const circumference = 251.2;
+        
+        const animate = () => {
+            currentScore += increment;
+            
+            if (currentScore >= targetScore) {
+                currentScore = targetScore;
+            }
+            
+            scoreElement.textContent = Math.round(currentScore);
+            
+            const progress = currentScore / 100;
+            const offset = circumference * (1 - progress);
+            circleElement.style.strokeDashoffset = offset;
+            
+            if (currentScore < targetScore) {
+                requestAnimationFrame(animate);
+            }
+        };
+        
+        requestAnimationFrame(animate);
+    }
+
+    fallbackCopyTextToClipboard(text, buttonElement = null) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                this.showCopySuccess(buttonElement);
+            }
+        } catch (err) {
+            console.error('Fallback copy failed:', err);
+        }
+
+        document.body.removeChild(textArea);
+    }
+
+    showCopySuccess(buttonElement = null) {
+        // Simple success feedback with proper event handling
+        let button = buttonElement;
+        
+        // Try to find button from event if not provided
+        if (!button && typeof event !== 'undefined' && event?.target) {
+            button = event.target.closest('button');
         }
         
-        // Animate modal entry
-        setTimeout(() => {
-            const modal = document.getElementById('leadAnalysisModal');
-            if (modal) {
-                modal.style.opacity = '1';
-                const container = modal.querySelector('div');
-                if (container) {
-                    container.style.transform = 'scale(1)';
-                }
-            }
-        }, 10);
+        // Fallback to any copy button if still not found
+        if (!button) {
+            button = document.querySelector('button[onclick*="copyOutreachMessage"]');
+        }
         
-        document.body.style.overflow = 'hidden';
-        
-    } catch (error) {
-        console.error('❌ Failed to load lead analysis:', error);
-        removeExistingModals();
-        showErrorModal(error.message);
-    }
-}
-    
-
-// ===============================================================================
-// SIMPLIFIED MODAL BUILDING WITH MODULAR SYSTEM
-// ===============================================================================
-
-buildAnalysisModalHTML(lead, analysisData, leadId) {
-    const modalContent = document.getElementById('modalContent');
-    if (!modalContent) {
-        console.error('❌ Modal content container not found');
-        return;
-    }
-
-    console.log('🎨 [AnalysisFunctions] Building modular modal:', {
-        username: lead.username,
-        analysisType: lead.analysis_type,
-        hasAnalysisData: !!analysisData
-    });
-
-    // Initialize modal builder if not exists
-    if (!window.modalBuilder) {
-        window.modalBuilder = new ModalBuilder();
-    }
-
-    // Build and inject modal content
-    modalContent.innerHTML = window.modalBuilder.buildAnalysisModal(lead, analysisData);
-}
-
-// Helper function for copying outreach message
- copyOutreachMessage() {
-    const messageElement = document.getElementById('outreachMessage');
-    if (messageElement) {
-        navigator.clipboard.writeText(messageElement.textContent).then(() => {
-            // Show success notification
-            const button = event.target.closest('button');
+        if (button) {
             const originalText = button.innerHTML;
             button.innerHTML = `
                 <span class="relative z-10 flex items-center space-x-2">
@@ -128,105 +213,12 @@ buildAnalysisModalHTML(lead, analysisData, leadId) {
                     <span>Copied!</span>
                 </span>
             `;
+            
             setTimeout(() => {
                 button.innerHTML = originalText;
             }, 2000);
-        }).catch(err => {
-            console.error('Failed to copy message:', err);
-        });
-    }
-}
-                                    
-
-animateScoreAndCircle(scoreElement, circleElement, targetScore) {
-    let currentScore = 0;
-    const duration = 2000;
-    const frameDuration = 16;
-    const totalFrames = duration / frameDuration;
-    const increment = targetScore / totalFrames;
-    
-    const circumference = 251.2;
-    
-    const animate = () => {
-        currentScore += increment;
-        
-        if (currentScore >= targetScore) {
-            currentScore = targetScore;
         }
-        
-        scoreElement.textContent = Math.round(currentScore);
-        
-        const progress = currentScore / 100;
-        const offset = circumference * (1 - progress);
-        circleElement.style.strokeDashoffset = offset;
-        
-        if (currentScore < targetScore) {
-            requestAnimationFrame(animate);
-        }
-    };
-    
-    requestAnimationFrame(animate);
-}
-
-    init() {
-        this.setupEventListeners();
-        this.setupGlobalMethods();
-        console.log('✅ [AnalysisFunctions] Event listeners and global methods setup');
     }
-
-fallbackCopyTextToClipboard(text, buttonElement = null) {
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    textArea.style.top = "0";
-    textArea.style.left = "0";
-    textArea.style.position = "fixed";
-
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-
-    try {
-        const successful = document.execCommand('copy');
-        if (successful) {
-            this.showCopySuccess(buttonElement);
-        }
-    } catch (err) {
-        console.error('Fallback copy failed:', err);
-    }
-
-    document.body.removeChild(textArea);
-}
-
-showCopySuccess(buttonElement = null) {
-    // Simple success feedback with proper event handling
-    let button = buttonElement;
-    
-    // Try to find button from event if not provided
-    if (!button && typeof event !== 'undefined' && event?.target) {
-        button = event.target.closest('button');
-    }
-    
-    // Fallback to any copy button if still not found
-    if (!button) {
-        button = document.querySelector('button[onclick*="copyOutreachMessage"]');
-    }
-    
-    if (button) {
-        const originalText = button.innerHTML;
-        button.innerHTML = `
-            <span class="relative z-10 flex items-center space-x-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                <span>Copied!</span>
-            </span>
-        `;
-        
-        setTimeout(() => {
-            button.innerHTML = originalText;
-        }, 2000);
-    }
-}
 
     setupEventListeners() {
         // Analysis type change handler
@@ -279,36 +271,36 @@ showCopySuccess(buttonElement = null) {
         }
     }
 
-setupGlobalMethods() {
-    // Only setup globals if they don't already exist to prevent re-initialization
-    if (!window._osliraGlobalsInitialized) {
-        window.openLeadAnalysisModal = (leadId) => this.buildAnalysisModal(leadId);
-        window.closeLeadAnalysisModal = () => this.removeExistingModals();
-        window.showLoadingModal = () => this.showLoadingModal();
-        window.removeExistingModals = () => this.removeExistingModals();
-        window.createLeadAnalysisModalStructure = () => this.createLeadAnalysisModalStructure();
-        window.buildAnalysisModalHTML = (lead, analysisData, leadId) => this.buildAnalysisModalHTML(lead, analysisData, leadId);
-        window.copyOutreachMessage = (message) => this.copyOutreachMessage(message);
-        window.startDeepAnalysis = (leadId) => this.startDeepAnalysis(leadId);
-        window.contactLead = (leadId) => this.contactLead(leadId);
-        window.showContactSuccess = () => this.showContactSuccess();
-        window.showCopySuccess = () => this.showCopySuccess();
-        window.showErrorModal = (message) => this.showErrorModal(message);
-        window.closeErrorModal = () => this.removeExistingModals();
-        window.showAnalysisModal = (username = '') => this.showAnalysisModal(username);
-        window.showBulkModal = () => this.showBulkModal();
-        window.handleAnalysisTypeChange = (type) => this.handleAnalysisTypeChange(type);
-        window.validateBulkForm = () => this.validateBulkForm();
-        window.processAnalysisForm = (event) => this.processAnalysisForm(event);
-        window.processBulkUpload = () => this.processBulkUpload();
-        window.handleFileUpload = (event) => this.handleFileUpload(event);
-        
-        window._osliraGlobalsInitialized = true;
-        console.log('✅ [AnalysisFunctions] Global methods initialized');
-    } else {
-        console.log('⚠️ [AnalysisFunctions] Global methods already initialized, skipping');
+    setupGlobalMethods() {
+        // Only setup globals if they don't already exist to prevent re-initialization
+        if (!window._osliraGlobalsInitialized) {
+            window.openLeadAnalysisModal = (leadId) => this.buildAnalysisModal(leadId);
+            window.closeLeadAnalysisModal = () => this.removeExistingModals();
+            window.showLoadingModal = () => this.showLoadingModal();
+            window.removeExistingModals = () => this.removeExistingModals();
+            window.createLeadAnalysisModalStructure = () => this.createLeadAnalysisModalStructure();
+            window.buildAnalysisModalHTML = (lead, analysisData, leadId) => this.buildAnalysisModalHTML(lead, analysisData, leadId);
+            window.copyOutreachMessage = (message) => this.copyOutreachMessage(message);
+            window.startDeepAnalysis = (leadId) => this.startDeepAnalysis(leadId);
+            window.contactLead = (leadId) => this.contactLead(leadId);
+            window.showContactSuccess = () => this.showContactSuccess();
+            window.showCopySuccess = () => this.showCopySuccess();
+            window.showErrorModal = (message) => this.showErrorModal(message);
+            window.closeErrorModal = () => this.removeExistingModals();
+            window.showAnalysisModal = (username = '') => this.showAnalysisModal(username);
+            window.showBulkModal = () => this.showBulkModal();
+            window.handleAnalysisTypeChange = (type) => this.handleAnalysisTypeChange(type);
+            window.validateBulkForm = () => this.validateBulkForm();
+            window.processAnalysisForm = (event) => this.processAnalysisForm(event);
+            window.processBulkUpload = () => this.processBulkUpload();
+            window.handleFileUpload = (event) => this.handleFileUpload(event);
+            
+            window._osliraGlobalsInitialized = true;
+            console.log('✅ [AnalysisFunctions] Global methods initialized');
+        } else {
+            console.log('⚠️ [AnalysisFunctions] Global methods already initialized, skipping');
+        }
     }
-}
 
     // ===============================================================================
     // ANALYSIS MODAL MANAGEMENT
@@ -318,8 +310,8 @@ setupGlobalMethods() {
         console.log('🔍 [AnalysisFunctions] Opening analysis modal with username:', prefillUsername);
         
         try {
-            const modalManager = this.container.get('modalManager');
-            const modal = modalManager.openModal('analysisModal');
+            const modalManager = window.ModalManager;
+            const modal = modalManager?.openModal('analysisModal');
             if (!modal) {
                 console.error('❌ [AnalysisFunctions] Failed to open analysisModal');
                 return;
@@ -349,7 +341,7 @@ setupGlobalMethods() {
             // Load business profiles
             setTimeout(async () => {
                 try {
-                    const businessManager = this.container.get('businessManager');
+                    const businessManager = window.BusinessManager;
                     if (businessManager) {
                         await businessManager.loadBusinessProfilesForModal();
                     }
@@ -373,20 +365,20 @@ setupGlobalMethods() {
         }
     }
 
-showBulkModal() {
-    console.log('📁 [AnalysisFunctions] Opening bulk modal...');
-    
-    try {
-        const modalManager = this.container.get('modalManager');
-        if (modalManager) {
-            modalManager.openModal('bulkModal');  // ✅ Use the generic openModal method
-        } else {
-            console.error('❌ [AnalysisFunctions] ModalManager not available');
+    showBulkModal() {
+        console.log('📁 [AnalysisFunctions] Opening bulk modal...');
+        
+        try {
+            const modalManager = window.ModalManager;
+            if (modalManager) {
+                modalManager.openModal('bulkModal');
+            } else {
+                console.error('❌ [AnalysisFunctions] ModalManager not available');
+            }
+        } catch (error) {
+            console.error('❌ [AnalysisFunctions] Failed to open bulk modal:', error);
         }
-    } catch (error) {
-        console.error('❌ [AnalysisFunctions] Failed to open bulk modal:', error);
     }
-}
 
     // ===============================================================================
     // FORM HANDLERS
@@ -416,28 +408,28 @@ showBulkModal() {
     }
 
     updateCreditCostDisplay(analysisType) {
-    const costDisplay = document.getElementById('analysis-cost');
-    if (costDisplay) {
-        if (analysisType) {
-            const cost = analysisType === 'xray' ? 3 : (analysisType === 'deep' ? 2 : 1);
-            costDisplay.textContent = `${cost} credit${cost > 1 ? 's' : ''}`;
+        const costDisplay = document.getElementById('analysis-cost');
+        if (costDisplay) {
+            if (analysisType) {
+                const cost = analysisType === 'xray' ? 3 : (analysisType === 'deep' ? 2 : 1);
+                costDisplay.textContent = `${cost} credit${cost > 1 ? 's' : ''}`;
+            }
         }
     }
-}
     
-updateAnalysisSubmitButton(analysisType) {
-    const submitBtn = document.getElementById('analysis-submit-btn');
-    if (submitBtn) {
-        if (analysisType) {
-            const cost = analysisType === 'xray' ? 3 : (analysisType === 'deep' ? 2 : 1);
-            submitBtn.textContent = `Start Analysis (${cost} credit${cost > 1 ? 's' : ''})`;
-            submitBtn.disabled = false;
-        } else {
-            submitBtn.textContent = 'Select Analysis Type';
-            submitBtn.disabled = true;
+    updateAnalysisSubmitButton(analysisType) {
+        const submitBtn = document.getElementById('analysis-submit-btn');
+        if (submitBtn) {
+            if (analysisType) {
+                const cost = analysisType === 'xray' ? 3 : (analysisType === 'deep' ? 2 : 1);
+                submitBtn.textContent = `Start Analysis (${cost} credit${cost > 1 ? 's' : ''})`;
+                submitBtn.disabled = false;
+            } else {
+                submitBtn.textContent = 'Select Analysis Type';
+                submitBtn.disabled = true;
+            }
         }
     }
-}
 
     async processAnalysisForm(event) {
         event.preventDefault();
@@ -469,12 +461,12 @@ updateAnalysisSubmitButton(analysisType) {
             this.setSubmitButtonLoading(submitBtn, true);
             
             // Close modal
-            const modalManager = this.container.get('modalManager');
-            modalManager.closeModal('analysisModal');
+            const modalManager = window.ModalManager;
+            modalManager?.closeModal('analysisModal');
             
             // Start analysis
-            const analysisQueue = this.container.get('analysisQueue');
-            const result = await analysisQueue.startSingleAnalysis({
+            const analysisQueue = window.AnalysisQueue;
+            const result = await analysisQueue?.startSingleAnalysis({
                 username: cleanUsername,
                 analysisType,
                 businessId
@@ -622,12 +614,12 @@ updateAnalysisSubmitButton(analysisType) {
             this.setSubmitButtonLoading(submitBtn, true, 'Processing...');
             
             // Close modal
-            const modalManager = this.container.get('modalManager');
-            modalManager.closeModal('bulkModal');
+            const modalManager = window.ModalManager;
+            modalManager?.closeModal('bulkModal');
             
             // Start bulk analysis
-            const analysisQueue = this.container.get('analysisQueue');
-            const result = await analysisQueue.startBulkAnalysis({
+            const analysisQueue = window.AnalysisQueue;
+            const result = await analysisQueue?.startBulkAnalysis({
                 usernames: this.bulkUsernames,
                 analysisType,
                 businessId
@@ -657,27 +649,27 @@ updateAnalysisSubmitButton(analysisType) {
     // BUILD ANALYSIS FUNCTIONS
     // ===============================================================================
 
-async buildAnalysisModal(leadId) {
-    console.log('🔍 [AnalysisFunctions] Building analysis modal for lead:', leadId);
-    
-    try {
-        this.showLoadingModal();
+    async buildAnalysisModal(leadId) {
+        console.log('🔍 [AnalysisFunctions] Building analysis modal for lead:', leadId);
         
-        const leadManager = this.container.get('leadManager');
-        
-        // Use viewLead method to get both lead and analysis data
-        const { lead, analysisData } = await leadManager.viewLead(leadId);
-        
-        if (!lead) {
-            throw new Error('Lead not found');
-        }
-        
-        console.log('📊 [AnalysisFunctions] Lead data:', {
-            username: lead.username,
-            analysisType: lead.analysis_type,
-            hasAnalysisData: !!analysisData
-        });
+        try {
+            this.showLoadingModal();
             
+            const leadManager = window.LeadManager;
+            
+            // Use viewLead method to get both lead and analysis data
+            const { lead, analysisData } = await leadManager?.viewLead(leadId);
+            
+            if (!lead) {
+                throw new Error('Lead not found');
+            }
+            
+            console.log('📊 [AnalysisFunctions] Lead data:', {
+                username: lead.username,
+                analysisType: lead.analysis_type,
+                hasAnalysisData: !!analysisData
+            });
+                
             this.removeExistingModals();
             this.createLeadAnalysisModalStructure();
             this.buildAnalysisModalHTML(lead, analysisData, leadId);
@@ -708,20 +700,20 @@ async buildAnalysisModal(leadId) {
         
         const modalHTML = `
             <div id="leadAnalysisModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" style="opacity: 0;">
-<div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col" style="transform: scale(0.95); transition: transform 0.2s ease;">
-    <!-- Close button -->
-    <div class="absolute top-4 right-4 z-10">
-        <button onclick="closeLeadAnalysisModal()" class="p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-colors">
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </button>
-    </div>
-    
-    <div id="modalContent" class="overflow-y-auto flex-1" style="min-height: 0;">
-        <!-- Content will be populated by buildAnalysisModalHTML -->
-    </div>
-</div>
+                <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col" style="transform: scale(0.95); transition: transform 0.2s ease;">
+                    <!-- Close button -->
+                    <div class="absolute top-4 right-4 z-10">
+                        <button onclick="closeLeadAnalysisModal()" class="p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-colors">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div id="modalContent" class="overflow-y-auto flex-1" style="min-height: 0;">
+                        <!-- Content will be populated by buildAnalysisModalHTML -->
+                    </div>
+                </div>
             </div>
         `;
         
@@ -864,7 +856,7 @@ async buildAnalysisModal(leadId) {
     }
 
     removeExistingModals() {
-        ['leadAnalysisModal', 'loadingModal', 'errorModal'].forEach(modalId => {
+        ['leadAnalysisModal', 'loadingModal', 'errorModal', 'analysisModal'].forEach(modalId => {
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.remove();
@@ -873,63 +865,48 @@ async buildAnalysisModal(leadId) {
         document.body.style.overflow = '';
     }
 
-showErrorModal(message) {
-    console.log('🚨 [AnalysisFunctions] Showing error modal:', message);
-    
-    // Remove any existing modals first
-    this.removeExistingModals();
-    
-    const errorModal = `
-        <div id="errorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="opacity: 0; transition: opacity 0.3s ease;">
-            <div class="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl transform scale-95 transition-transform duration-300">
-                <div class="flex items-center space-x-4 mb-6">
-                    <div class="p-3 bg-red-100 rounded-full">
-                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.232 6.5c-.77.833-.192 2.5 1.732 2.5z"/>
-                        </svg>
+    showErrorModal(message) {
+        console.log('🚨 [AnalysisFunctions] Showing error modal:', message);
+        
+        // Remove any existing modals first
+        this.removeExistingModals();
+        
+        const errorModal = `
+            <div id="errorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="opacity: 0; transition: opacity 0.3s ease;">
+                <div class="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl transform scale-95 transition-transform duration-300">
+                    <div class="flex items-center space-x-4 mb-6">
+                        <div class="p-3 bg-red-100 rounded-full">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.232 6.5c-.77.833-.192 2.5 1.732 2.5z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900">Error</h3>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900">Error</h3>
+                    <p class="text-gray-700 mb-6">${message}</p>
+                    <button onclick="closeErrorModal()" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200">
+                        Close
+                    </button>
                 </div>
-                <p class="text-gray-700 mb-6">${message}</p>
-                <button onclick="closeErrorModal()" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200">
-                    Close
-                </button>
             </div>
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', errorModal);
-    
-    // Animate in
-    setTimeout(() => {
-        const modal = document.getElementById('errorModal');
-        if (modal) {
-            modal.style.opacity = '1';
-            const content = modal.querySelector('div > div');
-            if (content) {
-                content.style.transform = 'scale(1)';
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', errorModal);
+        
+        // Animate in
+        setTimeout(() => {
+            const modal = document.getElementById('errorModal');
+            if (modal) {
+                modal.style.opacity = '1';
+                const content = modal.querySelector('div > div');
+                if (content) {
+                    content.style.transform = 'scale(1)';
+                }
             }
-        }
-    }, 10);
+        }, 10);
+    }
 }
 
-removeExistingModals() {
-    const existingModals = [
-        'errorModal',
-        'loadingModal', 
-        'leadAnalysisModal',
-        'analysisModal'
-    ];
-    
-    existingModals.forEach(modalId => {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.remove();
-        }
-    });
-}}
-
-// Export for module system - CORRECT FORMAT
+// Export for module system
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = AnalysisFunctions;
 } else {
