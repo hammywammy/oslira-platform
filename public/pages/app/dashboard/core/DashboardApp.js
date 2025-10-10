@@ -1,29 +1,38 @@
 // =============================================================================
-// DASHBOARD APP - Refactored to use Core DI System
+// DASHBOARD APP - Production-Ready Complete Rewrite
 // Path: /public/pages/app/dashboard/core/DashboardApp.js
 // =============================================================================
 
-/**
- * @class DashboardApp
- * @description Dashboard orchestrator using Core DI system
- * 
- * Uses window.OsliraContainer (NOT window.DependencyContainer)
- */
 class DashboardApp {
     constructor() {
         this.initialized = false;
         this.initStartTime = Date.now();
         this.initializationPromise = null;
         
+        // Component instances (stored for reuse)
+        this.components = {
+            leadManager: null,
+            modalManager: null,
+            businessManager: null,
+            sidebar: null,
+            header: null,
+            statsCards: null,
+            leadsTable: null,
+            leadRenderer: null,
+            insightsPanel: null,
+            tipOfDay: null
+        };
+        
         console.log('🚀 [DashboardApp] Starting initialization...');
     }
     
-    /**
-     * Main initialization
-     */
+    // =========================================================================
+    // INITIALIZATION
+    // =========================================================================
+    
     async init() {
         if (this.initializationPromise) {
-            console.log('⏳ [DashboardApp] Initialization in progress...');
+            console.log('⏳ [DashboardApp] Already initializing...');
             return this.initializationPromise;
         }
         
@@ -43,201 +52,564 @@ class DashboardApp {
         }
     }
     
-// ADD THIS METHOD TO DashboardApp class (around line 50, BEFORE _performInitialization)
-
-/**
- * Check URL hash for cross-subdomain session transfer
- * This happens when redirecting from auth.oslira.com → app.oslira.com
- */
-async _restoreSessionFromUrlHash() {
-    console.log('🔍 [DashboardApp] Checking URL hash for session tokens...');
-    
-    const hash = window.location.hash;
-    
-    if (!hash || !hash.includes('auth=')) {
-        console.log('ℹ️ [DashboardApp] No auth tokens in URL hash');
-        return false;
-    }
-    
-    try {
-        // Extract token from hash
-        const hashParams = new URLSearchParams(hash.substring(1));
-        const authToken = hashParams.get('auth');
-        
-        if (!authToken) {
-            console.log('ℹ️ [DashboardApp] No auth parameter in hash');
-            return false;
-        }
-        
-        console.log('🔐 [DashboardApp] Found auth token in URL hash, decoding...');
-        
-        // Decode URL-safe base64
-        const base64 = authToken
-            .replace(/-/g, '+')
-            .replace(/_/g, '/');
-        
-        // Add padding if needed
-        const padded = base64 + '==='.slice((base64.length + 3) % 4);
-        
-        // Parse tokens
-        const tokensJson = atob(padded);
-        const tokens = JSON.parse(tokensJson);
-        
-        console.log('✅ [DashboardApp] Decoded session tokens');
-        console.log('📊 [DashboardApp] Token expires at:', new Date(tokens.expires_at * 1000).toLocaleString());
-        
-        // Store in Supabase auth
-        if (!window.OsliraAuth?.supabase) {
-            throw new Error('Supabase client not available');
-        }
-        
-        // Set the session in Supabase
-        const { data, error } = await window.OsliraAuth.supabase.auth.setSession({
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token
-        });
-        
-        if (error) {
-            console.error('❌ [DashboardApp] Failed to set session:', error);
+    async _performInitialization() {
+        try {
+            console.log('🔧 [DashboardApp] Setting up dashboard...');
+            
+            // Validate dependencies
+            this.validateDependencies();
+            
+            // Initialize auth
+            await this.initializeAuth();
+            
+            // Restore session (from URL hash or localStorage)
+            await this.restoreSession();
+            
+            // Check authentication
+            if (!window.OsliraAuth?.user) {
+                this.redirectToAuth();
+                return;
+            }
+            
+            console.log('✅ [DashboardApp] User authenticated:', window.OsliraAuth.user.email);
+            
+            // Initialize sidebar
+            await this.initializeSidebar();
+            
+            // Load businesses
+            await this.loadBusinesses();
+            
+            // Initialize managers (singletons!)
+            this.initializeManagers();
+            
+            // Render UI
+            await this.renderDashboardUI();
+            
+            // Load data
+            await this.loadDashboardData();
+            
+            // Setup events
+            this.setupEventHandlers();
+            
+            // Expose API
+            this.exposePublicAPI();
+            
+            // Complete
+            this.finishInitialization();
+            
+        } catch (error) {
+            console.error('❌ [DashboardApp] Initialization failed:', error);
+            
+            if (window.OsliraErrorHandler) {
+                window.OsliraErrorHandler.handleError(error, { 
+                    context: 'dashboard_init',
+                    fatal: true 
+                });
+            }
+            
             throw error;
         }
+    }
+    
+    // =========================================================================
+    // INITIALIZATION STEPS
+    // =========================================================================
+    
+    validateDependencies() {
+        const required = [
+            'OsliraEventBus',
+            'OsliraStateManager',
+            'OsliraErrorHandler',
+            'OsliraAuth',
+            'LeadManager',
+            'BusinessManager',
+            'ModalManager',
+            'SidebarManager'
+        ];
         
-        if (data.session) {
-            // Update AuthManager state
-            window.OsliraAuth.session = data.session;
-            window.OsliraAuth.user = data.session.user;
-            
-            console.log('✅ [DashboardApp] Session restored from URL hash');
-            console.log('👤 [DashboardApp] User:', data.session.user.email);
-            
-            // Clean up URL (remove hash)
-            window.history.replaceState(null, '', window.location.pathname + window.location.search);
-            console.log('🧹 [DashboardApp] Cleaned URL hash');
-            
-            return true;
+        const missing = required.filter(dep => !window[dep]);
+        
+        if (missing.length > 0) {
+            throw new Error(`Missing dependencies: ${missing.join(', ')}`);
         }
         
-        return false;
-        
-    } catch (error) {
-        console.error('❌ [DashboardApp] Session restoration from hash failed:', error);
-        // Clean up URL even on error
-        window.history.replaceState(null, '', window.location.pathname + window.location.search);
-        return false;
+        console.log('✅ [DashboardApp] Dependencies validated');
     }
-}
-
-
-// THEN MODIFY _performInitialization() to call this FIRST:
-
-async _performInitialization() {
-    try {
-        console.log('🔧 [DashboardApp] Setting up dashboard...');
-        
-        this.validateDependencies();
-        
-        // Step 1: Initialize Auth
+    
+    async initializeAuth() {
         console.log('🔐 [DashboardApp] Initializing authentication...');
+        
         if (window.OsliraAuth && !window.OsliraAuth.initialized) {
             await window.OsliraAuth.initialize();
-            console.log('✅ [DashboardApp] Auth initialized');
         }
         
-        // Step 2: Check URL hash for cross-subdomain session transfer
+        console.log('✅ [DashboardApp] Auth initialized');
+    }
+    
+    async restoreSession() {
+        // Check URL hash first
         const restoredFromHash = await this._restoreSessionFromUrlHash();
         
         if (restoredFromHash) {
             console.log('✅ [DashboardApp] Session restored from URL hash');
-        } else {
-            // Step 3: Wait for session from localStorage
-            console.log('🔐 [DashboardApp] Waiting for session restoration...');
-            let attempts = 0;
-            const maxAttempts = 50;
-            
-            while (!window.OsliraAuth?.user && attempts < maxAttempts) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-                attempts++;
-                
-                const storedSession = localStorage.getItem('oslira-auth');
-                if (storedSession && window.OsliraAuth?.supabase) {
-                    try {
-                        const { data, error } = await window.OsliraAuth.supabase.auth.getSession();
-                        
-                        if (error) {
-                            console.warn('⚠️ [DashboardApp] Session recovery error:', error);
-                            localStorage.removeItem('oslira-auth');
-                            break;
-                        }
-                        
-                        if (data?.session?.user) {
-                            window.OsliraAuth.user = data.session.user;
-                            window.OsliraAuth.session = data.session;
-                            console.log('✅ [DashboardApp] Session restored from localStorage');
-                            break;
-                        }
-                    } catch (sessionError) {
-                        console.warn('⚠️ [DashboardApp] Session check error:', sessionError);
-                    }
-                }
-            }
-        }
-        
-        // Step 4: Final auth check
-        if (!window.OsliraAuth?.user) {
-            console.warn('⚠️ [DashboardApp] No authenticated user');
-            localStorage.removeItem('oslira-auth');
-            
-            const returnUrl = encodeURIComponent(window.location.href);
-            const authUrl = `${window.OsliraEnv.getAuthUrl()}?return_to=${returnUrl}`;
-            
-            window.location.href = authUrl;
             return;
         }
         
-        console.log('✅ [DashboardApp] User authenticated:', window.OsliraAuth.user.email);
+        // Wait for localStorage session
+        console.log('🔐 [DashboardApp] Waiting for session restoration...');
         
-        // Step 5: Initialize sidebar
+        let attempts = 0;
+        const maxAttempts = 50;
+        
+        while (!window.OsliraAuth?.user && attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+            
+            const storedSession = localStorage.getItem('oslira-auth');
+            if (storedSession && window.OsliraAuth?.supabase) {
+                try {
+                    const { data, error } = await window.OsliraAuth.supabase.auth.getSession();
+                    
+                    if (error) {
+                        console.warn('⚠️ [DashboardApp] Session recovery error');
+                        localStorage.removeItem('oslira-auth');
+                        break;
+                    }
+                    
+                    if (data?.session?.user) {
+                        window.OsliraAuth.user = data.session.user;
+                        window.OsliraAuth.session = data.session;
+                        console.log('✅ [DashboardApp] Session restored from localStorage');
+                        break;
+                    }
+                } catch (sessionError) {
+                    console.warn('⚠️ [DashboardApp] Session check error');
+                }
+            }
+        }
+    }
+    
+    async _restoreSessionFromUrlHash() {
+        const hash = window.location.hash;
+        
+        if (!hash || !hash.includes('auth=')) {
+            return false;
+        }
+        
+        try {
+            const hashParams = new URLSearchParams(hash.substring(1));
+            const authToken = hashParams.get('auth');
+            
+            if (!authToken) return false;
+            
+            // Decode tokens
+            const base64 = authToken.replace(/-/g, '+').replace(/_/g, '/');
+            const padded = base64 + '==='.slice((base64.length + 3) % 4);
+            const tokens = JSON.parse(atob(padded));
+            
+            // Set session
+            const { data, error } = await window.OsliraAuth.supabase.auth.setSession({
+                access_token: tokens.access_token,
+                refresh_token: tokens.refresh_token
+            });
+            
+            if (error || !data.session) {
+                throw new Error('Failed to set session');
+            }
+            
+            // Update auth state
+            window.OsliraAuth.session = data.session;
+            window.OsliraAuth.user = data.session.user;
+            
+            // Clean URL
+            window.history.replaceState(null, '', window.location.pathname);
+            
+            console.log('✅ [DashboardApp] Session restored from URL hash');
+            return true;
+            
+        } catch (error) {
+            console.error('❌ [DashboardApp] Hash restoration failed:', error);
+            window.history.replaceState(null, '', window.location.pathname);
+            return false;
+        }
+    }
+    
+    redirectToAuth() {
+        console.warn('⚠️ [DashboardApp] No authenticated user, redirecting...');
+        localStorage.removeItem('oslira-auth');
+        
+        const returnUrl = encodeURIComponent(window.location.href);
+        const authUrl = `${window.OsliraEnv.getAuthUrl()}?return_to=${returnUrl}`;
+        
+        window.location.href = authUrl;
+    }
+    
+    async initializeSidebar() {
         console.log('🔧 [DashboardApp] Initializing sidebar...');
-        const sidebar = new window.SidebarManager();
-        await sidebar.render('#sidebar-container');
         
-        // Step 6: Load business profiles
+        this.components.sidebar = new window.SidebarManager();
+        await this.components.sidebar.render('#sidebar-container');
+        
+        console.log('✅ [DashboardApp] Sidebar initialized');
+    }
+    
+    async loadBusinesses() {
         console.log('🏢 [DashboardApp] Loading businesses...');
-        const businessManager = new window.BusinessManager();
-        await businessManager.loadBusinesses();
         
-        const currentBusiness = businessManager.getCurrentBusiness();
+        this.components.businessManager = new window.BusinessManager();
+        await this.components.businessManager.loadBusinesses();
+        
+        const currentBusiness = this.components.businessManager.getCurrentBusiness();
         if (currentBusiness && window.OsliraAuth) {
             window.OsliraAuth.business = currentBusiness;
             console.log('✅ [DashboardApp] Business synced:', currentBusiness.business_name);
         }
-        
-        // Step 7: Initialize managers
+    }
+    
+    initializeManagers() {
         console.log('📊 [DashboardApp] Initializing managers...');
-        const leadManager = new window.LeadManager();
-        const modalManager = new window.ModalManager();
         
-        // Step 8: Render dashboard UI
-        console.log('🎨 [DashboardApp] Rendering dashboard UI...');
-        await this.renderDashboardUI();
+        // Create singleton instances
+        this.components.leadManager = new window.LeadManager();
+        this.components.modalManager = new window.ModalManager();
         
-        // Step 9: Load lead data
-        console.log('📊 [DashboardApp] Loading lead data...');
-        await leadManager.loadDashboardData();
+        // Store globally for easy access
+        window.leadManagerInstance = this.components.leadManager;
+        window.modalManagerInstance = this.components.modalManager;
         
-        // Step 10: Setup event handlers
-        console.log('📡 [DashboardApp] Setting up event handlers...');
-        if (window.DashboardEventSystem) {
-            window.DashboardEventSystem.setupHandlers(
-                window.OsliraEventBus,
-                this
-            );
+        console.log('✅ [DashboardApp] Managers initialized');
+    }
+    
+    // =========================================================================
+    // UI RENDERING
+    // =========================================================================
+    
+    async renderDashboardUI() {
+        try {
+            console.log('🎨 [DashboardApp] Rendering UI components...');
+            
+            // Render header
+            await this.renderHeader();
+            
+            // Render stats cards
+            await this.renderStatsCards();
+            
+            // Render leads table
+            await this.renderLeadsTable();
+            
+            // Render insights panel
+            await this.renderInsightsPanel();
+            
+            // Render tip of day
+            await this.renderTipOfDay();
+            
+            console.log('✅ [DashboardApp] UI rendered');
+            
+        } catch (error) {
+            console.error('❌ [DashboardApp] UI rendering failed:', error);
+            throw error;
+        }
+    }
+    
+    async renderHeader() {
+        if (!window.DashboardHeader) return;
+        
+        console.log('📋 [DashboardApp] Rendering header...');
+        
+        this.components.header = new window.DashboardHeader();
+        const headerEl = document.getElementById('dashboard-header');
+        
+        if (headerEl && typeof this.components.header.renderHeader === 'function') {
+            headerEl.innerHTML = this.components.header.renderHeader();
+            
+            if (typeof this.components.header.initialize === 'function') {
+                await this.components.header.initialize();
+            }
+            
+            window.dashboardHeaderInstance = this.components.header;
+            console.log('✅ [DashboardApp] Header rendered');
+        }
+    }
+    
+    async renderStatsCards() {
+        if (!window.StatsCards) return;
+        
+        console.log('📊 [DashboardApp] Rendering stats cards...');
+        
+        this.components.statsCards = new window.StatsCards();
+        
+        // Priority cards
+        const priorityEl = document.getElementById('priority-cards');
+        if (priorityEl && typeof this.components.statsCards.renderPriorityCards === 'function') {
+            priorityEl.innerHTML = this.components.statsCards.renderPriorityCards();
         }
         
-        // Step 11: Expose public API
-        this.exposePublicAPI();
+        // Performance metrics
+        const metricsEl = document.getElementById('performance-metrics');
+        if (metricsEl && typeof this.components.statsCards.renderPerformanceMetrics === 'function') {
+            metricsEl.innerHTML = this.components.statsCards.renderPerformanceMetrics();
+        }
         
-        // Complete
+        // Initialize
+        if (typeof this.components.statsCards.initialize === 'function') {
+            await this.components.statsCards.initialize();
+        }
+        
+        window.statsCardsInstance = this.components.statsCards;
+        console.log('✅ [DashboardApp] Stats cards rendered');
+    }
+    
+    async renderLeadsTable() {
+        if (!window.LeadsTable) return;
+        
+        console.log('📋 [DashboardApp] Rendering leads table...');
+        
+        this.components.leadsTable = new window.LeadsTable();
+        const tableEl = document.getElementById('leads-table-container');
+        
+        if (tableEl && typeof this.components.leadsTable.render === 'function') {
+            tableEl.innerHTML = this.components.leadsTable.render();
+            
+            if (typeof this.components.leadsTable.initialize === 'function') {
+                await this.components.leadsTable.initialize();
+            }
+            
+            window.leadsTableInstance = this.components.leadsTable;
+            console.log('✅ [DashboardApp] Leads table rendered');
+        }
+        
+        // Setup lead renderer
+        if (window.LeadRenderer) {
+            this.components.leadRenderer = new window.LeadRenderer();
+            window.leadRendererInstance = this.components.leadRenderer;
+            
+            // Listen for leads loaded
+            if (window.OsliraEventBus) {
+                window.OsliraEventBus.on('leads:loaded', (leadsData) => {
+                    const leads = Array.isArray(leadsData) ? leadsData : (leadsData.leads || leadsData);
+                    this.renderLeads(leads);
+                });
+            }
+        }
+    }
+    
+    async renderInsightsPanel() {
+        if (!window.InsightsPanel) return;
+        
+        console.log('💡 [DashboardApp] Rendering insights panel...');
+        
+        this.components.insightsPanel = new window.InsightsPanel();
+        const panelEl = document.getElementById('insights-panel');
+        
+        if (panelEl && typeof this.components.insightsPanel.render === 'function') {
+            panelEl.innerHTML = this.components.insightsPanel.render();
+            
+            if (typeof this.components.insightsPanel.initialize === 'function') {
+                await this.components.insightsPanel.initialize();
+            }
+            
+            console.log('✅ [DashboardApp] Insights panel rendered');
+        }
+    }
+    
+    async renderTipOfDay() {
+        if (!window.TipOfDay) return;
+        
+        console.log('💡 [DashboardApp] Rendering tip of day...');
+        
+        this.components.tipOfDay = new window.TipOfDay();
+        const tipEl = document.getElementById('tip-of-day');
+        
+        if (tipEl && typeof this.components.tipOfDay.render === 'function') {
+            tipEl.innerHTML = this.components.tipOfDay.render();
+            
+            if (typeof this.components.tipOfDay.initialize === 'function') {
+                await this.components.tipOfDay.initialize();
+            }
+            
+            console.log('✅ [DashboardApp] Tip of day rendered');
+        }
+    }
+    
+    renderLeads(leads) {
+        try {
+            if (!this.components.leadRenderer) return;
+            
+            const tableContainer = document.getElementById('leads-table-container');
+            if (!tableContainer) return;
+            
+            if (typeof this.components.leadRenderer.renderLeads === 'function') {
+                const leadsHtml = this.components.leadRenderer.renderLeads(leads);
+                const tbody = tableContainer.querySelector('tbody');
+                
+                if (tbody) {
+                    tbody.innerHTML = leadsHtml;
+                    this.setupLeadEventListeners();
+                }
+            }
+            
+            console.log(`✅ [DashboardApp] Rendered ${leads.length} leads`);
+            
+        } catch (error) {
+            console.error('❌ [DashboardApp] Lead rendering failed:', error);
+        }
+    }
+    
+    setupLeadEventListeners() {
+        // Checkbox selection
+        document.querySelectorAll('.lead-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const leadId = e.target.dataset.leadId;
+                if (e.target.checked) {
+                    this.components.leadManager?.selectLead(leadId);
+                } else {
+                    this.components.leadManager?.deselectLead(leadId);
+                }
+            });
+        });
+        
+        // Row clicks (open modal)
+        document.querySelectorAll('.table-row').forEach(row => {
+            row.addEventListener('click', (e) => {
+                if (e.target.classList.contains('lead-checkbox')) return;
+                
+                const leadId = row.dataset.leadId;
+                if (leadId && this.components.modalManager) {
+                    // Try multiple possible method names
+                    if (typeof this.components.modalManager.openLeadModal === 'function') {
+                        this.components.modalManager.openLeadModal(leadId);
+                    } else if (typeof this.components.modalManager.showModal === 'function') {
+                        this.components.modalManager.showModal('lead', { leadId });
+                    }
+                }
+            });
+        });
+    }
+    
+    // =========================================================================
+    // DATA LOADING
+    // =========================================================================
+    
+    async loadDashboardData() {
+        console.log('📊 [DashboardApp] Loading data...');
+        
+        if (this.components.leadManager && typeof this.components.leadManager.loadDashboardData === 'function') {
+            await this.components.leadManager.loadDashboardData();
+        }
+        
+        console.log('✅ [DashboardApp] Data loaded');
+    }
+    
+    // =========================================================================
+    // EVENT HANDLERS
+    // =========================================================================
+    
+    setupEventHandlers() {
+        console.log('📡 [DashboardApp] Setting up event handlers...');
+        
+        if (window.DashboardEventSystem && window.OsliraEventBus) {
+            window.DashboardEventSystem.setupHandlers(window.OsliraEventBus, this);
+        }
+        
+        console.log('✅ [DashboardApp] Event handlers setup');
+    }
+    
+    // =========================================================================
+    // PUBLIC API
+    // =========================================================================
+    
+    exposePublicAPI() {
+        window.dashboard = this;
+        
+        // =====================================================================
+        // GLOBAL FUNCTIONS (for HTML onclick handlers)
+        // =====================================================================
+        
+        window.handleDropdownSelection = (mode) => {
+            if (this.components.header && typeof this.components.header.handleModeChange === 'function') {
+                this.components.header.handleModeChange(mode);
+            }
+        };
+        
+        window.submitResearch = () => {
+            if (window.ResearchHandlers) {
+                const handlers = new window.ResearchHandlers();
+                if (typeof handlers.submitResearch === 'function') {
+                    handlers.submitResearch();
+                }
+            }
+        };
+        
+        window.filterByPriority = (priority) => {
+            if (this.components.statsCards && typeof this.components.statsCards.filterByPriority === 'function') {
+                this.components.statsCards.filterByPriority(priority);
+            } else if (this.components.leadManager && typeof this.components.leadManager.filterLeads === 'function') {
+                this.components.leadManager.filterLeads(priority);
+            }
+        };
+        
+        window.clearAllSelections = () => {
+            if (this.components.leadManager && typeof this.components.leadManager.clearSelection === 'function') {
+                this.components.leadManager.clearSelection();
+            }
+            
+            document.querySelectorAll('.lead-checkbox:checked').forEach(cb => cb.checked = false);
+        };
+        
+        window.openBulkModal = () => {
+            if (!this.components.modalManager) return;
+            
+            // Try different method names
+            if (typeof this.components.modalManager.openModal === 'function') {
+                this.components.modalManager.openModal('bulkModal');
+            } else if (typeof this.components.modalManager.showModal === 'function') {
+                this.components.modalManager.showModal('bulk');
+            } else if (typeof this.components.modalManager.openBulkModal === 'function') {
+                this.components.modalManager.openBulkModal();
+            }
+        };
+        
+        window.handleMainButtonClick = () => {
+            const mode = this.components.header?.currentMode || 'single';
+            
+            if (mode === 'bulk') {
+                window.openBulkModal();
+            } else {
+                // Open research modal
+                if (window.ResearchHandlers) {
+                    const handlers = new window.ResearchHandlers();
+                    if (typeof handlers.openResearchModal === 'function') {
+                        handlers.openResearchModal();
+                    }
+                } else if (this.components.modalManager) {
+                    if (typeof this.components.modalManager.openModal === 'function') {
+                        this.components.modalManager.openModal('researchModal');
+                    } else if (typeof this.components.modalManager.showModal === 'function') {
+                        this.components.modalManager.showModal('research');
+                    }
+                }
+            }
+        };
+        
+        window.refreshLeadsTable = async () => {
+            if (this.components.leadManager && typeof this.components.leadManager.loadDashboardData === 'function') {
+                await this.components.leadManager.loadDashboardData();
+            }
+        };
+        
+        window.toggleToolbarCopyDropdown = () => {
+            const dropdown = document.getElementById('toolbar-copy-dropdown');
+            if (dropdown) dropdown.classList.toggle('hidden');
+        };
+        
+        console.log('✅ [DashboardApp] Public API exposed');
+    }
+    
+    // =========================================================================
+    // FINALIZATION
+    // =========================================================================
+    
+    finishInitialization() {
         this.initialized = true;
         const initTime = Date.now() - this.initStartTime;
         
@@ -245,453 +617,63 @@ async _performInitialization() {
         
         console.log(`✅ [DashboardApp] Initialized in ${initTime}ms`);
         
-        // ✅ FIX: Use correct EventBus reference
         if (window.OsliraEventBus) {
             window.OsliraEventBus.emit('DASHBOARD_INIT_COMPLETE', { initTime });
         }
-        
-    } catch (error) {
-        console.error('❌ [DashboardApp] Initialization failed:', error);
-        
-if (window.OsliraErrorHandler) {
-    window.OsliraErrorHandler.handleError(error, { 
-        context: 'dashboard_init',
-        fatal: true 
-    });
-} else {
-            console.error('❌ [DashboardApp] ErrorHandler not available');
-        }
-        
-        throw error;
-    }
-}
-    
-    /**
-     * Validate all required dependencies exist
-     */
-validateDependencies() {
-    const required = [
-        'OsliraEventBus',
-        'OsliraStateManager',
-        'OsliraErrorHandler',    // ✅ CORRECT
-        'OsliraAuth',
-        'LeadManager',
-        'BusinessManager',
-        'ModalManager',
-        'SidebarManager'
-    ];
-    
-    const missing = required.filter(dep => !window[dep]);
-    
-    if (missing.length > 0) {
-        throw new Error(`Missing dependencies: ${missing.join(', ')}`);
     }
     
-    console.log('✅ [DashboardApp] All dependencies validated');
-}
-// =============================================================================
-// COMPLETE FIX FOR DashboardApp.js
-// Replace the entire renderDashboardUI() and exposePublicAPI() methods
-// =============================================================================
-
-/**
- * Render dashboard UI components
- */
-async renderDashboardUI() {
-    try {
-        console.log('🎨 [DashboardApp] Rendering dashboard UI components...');
-        
-        // =========================================================================
-        // STEP 1: Render Header
-        // =========================================================================
-        if (window.DashboardHeader) {
-            const dashboardHeader = new window.DashboardHeader();
-            const headerElement = document.getElementById('dashboard-header');
-            if (headerElement && dashboardHeader.renderHeader) {
-                headerElement.innerHTML = dashboardHeader.renderHeader();
-                
-                // Initialize header functionality (dropdown, buttons, etc.)
-                if (dashboardHeader.initialize) {
-                    dashboardHeader.initialize();
-                }
-                
-                // Store reference for global functions
-                window.dashboardHeaderInstance = dashboardHeader;
-            }
-        }
-        
-        // =========================================================================
-        // STEP 2: Render Stats Cards
-        // =========================================================================
-        if (window.StatsCards) {
-            const statsCards = new window.StatsCards();
-            
-            // Priority cards
-            const priorityCardsEl = document.getElementById('priority-cards');
-            if (priorityCardsEl && statsCards.renderPriorityCards) {
-                priorityCardsEl.innerHTML = statsCards.renderPriorityCards();
-            }
-            
-            // Performance metrics
-            const metricsEl = document.getElementById('performance-metrics');
-            if (metricsEl && statsCards.renderPerformanceMetrics) {
-                metricsEl.innerHTML = statsCards.renderPerformanceMetrics();
-            }
-            
-            // Initialize stats cards functionality
-            if (statsCards.initialize) {
-                statsCards.initialize();
-            }
-            
-            // Store reference
-            window.statsCardsInstance = statsCards;
-        }
-        
-        // =========================================================================
-        // STEP 3: Render Leads Table (CRITICAL FIX)
-        // =========================================================================
-        if (window.LeadsTable) {
-            const leadsTable = new window.LeadsTable();
-            const tableEl = document.getElementById('leads-table-container');
-            if (tableEl && leadsTable.render) {
-                tableEl.innerHTML = leadsTable.render();
-                
-                // Initialize table functionality (sorting, selection, etc.)
-                if (leadsTable.initialize) {
-                    leadsTable.initialize();
-                }
-                
-                // Store reference
-                window.leadsTableInstance = leadsTable;
-            }
-        }
-        
-        // =========================================================================
-        // STEP 4: Setup Lead Renderer (for actual lead cards)
-        // =========================================================================
-if (window.LeadRenderer) {
-    const leadRenderer = new window.LeadRenderer();
+    // =========================================================================
+    // UTILITY METHODS
+    // =========================================================================
     
-    // Listen for leads loaded event to render them
-    if (window.OsliraEventBus) {
-        window.OsliraEventBus.on('leads:loaded', (leadsData) => {
-            // Handle both array and object formats
-            const leads = Array.isArray(leadsData) ? leadsData : (leadsData.leads || leadsData);
-            console.log('📊 [DashboardApp] Leads loaded, rendering...', leads);
-            this.renderLeads(leads);
-        });
+    getStats() {
+        try {
+            return {
+                totalLeads: window.OsliraStateManager.getState('leads')?.length || 0,
+                filteredLeads: window.OsliraStateManager.getState('filteredLeads')?.length || 0,
+                selectedLeads: window.OsliraStateManager.getState('selectedLeads')?.size || 0,
+                isLoading: window.OsliraStateManager.getState('isLoading') || false
+            };
+        } catch (error) {
+            return {};
+        }
     }
     
-    // Store reference
-    window.leadRendererInstance = leadRenderer;
-}
-        
-        // =========================================================================
-        // STEP 5: Render Insights Panel
-        // =========================================================================
-        if (window.InsightsPanel) {
-            const insightsPanel = new window.InsightsPanel();
-            const panelEl = document.getElementById('insights-panel');
-            if (panelEl && insightsPanel.render) {
-                panelEl.innerHTML = insightsPanel.render();
-                
-                if (insightsPanel.initialize) {
-                    insightsPanel.initialize();
-                }
-            }
-        }
-        
-        // =========================================================================
-        // STEP 6: Render Tip of Day
-        // =========================================================================
-        if (window.TipOfDay) {
-            const tipOfDay = new window.TipOfDay();
-            const tipEl = document.getElementById('tip-of-day');
-            if (tipEl && tipOfDay.render) {
-                tipEl.innerHTML = tipOfDay.render();
-                
-                if (tipOfDay.initialize) {
-                    tipOfDay.initialize();
-                }
-            }
-        }
-        
-        console.log('✅ [DashboardApp] UI components rendered');
-        
-    } catch (error) {
-        console.error('❌ [DashboardApp] Failed to render UI:', error);
-        throw error;
-    }
-}
-
-/**
- * Render leads into table (called when leads are loaded)
- */
-renderLeads(leads) {
-    try {
-        const tableContainer = document.getElementById('leads-table-container');
-        if (!tableContainer) {
-            console.warn('⚠️ [DashboardApp] Leads table container not found');
-            return;
-        }
-        
-        if (window.leadRendererInstance && window.leadRendererInstance.renderLeads) {
-            const leadsHtml = window.leadRendererInstance.renderLeads(leads);
-            const tbody = tableContainer.querySelector('tbody');
-            if (tbody) {
-                tbody.innerHTML = leadsHtml;
-                
-                // Setup event listeners for lead cards
-                this.setupLeadEventListeners();
-            }
-        }
-        
-        console.log(`✅ [DashboardApp] Rendered ${leads.length} leads`);
-        
-    } catch (error) {
-        console.error('❌ [DashboardApp] Failed to render leads:', error);
-    }
-}
-
-/**
- * Setup event listeners for lead interactions
- */
-setupLeadEventListeners() {
-    // Checkbox selection
-    document.querySelectorAll('.lead-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', (e) => {
-            const leadId = e.target.dataset.leadId;
-            if (window.LeadManager) {
-                const leadManager = new window.LeadManager();
-                if (e.target.checked) {
-                    leadManager.selectLead(leadId);
-                } else {
-                    leadManager.deselectLead(leadId);
-                }
-            }
-        });
-    });
-    
-    // Lead card clicks (open modal)
-    document.querySelectorAll('.table-row').forEach(row => {
-        row.addEventListener('click', (e) => {
-            // Don't trigger if clicking checkbox
-            if (e.target.classList.contains('lead-checkbox')) return;
-            
-            const leadId = row.dataset.leadId;
-            if (window.ModalManager && leadId) {
-                const modalManager = new window.ModalManager();
-                modalManager.openLeadModal(leadId);
-            }
-        });
-    });
-}
-
-/**
- * Expose public API (UPDATED FOR NEW ARCHITECTURE)
- */
-exposePublicAPI() {
-    // Main dashboard reference
-    window.dashboard = this;
-    
-    // ==========================================================================
-    // GLOBAL FUNCTIONS FOR HTML onclick HANDLERS
-    // ==========================================================================
-    
-    /**
-     * Handle dropdown mode selection (single/bulk)
-     */
-    window.handleDropdownSelection = (mode) => {
-        if (window.dashboardHeaderInstance && window.dashboardHeaderInstance.handleModeChange) {
-            window.dashboardHeaderInstance.handleModeChange(mode);
-        } else {
-            console.warn('⚠️ Dashboard header not initialized');
-        }
-    };
-    
-    /**
-     * Submit research form
-     */
-    window.submitResearch = () => {
-        if (window.ResearchHandlers) {
-            const handlers = new window.ResearchHandlers();
-            if (handlers.submitResearch) {
-                handlers.submitResearch();
-            }
-        } else {
-            console.warn('⚠️ Research handlers not available');
-        }
-    };
-    
-    /**
-     * Filter leads by priority
-     */
-    window.filterByPriority = (priority) => {
-        if (window.statsCardsInstance && window.statsCardsInstance.filterByPriority) {
-            window.statsCardsInstance.filterByPriority(priority);
-        } else if (window.LeadManager) {
-            const leadManager = new window.LeadManager();
-            if (leadManager.filterLeads) {
-                leadManager.filterLeads(priority);
-            }
-        }
-    };
-    
-    /**
-     * Clear all lead selections
-     */
-    window.clearAllSelections = () => {
-        if (window.LeadManager) {
-            const leadManager = new window.LeadManager();
-            if (leadManager.clearSelection) {
-                leadManager.clearSelection();
-            }
-        }
-        
-        // Also clear checkboxes visually
-        document.querySelectorAll('.lead-checkbox:checked').forEach(cb => {
-            cb.checked = false;
-        });
-    };
-    
-    /**
-     * Open bulk modal
-     */
-    window.openBulkModal = () => {
-        if (window.ModalManager) {
-            const modalManager = new window.ModalManager();
-            if (modalManager.openModal) {
-                modalManager.openModal('bulkModal');
-            }
-        } else {
-            console.warn('⚠️ Modal manager not available');
-        }
-    };
-    
-    /**
-     * Handle main button click (Research New Lead button)
-     */
-    window.handleMainButtonClick = () => {
-        const currentMode = window.dashboardHeaderInstance?.currentMode || 'single';
-        
-        if (currentMode === 'bulk') {
-            window.openBulkModal();
-        } else {
-            // Open research modal
-            if (window.ResearchHandlers) {
-                const handlers = new window.ResearchHandlers();
-                if (handlers.openResearchModal) {
-                    handlers.openResearchModal();
-                }
-            } else if (window.ModalManager) {
-                const modalManager = new window.ModalManager();
-                if (modalManager.openModal) {
-                    modalManager.openModal('researchModal');
-                }
-            }
-        }
-    };
-    
-    /**
-     * Global refresh function
-     */
-    window.refreshLeadsTable = async () => {
-        if (window.LeadManager) {
-            const leadManager = new window.LeadManager();
-            if (leadManager.loadDashboardData) {
-                await leadManager.loadDashboardData();
-            }
-        }
-    };
-    
-    // ==========================================================================
-    // TOOLBAR FUNCTIONS
-    // ==========================================================================
-    
-    window.toggleToolbarCopyDropdown = () => {
-        const dropdown = document.getElementById('toolbar-copy-dropdown');
-        if (dropdown) {
-            dropdown.classList.toggle('hidden');
-        }
-    };
-    
-    console.log('✅ [DashboardApp] Public API exposed');
-}
-    
-    /**
-     * Get dashboard stats
-     */
-getStats() {
-    try {
-        const stateManager = window.OsliraStateManager;  // ✅ FIXED
-        return {
-            totalLeads: stateManager.getState('leads')?.length || 0,
-            filteredLeads: stateManager.getState('filteredLeads')?.length || 0,
-            selectedLeads: stateManager.getState('selectedLeads')?.size || 0,
-            isLoading: stateManager.getState('isLoading') || false,
-            connectionStatus: stateManager.getState('connectionStatus') || 'disconnected'
-        };
-    } catch (error) {
-        console.error('❌ [DashboardApp] Failed to get stats:', error);
-        return {};
-    }
-}
-    
-    /**
-     * Check if dashboard is ready
-     */
     isReady() {
         return this.initialized && window.OsliraAuth?.user;
     }
     
-    /**
-     * Get current user
-     */
     getCurrentUser() {
         return window.OsliraAuth?.user || null;
     }
     
-    /**
-     * Cleanup
-     */
     async cleanup() {
         console.log('🧹 [DashboardApp] Cleaning up...');
         
-        try {
-            delete window.dashboard;
-            delete window.refreshLeadsTable;
-            
-            this.initialized = false;
-            this.initializationPromise = null;
-            
-            console.log('✅ [DashboardApp] Cleanup completed');
-            
-        } catch (error) {
-            console.error('❌ [DashboardApp] Cleanup failed:', error);
-        }
+        delete window.dashboard;
+        delete window.refreshLeadsTable;
+        
+        this.initialized = false;
+        this.initializationPromise = null;
+        
+        console.log('✅ [DashboardApp] Cleanup complete');
     }
     
-    /**
-     * Debug information
-     */
     debug() {
-        if (!this.initialized) {
-            return { 
-                status: 'not_initialized',
-                initializationInProgress: !!this.initializationPromise
-            };
-        }
-        
         return {
             initialized: this.initialized,
             initTime: Date.now() - this.initStartTime,
             stats: this.getStats(),
-            user: this.getCurrentUser()?.email
+            user: this.getCurrentUser()?.email,
+            components: Object.keys(this.components).filter(k => this.components[k] !== null)
         };
     }
 }
 
-// Initialize when scripts loaded
+// =============================================================================
+// INITIALIZATION
+// =============================================================================
+
 window.addEventListener('oslira:scripts:loaded', async () => {
     console.log('🎯 [DashboardApp] Scripts loaded, starting initialization...');
     
@@ -699,15 +681,15 @@ window.addEventListener('oslira:scripts:loaded', async () => {
         const app = new DashboardApp();
         await app.init();
     } catch (error) {
-    console.error('❌ [DashboardApp] Fatal initialization error:', error);
-    if (window.OsliraErrorHandler) {
-        window.OsliraErrorHandler.handleError(error, { 
-            context: 'dashboard_bootstrap',
-            fatal: true 
-        });
+        console.error('❌ [DashboardApp] Fatal initialization error:', error);
+        
+        if (window.OsliraErrorHandler) {
+            window.OsliraErrorHandler.handleError(error, { 
+                context: 'dashboard_bootstrap',
+                fatal: true 
+            });
+        }
     }
-}
 });
 
-// Export
 window.DashboardApp = DashboardApp;
