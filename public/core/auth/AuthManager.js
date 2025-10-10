@@ -113,36 +113,132 @@ async initialize() {
         }
     }
     
-    /**
-     * Internal initialization logic
-     */
-    async _initializeInternal() {
-        // STEP 1: Ensure EnvDetector is ready
-        await this._waitForEnvDetector();
+// Add this method to AuthManager class after _initializeSupabase()
+
+/**
+ * Load current session (MUST be called after initialize)
+ * This explicitly restores the session from localStorage
+ */
+async loadSession() {
+    try {
+        console.log('🔐 [AuthManager] Loading current session...');
         
-        // STEP 2: Ensure ConfigProvider is ready and initialized
-        await this._waitForConfigProvider();
-        
-        // STEP 3: Ensure Supabase CDN is loaded
-        await this._waitForSupabaseCDN();
-        
-        // STEP 4: Initialize Supabase client
-        await this._initializeSupabase();
-        
-        // STEP 5: Check URL for session tokens (cross-subdomain transfer)
-        const restoredFromUrl = await this._restoreSessionFromUrl();
-        
-        // STEP 6: Load current session (only if not restored from URL)
-        if (!restoredFromUrl) {
-            await this._loadCurrentSession();
+        if (!this.supabase) {
+            throw new Error('Supabase client not initialized');
         }
         
-        // STEP 7: Setup auth state listener
+        // Get session from Supabase (checks localStorage automatically)
+        const { data: { session }, error } = await this.supabase.auth.getSession();
+        
+        if (error) {
+            console.error('❌ [AuthManager] Session load error:', error);
+            // Clear corrupted session
+            localStorage.removeItem('oslira-auth');
+            return null;
+        }
+        
+        if (session) {
+            this.session = session;
+            this.user = session.user;
+            
+            console.log('✅ [AuthManager] Session loaded');
+            console.log('👤 [AuthManager] User:', this.user.email);
+            
+            // Emit session loaded event
+            this._emitEvent('session-loaded', { 
+                user: this.user,
+                session: this.session
+            });
+            
+            return session;
+        }
+        
+        console.log('ℹ️ [AuthManager] No active session found');
+        return null;
+        
+    } catch (error) {
+        console.error('❌ [AuthManager] Session load failed:', error);
+        return null;
+    }
+}
+
+// =========================================================================
+// MODIFY EXISTING _initializeInternal() METHOD
+// =========================================================================
+
+async _initializeInternal() {
+    console.log('🔧 [AuthManager] Internal initialization starting...');
+    
+    try {
+        // Step 1: Wait for dependencies
+        await this._waitForEnvDetector();
+        await this._waitForConfigProvider();
+        await this._waitForSupabaseCDN();
+        
+        // Step 2: Initialize Supabase client
+        await this._initializeSupabase();
+        
+        // Step 3: ✅ NEW - Explicitly load session
+        await this.loadSession();
+        
+        // Step 4: Setup auth state listener
         this._setupAuthListener();
         
-        // STEP 8: Start token refresher (background task)
-        this._startTokenRefresher();
+        console.log('✅ [AuthManager] Internal initialization complete');
+        return true;
+        
+    } catch (error) {
+        console.error('❌ [AuthManager] Internal initialization failed:', error);
+        this.lastError = error;
+        
+        if (this.initAttempts < this.maxInitAttempts) {
+            console.log(`🔄 [AuthManager] Retrying initialization (${this.initAttempts}/${this.maxInitAttempts})...`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return this._initializeInternal();
+        }
+        
+        throw error;
     }
+}
+
+// =========================================================================
+// ADD AUTH STATE LISTENER METHOD
+// =========================================================================
+
+/**
+ * Setup Supabase auth state listener
+ */
+_setupAuthListener() {
+    if (!this.supabase) return;
+    
+    console.log('📡 [AuthManager] Setting up auth state listener...');
+    
+    this.supabase.auth.onAuthStateChange((event, session) => {
+        console.log('🔐 [AuthManager] Auth state changed:', event);
+        
+        if (session) {
+            this.session = session;
+            this.user = session.user;
+            
+            this._emitEvent('state-changed', {
+                event,
+                user: this.user,
+                session: this.session
+            });
+        } else {
+            this.session = null;
+            this.user = null;
+            
+            this._emitEvent('state-changed', {
+                event,
+                user: null,
+                session: null
+            });
+        }
+    });
+    
+    console.log('✅ [AuthManager] Auth state listener active');
+}
     
     /**
      * Wait for EnvDetector to be ready
@@ -453,54 +549,7 @@ async _getSupabaseKey() {
             console.error('❌ [AuthManager] Session load failed:', error);
         }
     }
-    
-    // =========================================================================
-    // AUTH STATE LISTENER
-    // =========================================================================
-    
-    /**
-     * Setup Supabase auth state change listener
-     */
-    _setupAuthListener() {
-        this.supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log('🔐 [AuthManager] Auth state change:', event);
-            
-            try {
-                switch (event) {
-                    case 'SIGNED_IN':
-                        await this._handleSessionChange(session);
-                        this._emitEvent('signed-in', { session, user: this.user });
-                        break;
-                        
-                    case 'SIGNED_OUT':
-                        await this._handleSignOut();
-                        this._emitEvent('signed-out', null);
-                        break;
-                        
-                    case 'TOKEN_REFRESHED':
-                        await this._handleSessionChange(session);
-                        this._emitEvent('token-refreshed', { session, user: this.user });
-                        break;
-                        
-                    case 'USER_UPDATED':
-                        await this._handleSessionChange(session);
-                        this._emitEvent('user-updated', { session, user: this.user });
-                        break;
-                }
-            } catch (error) {
-                console.error('❌ [AuthManager] Auth state change handler failed:', error);
-                
-                if (window.Sentry) {
-                    Sentry.captureException(error, {
-                        tags: { component: 'AuthManager', event }
-                    });
-                }
-            }
-        });
-        
-        console.log('✅ [AuthManager] Auth listener setup');
-    }
-    
+
     // =========================================================================
     // SESSION MANAGEMENT
     // =========================================================================
