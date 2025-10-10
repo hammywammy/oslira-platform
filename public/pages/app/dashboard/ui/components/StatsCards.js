@@ -28,8 +28,8 @@ async initialize() {
             // Get leads from state
             const leads = this.stateManager.getState('leads') || [];
             
-            // Calculate stats
-            const stats = await statsCalc.calculateDashboardStats(leads);
+            // Calculate stats - CORRECT METHOD NAME
+            const stats = statsCalc.calculateStats(leads);
             
             // Render stats to DOM
             statsCalc.renderStats(stats);
@@ -66,6 +66,7 @@ updateStatsFromLeads(leads) {
         const statsCalc = new window.StatsCalculator();
         const stats = statsCalc.calculateStats(leads);
         statsCalc.renderStats(stats);
+        console.log('✅ [StatsCards] Stats updated from leads');
     } catch (error) {
         console.error('❌ [StatsCards] Failed to update stats:', error);
     }
