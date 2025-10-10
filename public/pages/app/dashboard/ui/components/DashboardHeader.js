@@ -549,122 +549,23 @@ class DashboardHeader {
 
 openResearchModal() {
     console.log('🔍 [DashboardHeader] Opening research modal...');
-    
     const modal = document.getElementById('researchModal');
-    
-    if (!modal) {
-        console.error('❌ [DashboardHeader] Research modal not found in DOM');
-        console.log('Available modals:', 
-            Array.from(document.querySelectorAll('[id*="modal"]')).map(el => el.id)
-        );
-        return;
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
     }
-    
-    // Log current state for debugging
-    console.log('📊 Research modal state:', {
-        id: modal.id,
-        hasContent: modal.innerHTML.length > 100,
-        currentDisplay: modal.style.display,
-        currentClasses: modal.className
-    });
-    
-    // STEP 1: Remove hidden class
-    modal.classList.remove('hidden');
-    
-    // STEP 2: Set display to flex (CRITICAL for visibility)
-    modal.style.display = 'flex';
-    
-    // STEP 3: Handle nested wrapper if it exists
-    const wrapper = modal.querySelector('.fixed.inset-0');
-    if (wrapper) {
-        wrapper.classList.remove('hidden');
-        wrapper.style.display = 'flex';
-    }
-    
-    // STEP 4: Force browser reflow
-    void modal.offsetHeight;
-    
-    console.log('✅ [DashboardHeader] Research modal opened successfully');
 }
 
 /**
- * Open bulk modal - IMMUTABLE METHOD
- * This will ALWAYS work because it uses direct DOM manipulation
+ * Open bulk modal - Direct DOM manipulation
  */
 openBulkModal() {
     console.log('📊 [DashboardHeader] Opening bulk modal...');
-    
     const modal = document.getElementById('bulkModal');
-    
-    if (!modal) {
-        console.error('❌ [DashboardHeader] Bulk modal not found in DOM');
-        console.log('Available elements with "bulk" in ID:', 
-            Array.from(document.querySelectorAll('[id*="bulk"]')).map(el => ({
-                id: el.id,
-                tag: el.tagName,
-                hasContent: el.innerHTML.length
-            }))
-        );
-        return;
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
     }
-    
-    // Log detailed state for debugging
-    console.log('📊 Bulk modal state BEFORE opening:', {
-        id: modal.id,
-        innerHTML: modal.innerHTML.length + ' chars',
-        currentDisplay: modal.style.display,
-        currentClasses: modal.className,
-        computedDisplay: window.getComputedStyle(modal).display,
-        hasHiddenClass: modal.classList.contains('hidden')
-    });
-    
-    // STEP 1: Remove ALL hidden classes (even from nested elements)
-    modal.classList.remove('hidden');
-    
-    // STEP 2: Set display to flex (CRITICAL - this is what makes it visible)
-    modal.style.display = 'flex';
-    
-    // STEP 3: Handle the inner wrapper that contains the backdrop
-    const innerWrapper = modal.querySelector('.fixed.inset-0');
-    if (innerWrapper) {
-        console.log('🔧 Found inner wrapper, making it visible...');
-        innerWrapper.classList.remove('hidden');
-        innerWrapper.style.display = 'flex';
-    } else {
-        console.warn('⚠️ No inner wrapper found - modal structure might be different');
-    }
-    
-    // STEP 4: Force browser reflow (makes browser apply changes immediately)
-    void modal.offsetHeight;
-    
-    // STEP 5: Verify it's visible
-    const finalState = {
-        display: modal.style.display,
-        computedDisplay: window.getComputedStyle(modal).display,
-        hasHiddenClass: modal.classList.contains('hidden'),
-        isVisible: modal.offsetParent !== null
-    };
-    
-    console.log('📊 Bulk modal state AFTER opening:', finalState);
-    
-    if (finalState.display !== 'flex') {
-        console.error('❌ Display not set to flex!');
-    }
-    
-    if (finalState.hasHiddenClass) {
-        console.error('❌ Still has hidden class!');
-    }
-    
-    if (!finalState.isVisible) {
-        console.error('❌ Modal still not visible! Possible CSS z-index issue.');
-        console.log('CSS investigation:', {
-            zIndex: window.getComputedStyle(modal).zIndex,
-            position: window.getComputedStyle(modal).position,
-            opacity: window.getComputedStyle(modal).opacity
-        });
-    }
-    
-    console.log('✅ [DashboardHeader] Bulk modal opened successfully');
 }
 
     /**
