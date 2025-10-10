@@ -550,34 +550,38 @@ class DashboardHeader {
     /**
      * Open research modal - uses global window objects
      */
-    openResearchModal() {
-        console.log('🔍 [DashboardHeader] Opening research modal...');
-        
-        // Try accessing via global window objects (NEW SYSTEM)
-        if (window.ResearchHandlers) {
-            window.ResearchHandlers.openResearchModal();
-        } else if (window.openResearchModal) {
-            window.openResearchModal();
-        } else {
-            console.error('❌ [DashboardHeader] No research modal function available');
-        }
+openResearchModal() {
+    console.log('🔍 [DashboardHeader] Opening research modal...');
+    
+    // Direct DOM manipulation as primary method
+    const modal = document.getElementById('researchModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        console.log('✅ [DashboardHeader] Research modal opened');
+        return;
     }
+    
+    console.error('❌ [DashboardHeader] Research modal not found in DOM');
+}
 
     /**
      * Open bulk modal - uses global window objects
      */
-    openBulkModal() {
-        console.log('📊 [DashboardHeader] Opening bulk modal...');
-        
-        // Try accessing via global window objects (NEW SYSTEM)
-if (window.modalManagerInstance) {
-    window.modalManagerInstance.openModal('bulkModal');
-} else if (this.modalManager) {
-    this.modalManager.openModal('bulkModal');
-} else {
-            console.error('❌ [DashboardHeader] ModalManager not available on window');
-        }
+openBulkModal() {
+    console.log('📊 [DashboardHeader] Opening bulk modal...');
+    
+    // Direct DOM manipulation as primary method
+    const modal = document.getElementById('bulkModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        console.log('✅ [DashboardHeader] Bulk modal opened');
+        return;
     }
+    
+    console.error('❌ [DashboardHeader] Bulk modal not found in DOM');
+}
 
     /**
      * Initialize Feather icons in the header
