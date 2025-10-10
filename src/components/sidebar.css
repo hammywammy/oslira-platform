@@ -209,18 +209,12 @@ body {
   background-image: var(--toggle-icon-close);
 }
 
-/* STATE 2: Sidebar Collapsed */
-/* Always shows normal.svg, no hover change */
 #sidebar-container.collapsed .sidebar-toggle-btn {
-  opacity: 0;
-  pointer-events: none;
+  opacity: 1;           /* Changed from 0 to 1 */
+  pointer-events: auto; /* Changed from none to auto */
 }
 
-#sidebar-container.collapsed:hover .sidebar-toggle-btn {
-  opacity: 1;
-  pointer-events: auto;
-}
-
+/* Icon always shows normal.svg when collapsed (no hover change) */
 #sidebar-container.collapsed .sidebar-toggle-icon,
 #sidebar-container.collapsed .sidebar-toggle-btn:hover .sidebar-toggle-icon {
   background-image: var(--toggle-icon-normal);
