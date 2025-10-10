@@ -14,11 +14,62 @@ class StatsCards {
         console.log('📊 [StatsCards] Instance created (Migrated System)');
     }
 
-    init() {
-        this.setupEventHandlers();
-        this.setupClickHandlers();
-        console.log('✅ [StatsCards] Initialized');
+async initialize() {
+    console.log('🔧 [StatsCards] Initializing with real data...');
+    
+    // Call init for event handlers
+    this.init();
+    
+    // Load real stats from StatsCalculator
+    if (window.StatsCalculator) {
+        try {
+            const statsCalc = new window.StatsCalculator();
+            
+            // Get leads from state
+            const leads = this.stateManager.getState('leads') || [];
+            
+            // Calculate stats
+            const stats = await statsCalc.calculateDashboardStats(leads);
+            
+            // Render stats to DOM
+            statsCalc.renderStats(stats);
+            
+            console.log('✅ [StatsCards] Real stats loaded:', stats);
+            
+        } catch (error) {
+            console.error('❌ [StatsCards] Failed to load real stats:', error);
+        }
+    } else {
+        console.warn('⚠️ [StatsCards] StatsCalculator not available');
     }
+}
+
+init() {
+    this.setupEventHandlers();
+    this.setupClickHandlers();
+    
+    // Subscribe to leads changes
+    if (this.stateManager && typeof this.stateManager.subscribe === 'function') {
+        this.stateManager.subscribe('leads', (leads) => {
+            console.log('📊 [StatsCards] Leads changed, updating stats...');
+            this.updateStatsFromLeads(leads);
+        });
+    }
+    
+    console.log('✅ [StatsCards] Initialized');
+}
+
+updateStatsFromLeads(leads) {
+    if (!window.StatsCalculator) return;
+    
+    try {
+        const statsCalc = new window.StatsCalculator();
+        const stats = statsCalc.calculateStats(leads);
+        statsCalc.renderStats(stats);
+    } catch (error) {
+        console.error('❌ [StatsCards] Failed to update stats:', error);
+    }
+}
 
     setupClickHandlers() {
         // Use event delegation for premium view link
