@@ -32,8 +32,8 @@ class SettingsApp {
         console.log('⚙️ [SettingsApp] Initializing components...');
         
         try {
-            // Step 1: Wait for sidebar to auto-render (it does this automatically)
-            await this.waitForSidebar();
+            // Step 1: Manually render the sidebar (DOMContentLoaded already fired)
+            await this.renderSidebar();
             
             // Step 2: Configure sidebar for settings
             await this.configureSidebar();
@@ -55,8 +55,8 @@ class SettingsApp {
     // SIDEBAR INITIALIZATION
     // =========================================================================
     
-    async waitForSidebar() {
-        console.log('📱 [SettingsApp] Waiting for sidebar...');
+    async renderSidebar() {
+        console.log('📱 [SettingsApp] Rendering sidebar...');
         
         // Wait for global sidebarManager instance to be available
         let attempts = 0;
@@ -69,10 +69,13 @@ class SettingsApp {
             throw new Error('SidebarManager not available');
         }
         
+        // Manually render sidebar (DOMContentLoaded already fired, so auto-render won't happen)
+        await window.sidebarManager.render('#sidebar-container');
+        
         // Store reference
         this.components.sidebar = window.sidebarManager;
         
-        console.log('✅ [SettingsApp] Sidebar reference obtained');
+        console.log('✅ [SettingsApp] Sidebar rendered');
     }
     
     async configureSidebar() {
