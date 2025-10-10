@@ -1,104 +1,125 @@
 // ===============================================================================
-// MODAL BUILDER ENGINE - Complete System for Analysis Modals
+// MODAL BUILDER ENGINE - Migrated to New System (No Container)
+// Complete System for Analysis Modals
 // ===============================================================================
 
+/**
+ * MODAL BUILDER - Migrated to New System (No Container)
+ * Handles dynamic modal construction for different analysis types
+ */
 class ModalBuilder {
     constructor() {
+        // Use global window objects directly (no container)
+        this.eventBus = window.EventBus || window.OsliraEventBus;
+        this.stateManager = window.StateManager || window.OsliraStateManager;
+        this.osliraAuth = window.OsliraAuth;
+        
         this.components = new ModalComponents();
         this.configs = new AnalysisConfigs();
+        
+        console.log('🏗️ [ModalBuilder] Instance created (Migrated System)');
     }
 
     // ===============================================================================
     // MAIN BUILD METHOD
     // ===============================================================================
     
-buildAnalysisModal(lead, analysisData) {
-    const analysisType = lead.analysis_type;
-    const config = this.configs.getConfig(analysisType);
-    const isPremium = this.components.isPremiumLead(
-        this.components.getMainScore(lead, analysisData, analysisType === 'deep' || analysisType === 'xray')
-    );
-    
-    console.log('🏗️ [ModalBuilder] Building modal for analysis type:', analysisType);
-    console.log('🏗️ [ModalBuilder] Has tabs:', config.hasTabs);
-    
-    let modalContent;
-    
-    if (config.hasTabs) {
-        modalContent = this.buildTabbedModal(lead, analysisData, config);
-    } else {
-        modalContent = this.buildStandardModal(lead, analysisData, config);
+    buildAnalysisModal(lead, analysisData) {
+        const analysisType = lead.analysis_type;
+        const config = this.configs.getConfig(analysisType);
+        const isPremium = this.components.isPremiumLead(
+            this.components.getMainScore(lead, analysisData, analysisType === 'deep' || analysisType === 'xray')
+        );
+        
+        console.log('🏗️ [ModalBuilder] Building modal for analysis type:', analysisType);
+        console.log('🏗️ [ModalBuilder] Has tabs:', config.hasTabs);
+        
+        let modalContent;
+        
+        if (config.hasTabs) {
+            modalContent = this.buildTabbedModal(lead, analysisData, config);
+        } else {
+            modalContent = this.buildStandardModal(lead, analysisData, config);
+        }
+
+        // Wrap in modal container with premium styling
+        const finalContent = `
+            <div class="overflow-y-auto max-h-[90vh]">
+                <!-- Main Content - with premium glow if 90+ score -->
+                <div class="relative ${isPremium ? 'premium-modal-glow' : ''}" style="animation: staggerReveal 0.6s ease-out;">
+                    ${modalContent}
+                </div>
+                ${this.renderFooter()}
+            </div>
+        `;
+
+        // Initialize animations after render
+        setTimeout(() => {
+            const modalContent = document.getElementById('modalContent');
+            if (modalContent) {
+                this.components.initializeAnimations(modalContent, lead, analysisData);
+            }
+        }, 50);
+        
+        // Emit event for analytics
+        if (this.eventBus) {
+            this.eventBus.emit('modal:built', {
+                analysisType,
+                username: lead.username,
+                isPremium
+            });
+        }
+
+        return finalContent;
     }
 
-    // Wrap in modal container with premium styling
-    const finalContent = `
-        <div class="overflow-y-auto max-h-[90vh]">
-            <!-- Main Content - with premium glow if 90+ score -->
-            <div class="relative ${isPremium ? 'premium-modal-glow' : ''}" style="animation: staggerReveal 0.6s ease-out;">
-                ${modalContent}
-            </div>
-            ${this.renderFooter()}
-        </div>
-    `;
+    // ===============================================================================
+    // TABBED MODAL BUILDER
+    // ===============================================================================
 
-    // Initialize animations after render
-    setTimeout(() => {
-        const modalContent = document.getElementById('modalContent');
-        if (modalContent) {
-            this.components.initializeAnimations(modalContent, lead, analysisData);
-        }
-    }, 50);
+    buildTabbedModal(lead, analysisData, config) {
+        console.log('🏗️ [ModalBuilder] Building tabbed modal with tabs:', config.tabs.map(t => t.id));
+        
+        // Render hero header (always displayed outside tabs)
+        const heroHeader = this.renderComponent('heroHeader', lead, analysisData);
+        
+        // Prepare tab components
+        const tabComponents = {};
+        config.tabs.forEach(tab => {
+            tabComponents[tab.id] = tab.components
+                .map(componentName => this.renderComponent(componentName, lead, analysisData))
+                .filter(component => component !== null);
+        });
 
-    return finalContent;
-}
+        // Render tabbed container
+        const tabbedContent = this.components.getComponent('tabbedContainer').render(
+            lead, 
+            analysisData, 
+            config.tabs, 
+            tabComponents
+        );
+
+        return `
+            ${heroHeader}
+            ${this.wrapInContentContainer(tabbedContent)}
+        `;
+    }
 
     // ===============================================================================
-// TABBED MODAL BUILDER
-// ===============================================================================
+    // STANDARD MODAL BUILDER (No Tabs)
+    // ===============================================================================
 
-buildTabbedModal(lead, analysisData, config) {
-    console.log('🏗️ [ModalBuilder] Building tabbed modal with tabs:', config.tabs.map(t => t.id));
-    
-    // Render hero header (always displayed outside tabs)
-    const heroHeader = this.renderComponent('heroHeader', lead, analysisData);
-    
-    // Prepare tab components
-    const tabComponents = {};
-    config.tabs.forEach(tab => {
-        tabComponents[tab.id] = tab.components
+    buildStandardModal(lead, analysisData, config) {
+        console.log('🏗️ [ModalBuilder] Building standard modal (no tabs)');
+        
+        // Build modal sections normally
+        const sections = config.components
             .map(componentName => this.renderComponent(componentName, lead, analysisData))
-            .filter(component => component !== null);
-    });
+            .filter(section => section !== null)
+            .join('');
 
-    // Render tabbed container
-    const tabbedContent = this.components.getComponent('tabbedContainer').render(
-        lead, 
-        analysisData, 
-        config.tabs, 
-        tabComponents
-    );
-
-    return `
-        ${heroHeader}
-        ${this.wrapInContentContainer(tabbedContent)}
-    `;
-}
-
-// ===============================================================================
-// STANDARD MODAL BUILDER (No Tabs)
-// ===============================================================================
-
-buildStandardModal(lead, analysisData, config) {
-    console.log('🏗️ [ModalBuilder] Building standard modal (no tabs)');
-    
-    // Build modal sections normally
-    const sections = config.components
-        .map(componentName => this.renderComponent(componentName, lead, analysisData))
-        .filter(section => section !== null)
-        .join('');
-
-    return this.wrapInContentContainer(sections);
-}
+        return this.wrapInContentContainer(sections);
+    }
 
     // ===============================================================================
     // COMPONENT RENDERING
@@ -147,16 +168,16 @@ buildStandardModal(lead, analysisData, config) {
     // CONTENT WRAPPER METHODS
     // ===============================================================================
     
-wrapInContentContainer(content) {
-    // Split content into individual components and add spacing
-    const contentWithSpacing = content.replace(/(<\/div>\s*<div class="group)/g, '</div><div style="margin-top: 32px;" class="group');
-    
-    return `
-        <div style="margin: 0 24px 0 24px; border: 1px solid rgba(229, 231, 235, 0.6); border-radius: 1rem; padding: 24px;" class="bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 shadow-lg backdrop-blur-sm">
-            ${contentWithSpacing}
-        </div>
-    `;
-}
+    wrapInContentContainer(content) {
+        // Split content into individual components and add spacing
+        const contentWithSpacing = content.replace(/(<\/div>\s*<div class="group)/g, '</div><div style="margin-top: 32px;" class="group');
+        
+        return `
+            <div style="margin: 0 24px 0 24px; border: 1px solid rgba(229, 231, 235, 0.6); border-radius: 1rem; padding: 24px;" class="bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 shadow-lg backdrop-blur-sm">
+                ${contentWithSpacing}
+            </div>
+        `;
+    }
 
     // ===============================================================================
     // HELPER METHODS FOR COMPONENT MAPPING
@@ -278,6 +299,8 @@ window.startDeepAnalysis = function(username) {
     // Trigger deep analysis through the analysis functions
     if (window.showAnalysisModal) {
         window.showAnalysisModal(username);
+    } else if (window.ModalManager && window.ModalManager.showAnalysisModal) {
+        window.ModalManager.showAnalysisModal(username);
     } else {
         console.error('❌ Analysis modal function not available');
     }
@@ -289,3 +312,5 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
     window.ModalBuilder = ModalBuilder;
 }
+
+console.log('🏗️ [ModalBuilder] Migrated version loaded successfully');
