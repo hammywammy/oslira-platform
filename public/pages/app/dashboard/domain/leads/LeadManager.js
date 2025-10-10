@@ -364,13 +364,17 @@ class LeadManager {
     // WAIT HELPERS (Production Grade with AbortController)
     // =========================================================================
     
-    async waitForValidUser(timeout = 5000) {
-        return this.waitFor(
-            () => this.osliraAuth?.user?.id,
-            timeout,
-            'User authentication'
-        );
-    }
+async waitForValidUser(timeout = 5000) {
+    return this.waitFor(
+        () => {
+            const user = this.osliraAuth?.user;
+            // Return the full user object, not just the ID
+            return (user && user.id) ? user : null;
+        },
+        timeout,
+        'User authentication'
+    );
+}
     
     async waitForValidBusiness(timeout = 3000) {
         return this.waitFor(
