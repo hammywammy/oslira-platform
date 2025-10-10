@@ -15,6 +15,45 @@
  * 
  * ✅ MIGRATED: No longer uses container.get() - uses window.* directly
  */
+// Dashboard Event Constants
+const DASHBOARD_EVENTS = {
+    // Data Events
+    LOADING_START: 'dashboard:loading:start',
+    DATA_LOADING_START: 'dashboard:data:loading:start',
+    DATA_LOADING_END: 'dashboard:data:loading:end',
+    DATA_REFRESH_COMPLETE: 'dashboard:data:refresh:complete',
+    DATA_LOADED: 'dashboard:data:loaded',
+    DATA_ERROR: 'dashboard:data:error',
+    DATA_REFRESH_REQUESTED: 'dashboard:data:refresh:requested',
+    
+    // Analysis Events
+    ANALYSIS_STARTED: 'dashboard:analysis:started',
+    ANALYSIS_COMPLETED: 'dashboard:analysis:completed',
+    ANALYSIS_FAILED: 'dashboard:analysis:failed',
+    ANALYSIS_QUEUE_UPDATE: 'dashboard:analysis:queue:update',
+    
+    // Business Events
+    BUSINESS_CHANGED: 'dashboard:business:changed',
+    BUSINESS_CHANGE_COMPLETE: 'dashboard:business:change:complete',
+    BUSINESS_LIST_UPDATED: 'dashboard:business:list:updated',
+    BUSINESS_LOADED: 'dashboard:business:loaded',
+    
+    // UI Events
+    UI_UPDATE: 'dashboard:ui:update',
+    
+    // Error Events
+    ERROR: 'dashboard:error',
+    WARNING: 'dashboard:warning',
+    
+    // Connection Events
+    CONNECTION_STATUS_CHANGED: 'dashboard:connection:status:changed',
+    REALTIME_CONNECTED: 'dashboard:realtime:connected',
+    REALTIME_DISCONNECTED: 'dashboard:realtime:disconnected',
+    REALTIME_UPDATE: 'dashboard:realtime:update',
+    
+    // Auth Events
+    AUTH_CHANGED: 'dashboard:auth:changed'
+};
 
 class DashboardEventSystem {
     
