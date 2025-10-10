@@ -62,9 +62,8 @@ auth: {
     requiresAuth: false,
     description: 'OAuth callback processor'
 },
-// =================================================================
-// DASHBOARD - COMPLETE WITH DI SYSTEM
-// =================================================================
+
+
 dashboard: {
     appClass: 'DashboardApp',
     scripts: [
@@ -75,76 +74,121 @@ dashboard: {
         '/core/di/Container.js',
         
         // ============================================================
-        // PHASE 2: SHARED COMPONENTS (Sidebar)
+        // PHASE 2: DASHBOARD CORE APP
         // ============================================================
-        '/core/ui/components/layouts/AppSidebar.js',
+        '/pages/app/dashboard/core/DashboardApp.js',
         
         // ============================================================
-        // PHASE 3: SHARED DATA (No dependencies)
+        // PHASE 3: UI COMPONENTS (MUST BE BEFORE ANYTHING THAT USES THEM)
         // ============================================================
-        '/pages/app/dashboard/shared/DailyTips.js',
+        '/pages/app/dashboard/ui/components/IconComponents.js',  // ✅ ADD THIS LINE
+        '/pages/app/dashboard/ui/components/LeadsTable.js',
         
         // ============================================================
-        // PHASE 4: DOMAIN - DATA MANAGEMENT
-        // ============================================================
-        '/pages/app/dashboard/domain/leads/LeadManager.js',
-        '/pages/app/dashboard/domain/leads/LeadRenderer.js',
-        '/pages/app/dashboard/domain/business/BusinessManager.js',
-        '/pages/app/dashboard/domain/stats/StatsCalculator.js',
-        '/pages/app/dashboard/domain/bulk/BulkUpload.js',
-        
-        // ============================================================
-        // PHASE 5: ANALYSIS SYSTEM
-        // ============================================================
-        '/pages/app/dashboard/domain/analysis/AnalysisQueue.js',
-        '/pages/app/dashboard/domain/analysis/AnalysisQueueRenderer.js',
-        '/pages/app/dashboard/domain/analysis/AnalysisQueueAnimator.js',
-        '/pages/app/dashboard/domain/analysis/AnalysisFunctions.js',
-        
-        // ============================================================
-        // PHASE 6: INFRASTRUCTURE
+        // PHASE 4: INFRASTRUCTURE
         // ============================================================
         '/pages/app/dashboard/infrastructure/RealtimeManager.js',
         
         // ============================================================
-        // PHASE 7: HANDLERS
+        // PHASE 5: DOMAIN - RENDERING
+        // ============================================================
+        '/pages/app/dashboard/domain/leads/LeadRenderer.js',
+        '/pages/app/dashboard/ui/components/InsightsPanel.js',
+        
+        // ============================================================
+        // PHASE 6: DOMAIN - ANALYSIS
+        // ============================================================
+        '/pages/app/dashboard/domain/analysis/AnalysisFunctions.js',
+        
+        // ============================================================
+        // PHASE 7: UI MODALS - PERSONALITY COMPONENTS
+        // ============================================================
+        '/pages/app/dashboard/ui/modals/components/ModalComponentsPersonality.js',
+        
+        // ============================================================
+        // PHASE 8: MODALS - CONFIGURATIONS
+        // ============================================================
+        '/pages/app/dashboard/ui/modals/configs/ResearchModal.js',
+        '/pages/app/dashboard/ui/modals/configs/AnalysisConfig.js',
+        
+        // ============================================================
+        // PHASE 9: UI MODALS - XRAY COMPONENTS
+        // ============================================================
+        '/pages/app/dashboard/ui/modals/components/ModalComponentsXray.js',
+        
+        // ============================================================
+        // PHASE 10: DOMAIN - STATS
+        // ============================================================
+        '/pages/app/dashboard/domain/stats/StatsCalculator.js',
+        
+        // ============================================================
+        // PHASE 11: HANDLERS
         // ============================================================
         '/pages/app/dashboard/handlers/ResearchHandlers.js',
         '/pages/app/dashboard/handlers/LeadAnalysisHandlers.js',
         
         // ============================================================
-        // PHASE 8: UI COMPONENTS
+        // PHASE 12: ANALYSIS SYSTEM - QUEUE
         // ============================================================
-        '/pages/app/dashboard/ui/components/DashboardHeader.js',
-        '/pages/app/dashboard/ui/components/StatsCards.js',
-        '/pages/app/dashboard/ui/components/LeadsTable.js',
-        '/pages/app/dashboard/ui/components/InsightsPanel.js',
+        '/pages/app/dashboard/domain/analysis/AnalysisQueueRenderer.js',
         '/pages/app/dashboard/ui/components/TipOfDay.js',
-        
-        // ============================================================
-        // PHASE 9: MODAL SYSTEM
-        // ============================================================
-        '/pages/app/dashboard/ui/modals/ModalManager.js',
+        '/pages/app/dashboard/shared/DailyTips.js',
         '/pages/app/dashboard/ui/modals/FilterModal.js',
-        '/pages/app/dashboard/ui/modals/ModalBuilder.js',
+        '/pages/app/dashboard/domain/analysis/AnalysisQueue.js',
+        '/pages/app/dashboard/domain/analysis/AnalysisQueueAnimator.js',
         
-        // Modal Components (Plugin Architecture)
-        '/pages/app/dashboard/ui/modals/components/ModalComponentsCore.js',
+        // ============================================================
+        // PHASE 13: UI MODALS - DEEP COMPONENTS
+        // ============================================================
         '/pages/app/dashboard/ui/modals/components/ModalComponentsDeep.js',
-        '/pages/app/dashboard/ui/modals/components/ModalComponentsPersonality.js',
-        '/pages/app/dashboard/ui/modals/components/ModalComponentsXray.js',
         
-        // Modal Configs
-        '/pages/app/dashboard/ui/modals/configs/AnalysisConfig.js',
-        '/pages/app/dashboard/ui/modals/configs/BulkModal.js',
-        '/pages/app/dashboard/ui/modals/configs/ResearchModal.js',
+        // ============================================================
+        // PHASE 14: DOMAIN - LEADS
+        // ============================================================
+        '/pages/app/dashboard/domain/leads/LeadManager.js',
+        
+        // ============================================================
+        // PHASE 15: UI MODALS - TAB SYSTEM
+        // ============================================================
         '/pages/app/dashboard/ui/modals/TabSystem.js',
         
         // ============================================================
-        // PHASE 10: CORE ORCHESTRATION (Load Last)
+        // PHASE 16: UI MODALS - MODAL MANAGER
         // ============================================================
-        '/pages/app/dashboard/core/DashboardEventSystem.js',
-        '/pages/app/dashboard/core/DashboardApp.js'  // Main app initializes last
+        '/pages/app/dashboard/ui/modals/ModalManager.js',
+        '/pages/app/dashboard/ui/modals/ModalBuilder.js',
+        
+        // ============================================================
+        // PHASE 17: UI COMPONENTS - STATS & BULK
+        // ============================================================
+        '/pages/app/dashboard/ui/components/StatsCards.js',
+        '/pages/app/dashboard/domain/bulk/BulkUpload.js',
+        '/pages/app/dashboard/ui/modals/configs/BulkModal.js',
+        
+        // ============================================================
+        // PHASE 18: UI MODALS - CORE COMPONENTS
+        // ============================================================
+        '/pages/app/dashboard/ui/modals/components/ModalComponentsCore.js',
+        
+        // ============================================================
+        // PHASE 19: UI COMPONENTS - HEADER
+        // ============================================================
+        '/pages/app/dashboard/ui/components/DashboardHeader.js',
+        
+        // ============================================================
+        // PHASE 20: DOMAIN - BUSINESS
+        // ============================================================
+        '/pages/app/dashboard/domain/business/BusinessManager.js',
+        
+        // ============================================================
+        // PHASE 21: SHARED COMPONENTS (Sidebar)
+        // ============================================================
+        '/core/ui/components/layouts/AppSidebar.js',
+        
+        // ============================================================
+        // PHASE 22: EVENT SYSTEM (MUST BE LAST)
+        // ============================================================
+        '/pages/app/dashboard/core/DashboardEventSystem.js'
     ],
     requiresAuth: true,
     description: 'Lead research dashboard'
