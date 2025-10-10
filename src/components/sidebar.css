@@ -12,6 +12,9 @@
   /* Sidebar dimensions */
   --sidebar-width: 256px;
   --sidebar-collapsed-width: 64px;
+
+  --sidebar-element-padding: 16px;  /* ADD THIS */
+  --element-size: 32px;              /* ADD THIS */
   
   /* Spacing */
   --sidebar-padding: 1rem;
@@ -122,23 +125,18 @@ body {
    ============================================================================= */
 
 .sidebar-header {
-  padding: var(--sidebar-padding);
+  display: grid;
+  grid-template-columns: var(--element-size) 1fr;
+  padding: var(--sidebar-element-padding);
   border-bottom: 1px solid var(--sidebar-border);
-  display: flex;
+  gap: 12px;
   align-items: center;
-  justify-content: space-between;
   min-height: 64px;
   flex-shrink: 0;
 }
 
 .sidebar-logo-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  text-decoration: none;
-  transition: opacity var(--transition-speed);
-  flex: 1;
-  min-width: 0;
+  display: none;
 }
 
 .sidebar-logo-link:hover {
@@ -167,9 +165,27 @@ body {
   overflow: hidden;
 }
 
+.sidebar-company-name {
+  grid-column: 2;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
+  white-space: nowrap;
+  transition: opacity var(--transition-speed);
+}
+
+#sidebar-container.collapsed .sidebar-company-name {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
 /* Updated toggle button styles */
 .sidebar-toggle-btn {
-  padding: 0.5rem;
+  grid-column: 1;
+  width: var(--element-size);
+  height: var(--element-size);
+  padding: 0;
   background: rgba(255,255,255,0.5);
   border: 1px solid rgba(229,231,235,0.5);
   border-radius: 0.5rem;
@@ -178,9 +194,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  width: 2.5rem;
-  height: 2.5rem;
 }
 
 .sidebar-toggle-btn:hover {
@@ -331,16 +344,17 @@ body {
    ============================================================================= */
 
 .nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.625rem 0.75rem;
+  display: grid;
+  grid-template-columns: var(--element-size) 1fr;
+  gap: 12px;
+  padding: 0;
   color: var(--nav-item-color);
   border-radius: 0.5rem;
   transition: all 0.2s ease;
   cursor: pointer;
   text-decoration: none;
-  min-height: 2.75rem;
+  min-height: 40px;
+  align-items: center;
   white-space: nowrap;
 }
 
@@ -397,16 +411,17 @@ body {
 }
 
 .account-trigger {
+  display: grid;
+  grid-template-columns: var(--element-size) 1fr auto;
+  gap: 12px;
   width: 100%;
-  padding: 0.625rem 0.75rem;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  padding: 0;
+  background: transparent;
+  border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  display: flex;
   align-items: center;
-  gap: 0.75rem;
+  min-height: 40px;
 }
 
 .account-trigger:hover {
