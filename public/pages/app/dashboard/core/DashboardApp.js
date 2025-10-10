@@ -750,6 +750,34 @@ async renderTipOfDay() {
             }
         };
 
+    window.openLeadAnalysisModal = (leadId) => {
+        console.log('📊 [DashboardApp] Opening lead analysis modal:', leadId);
+        
+        // Try LeadAnalysisHandlers first
+        if (window.LeadAnalysisHandlers) {
+            const handlers = new window.LeadAnalysisHandlers();
+            if (typeof handlers.openModal === 'function') {
+                handlers.openModal(leadId);
+                return;
+            }
+        }
+        
+        // Fallback: Try ModalManager
+        if (this.components.modalManager && typeof this.components.modalManager.openModal === 'function') {
+            this.components.modalManager.openModal('leadAnalysisModal', { leadId });
+            return;
+        }
+        
+        // Fallback: Direct modal manipulation
+        const modal = document.getElementById('leadAnalysisModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        } else {
+            console.error('❌ Lead analysis modal not found');
+        }
+    };
+
 // In DashboardApp.js exposePublicAPI() method:
 
 window.openResearchModal = () => {
