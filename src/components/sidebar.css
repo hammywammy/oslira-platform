@@ -268,6 +268,32 @@ body {
   border-radius: 9999px;
 }
 
+#sidebar-container.collapsed .nav-section-header-wrapper {
+  height: 1px;
+  min-height: 1px;
+  padding: 0;
+  margin: 0.75rem 0;
+  background: rgba(229, 231, 235, 0.5);
+  cursor: default;
+  pointer-events: none;
+  border-radius: 0;
+}
+
+#sidebar-container.collapsed .nav-section-header-wrapper:hover {
+  background: rgba(229, 231, 235, 0.5);
+}
+
+/* Hide the actual header text and chevron (already hidden, but ensure it) */
+#sidebar-container.collapsed .nav-section-header,
+#sidebar-container.collapsed .section-chevron {
+  display: none;
+}
+
+/* Optional: First section doesn't need divider above it */
+#sidebar-container.collapsed .nav-section:first-child .nav-section-header-wrapper {
+  display: none;
+}
+
 /* =============================================================================
    NAVIGATION SECTIONS
    ============================================================================= */
