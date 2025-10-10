@@ -297,9 +297,17 @@ class LeadRenderer {
     // LEAD CARD CREATION (Keep existing excellent design)
     // =========================================================================
     
-    createLeadCard(lead) {
-        const selectedLeads = this.stateManager.getState('selectedLeads') || new Set();
-        const isSelected = selectedLeads.has(lead.id);
+createLeadCard(lead) {
+    let selectedLeads = this.stateManager.getState('selectedLeads') || new Set();
+    
+    // Ensure it's a Set (convert array if needed)
+    if (Array.isArray(selectedLeads)) {
+        selectedLeads = new Set(selectedLeads);
+    } else if (!(selectedLeads instanceof Set)) {
+        selectedLeads = new Set();
+    }
+    
+    const isSelected = selectedLeads.has(lead.id);
         const score = lead.score || 0;
         
         const scoreConfig = this.getScoreConfig(score);
