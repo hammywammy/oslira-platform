@@ -253,13 +253,12 @@ async _performInitialization() {
     } catch (error) {
         console.error('❌ [DashboardApp] Initialization failed:', error);
         
-        // ✅ FIX: Use correct ErrorHandler reference with safety check
-        if (window.ErrorHandler) {
-            window.ErrorHandler.handleError(error, { 
-                context: 'dashboard_init',
-                fatal: true 
-            });
-        } else {
+if (window.OsliraErrorHandler) {
+    window.OsliraErrorHandler.handleError(error, { 
+        context: 'dashboard_init',
+        fatal: true 
+    });
+} else {
             console.error('❌ [DashboardApp] ErrorHandler not available');
         }
         
@@ -270,108 +269,373 @@ async _performInitialization() {
     /**
      * Validate all required dependencies exist
      */
-    validateDependencies() {
-        const required = [
-            'OsliraEventBus',
-            'OsliraStateManager',
-            'OsliraErrorHandler',
-            'OsliraAuth',
-            'LeadManager',
-            'BusinessManager',
-            'ModalManager',
-            'SidebarManager'
-        ];
-        
-        const missing = required.filter(dep => !window[dep]);
-        
-        if (missing.length > 0) {
-            throw new Error(`Missing dependencies: ${missing.join(', ')}`);
-        }
-        
-        console.log('✅ [DashboardApp] All dependencies validated');
+validateDependencies() {
+    const required = [
+        'OsliraEventBus',
+        'OsliraStateManager',
+        'OsliraErrorHandler',    // ✅ CORRECT
+        'OsliraAuth',
+        'LeadManager',
+        'BusinessManager',
+        'ModalManager',
+        'SidebarManager'
+    ];
+    
+    const missing = required.filter(dep => !window[dep]);
+    
+    if (missing.length > 0) {
+        throw new Error(`Missing dependencies: ${missing.join(', ')}`);
     }
     
-    /**
-     * Render dashboard UI components
-     */
-    async renderDashboardUI() {
-        try {
-            // Header
-            if (window.DashboardHeader) {
-                const dashboardHeader = new window.DashboardHeader();
-                const headerElement = document.getElementById('dashboard-header');
-                if (headerElement && dashboardHeader.renderHeader) {
-                    headerElement.innerHTML = dashboardHeader.renderHeader();
-                }
-            }
-            
-            // Stats Cards
-            if (window.StatsCards) {
-                const statsCards = new window.StatsCards();
+    console.log('✅ [DashboardApp] All dependencies validated');
+}
+// =============================================================================
+// COMPLETE FIX FOR DashboardApp.js
+// Replace the entire renderDashboardUI() and exposePublicAPI() methods
+// =============================================================================
+
+/**
+ * Render dashboard UI components
+ */
+async renderDashboardUI() {
+    try {
+        console.log('🎨 [DashboardApp] Rendering dashboard UI components...');
+        
+        // =========================================================================
+        // STEP 1: Render Header
+        // =========================================================================
+        if (window.DashboardHeader) {
+            const dashboardHeader = new window.DashboardHeader();
+            const headerElement = document.getElementById('dashboard-header');
+            if (headerElement && dashboardHeader.renderHeader) {
+                headerElement.innerHTML = dashboardHeader.renderHeader();
                 
-                const priorityCardsEl = document.getElementById('priority-cards');
-                if (priorityCardsEl && statsCards.renderPriorityCards) {
-                    priorityCardsEl.innerHTML = statsCards.renderPriorityCards();
+                // Initialize header functionality (dropdown, buttons, etc.)
+                if (dashboardHeader.initialize) {
+                    dashboardHeader.initialize();
                 }
                 
-                const metricsEl = document.getElementById('performance-metrics');
-                if (metricsEl && statsCards.renderPerformanceMetrics) {
-                    metricsEl.innerHTML = statsCards.renderPerformanceMetrics();
-                }
+                // Store reference for global functions
+                window.dashboardHeaderInstance = dashboardHeader;
             }
-            
-            // Leads Table
-            if (window.LeadsTable) {
-                const leadsTable = new window.LeadsTable();
-                const tableEl = document.getElementById('leads-table-container');
-                if (tableEl && leadsTable.render) {
-                    tableEl.innerHTML = leadsTable.render();
-                }
-            }
-            
-            console.log('✅ [DashboardApp] UI components rendered');
-            
-        } catch (error) {
-            console.error('❌ [DashboardApp] Failed to render UI:', error);
-            throw error;
         }
+        
+        // =========================================================================
+        // STEP 2: Render Stats Cards
+        // =========================================================================
+        if (window.StatsCards) {
+            const statsCards = new window.StatsCards();
+            
+            // Priority cards
+            const priorityCardsEl = document.getElementById('priority-cards');
+            if (priorityCardsEl && statsCards.renderPriorityCards) {
+                priorityCardsEl.innerHTML = statsCards.renderPriorityCards();
+            }
+            
+            // Performance metrics
+            const metricsEl = document.getElementById('performance-metrics');
+            if (metricsEl && statsCards.renderPerformanceMetrics) {
+                metricsEl.innerHTML = statsCards.renderPerformanceMetrics();
+            }
+            
+            // Initialize stats cards functionality
+            if (statsCards.initialize) {
+                statsCards.initialize();
+            }
+            
+            // Store reference
+            window.statsCardsInstance = statsCards;
+        }
+        
+        // =========================================================================
+        // STEP 3: Render Leads Table (CRITICAL FIX)
+        // =========================================================================
+        if (window.LeadsTable) {
+            const leadsTable = new window.LeadsTable();
+            const tableEl = document.getElementById('leads-table-container');
+            if (tableEl && leadsTable.render) {
+                tableEl.innerHTML = leadsTable.render();
+                
+                // Initialize table functionality (sorting, selection, etc.)
+                if (leadsTable.initialize) {
+                    leadsTable.initialize();
+                }
+                
+                // Store reference
+                window.leadsTableInstance = leadsTable;
+            }
+        }
+        
+        // =========================================================================
+        // STEP 4: Setup Lead Renderer (for actual lead cards)
+        // =========================================================================
+if (window.LeadRenderer) {
+    const leadRenderer = new window.LeadRenderer();
+    
+    // Listen for leads loaded event to render them
+    if (window.OsliraEventBus) {
+        window.OsliraEventBus.on('leads:loaded', (leadsData) => {
+            // Handle both array and object formats
+            const leads = Array.isArray(leadsData) ? leadsData : (leadsData.leads || leadsData);
+            console.log('📊 [DashboardApp] Leads loaded, rendering...', leads);
+            this.renderLeads(leads);
+        });
     }
     
-    /**
-     * Expose public API
-     */
-    exposePublicAPI() {
-        window.dashboard = this;
+    // Store reference
+    window.leadRendererInstance = leadRenderer;
+}
         
-        // Global refresh function
-        window.refreshLeadsTable = async () => {
+        // =========================================================================
+        // STEP 5: Render Insights Panel
+        // =========================================================================
+        if (window.InsightsPanel) {
+            const insightsPanel = new window.InsightsPanel();
+            const panelEl = document.getElementById('insights-panel');
+            if (panelEl && insightsPanel.render) {
+                panelEl.innerHTML = insightsPanel.render();
+                
+                if (insightsPanel.initialize) {
+                    insightsPanel.initialize();
+                }
+            }
+        }
+        
+        // =========================================================================
+        // STEP 6: Render Tip of Day
+        // =========================================================================
+        if (window.TipOfDay) {
+            const tipOfDay = new window.TipOfDay();
+            const tipEl = document.getElementById('tip-of-day');
+            if (tipEl && tipOfDay.render) {
+                tipEl.innerHTML = tipOfDay.render();
+                
+                if (tipOfDay.initialize) {
+                    tipOfDay.initialize();
+                }
+            }
+        }
+        
+        console.log('✅ [DashboardApp] UI components rendered');
+        
+    } catch (error) {
+        console.error('❌ [DashboardApp] Failed to render UI:', error);
+        throw error;
+    }
+}
+
+/**
+ * Render leads into table (called when leads are loaded)
+ */
+renderLeads(leads) {
+    try {
+        const tableContainer = document.getElementById('leads-table-container');
+        if (!tableContainer) {
+            console.warn('⚠️ [DashboardApp] Leads table container not found');
+            return;
+        }
+        
+        if (window.leadRendererInstance && window.leadRendererInstance.renderLeads) {
+            const leadsHtml = window.leadRendererInstance.renderLeads(leads);
+            const tbody = tableContainer.querySelector('tbody');
+            if (tbody) {
+                tbody.innerHTML = leadsHtml;
+                
+                // Setup event listeners for lead cards
+                this.setupLeadEventListeners();
+            }
+        }
+        
+        console.log(`✅ [DashboardApp] Rendered ${leads.length} leads`);
+        
+    } catch (error) {
+        console.error('❌ [DashboardApp] Failed to render leads:', error);
+    }
+}
+
+/**
+ * Setup event listeners for lead interactions
+ */
+setupLeadEventListeners() {
+    // Checkbox selection
+    document.querySelectorAll('.lead-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            const leadId = e.target.dataset.leadId;
             if (window.LeadManager) {
                 const leadManager = new window.LeadManager();
+                if (e.target.checked) {
+                    leadManager.selectLead(leadId);
+                } else {
+                    leadManager.deselectLead(leadId);
+                }
+            }
+        });
+    });
+    
+    // Lead card clicks (open modal)
+    document.querySelectorAll('.table-row').forEach(row => {
+        row.addEventListener('click', (e) => {
+            // Don't trigger if clicking checkbox
+            if (e.target.classList.contains('lead-checkbox')) return;
+            
+            const leadId = row.dataset.leadId;
+            if (window.ModalManager && leadId) {
+                const modalManager = new window.ModalManager();
+                modalManager.openLeadModal(leadId);
+            }
+        });
+    });
+}
+
+/**
+ * Expose public API (UPDATED FOR NEW ARCHITECTURE)
+ */
+exposePublicAPI() {
+    // Main dashboard reference
+    window.dashboard = this;
+    
+    // ==========================================================================
+    // GLOBAL FUNCTIONS FOR HTML onclick HANDLERS
+    // ==========================================================================
+    
+    /**
+     * Handle dropdown mode selection (single/bulk)
+     */
+    window.handleDropdownSelection = (mode) => {
+        if (window.dashboardHeaderInstance && window.dashboardHeaderInstance.handleModeChange) {
+            window.dashboardHeaderInstance.handleModeChange(mode);
+        } else {
+            console.warn('⚠️ Dashboard header not initialized');
+        }
+    };
+    
+    /**
+     * Submit research form
+     */
+    window.submitResearch = () => {
+        if (window.ResearchHandlers) {
+            const handlers = new window.ResearchHandlers();
+            if (handlers.submitResearch) {
+                handlers.submitResearch();
+            }
+        } else {
+            console.warn('⚠️ Research handlers not available');
+        }
+    };
+    
+    /**
+     * Filter leads by priority
+     */
+    window.filterByPriority = (priority) => {
+        if (window.statsCardsInstance && window.statsCardsInstance.filterByPriority) {
+            window.statsCardsInstance.filterByPriority(priority);
+        } else if (window.LeadManager) {
+            const leadManager = new window.LeadManager();
+            if (leadManager.filterLeads) {
+                leadManager.filterLeads(priority);
+            }
+        }
+    };
+    
+    /**
+     * Clear all lead selections
+     */
+    window.clearAllSelections = () => {
+        if (window.LeadManager) {
+            const leadManager = new window.LeadManager();
+            if (leadManager.clearSelection) {
+                leadManager.clearSelection();
+            }
+        }
+        
+        // Also clear checkboxes visually
+        document.querySelectorAll('.lead-checkbox:checked').forEach(cb => {
+            cb.checked = false;
+        });
+    };
+    
+    /**
+     * Open bulk modal
+     */
+    window.openBulkModal = () => {
+        if (window.ModalManager) {
+            const modalManager = new window.ModalManager();
+            if (modalManager.openModal) {
+                modalManager.openModal('bulkModal');
+            }
+        } else {
+            console.warn('⚠️ Modal manager not available');
+        }
+    };
+    
+    /**
+     * Handle main button click (Research New Lead button)
+     */
+    window.handleMainButtonClick = () => {
+        const currentMode = window.dashboardHeaderInstance?.currentMode || 'single';
+        
+        if (currentMode === 'bulk') {
+            window.openBulkModal();
+        } else {
+            // Open research modal
+            if (window.ResearchHandlers) {
+                const handlers = new window.ResearchHandlers();
+                if (handlers.openResearchModal) {
+                    handlers.openResearchModal();
+                }
+            } else if (window.ModalManager) {
+                const modalManager = new window.ModalManager();
+                if (modalManager.openModal) {
+                    modalManager.openModal('researchModal');
+                }
+            }
+        }
+    };
+    
+    /**
+     * Global refresh function
+     */
+    window.refreshLeadsTable = async () => {
+        if (window.LeadManager) {
+            const leadManager = new window.LeadManager();
+            if (leadManager.loadDashboardData) {
                 await leadManager.loadDashboardData();
             }
-        };
-        
-        console.log('✅ [DashboardApp] Public API exposed');
-    }
+        }
+    };
+    
+    // ==========================================================================
+    // TOOLBAR FUNCTIONS
+    // ==========================================================================
+    
+    window.toggleToolbarCopyDropdown = () => {
+        const dropdown = document.getElementById('toolbar-copy-dropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('hidden');
+        }
+    };
+    
+    console.log('✅ [DashboardApp] Public API exposed');
+}
     
     /**
      * Get dashboard stats
      */
-    getStats() {
-        try {
-            const stateManager = window.StateManager;
-            return {
-                totalLeads: stateManager.getState('leads')?.length || 0,
-                filteredLeads: stateManager.getState('filteredLeads')?.length || 0,
-                selectedLeads: stateManager.getState('selectedLeads')?.size || 0,
-                isLoading: stateManager.getState('isLoading') || false,
-                connectionStatus: stateManager.getState('connectionStatus') || 'disconnected'
-            };
-        } catch (error) {
-            console.error('❌ [DashboardApp] Failed to get stats:', error);
-            return {};
-        }
+getStats() {
+    try {
+        const stateManager = window.OsliraStateManager;  // ✅ FIXED
+        return {
+            totalLeads: stateManager.getState('leads')?.length || 0,
+            filteredLeads: stateManager.getState('filteredLeads')?.length || 0,
+            selectedLeads: stateManager.getState('selectedLeads')?.size || 0,
+            isLoading: stateManager.getState('isLoading') || false,
+            connectionStatus: stateManager.getState('connectionStatus') || 'disconnected'
+        };
+    } catch (error) {
+        console.error('❌ [DashboardApp] Failed to get stats:', error);
+        return {};
     }
+}
     
     /**
      * Check if dashboard is ready
@@ -435,12 +699,14 @@ window.addEventListener('oslira:scripts:loaded', async () => {
         const app = new DashboardApp();
         await app.init();
     } catch (error) {
-        console.error('❌ [DashboardApp] Fatal initialization error:', error);
-        window.ErrorHandler.handleError(error, { 
+    console.error('❌ [DashboardApp] Fatal initialization error:', error);
+    if (window.OsliraErrorHandler) {
+        window.OsliraErrorHandler.handleError(error, { 
             context: 'dashboard_bootstrap',
             fatal: true 
         });
     }
+}
 });
 
 // Export
