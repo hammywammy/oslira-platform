@@ -15,7 +15,7 @@
     <script src="https://unpkg.com/feather-icons"></script>
 </head>
 
-<body class="bg-gray-50 overflow-hidden" style="visibility: hidden;">
+<body style="visibility: hidden;">
 
 <!-- Loading Screen (REQUIRED by Core Loader) -->
 <div id="app-loader" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; display: flex; align-items: center; justify-content: center; z-index: 9999;">
@@ -28,132 +28,134 @@
     </div>
 </div>
 
-<!-- Main Container with Gradient Background -->
-<div class="min-h-screen dashboard-gradient-bg relative">
-    <div class="wave-overlay"></div>
-    <div class="wave-pattern"></div>
-    
-    <!-- Sidebar Container -->
-    <div id="sidebar-container"></div>
-    
-    <!-- Main Content -->
-    <main class="main-content" style="margin-left: 256px; transition: margin-left 0.3s ease; padding-top: 2rem; height: 100vh; overflow-y: auto; padding-bottom: 2rem;">
+<!-- CRITICAL: Sidebar Container - Direct child of body for flexbox -->
+<div id="sidebar-container"></div>
+
+<!-- CRITICAL: Main Content - Direct child of body for flexbox -->
+<div class="main-content">
+    <!-- Gradient Background Wrapper -->
+    <div class="min-h-screen dashboard-gradient-bg relative">
+        <div class="wave-overlay"></div>
+        <div class="wave-pattern"></div>
         
-        <!-- Header Section -->
-        <div id="dashboard-header">
-            <!-- Will be rendered by DashboardHeader.js -->
-        </div>
-        
-        <!-- Dashboard Content -->
-        <div class="px-6">
+        <!-- Main Dashboard Content -->
+        <main style="padding-top: 2rem; height: 100vh; overflow-y: auto; padding-bottom: 2rem;">
             
-            <!-- Stats Cards -->
-            <div id="priority-cards">
-                <!-- Will be rendered by StatsCards.js -->
+            <!-- Header Section -->
+            <div id="dashboard-header">
+                <!-- Will be rendered by DashboardHeader.js -->
             </div>
             
-            <!-- Performance Metrics -->
-            <div id="performance-metrics">
-                <!-- Will be rendered by StatsCards.js -->
-            </div>
-            
-            <div id="leads-section" class="mb-8">
-                <!-- Leads Container for LeadRenderer -->
-                <div id="leads-container">
-                    <div id="leads-table-container">
-                        <!-- LeadRenderer will create table structure here -->
+            <!-- Dashboard Content -->
+            <div class="px-6">
+                
+                <!-- Stats Cards -->
+                <div id="priority-cards">
+                    <!-- Will be rendered by StatsCards.js -->
+                </div>
+                
+                <!-- Performance Metrics -->
+                <div id="performance-metrics">
+                    <!-- Will be rendered by StatsCards.js -->
+                </div>
+                
+                <div id="leads-section" class="mb-8">
+                    <!-- Leads Container for LeadRenderer -->
+                    <div id="leads-container">
+                        <div id="leads-table-container">
+                            <!-- LeadRenderer will create table structure here -->
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Filter Modal Container -->
-            <div id="filter-modal-container">
-                <!-- Will be populated by FilterModal -->
-            </div>
+                <!-- Filter Modal Container -->
+                <div id="filter-modal-container">
+                    <!-- Will be populated by FilterModal -->
+                </div>
 
-            <!-- Insights Panel -->
-            <div id="insights-panel">
-                <!-- Will be rendered by InsightsPanel.js -->
-            </div>
+                <!-- Insights Panel -->
+                <div id="insights-panel">
+                    <!-- Will be rendered by InsightsPanel.js -->
+                </div>
 
-            <!-- Tip of the Day -->
-            <div id="tip-of-day">
-                <!-- Will be rendered by TipOfDay.js -->
-            </div>
+                <!-- Tip of the Day -->
+                <div id="tip-of-day">
+                    <!-- Will be rendered by TipOfDay.js -->
+                </div>
 
-            <!-- Bulk Actions Toolbar (hidden by default) -->
-            <div id="bulk-actions-toolbar" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white rounded-xl px-6 py-3 z-40" style="box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 10px 30px -5px rgba(0, 0, 0, 0.15), 0 0 20px rgba(0, 0, 0, 0.03);">
-                <div class="flex items-center space-x-4">
-                    <span id="selection-count" class="text-sm font-medium text-gray-700">0 selected</span>
-                    <div class="flex items-center space-x-2">
-                        <!-- Copy Dropdown -->
-                        <div class="relative">
-                            <button id="toolbar-copy-btn" onclick="window.toggleToolbarCopyDropdown()" 
-                                    class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-1">
-                                <span>Copy</span>
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </button>
-                            <div id="toolbar-copy-dropdown" class="hidden absolute bottom-full mb-2 left-0 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 min-w-[120px]">
-                                <button onclick="window.copySelectedAsFormat('csv')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    Copy as CSV
+                <!-- Bulk Actions Toolbar (hidden by default) -->
+                <div id="bulk-actions-toolbar" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white rounded-xl px-6 py-3 z-40" style="box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 10px 30px -5px rgba(0, 0, 0, 0.15), 0 0 20px rgba(0, 0, 0, 0.03);">
+                    <div class="flex items-center space-x-4">
+                        <span id="selection-count" class="text-sm font-medium text-gray-700">0 selected</span>
+                        <div class="flex items-center space-x-2">
+                            <!-- Copy Dropdown -->
+                            <div class="relative">
+                                <button id="toolbar-copy-btn" onclick="window.toggleToolbarCopyDropdown()" 
+                                        class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-1">
+                                    <span>Copy</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
                                 </button>
-                                <button onclick="window.copySelectedAsFormat('json')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    Copy as JSON
-                                </button>
+                                <div id="toolbar-copy-dropdown" class="hidden absolute bottom-full mb-2 left-0 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 min-w-[120px]">
+                                    <button onclick="window.copySelectedAsFormat('csv')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        Copy as CSV
+                                    </button>
+                                    <button onclick="window.copySelectedAsFormat('json')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        Copy as JSON
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <!-- Export Dropdown -->
-                        <div class="relative">
-                            <button id="toolbar-export-btn" onclick="window.toggleToolbarExportDropdown()" 
-                                    class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-1">
-                                <span>Export</span>
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </button>
-                            <div id="toolbar-export-dropdown" class="hidden absolute bottom-full mb-2 left-0 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 min-w-[120px]">
-                                <button onclick="window.exportSelectedAsFormat('csv')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    Export as CSV
+                            
+                            <!-- Export Dropdown -->
+                            <div class="relative">
+                                <button id="toolbar-export-btn" onclick="window.toggleToolbarExportDropdown()" 
+                                        class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-1">
+                                    <span>Export</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
                                 </button>
-                                <button onclick="window.exportSelectedAsFormat('json')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    Export as JSON
-                                </button>
+                                <div id="toolbar-export-dropdown" class="hidden absolute bottom-full mb-2 left-0 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 min-w-[120px]">
+                                    <button onclick="window.exportSelectedAsFormat('csv')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        Export as CSV
+                                    </button>
+                                    <button onclick="window.exportSelectedAsFormat('json')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        Export as JSON
+                                    </button>
+                                </div>
                             </div>
+                            
+                            <button onclick="window.deleteSelectedLeads()" class="px-3 py-1.5 text-sm font-medium text-red-700 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
+                                Delete
+                            </button>
                         </div>
-                        
-                        <button onclick="window.deleteSelectedLeads()" class="px-3 py-1.5 text-sm font-medium text-red-700 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
-                            Delete
+                        <button onclick="window.clearToolbarSelections()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
                         </button>
                     </div>
-                    <button onclick="window.clearToolbarSelections()" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
                 </div>
             </div>
-        </div>
-        
-    </main>
-    
-    <!-- Modal Containers - These will be populated by ModalManager.js -->
-    <div id="modal-containers">
-        <!-- Research Modal -->
-        <div id="researchModal" style="display: none;" class="hidden"></div>
-        <!-- Bulk Modal Container -->
-        <div id="bulkModal" style="display: none;" class="hidden"></div>
-        <div id="bulkModalContainer" style="display: none;" class="hidden"></div>
-        <!-- Lead Analysis Modal -->
-        <div id="leadAnalysisModal" style="display: none;" class="hidden"></div>
-        <!-- Bulk Import Modal -->
-        <div id="bulkImportModal" style="display: none;" class="hidden"></div>
-        <!-- Duplicate Lead Modal -->
-        <div id="duplicateModal" style="display: none;" class="hidden"></div>
+            
+        </main>
     </div>
-    
+</div>
+
+<!-- Modal Containers - These will be populated by ModalManager.js -->
+<div id="modal-containers" style="position: fixed; z-index: 9998;">
+    <!-- Research Modal -->
+    <div id="researchModal" style="display: none;" class="hidden"></div>
+    <!-- Bulk Modal Container -->
+    <div id="bulkModal" style="display: none;" class="hidden"></div>
+    <div id="bulkModalContainer" style="display: none;" class="hidden"></div>
+    <!-- Lead Analysis Modal -->
+    <div id="leadAnalysisModal" style="display: none;" class="hidden"></div>
+    <!-- Bulk Import Modal -->
+    <div id="bulkImportModal" style="display: none;" class="hidden"></div>
+    <!-- Duplicate Lead Modal -->
+    <div id="duplicateModal" style="display: none;" class="hidden"></div>
 </div>
 
 <!-- Global functions for onclick handlers -->
