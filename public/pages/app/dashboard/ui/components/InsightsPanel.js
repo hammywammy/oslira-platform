@@ -1,9 +1,17 @@
 //public/pages/dashboard/modules/ui/insights-panel.js
 
+/**
+ * INSIGHTS PANEL - Migrated to New System (No Container)
+ * Handles AI-generated insights display and analytics
+ */
 class InsightsPanel {
-    constructor(container) {
-        this.container = container;
-        this.eventBus = container.get('eventBus');
+    constructor() {
+        // Use global window objects directly (no container)
+        this.eventBus = window.EventBus || window.OsliraEventBus;
+        this.stateManager = window.StateManager || window.OsliraStateManager;
+        this.osliraAuth = window.OsliraAuth;
+        
+        console.log('💡 [InsightsPanel] Instance created (Migrated System)');
     }
 
     renderInsightsPanel() {
@@ -99,6 +107,11 @@ class InsightsPanel {
     updateInsights(insights) {
         // Update insights with real data when available
         console.log('📊 [InsightsPanel] Updating insights:', insights);
+        
+        // Emit event for other components to respond
+        if (this.eventBus) {
+            this.eventBus.emit('insights:updated', { insights });
+        }
     }
 }
 
@@ -107,3 +120,5 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
     window.InsightsPanel = InsightsPanel;
 }
+
+console.log('💡 [InsightsPanel] Migrated version loaded successfully');
