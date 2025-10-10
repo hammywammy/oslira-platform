@@ -17,6 +17,7 @@
 @import "./components/onboarding.css";
 @import "./components/settings.css";
 @import "./components/admin.css";
+@import "./components/tooltip.css";
 
 /* =============================================================================
    GLOBAL COMPONENT CLASSES
