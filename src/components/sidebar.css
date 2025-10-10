@@ -38,6 +38,9 @@
   /* Transitions */
   --transition-speed: 0.3s;
   --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --toggle-icon-normal: url('/assets/icons/Sidebar-toggle-normal.svg');
+  --toggle-icon-close: url('/assets/icons/Sidebar-toggle-close.svg');
 }
 
 /* =============================================================================
@@ -164,7 +167,7 @@ body {
   overflow: hidden;
 }
 
-/* Toggle Button */
+/* Updated toggle button styles */
 .sidebar-toggle-btn {
   padding: 0.5rem;
   background: rgba(255,255,255,0.5);
@@ -176,6 +179,8 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
 }
 
 .sidebar-toggle-btn:hover {
@@ -183,11 +188,29 @@ body {
   border-color: rgba(229,231,235,0.8);
 }
 
-.sidebar-toggle-btn svg {
-  color: #6b7280;
+/* Toggle icon element */
+.sidebar-toggle-icon {
+  width: 20px;
+  height: 20px;
   display: block;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: background-image 0.2s ease;
 }
 
+/* STATE 1: Sidebar Expanded (Default) */
+/* Shows normal.svg, changes to close.svg on hover */
+#sidebar-container:not(.collapsed) .sidebar-toggle-icon {
+  background-image: var(--toggle-icon-normal);
+}
+
+#sidebar-container:not(.collapsed) .sidebar-toggle-btn:hover .sidebar-toggle-icon {
+  background-image: var(--toggle-icon-close);
+}
+
+/* STATE 2: Sidebar Collapsed */
+/* Always shows normal.svg, no hover change */
 #sidebar-container.collapsed .sidebar-toggle-btn {
   opacity: 0;
   pointer-events: none;
@@ -196,6 +219,11 @@ body {
 #sidebar-container.collapsed:hover .sidebar-toggle-btn {
   opacity: 1;
   pointer-events: auto;
+}
+
+#sidebar-container.collapsed .sidebar-toggle-icon,
+#sidebar-container.collapsed .sidebar-toggle-btn:hover .sidebar-toggle-icon {
+  background-image: var(--toggle-icon-normal);
 }
 
 /* =============================================================================
