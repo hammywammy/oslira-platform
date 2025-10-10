@@ -30,89 +30,69 @@ class DashboardApp {
     // INITIALIZATION
     // =========================================================================
     
-    async init() {
-        if (this.initializationPromise) {
-            console.log('⏳ [DashboardApp] Already initializing...');
-            return this.initializationPromise;
-        }
-        
-        if (this.initialized) {
-            console.log('✅ [DashboardApp] Already initialized');
-            return true;
-        }
-        
-        this.initializationPromise = this._performInitialization();
-        
-        try {
-            await this.initializationPromise;
-            return true;
-        } catch (error) {
-            this.initializationPromise = null;
-            throw error;
-        }
+ async init() {
+    if (this.initializationPromise) {
+        return this.initializationPromise;
     }
     
-    async _performInitialization() {
-        try {
-            console.log('🔧 [DashboardApp] Setting up dashboard...');
-            
-            // Validate dependencies
-            this.validateDependencies();
-            
-            // Initialize auth
-            await this.initializeAuth();
-            
-            // Restore session (from URL hash or localStorage)
-            await this.restoreSession();
-            
-            // Check authentication
-            if (!window.OsliraAuth?.user) {
-                this.redirectToAuth();
-                return;
-            }
-            
-            console.log('✅ [DashboardApp] User authenticated:', window.OsliraAuth.user.email);
-            
-            // Initialize sidebar
-            await this.initializeSidebar();
-            
-            // Load businesses
-            await this.loadBusinesses();
-            
-// Initialize managers
-this.initializeManagers();
+    this.initializationPromise = this._performInitialization();
+    return this.initializationPromise;
+}
 
-// Initialize and render modals
-await this.initializeModals();
-
-// Render UI
-await this.renderDashboardUI();
-            
-            // Load data
-            await this.loadDashboardData();
-            
-            // Setup events
-            this.setupEventHandlers();
-            
-            // Expose API
-            this.exposePublicAPI();
-            
-            // Complete
-            this.finishInitialization();
-            
-        } catch (error) {
-            console.error('❌ [DashboardApp] Initialization failed:', error);
-            
-            if (window.OsliraErrorHandler) {
-                window.OsliraErrorHandler.handleError(error, { 
-                    context: 'dashboard_init',
-                    fatal: true 
-                });
-            }
-            
-            throw error;
+async _performInitialization() {
+    try {
+        console.log('🚀 [DashboardApp] Starting initialization...');
+        this.initStartTime = Date.now();
+        
+        // Validate dependencies
+        this.validateDependencies();
+        
+        // Initialize auth
+        await this.initializeAuth();
+        
+        // Restore session
+        await this.restoreSession();
+        
+        // Initialize sidebar
+        await this.initializeSidebar();
+        
+        // Load businesses
+        await this.loadBusinesses();
+        
+        // Initialize managers
+        this.initializeManagers();
+        
+        // ✅ ADD THIS ONE LINE ✅
+        await this.initializeModals();
+        
+        // Render UI
+        await this.renderDashboardUI();
+        
+        // Load data
+        await this.loadDashboardData();
+        
+        // Setup events
+        this.setupEventHandlers();
+        
+        // Expose API
+        this.exposePublicAPI();
+        
+        // Complete
+        this.finishInitialization();
+        
+    } catch (error) {
+        console.error('❌ [DashboardApp] Initialization failed:', error);
+        
+        if (window.OsliraErrorHandler) {
+            window.OsliraErrorHandler.handleError(error, { 
+                context: 'dashboard_init',
+                fatal: true 
+            });
         }
+        
+        throw error;
     }
+}
     
     // =========================================================================
     // INITIALIZATION STEPS
@@ -284,149 +264,49 @@ await this.renderDashboardUI();
     }
 
 async initializeModals() {
-    console.log('🎨 [DashboardApp] Initializing immutable modal system...');
+    console.log('🎨 [DashboardApp] Rendering modals...');
     
-    try {
-        // =====================================================================
-        // STEP 1: RENDER RESEARCH MODAL
-        // =====================================================================
-        if (window.ResearchModal) {
-            const researchModalInstance = new window.ResearchModal();
-            const researchModalContainer = document.getElementById('researchModal');
-            
-            if (researchModalContainer) {
-                // Try both possible method names
-                const renderMethod = researchModalInstance.renderModal || 
-                                   researchModalInstance.renderResearchModal ||
-                                   researchModalInstance.render;
-                
-                if (typeof renderMethod === 'function') {
-                    const researchModalHTML = renderMethod.call(researchModalInstance);
-                    
-                    // Replace the empty container with actual modal HTML
-                    researchModalContainer.outerHTML = researchModalHTML;
-                    
-                    // Setup event handlers if available
-                    const setupMethod = researchModalInstance.setupEventHandlers ||
-                                      researchModalInstance.setup ||
-                                      researchModalInstance.init;
-                    
-                    if (typeof setupMethod === 'function') {
-                        setupMethod.call(researchModalInstance);
-                    }
-                    
-                    console.log('✅ [DashboardApp] Research modal rendered and functional');
-                } else {
-                    console.warn('⚠️ [DashboardApp] ResearchModal has no render method');
-                }
-            } else {
-                console.warn('⚠️ [DashboardApp] researchModal container not found in DOM');
-            }
-        } else {
-            console.warn('⚠️ [DashboardApp] ResearchModal class not loaded');
+    // Render Research Modal
+    if (window.ResearchModal) {
+        const modal = new window.ResearchModal();
+        const container = document.getElementById('researchModal');
+        if (container && modal.renderModal) {
+            container.outerHTML = modal.renderModal();
+            if (modal.setupEventHandlers) modal.setupEventHandlers();
+            console.log('✅ Research modal rendered');
         }
-        
-        // =====================================================================
-        // STEP 2: RENDER BULK MODAL
-        // =====================================================================
-        if (window.BulkModal) {
-            const bulkModalInstance = new window.BulkModal();
-            const bulkModalContainer = document.getElementById('bulkModal');
-            
-            if (bulkModalContainer) {
-                // Try ALL possible method names (handles naming inconsistencies)
-                const renderMethod = bulkModalInstance.renderBulkModal ||  // ← ACTUAL NAME
-                                   bulkModalInstance.renderModal ||
-                                   bulkModalInstance.render;
-                
-                if (typeof renderMethod === 'function') {
-                    const bulkModalHTML = renderMethod.call(bulkModalInstance);
-                    
-                    // Replace the empty container with actual modal HTML
-                    bulkModalContainer.outerHTML = bulkModalHTML;
-                    
-                    // Setup event handlers if available
-                    const setupMethod = bulkModalInstance.setupEventHandlers ||
-                                      bulkModalInstance.setup ||
-                                      bulkModalInstance.init;
-                    
-                    if (typeof setupMethod === 'function') {
-                        setupMethod.call(bulkModalInstance);
-                    }
-                    
-                    console.log('✅ [DashboardApp] Bulk modal rendered and functional');
-                } else {
-                    console.error('❌ [DashboardApp] BulkModal has no render method');
-                    console.log('Available methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(bulkModalInstance)));
-                }
-            } else {
-                console.warn('⚠️ [DashboardApp] bulkModal container not found in DOM');
-            }
-        } else {
-            console.warn('⚠️ [DashboardApp] BulkModal class not loaded');
-        }
-        
-        // =====================================================================
-        // STEP 3: RENDER FILTER MODAL (if exists)
-        // =====================================================================
-        if (window.FilterModal) {
-            const filterModalInstance = new window.FilterModal();
-            const modalContainersDiv = document.getElementById('modal-containers');
-            
-            if (modalContainersDiv) {
-                const renderMethod = filterModalInstance.renderModal ||
-                                   filterModalInstance.renderFilterModal ||
-                                   filterModalInstance.render;
-                
-                if (typeof renderMethod === 'function') {
-                    const filterModalHTML = renderMethod.call(filterModalInstance);
-                    modalContainersDiv.insertAdjacentHTML('beforeend', filterModalHTML);
-                    
-                    const setupMethod = filterModalInstance.setupEventHandlers ||
-                                      filterModalInstance.setup ||
-                                      filterModalInstance.init;
-                    
-                    if (typeof setupMethod === 'function') {
-                        setupMethod.call(filterModalInstance);
-                    }
-                    
-                    console.log('✅ [DashboardApp] Filter modal rendered');
-                }
-            }
-        }
-        
-        // =====================================================================
-        // STEP 4: INITIALIZE MODAL MANAGER
-        // =====================================================================
-        if (this.components.modalManager) {
-            const initMethod = this.components.modalManager.init ||
-                             this.components.modalManager.initialize ||
-                             this.components.modalManager.setup;
-            
-            if (typeof initMethod === 'function') {
-                await initMethod.call(this.components.modalManager);
-                console.log('✅ [DashboardApp] ModalManager initialized');
-            }
-        }
-        
-        // =====================================================================
-        // STEP 5: VERIFY MODALS ARE IN DOM
-        // =====================================================================
-        this.verifyModalsInDOM();
-        
-        // =====================================================================
-        // STEP 6: SETUP GLOBAL MODAL CONTROLS
-        // =====================================================================
-        this.setupGlobalModalControls();
-        
-        console.log('✅ [DashboardApp] Immutable modal system initialized');
-        
-    } catch (error) {
-        console.error('❌ [DashboardApp] Modal initialization failed:', error);
-        console.error('Error details:', error.stack);
-        throw error;
     }
+    
+    // Render Bulk Modal - NOTE: Method is called renderBulkModal() not renderModal()
+    if (window.BulkModal) {
+        const modal = new window.BulkModal();
+        const container = document.getElementById('bulkModal');
+        if (container && modal.renderBulkModal) {
+            container.outerHTML = modal.renderBulkModal();
+            if (modal.setupEventHandlers) modal.setupEventHandlers();
+            console.log('✅ Bulk modal rendered');
+        }
+    }
+    
+    // Render Filter Modal
+    if (window.FilterModal) {
+        const modal = new window.FilterModal();
+        const containers = document.getElementById('modal-containers');
+        if (containers && modal.renderModal) {
+            containers.insertAdjacentHTML('beforeend', modal.renderModal());
+            if (modal.setupEventHandlers) modal.setupEventHandlers();
+            console.log('✅ Filter modal rendered');
+        }
+    }
+    
+    // Initialize ModalManager
+    if (this.components.modalManager && this.components.modalManager.init) {
+        await this.components.modalManager.init();
+    }
+    
+    console.log('✅ [DashboardApp] Modals initialized');
 }
+
 
 /**
  * Verify that modals are actually in the DOM with content
