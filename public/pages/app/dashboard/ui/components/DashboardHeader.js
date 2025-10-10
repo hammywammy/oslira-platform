@@ -1,13 +1,16 @@
 //public/pages/dashboard/modules/ui/dashboard-header.js
 
 /**
- * DASHBOARD HEADER - Complete Rewrite with Proper Initialization
+ * DASHBOARD HEADER - Migrated to New System (No Container)
  * Handles header rendering, dropdown functionality, and event management
  */
 class DashboardHeader {
-    constructor(container) {
-        this.container = container;
-        this.eventBus = container?.get('eventBus');
+    constructor() {
+        // Use global window objects directly (no container)
+        this.eventBus = window.EventBus || window.OsliraEventBus;
+        this.stateManager = window.StateManager || window.OsliraStateManager;
+        this.osliraAuth = window.OsliraAuth;
+        
         this.isDropdownOpen = false;
         this.currentMode = 'single'; // 'single' or 'bulk'
         this.initialized = false;
@@ -21,85 +24,85 @@ class DashboardHeader {
         this.handleMainButtonClick = this.handleMainButtonClick.bind(this);
         this.switchMode = this.switchMode.bind(this);
         
-        console.log('🔧 [DashboardHeader] Instance created');
+        console.log('🔧 [DashboardHeader] Instance created (Migrated System)');
     }
 
     /**
- * Get personalized greeting with daily rotation
- */
-getPersonalizedGreeting() {
-    try {
-        // Get user's signature name from database (via OsliraAuth)
-        const userName = this.getUserSignatureName();
-        
-        // Get today's greeting using day-of-year rotation
-        const greeting = this.getDailyGreeting();
-        
-        // Replace {name} placeholder with actual name
-        return greeting.replace('{name}', userName);
-        
-    } catch (error) {
-        console.warn('⚠️ [DashboardHeader] Greeting generation failed:', error);
-        return 'Comprehensive view of all lead management activities with AI-driven insights';
+     * Get personalized greeting with daily rotation
+     */
+    getPersonalizedGreeting() {
+        try {
+            // Get user's signature name from database (via OsliraAuth)
+            const userName = this.getUserSignatureName();
+            
+            // Get today's greeting using day-of-year rotation
+            const greeting = this.getDailyGreeting();
+            
+            // Replace {name} placeholder with actual name
+            return greeting.replace('{name}', userName);
+            
+        } catch (error) {
+            console.warn('⚠️ [DashboardHeader] Greeting generation failed:', error);
+            return 'Comprehensive view of all lead management activities with AI-driven insights';
+        }
     }
-}
 
-/**
- * Get user's signature name from database
- */
-getUserSignatureName() {
-    try {
-        // Access user data from OsliraAuth
-        const user = window.OsliraAuth?.user;
-        
-        if (!user) {
-            return 'there'; // Fallback if no user
+    /**
+     * Get user's signature name from database
+     */
+    getUserSignatureName() {
+        try {
+            // Access user data from OsliraAuth
+            const user = this.osliraAuth?.user;
+            
+            if (!user) {
+                return 'there'; // Fallback if no user
+            }
+            
+            // Priority: signature_name > full_name > email username
+            const signatureName = user.signature_name 
+                || user.full_name 
+                || user.user_metadata?.full_name
+                || user.email?.split('@')[0];
+            
+            return signatureName || 'there';
+            
+        } catch (error) {
+            console.warn('⚠️ [DashboardHeader] Could not get user name:', error);
+            return 'there';
+        }
+    }
+
+    /**
+     * Get today's greeting using day-of-year rotation
+     */
+    getDailyGreeting() {
+        if (!window.DASHBOARD_GREETINGS || !window.DASHBOARD_GREETINGS.length) {
+            console.warn('⚠️ [DashboardHeader] Greetings data not loaded');
+            return 'Welcome back {name}! Let\'s get to work.';
         }
         
-        // Priority: signature_name > full_name > email username
-        const signatureName = user.signature_name 
-            || user.full_name 
-            || user.user_metadata?.full_name
-            || user.email?.split('@')[0];
+        // Calculate day of year (1-365/366)
+        const now = new Date();
+        const start = new Date(now.getFullYear(), 0, 0);
+        const diff = now - start;
+        const oneDay = 1000 * 60 * 60 * 24;
+        const dayOfYear = Math.floor(diff / oneDay);
         
-        return signatureName || 'there';
+        // Rotate through greetings array
+        const greetings = window.DASHBOARD_GREETINGS;
+        const index = dayOfYear % greetings.length;
         
-    } catch (error) {
-        console.warn('⚠️ [DashboardHeader] Could not get user name:', error);
-        return 'there';
+        return greetings[index];
     }
-}
-
-/**
- * Get today's greeting using day-of-year rotation
- */
-getDailyGreeting() {
-    if (!window.DASHBOARD_GREETINGS || !window.DASHBOARD_GREETINGS.length) {
-        console.warn('⚠️ [DashboardHeader] Greetings data not loaded');
-        return 'Welcome back {name}! Let\'s get to work.';
-    }
-    
-    // Calculate day of year (1-365/366)
-    const now = new Date();
-    const start = new Date(now.getFullYear(), 0, 0);
-    const diff = now - start;
-    const oneDay = 1000 * 60 * 60 * 24;
-    const dayOfYear = Math.floor(diff / oneDay);
-    
-    // Rotate through greetings array
-    const greetings = window.DASHBOARD_GREETINGS;
-    const index = dayOfYear % greetings.length;
-    
-    return greetings[index];
-}
 
     /**
      * Render the complete header HTML
      */
-renderHeader() {
-    const greeting = this.getPersonalizedGreeting();
-    
-    return `
+    renderHeader() {
+        const greeting = this.getPersonalizedGreeting();
+        
+        return `
 <div class="pt-6 px-6 pb-6">
     <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 p-6" style="position: relative; overflow: visible; z-index: 10;">
         <div class="flex items-center justify-between">
@@ -140,51 +143,48 @@ renderHeader() {
 </div>`;
     }
 
-async initialize() {
-    if (this.initialized) {
-        console.log('⚠️ [DashboardHeader] Already initialized, skipping');
-        return;
-    }
-    
-    if (this._initializing) {
-        console.log('⚠️ [DashboardHeader] Already initializing, waiting...');
+    async initialize() {
+        if (this.initialized) {
+            console.log('⚠️ [DashboardHeader] Already initialized, skipping');
+            return;
+        }
+        
+        if (this._initializing) {
+            console.log('⚠️ [DashboardHeader] Already initializing, waiting...');
+            return this._initPromise;
+        }
+        
+        this._initializing = true;
+        this._initPromise = this._performInitialization();
         return this._initPromise;
     }
-    
-    this._initializing = true;
-    this._initPromise = this._performInitialization();
-    return this._initPromise;
-}
 
-async _performInitialization() {
-    console.log('🔧 [DashboardHeader] Starting initialization...');
+    async _performInitialization() {
+        console.log('🔧 [DashboardHeader] Starting initialization...');
 
-    try {
-        // Wait for DOM elements to be available
-        await this.waitForDOMElements();
-        
-        // Setup all event handlers
-        this.setupEventHandlers();
-        
-        // Initialize Feather icons for the header
-        this.initializeIcons();
-        
-        // Setup global functions for backwards compatibility
-        this.setupGlobalFunctions();
-        
-        // Setup cleanup handlers
-        this.setupCleanupHandlers();
-        
-        this.initialized = true;
-        this._initializing = false;
-        console.log('✅ [DashboardHeader] Initialization completed');
-        
-    } catch (error) {
-        this._initializing = false;
-        console.error('❌ [DashboardHeader] Initialization failed:', error);
-        throw error;
+        try {
+            // Wait for DOM elements to be available
+            await this.waitForDOMElements();
+            
+            // Setup all event handlers
+            this.setupEventHandlers();
+            
+            // Initialize Feather icons for the header
+            this.initializeIcons();
+            
+            // Setup cleanup handlers
+            this.setupCleanupHandlers();
+            
+            this.initialized = true;
+            this._initializing = false;
+            console.log('✅ [DashboardHeader] Initialization completed');
+            
+        } catch (error) {
+            this._initializing = false;
+            console.error('❌ [DashboardHeader] Initialization failed:', error);
+            throw error;
+        }
     }
-}
 
     /**
      * Wait for required DOM elements to be available
@@ -257,114 +257,110 @@ async _performInitialization() {
             console.log('✅ [DashboardHeader] Dropdown toggle handler attached');
         }
 
-        // Modal observer for auto-close dropdown
-        this.setupModalObserver();
-
         console.log('✅ [DashboardHeader] All event handlers setup complete');
     }
 
-removeEventHandlers() {
-    const mainButton = document.getElementById('main-research-btn');
-    if (mainButton) {
-        mainButton.removeEventListener('click', this.handleMainButtonClick);
-    }
+    removeEventHandlers() {
+        const mainButton = document.getElementById('main-research-btn');
+        if (mainButton) {
+            mainButton.removeEventListener('click', this.handleMainButtonClick);
+        }
 
-    const dropdownButton = document.getElementById('dropdown-arrow-btn');
-    if (dropdownButton) {
-        dropdownButton.removeEventListener('click', this.toggleDropdown);
-    }
+        const dropdownButton = document.getElementById('dropdown-arrow-btn');
+        if (dropdownButton) {
+            dropdownButton.removeEventListener('click', this.toggleDropdown);
+        }
 
-    // Only remove if it was added
-    document.removeEventListener('click', this.handleOutsideClick);
-}
+        // Only remove if it was added
+        document.removeEventListener('click', this.handleOutsideClick);
+    }
 
     /**
      * Handle main button clicks
      */
-handleMainButtonClick(event) {
-    event.preventDefault();
-    event.stopPropagation();
+    handleMainButtonClick(event) {
+        event.preventDefault();
+        event.stopPropagation();
 
-    console.log('🔘 [DashboardHeader] Main button clicked, mode:', this.currentMode);
+        console.log('🔘 [DashboardHeader] Main button clicked, mode:', this.currentMode);
 
-    // Check if modal is already open to prevent toggle
-    const activeModal = window.dashboard?.container?.get('stateManager')?.getState('activeModal');
-    if (activeModal === 'bulkModal' && this.currentMode === 'bulk') {
-        console.log('⚠️ [DashboardHeader] Bulk modal already open, ignoring click');
-        return;
+        // Check if modal is already open to prevent toggle
+        const activeModal = this.stateManager?.getState('activeModal');
+        if (activeModal === 'bulkModal' && this.currentMode === 'bulk') {
+            console.log('⚠️ [DashboardHeader] Bulk modal already open, ignoring click');
+            return;
+        }
+
+        if (this.currentMode === 'single') {
+            this.openResearchModal();
+        } else if (this.currentMode === 'bulk') {
+            this.openBulkModal();
+        }
     }
 
-    if (this.currentMode === 'single') {
-        this.openResearchModal();
-    } else if (this.currentMode === 'bulk') {
-        this.openBulkModal();
+    toggleDropdown(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        console.log('🔄 [DashboardHeader] Dropdown toggle clicked, open:', this.isDropdownOpen);
+
+        if (this.isDropdownOpen) {
+            this.closeDropdown();
+        } else {
+            // Remove any existing outside click handler before opening
+            document.removeEventListener('click', this.handleOutsideClick);
+            
+            this.openDropdown();
+            
+            // Add the outside click handler on next tick to prevent immediate closure
+            requestAnimationFrame(() => {
+                if (this.isDropdownOpen) {
+                    document.addEventListener('click', this.handleOutsideClick);
+                }
+            });
+        }
     }
-}
 
-toggleDropdown(event) {
-    event.preventDefault();
-    event.stopPropagation();
+    openDropdown() {
+        if (this.isDropdownOpen) return;
 
-    console.log('🔄 [DashboardHeader] Dropdown toggle clicked, open:', this.isDropdownOpen);
+        console.log('📖 [DashboardHeader] Opening dropdown...');
 
-    if (this.isDropdownOpen) {
-        this.closeDropdown();
-    } else {
-        // Remove any existing outside click handler before opening
+        this.createDropdown();
+        this.isDropdownOpen = true;
+
+        // Update arrow icon
+        const arrow = document.querySelector('#dropdown-arrow-btn i[data-feather="chevron-down"]');
+        if (arrow) {
+            arrow.style.transform = 'rotate(180deg)';
+        }
+
+        console.log('✅ [DashboardHeader] Dropdown opened successfully');
+    }
+
+    closeDropdown() {
+        if (!this.isDropdownOpen) return;
+
+        console.log('📕 [DashboardHeader] Closing dropdown...');
+
+        if (this.dropdownElement) {
+            this.dropdownElement.remove();
+            this.dropdownElement = null;
+        }
+
+        this.isDropdownOpen = false;
+
+        // Remove the outside click handler when dropdown closes
         document.removeEventListener('click', this.handleOutsideClick);
-        
-        this.openDropdown();
-        
-        // Add the outside click handler on next tick to prevent immediate closure
-        requestAnimationFrame(() => {
-            if (this.isDropdownOpen) {
-                document.addEventListener('click', this.handleOutsideClick);
-            }
-        });
+
+        // Reset arrow icon
+        const arrow = document.querySelector('#dropdown-arrow-btn i[data-feather="chevron-down"]');
+        if (arrow) {
+            arrow.style.transform = 'rotate(0deg)';
+        }
+
+        console.log('✅ [DashboardHeader] Dropdown closed successfully');
     }
-}
-
-openDropdown() {
-    if (this.isDropdownOpen) return;
-
-    console.log('📖 [DashboardHeader] Opening dropdown...');
-
-    this.createDropdown();
-    this.isDropdownOpen = true;
-
-    // Update arrow icon
-    const arrow = document.querySelector('#dropdown-arrow-btn i[data-feather="chevron-down"]');
-    if (arrow) {
-        arrow.style.transform = 'rotate(180deg)';
-    }
-
-    // Don't add the outside click handler immediately - it will be added by toggleDropdown
-    console.log('✅ [DashboardHeader] Dropdown opened successfully');
-}
-
-closeDropdown() {
-    if (!this.isDropdownOpen) return;
-
-    console.log('📕 [DashboardHeader] Closing dropdown...');
-
-    if (this.dropdownElement) {
-        this.dropdownElement.remove();
-        this.dropdownElement = null;
-    }
-
-    this.isDropdownOpen = false;
-
-    // Remove the outside click handler when dropdown closes
-    document.removeEventListener('click', this.handleOutsideClick);
-
-    // Reset arrow icon
-    const arrow = document.querySelector('#dropdown-arrow-btn i[data-feather="chevron-down"]');
-    if (arrow) {
-        arrow.style.transform = 'rotate(0deg)';
-    }
-
-    console.log('✅ [DashboardHeader] Dropdown closed successfully');
-}
 
     /**
      * Create and display the dropdown
@@ -422,8 +418,8 @@ closeDropdown() {
         // Add click handlers for options
         this.setupDropdownHandlers(this.dropdownElement);
 
-// Add to button container to maintain relative positioning
-buttonContainer.appendChild(this.dropdownElement);
+        // Add to button container to maintain relative positioning
+        buttonContainer.appendChild(this.dropdownElement);
 
         // Force reflow for positioning
         this.dropdownElement.offsetHeight;
@@ -436,27 +432,23 @@ buttonContainer.appendChild(this.dropdownElement);
      */
     styleDropdown(dropdown, buttonContainer) {
         const rect = buttonContainer.getBoundingClientRect();
-        
-        // Calculate position
-        const top = rect.bottom + 8;
-        const left = rect.left + (rect.width / 2);
 
-dropdown.style.cssText = `
-    position: absolute !important;
-    top: calc(100% + 8px) !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: 220px !important;
-    background: white !important;
-    border-radius: 12px !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
-    border: 1px solid rgba(0,0,0,0.1) !important;
-    z-index: 99999 !important;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-    opacity: 0 !important;
-    transform: translateX(-50%) translateY(-10px) !important;
-    transition: all 0.2s ease !important;
-`;
+        dropdown.style.cssText = `
+            position: absolute !important;
+            top: calc(100% + 8px) !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: 220px !important;
+            background: white !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+            border: 1px solid rgba(0,0,0,0.1) !important;
+            z-index: 99999 !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            opacity: 0 !important;
+            transform: translateX(-50%) translateY(-10px) !important;
+            transition: all 0.2s ease !important;
+        `;
 
         // Animate in
         requestAnimationFrame(() => {
@@ -513,19 +505,19 @@ dropdown.style.cssText = `
         console.log('✅ [DashboardHeader] Mode switched to:', mode);
     }
 
-updateButtonText() {
-    const textElement = document.getElementById('main-research-text');
-    const buttonContainer = document.getElementById('main-button-container');
-    if (!textElement || !buttonContainer) return;
+    updateButtonText() {
+        const textElement = document.getElementById('main-research-text');
+        const buttonContainer = document.getElementById('main-button-container');
+        if (!textElement || !buttonContainer) return;
 
-    if (this.currentMode === 'single') {
-        textElement.textContent = 'Research New Lead';
-        buttonContainer.className = 'bg-gradient-to-r from-indigo-400 via-indigo-500 to-purple-500 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300';
-    } else if (this.currentMode === 'bulk') {
-        textElement.textContent = 'Bulk Analyze';
-        buttonContainer.className = 'bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300';
+        if (this.currentMode === 'single') {
+            textElement.textContent = 'Research New Lead';
+            buttonContainer.className = 'bg-gradient-to-r from-indigo-400 via-indigo-500 to-purple-500 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300';
+        } else if (this.currentMode === 'bulk') {
+            textElement.textContent = 'Bulk Analyze';
+            buttonContainer.className = 'bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300';
+        }
     }
-}
 
     /**
      * Handle clicks outside the dropdown to close it
@@ -542,11 +534,6 @@ updateButtonText() {
         }
     }
 
-setupModalObserver() {
-    // No observer needed - dropdown handles outside clicks properly
-    console.log('✅ [DashboardHeader] Modal observer disabled');
-}
-
     /**
      * Setup cleanup handlers for page unload
      */
@@ -561,15 +548,14 @@ setupModalObserver() {
     }
 
     /**
-     * Open research modal based on current mode
+     * Open research modal - uses global window objects
      */
     openResearchModal() {
         console.log('🔍 [DashboardHeader] Opening research modal...');
         
-        if (window.dashboard?.container?.get('researchHandlers')) {
-            window.dashboard.container.get('researchHandlers').openResearchModal();
-        } else if (window.ResearchHandlers) {
-            new window.ResearchHandlers().openResearchModal();
+        // Try accessing via global window objects (NEW SYSTEM)
+        if (window.ResearchHandlers) {
+            window.ResearchHandlers.openResearchModal();
         } else if (window.openResearchModal) {
             window.openResearchModal();
         } else {
@@ -577,18 +563,19 @@ setupModalObserver() {
         }
     }
 
-openBulkModal() {
-    console.log('📊 [DashboardHeader] Opening bulk modal...');
-    
-    const modalManager = this.container?.get('modalManager');
-    if (modalManager) {
-        modalManager.openModal('bulkModal');
-    } else if (window.dashboard?.container?.get('modalManager')) {
-        window.dashboard.container.get('modalManager').openModal('bulkModal');
-    } else {
-        console.error('❌ [DashboardHeader] ModalManager not available');
+    /**
+     * Open bulk modal - uses global window objects
+     */
+    openBulkModal() {
+        console.log('📊 [DashboardHeader] Opening bulk modal...');
+        
+        // Try accessing via global window objects (NEW SYSTEM)
+        if (window.ModalManager) {
+            window.ModalManager.openModal('bulkModal');
+        } else {
+            console.error('❌ [DashboardHeader] ModalManager not available on window');
+        }
     }
-}
 
     /**
      * Initialize Feather icons in the header
@@ -600,10 +587,6 @@ openBulkModal() {
         }
     }
 
-setupGlobalFunctions() {
-    // No global functions - use proper dependency injection only
-    console.log('✅ [DashboardHeader] Skipping global function pollution');
-}
     /**
      * Get current header state
      */
@@ -615,24 +598,20 @@ setupGlobalFunctions() {
         };
     }
 
-cleanup() {
-    console.log('🧹 [DashboardHeader] Cleaning up...');
-    
-    this.removeEventHandlers();
-    
-    if (this.modalObserver) {
-        this.modalObserver.disconnect();
+    cleanup() {
+        console.log('🧹 [DashboardHeader] Cleaning up...');
+        
+        this.removeEventHandlers();
+        
+        if (this.dropdownElement) {
+            this.dropdownElement.remove();
+        }
+        
+        this.initialized = false;
+        this._initializing = false;
+        
+        console.log('✅ [DashboardHeader] Cleanup completed');
     }
-    
-    if (this.dropdownElement) {
-        this.dropdownElement.remove();
-    }
-    
-    this.initialized = false;
-    this._initializing = false;
-    
-    console.log('✅ [DashboardHeader] Cleanup completed');
-}
 
     /**
      * Debug method to check header state
@@ -642,8 +621,9 @@ cleanup() {
             initialized: this.initialized,
             mode: this.currentMode,
             dropdownOpen: this.isDropdownOpen,
-            container: !!this.container,
             eventBus: !!this.eventBus,
+            stateManager: !!this.stateManager,
+            osliraAuth: !!this.osliraAuth,
             domElements: {
                 buttonContainer: !!document.getElementById('main-button-container'),
                 mainButton: !!document.getElementById('main-research-btn'),
@@ -726,4 +706,4 @@ if (typeof module !== 'undefined' && module.exports) {
     window.DashboardHeader = DashboardHeader;
 }
 
-console.log('📄 [DashboardHeader] Complete rewrite loaded successfully');
+console.log('📄 [DashboardHeader] Migrated version loaded successfully');
