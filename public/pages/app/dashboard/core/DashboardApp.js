@@ -368,10 +368,10 @@ async renderLeadsTable() {
     const tableEl = document.getElementById('leads-table-container');
     
     if (tableEl && typeof this.components.leadsTable.renderTableContainer === 'function') {
-        tableEl.innerHTML = this.components.leadsTable.renderTableContainer(); // ✅ CHANGED: was render()
+        tableEl.innerHTML = this.components.leadsTable.renderTableContainer();
         
         if (typeof this.components.leadsTable.setupEventHandlers === 'function') {
-            this.components.leadsTable.setupEventHandlers(); // ✅ ADDED: Setup handlers
+            this.components.leadsTable.setupEventHandlers();
         }
         
         window.leadsTableInstance = this.components.leadsTable;
@@ -383,11 +383,17 @@ async renderLeadsTable() {
         this.components.leadRenderer = new window.LeadRenderer();
         window.leadRendererInstance = this.components.leadRenderer;
         
+        // 🎯 ADD THIS LINE:
+        await this.components.leadRenderer.init();
+        
+        // Now trigger initial display with empty array to show empty state
+        this.components.leadRenderer.displayLeads([]);
+        
         // Listen for leads loaded
         if (window.OsliraEventBus) {
             window.OsliraEventBus.on('leads:loaded', (leadsData) => {
                 const leads = Array.isArray(leadsData) ? leadsData : (leadsData.leads || leadsData);
-                this.renderLeads(leads);
+                this.components.leadRenderer.displayLeads(leads);
             });
         }
     }
@@ -533,6 +539,29 @@ async renderTipOfDay() {
                 }
             }
         };
+
+// In DashboardApp.js exposePublicAPI() method:
+
+window.openResearchModal = () => {
+    const modal = document.getElementById('researchModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+    }
+};
+
+window.openBulkModal = () => {
+    if (this.components.modalManager && typeof this.components.modalManager.openModal === 'function') {
+        this.components.modalManager.openModal('bulkModal');
+    } else {
+        // Fallback
+        const modal = document.getElementById('bulkModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+    }
+};
         
         window.filterByPriority = (priority) => {
             if (this.components.statsCards && typeof this.components.statsCards.filterByPriority === 'function') {
@@ -548,19 +577,6 @@ async renderTipOfDay() {
             }
             
             document.querySelectorAll('.lead-checkbox:checked').forEach(cb => cb.checked = false);
-        };
-        
-        window.openBulkModal = () => {
-            if (!this.components.modalManager) return;
-            
-            // Try different method names
-            if (typeof this.components.modalManager.openModal === 'function') {
-                this.components.modalManager.openModal('bulkModal');
-            } else if (typeof this.components.modalManager.showModal === 'function') {
-                this.components.modalManager.showModal('bulk');
-            } else if (typeof this.components.modalManager.openBulkModal === 'function') {
-                this.components.modalManager.openBulkModal();
-            }
         };
         
         window.handleMainButtonClick = () => {
