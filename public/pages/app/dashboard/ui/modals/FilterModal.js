@@ -1,15 +1,23 @@
 // ===============================================================================
-// FILTER MODAL - Advanced Lead Selection System
-// Comprehensive filtering for bulk operations
+// FILTER MODAL - Migrated to New System (No Container)
+// Advanced Lead Selection System - Comprehensive filtering for bulk operations
 // ===============================================================================
 
+/**
+ * FILTER MODAL - Migrated to New System (No Container)
+ * Handles advanced filtering for bulk lead selection
+ */
 class FilterModal {
-    constructor(container) {
-        this.container = container;
-        this.stateManager = container.get('stateManager');
-        this.eventBus = container.get('eventBus');
+    constructor() {
+        // Use global window objects directly (no container)
+        this.eventBus = window.EventBus || window.OsliraEventBus;
+        this.stateManager = window.StateManager || window.OsliraStateManager;
+        this.osliraAuth = window.OsliraAuth;
+        
         this.isOpen = false;
         this.filters = this.getDefaultFilters();
+        
+        console.log('🔍 [FilterModal] Instance created (Migrated System)');
     }
 
     getDefaultFilters() {
@@ -41,6 +49,11 @@ class FilterModal {
                 modal.classList.add('active');
             });
             
+            // Emit event
+            if (this.eventBus) {
+                this.eventBus.emit('filter:modal-opened');
+            }
+            
             console.log('🔍 [FilterModal] Modal opened');
         }
     }
@@ -58,6 +71,11 @@ class FilterModal {
                 backdrop.classList.add('hidden');
                 modal.classList.add('hidden');
             }, 300);
+            
+            // Emit event
+            if (this.eventBus) {
+                this.eventBus.emit('filter:modal-closed');
+            }
             
             console.log('🔍 [FilterModal] Modal closed');
         }
@@ -129,18 +147,15 @@ class FilterModal {
         this.stateManager.setState('selectedLeads', selectedLeads);
         this.stateManager.setState('filteredLeads', filteredLeads);
 
-        // Update UI
-        const leadsTable = this.container.get('leadsTable');
-        const leadRenderer = this.container.get('leadRenderer');
-        
-        if (leadsTable) {
-            leadsTable.updateBulkActionsBar(selectedLeads.size);
-            leadsTable.updateBulkActionsToolbar(selectedLeads.size);
-            leadsTable.updateSelectAllCheckbox();
+        // Update UI using global LeadsTable and LeadRenderer
+        if (window.LeadsTable) {
+            window.LeadsTable.updateBulkActionsBar(selectedLeads.size);
+            window.LeadsTable.updateBulkActionsToolbar(selectedLeads.size);
+            window.LeadsTable.updateSelectAllCheckbox();
         }
         
-        if (leadRenderer) {
-            leadRenderer.displayLeads(filteredLeads);
+        if (window.LeadRenderer) {
+            window.LeadRenderer.displayLeads(filteredLeads);
         }
 
         this.closeModal();
@@ -151,6 +166,14 @@ class FilterModal {
             : `Selected all ${selectedLeads.size} leads`;
         
         this.showNotification(message, 'success');
+        
+        // Emit event
+        if (this.eventBus) {
+            this.eventBus.emit('filter:applied', {
+                count: selectedLeads.size,
+                filters: activeFilters
+            });
+        }
 
         console.log(`✅ [FilterModal] Applied filters: ${selectedLeads.size} leads selected`);
     }
@@ -158,6 +181,12 @@ class FilterModal {
     resetFilters() {
         this.filters = this.getDefaultFilters();
         this.updateModalUI();
+        
+        // Emit event
+        if (this.eventBus) {
+            this.eventBus.emit('filter:reset');
+        }
+        
         console.log('🔄 [FilterModal] Filters reset');
     }
 
@@ -457,3 +486,5 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
     window.FilterModal = FilterModal;
 }
+
+console.log('🔍 [FilterModal] Migrated version loaded successfully');
