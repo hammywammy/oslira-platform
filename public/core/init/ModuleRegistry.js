@@ -68,10 +68,15 @@ dashboard: {
     appClass: 'DashboardApp',
     scripts: [
         // ============================================================
-        // PHASE 1: DEPENDENCY INJECTION SYSTEM (Must load first)
+        // PHASE 0: DEPENDENCY INJECTION SYSTEM
         // ============================================================
         '/core/di/ServiceRegistry.js',
         '/core/di/Container.js',
+        
+        // ============================================================
+        // PHASE 1: INFRASTRUCTURE (ADD TOOLTIP HERE)
+        // ============================================================
+        '/core/ui/components/TooltipManager.js', 
         
         // ============================================================
         // PHASE 2: DASHBOARD CORE APP
