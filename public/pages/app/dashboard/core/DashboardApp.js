@@ -51,7 +51,7 @@ async _performInitialization() {
 if (window.OsliraApiClient && !window.OsliraApiClient.isInitialized) {
     console.log('🌐 [DashboardApp] Initializing ApiClient...');
     await window.OsliraApiClient.initialize({
-        httpClient: window.OsliraHttpClient || window.OsliraHttp,
+        httpClient: window.OsliraHttp || window.OsliraHttpClient,
         logger: window.OsliraLogger,
         authManager: window.OsliraAuth
     });
