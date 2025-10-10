@@ -1,10 +1,17 @@
 //public/pages/dashboard/modules/modals/research-modal.js
 
+/**
+ * RESEARCH MODAL - Migrated to New System (No Container)
+ * Handles research modal for single lead analysis
+ */
 class ResearchModal {
-    constructor(container) {
-        this.container = container;
-        this.modalManager = container.get('modalManager');
-        this.analysisFunctions = container.get('analysisFunctions');
+    constructor() {
+        // Use global window objects directly (no container)
+        this.eventBus = window.EventBus || window.OsliraEventBus;
+        this.stateManager = window.StateManager || window.OsliraStateManager;
+        this.osliraAuth = window.OsliraAuth;
+        
+        console.log('🔍 [ResearchModal] Instance created (Migrated System)');
     }
 
     renderModal() {
@@ -16,10 +23,10 @@ class ResearchModal {
         
         <div class="space-y-6">
             <div>
-<label class="block text-sm font-medium text-gray-700 mb-2">Platform</label>
-<select class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
-    <option>Instagram</option>
-</select>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Platform</label>
+                <select class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option>Instagram</option>
+                </select>
             </div>
             
             <div>
@@ -73,10 +80,17 @@ class ResearchModal {
     }
 
     setupEventHandlers() {
+        const self = this;
+        
         window.openResearchModal = () => {
             const modal = document.getElementById('researchModal');
             if (modal) {
                 modal.classList.remove('hidden');
+                
+                // Emit event
+                if (self.eventBus) {
+                    self.eventBus.emit('research:modal-opened');
+                }
             }
         };
 
@@ -84,6 +98,11 @@ class ResearchModal {
             const modal = document.getElementById('researchModal');
             if (modal) {
                 modal.classList.add('hidden');
+                
+                // Emit event
+                if (self.eventBus) {
+                    self.eventBus.emit('research:modal-closed');
+                }
             }
         };
 
@@ -96,17 +115,32 @@ class ResearchModal {
             const username = form.querySelector('input[type="text"]').value;
             const analysisType = form.querySelector('input[name="analysis"]:checked').value;
             
-            // Delegate to analysis functions
-            if (this.analysisFunctions) {
-                this.analysisFunctions.submitSingleAnalysis({
+            console.log('🚀 [ResearchModal] Submitting research:', { platform, username, analysisType });
+            
+            // Delegate to global AnalysisFunctions
+            if (window.AnalysisFunctions && window.AnalysisFunctions.submitSingleAnalysis) {
+                window.AnalysisFunctions.submitSingleAnalysis({
+                    platform,
+                    username,
+                    analysisType
+                });
+            } else {
+                console.error('❌ [ResearchModal] AnalysisFunctions not available');
+            }
+            
+            // Emit event
+            if (self.eventBus) {
+                self.eventBus.emit('research:submitted', {
                     platform,
                     username,
                     analysisType
                 });
             }
             
-            this.closeResearchModal();
+            window.closeResearchModal();
         };
+        
+        console.log('✅ [ResearchModal] Event handlers attached');
     }
 }
 
@@ -115,3 +149,5 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
     window.ResearchModal = ResearchModal;
 }
+
+console.log('🔍 [ResearchModal] Migrated version loaded successfully');
