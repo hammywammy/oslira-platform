@@ -241,15 +241,17 @@ body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: var(--sidebar-padding);
+  padding: var(--sidebar-element-padding);  /* CHANGE from var(--sidebar-padding) */
+  padding-top: 1rem;
   display: flex;
   flex-direction: column;
   gap: var(--section-gap);
 }
 
 #sidebar-container.collapsed .sidebar-nav {
-  padding: var(--sidebar-collapsed-padding);
-  align-items: center;
+  padding: var(--sidebar-element-padding);  /* CHANGE from var(--sidebar-collapsed-padding) */
+  padding-top: 1rem;
+  align-items: flex-start;  /* CHANGE from center to flex-start */
 }
 
 /* Scrollbar styling */
@@ -372,21 +374,24 @@ body {
 }
 
 .nav-icon {
-  width: var(--nav-icon-size);
-  height: var(--nav-icon-size);
-  flex-shrink: 0;
-  font-size: var(--nav-icon-size);
+  grid-column: 1;  /* ADD THIS LINE */
+  width: var(--element-size);
+  height: var(--element-size);
+  font-size: 1.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 #sidebar-container.collapsed .nav-item {
-  justify-content: center;
-  padding: 0.625rem;
+  grid-template-columns: var(--element-size);
+  justify-items: center;
+  padding: 0;  /* CHANGE from 0.625rem to 0 */
 }
 
 .nav-text {
+  grid-column: 2;  /* ADD THIS LINE */
   font-weight: 500;
   transition: opacity var(--transition-speed);
   overflow: hidden;
@@ -394,8 +399,7 @@ body {
 }
 
 #sidebar-container.collapsed .nav-text {
-  opacity: 0;
-  width: 0;
+  display: none;  /* ADD THIS - more reliable than opacity */
 }
 
 /* =============================================================================
@@ -404,7 +408,7 @@ body {
 
 .sidebar-account-section {
   margin-top: auto;
-  padding: 0.75rem;
+  padding: var(--sidebar-element-padding);  /* CHANGE from 0.75rem */
   border-top: 1px solid var(--sidebar-border);
   position: relative;
   flex-shrink: 0;
@@ -425,18 +429,20 @@ body {
 }
 
 .account-trigger:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
+  background: rgba(243, 244, 246, 0.5);  /* CHANGE from #f9fafb */
+  border-radius: 0.5rem;  /* ADD THIS */
 }
 
 #sidebar-container.collapsed .account-trigger {
-  justify-content: center;
-  padding: 0.625rem;
+  grid-template-columns: var(--element-size);
+  justify-items: center;
+  padding: 0;  /* CHANGE from 0.625rem to 0 */
 }
 
 .account-avatar {
-  width: 2rem;
-  height: 2rem;
+  grid-column: 1;  /* ADD THIS LINE */
+  width: var(--element-size);  /* CHANGE from 2rem */
+  height: var(--element-size);  /* CHANGE from 2rem */
   background: linear-gradient(to right, #3b82f6, #8b5cf6);
   border-radius: 50%;
   display: flex;
@@ -449,10 +455,10 @@ body {
 }
 
 .account-info {
-  flex: 1;
-  min-width: 0;
+  grid-column: 2;  /* ADD THIS LINE */
   text-align: left;
   transition: opacity var(--transition-speed);
+  min-width: 0;
 }
 
 #sidebar-container.collapsed .account-info {
@@ -476,15 +482,16 @@ body {
 }
 
 .account-chevron {
+  grid-column: 3;  /* ADD THIS LINE */
   color: #9ca3af;
   transition: transform var(--transition-speed),
               opacity var(--transition-speed);
   flex-shrink: 0;
 }
 
+#sidebar-container.collapsed .account-info,
 #sidebar-container.collapsed .account-chevron {
-  opacity: 0;
-  width: 0;
+  display: none;  /* ADD THIS - more reliable than opacity + width */
 }
 
 .account-dropdown.open ~ .account-trigger .account-chevron {
