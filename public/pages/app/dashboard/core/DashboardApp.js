@@ -46,16 +46,30 @@ class DashboardApp {
     /**
      * Internal initialization - NO MORE CUSTOM DI CONTAINER
      */
-    async _performInitialization() {
-        try {
-            console.log('🔧 [DashboardApp] Setting up dashboard...');
-            
-            // Step 1: Simply reference dashboard modules globally
-            // No DI container needed - everything is already on window
-            this.validateDependencies();
-            
-            // Step 2: Initialize sidebar
-            console.log('🔧 [DashboardApp] Initializing sidebar...');
+async _performInitialization() {
+    try {
+        console.log('🔧 [DashboardApp] Setting up dashboard...');
+        
+        this.validateDependencies();
+        
+        // ✅ ADD THIS: Initialize Auth FIRST
+        console.log('🔐 [DashboardApp] Initializing authentication...');
+        if (window.OsliraAuth && !window.OsliraAuth.initialized) {
+            await window.OsliraAuth.initialize();
+            console.log('✅ [DashboardApp] Auth initialized');
+        }
+        
+        // Now check if user is authenticated
+        if (!window.OsliraAuth?.user) {
+            console.warn('⚠️ [DashboardApp] No authenticated user, redirecting...');
+            window.location.href = window.OsliraEnv.getAuthUrl();
+            return;
+        }
+        
+        console.log('✅ [DashboardApp] User authenticated:', window.OsliraAuth.user.email);
+        
+        // Step 2: Initialize sidebar
+        console.log('🔧 [DashboardApp] Initializing sidebar...');
             const sidebar = new window.SidebarManager();
             await sidebar.render('#sidebar-container');
             
