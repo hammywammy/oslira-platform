@@ -32,13 +32,16 @@ class SettingsApp {
         console.log('⚙️ [SettingsApp] Initializing components...');
         
         try {
-            // Step 1: Initialize sidebar (AppSidebar loads automatically)
-            await this.initializeSidebar();
+            // Step 1: Wait for sidebar to auto-render (it does this automatically)
+            await this.waitForSidebar();
             
-            // Step 2: Initialize settings navigation (tabs)
+            // Step 2: Configure sidebar for settings
+            await this.configureSidebar();
+            
+            // Step 3: Initialize settings navigation (tabs)
             await this.initializeSettingsTabs();
             
-            // Step 3: Mark as initialized
+            // Step 4: Mark as initialized
             this.isInitialized = true;
             console.log('✅ [SettingsApp] Initialization complete');
             
@@ -52,28 +55,40 @@ class SettingsApp {
     // SIDEBAR INITIALIZATION
     // =========================================================================
     
-    async initializeSidebar() {
-        console.log('📱 [SettingsApp] Initializing sidebar...');
+    async waitForSidebar() {
+        console.log('📱 [SettingsApp] Waiting for sidebar...');
         
-        // Wait for SidebarManager to be available
+        // Wait for global sidebarManager instance to be available
         let attempts = 0;
-        while (!window.SidebarManager && attempts < 50) {
+        while (!window.sidebarManager && attempts < 50) {
             await new Promise(resolve => setTimeout(resolve, 100));
             attempts++;
         }
         
-        if (!window.SidebarManager) {
-            throw new Error('SidebarManager not loaded');
+        if (!window.sidebarManager) {
+            throw new Error('SidebarManager not available');
         }
         
-        // Create sidebar instance
-        this.components.sidebar = new window.SidebarManager();
-        await this.components.sidebar.init();
+        // Store reference
+        this.components.sidebar = window.sidebarManager;
         
-        // Set active menu item
-        this.components.sidebar.setActiveMenuItem('settings');
+        console.log('✅ [SettingsApp] Sidebar reference obtained');
+    }
+    
+    async configureSidebar() {
+        console.log('⚙️ [SettingsApp] Configuring sidebar...');
         
-        console.log('✅ [SettingsApp] Sidebar initialized');
+        // Set active menu item to Settings
+        if (this.components.sidebar.setActiveMenuItem) {
+            this.components.sidebar.setActiveMenuItem('settings');
+        }
+        
+        // Ensure sidebar is expanded for settings pages
+        if (this.components.sidebar.isCollapsed) {
+            this.components.sidebar.expand();
+        }
+        
+        console.log('✅ [SettingsApp] Sidebar configured');
     }
     
     // =========================================================================
