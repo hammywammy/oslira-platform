@@ -46,34 +46,35 @@ class ApiClient {
      * Initialize ApiClient with required dependencies
      * @param {Object} dependencies - { httpClient, logger, authManager }
      */
-    async initialize(dependencies = {}) {
-        if (this.isInitialized) {
-            console.log('⚠️ [ApiClient] Already initialized');
-            return;
+async initialize(dependencies = {}) {
+    if (this.isInitialized) {
+        console.log('⚠️ [ApiClient] Already initialized');
+        return;
+    }
+    
+    try {
+        console.log('🔌 [ApiClient] Initializing...');
+        
+        // Wait for dependencies
+        this.httpClient = dependencies.httpClient || window.OsliraHttpClient;
+        this.logger = dependencies.logger || window.OsliraLogger;
+        this.authManager = dependencies.authManager || window.OsliraAuth;
+        this.baseURL = dependencies.baseURL || window.OsliraEnv?.workerUrl || 'https://api.oslira.com';
+        
+        if (!this.httpClient) {
+            throw new Error('HttpClient dependency missing');
         }
         
-        try {
-            console.log('🔌 [ApiClient] Initializing...');
-            
-            // Wait for dependencies
-            this.httpClient = dependencies.httpClient || window.OsliraHttpClient;
-            this.logger = dependencies.logger || window.OsliraLogger;
-            this.authManager = dependencies.authManager || window.OsliraAuth;
-            
-            if (!this.httpClient) {
-                throw new Error('HttpClient dependency missing');
-            }
-            
-            if (!this.logger) {
-                throw new Error('Logger dependency missing');
-            }
-            
-            if (!this.authManager) {
-                throw new Error('AuthManager dependency missing');
-            }
-            
-            this.isInitialized = true;
-            console.log('✅ [ApiClient] Initialized successfully');
+        if (!this.logger) {
+            throw new Error('Logger dependency missing');
+        }
+        
+        if (!this.authManager) {
+            throw new Error('AuthManager dependency missing');
+        }
+        
+        this.isInitialized = true;
+        console.log('✅ [ApiClient] Initialized successfully');
             
         } catch (error) {
             console.error('❌ [ApiClient] Initialization failed:', error);
@@ -157,12 +158,14 @@ class ApiClient {
                 requestHeaders['Authorization'] = `Bearer ${authToken}`;
             }
             
-            // 5. Make the request
-            const requestPromise = this.httpClient.request(endpoint, {
-                method,
-                body: body ? JSON.stringify(body) : null,
-                headers: requestHeaders
-            });
+// 5. Build full URL and make the request
+const fullURL = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`;
+
+const requestPromise = this.httpClient.request(fullURL, {
+    method,
+    body: body ? JSON.stringify(body) : null,
+    headers: requestHeaders
+});
             
             // Store in-flight promise for deduplication
             if (!skipDeduplication) {
