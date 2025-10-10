@@ -278,25 +278,34 @@ class DashboardHeader {
     /**
      * Handle main button clicks
      */
-    handleMainButtonClick(event) {
-        event.preventDefault();
-        event.stopPropagation();
+handleMainButtonClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
 
-        console.log('🔘 [DashboardHeader] Main button clicked, mode:', this.currentMode);
+    console.log('🔘 [DashboardHeader] Main button clicked, mode:', this.currentMode);
 
-        // Check if modal is already open to prevent toggle
-        const activeModal = this.stateManager?.getState('activeModal');
-        if (activeModal === 'bulkModal' && this.currentMode === 'bulk') {
-            console.log('⚠️ [DashboardHeader] Bulk modal already open, ignoring click');
-            return;
+    // Check if modal is already open to prevent toggle
+    const activeModal = this.stateManager?.getState('activeModal');
+    if (activeModal === 'bulkModal' && this.currentMode === 'bulk') {
+        console.log('⚠️ [DashboardHeader] Bulk modal already open, ignoring click');
+        return;
+    }
+
+    // ✅ FIXED: Delegate to global functions
+    if (this.currentMode === 'single') {
+        if (typeof window.openResearchModal === 'function') {
+            window.openResearchModal();
+        } else {
+            console.error('❌ [DashboardHeader] window.openResearchModal not available');
         }
-
-        if (this.currentMode === 'single') {
-            this.openResearchModal();
-        } else if (this.currentMode === 'bulk') {
-            this.openBulkModal();
+    } else if (this.currentMode === 'bulk') {
+        if (typeof window.openBulkModal === 'function') {
+            window.openBulkModal();
+        } else {
+            console.error('❌ [DashboardHeader] window.openBulkModal not available');
         }
     }
+}
 
     toggleDropdown(event) {
         event.preventDefault();
@@ -547,28 +556,6 @@ class DashboardHeader {
         });
     }
 
-openBulkModal() {
-    console.log('📊 [DashboardHeader] Opening bulk modal...');
-    const modal = document.getElementById('bulkModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        console.log('✅ Bulk modal opened');
-    } else {
-        console.error('❌ bulkModal element not found');
-    }
-}
-
-openResearchModal() {
-    console.log('🔍 [DashboardHeader] Opening research modal...');
-    const modal = document.getElementById('researchModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        console.log('✅ Research modal opened');
-    } else {
-        console.error('❌ researchModal element not found');
-    }
-}
-
     /**
      * Initialize Feather icons in the header
      */
@@ -608,22 +595,31 @@ openResearchModal() {
     /**
      * Debug method to check header state
      */
-    debug() {
-        return {
-            initialized: this.initialized,
-            mode: this.currentMode,
-            dropdownOpen: this.isDropdownOpen,
-            eventBus: !!this.eventBus,
-            stateManager: !!this.stateManager,
-            osliraAuth: !!this.osliraAuth,
-            domElements: {
-                buttonContainer: !!document.getElementById('main-button-container'),
-                mainButton: !!document.getElementById('main-research-btn'),
-                dropdownButton: !!document.getElementById('dropdown-arrow-btn'),
-                dropdown: !!document.getElementById('research-dropdown')
-            }
-        };
-    }
+debug() {
+    return {
+        initialized: this.initialized,
+        mode: this.currentMode,
+        dropdownOpen: this.isDropdownOpen,
+        eventBus: !!this.eventBus,
+        stateManager: !!this.stateManager,
+        osliraAuth: !!this.osliraAuth,
+        domElements: {
+            buttonContainer: !!document.getElementById('main-button-container'),
+            mainButton: !!document.getElementById('main-research-btn'),
+            dropdownButton: !!document.getElementById('dropdown-arrow-btn'),
+            dropdown: !!document.getElementById('mode-dropdown')
+        },
+        globalFunctions: {
+            openResearchModal: typeof window.openResearchModal === 'function',
+            openBulkModal: typeof window.openBulkModal === 'function',
+            handleDropdownSelection: typeof window.handleDropdownSelection === 'function'
+        },
+        modalsInDOM: {
+            researchModal: !!document.getElementById('researchModal'),
+            bulkModal: !!document.getElementById('bulkModal')
+        }
+    };
+}
 }
 
 // CSS Styles for the dropdown (inject into page if needed)
