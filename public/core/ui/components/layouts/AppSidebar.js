@@ -274,14 +274,14 @@ getSidebarHTML() {
    <span class="nav-icon">🎯</span>
    <span class="nav-text">Campaigns</span>
 </a>
-                            <a href="${window.OsliraEnv.getAppUrl('/messages')}" data-page="messages" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/messages')}"
                                data-page="messages" 
                                class="nav-item"
                                data-tooltip="Messages">
                                 <span class="nav-icon">💬</span>
                                 <span class="nav-text">Messages</span>
                             </a>
-                            <a href="${window.OsliraEnv.getAppUrl('/integrations')}" data-page="integrations" class="nav-item">
+                            <a href="${window.OsliraEnv.getAppUrl('/integrations')}"
                                data-page="integrations" 
                                class="nav-item"
                                data-tooltip="Integrations">
