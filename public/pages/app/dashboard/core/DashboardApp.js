@@ -136,33 +136,30 @@ async _performInitialization() {
         
         this.validateDependencies();
         
-        // ✅ STEP 1: Initialize Auth
+        // Step 1: Initialize Auth
         console.log('🔐 [DashboardApp] Initializing authentication...');
         if (window.OsliraAuth && !window.OsliraAuth.initialized) {
             await window.OsliraAuth.initialize();
             console.log('✅ [DashboardApp] Auth initialized');
         }
         
-        // ✅ STEP 2: Check URL hash for cross-subdomain session transfer (FIRST!)
+        // Step 2: Check URL hash for cross-subdomain session transfer
         const restoredFromHash = await this._restoreSessionFromUrlHash();
         
         if (restoredFromHash) {
-            console.log('✅ [DashboardApp] Session restored from URL hash, skipping wait loop');
+            console.log('✅ [DashboardApp] Session restored from URL hash');
         } else {
-            // ✅ STEP 3: Wait for session from localStorage if not in hash
-            console.log('🔐 [DashboardApp] Waiting for session restoration from localStorage...');
+            // Step 3: Wait for session from localStorage
+            console.log('🔐 [DashboardApp] Waiting for session restoration...');
             let attempts = 0;
-            const maxAttempts = 50; // 5 seconds total
+            const maxAttempts = 50;
             
             while (!window.OsliraAuth?.user && attempts < maxAttempts) {
                 await new Promise(resolve => setTimeout(resolve, 100));
                 attempts++;
                 
-                // Check if we have a stored session
                 const storedSession = localStorage.getItem('oslira-auth');
                 if (storedSession && window.OsliraAuth?.supabase) {
-                    console.log(`🔄 [DashboardApp] Attempt ${attempts}: Checking stored session...`);
-                    
                     try {
                         const { data, error } = await window.OsliraAuth.supabase.auth.getSession();
                         
@@ -183,30 +180,21 @@ async _performInitialization() {
                     }
                 }
             }
-            
-            console.log(`⏱️ [DashboardApp] Session check took ${attempts * 100}ms`);
         }
         
-        // ✅ STEP 4: Final auth check
+        // Step 4: Final auth check
         if (!window.OsliraAuth?.user) {
-            console.warn('⚠️ [DashboardApp] No authenticated user after restoration attempts');
-            console.log('🔄 [DashboardApp] Redirecting to auth page...');
-            
-            // Clear any corrupted session data
+            console.warn('⚠️ [DashboardApp] No authenticated user');
             localStorage.removeItem('oslira-auth');
             
-            // Redirect to auth with return URL
             const returnUrl = encodeURIComponent(window.location.href);
             const authUrl = `${window.OsliraEnv.getAuthUrl()}?return_to=${returnUrl}`;
             
             window.location.href = authUrl;
-            return; // Stop initialization
+            return;
         }
         
         console.log('✅ [DashboardApp] User authenticated:', window.OsliraAuth.user.email);
-        
-        // Continue with rest of initialization...
-        // (keep everything else the same)
         
         // Step 5: Initialize sidebar
         console.log('🔧 [DashboardApp] Initializing sidebar...');
@@ -257,14 +245,24 @@ async _performInitialization() {
         
         console.log(`✅ [DashboardApp] Initialized in ${initTime}ms`);
         
-        window.EventBus.emit('DASHBOARD_INIT_COMPLETE', { initTime });
+        // ✅ FIX: Use correct EventBus reference
+        if (window.OsliraEventBus) {
+            window.OsliraEventBus.emit('DASHBOARD_INIT_COMPLETE', { initTime });
+        }
         
     } catch (error) {
         console.error('❌ [DashboardApp] Initialization failed:', error);
-        window.OsliraErrorHandler.handleError(error, { 
-            context: 'dashboard_init',
-            fatal: true 
-        });
+        
+        // ✅ FIX: Use correct ErrorHandler reference with safety check
+        if (window.ErrorHandler) {
+            window.ErrorHandler.handleError(error, { 
+                context: 'dashboard_init',
+                fatal: true 
+            });
+        } else {
+            console.error('❌ [DashboardApp] ErrorHandler not available');
+        }
+        
         throw error;
     }
 }
