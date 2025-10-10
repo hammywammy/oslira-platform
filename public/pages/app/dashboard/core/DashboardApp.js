@@ -79,11 +79,14 @@ class DashboardApp {
             // Load businesses
             await this.loadBusinesses();
             
-            // Initialize managers (singletons!)
-            this.initializeManagers();
-            
-            // Render UI
-            await this.renderDashboardUI();
+// Initialize managers
+this.initializeManagers();
+
+// Initialize and render modals
+await this.initializeModals();
+
+// Render UI
+await this.renderDashboardUI();
             
             // Load data
             await this.loadDashboardData();
@@ -279,6 +282,75 @@ class DashboardApp {
         
         console.log('✅ [DashboardApp] Managers initialized');
     }
+
+async initializeModals() {
+    console.log('🎨 [DashboardApp] Initializing and rendering modals...');
+    
+    try {
+        // Render Research Modal
+        if (window.ResearchModal) {
+            const researchModalInstance = new window.ResearchModal();
+            const researchModalContainer = document.getElementById('researchModal');
+            
+            if (researchModalContainer && typeof researchModalInstance.renderModal === 'function') {
+                const researchModalHTML = researchModalInstance.renderModal();
+                researchModalContainer.outerHTML = researchModalHTML;
+                
+                if (typeof researchModalInstance.setupEventHandlers === 'function') {
+                    researchModalInstance.setupEventHandlers();
+                }
+                
+                console.log('✅ [DashboardApp] Research modal rendered');
+            }
+        }
+        
+        // Render Bulk Modal
+        if (window.BulkModal) {
+            const bulkModalInstance = new window.BulkModal();
+            const bulkModalContainer = document.getElementById('bulkModal');
+            
+            if (bulkModalContainer && typeof bulkModalInstance.renderModal === 'function') {
+                const bulkModalHTML = bulkModalInstance.renderModal();
+                bulkModalContainer.outerHTML = bulkModalHTML;
+                
+                if (typeof bulkModalInstance.setupEventHandlers === 'function') {
+                    bulkModalInstance.setupEventHandlers();
+                }
+                
+                console.log('✅ [DashboardApp] Bulk modal rendered');
+            }
+        }
+        
+        // Render Filter Modal
+        if (window.FilterModal) {
+            const filterModalInstance = new window.FilterModal();
+            const modalContainersDiv = document.getElementById('modal-containers');
+            
+            if (modalContainersDiv && typeof filterModalInstance.renderModal === 'function') {
+                const filterModalHTML = filterModalInstance.renderModal();
+                modalContainersDiv.insertAdjacentHTML('beforeend', filterModalHTML);
+                
+                if (typeof filterModalInstance.setupEventHandlers === 'function') {
+                    filterModalInstance.setupEventHandlers();
+                }
+                
+                console.log('✅ [DashboardApp] Filter modal rendered');
+            }
+        }
+        
+        // Initialize ModalManager
+        if (this.components.modalManager && typeof this.components.modalManager.init === 'function') {
+            await this.components.modalManager.init();
+            console.log('✅ [DashboardApp] ModalManager initialized');
+        }
+        
+        console.log('✅ [DashboardApp] All modals initialized and rendered');
+        
+    } catch (error) {
+        console.error('❌ [DashboardApp] Modal initialization failed:', error);
+        throw error;
+    }
+}
     
     // =========================================================================
     // UI RENDERING
