@@ -207,18 +207,19 @@ class SidebarManager {
     // HTML TEMPLATE (Unchanged)
     // =========================================================================
     
-    getSidebarHTML() {
-        return `
+getSidebarHTML() {
+    return `
+        <div class="sidebar">
             <div class="sidebar-container">
-                <!-- Header -->
+                <!-- Header - CSS Grid Layout -->
                 <div class="sidebar-header">
-                    <a href="${window.OsliraEnv.getMarketingUrl()}" class="sidebar-logo-link">
-                        <img src="/assets/images/oslira-logo.png" alt="Oslira" class="sidebar-logo-image">
-                        <span class="sidebar-logo-text">Oslira</span>
-                    </a>
-<button id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle Sidebar">
-    <span class="sidebar-toggle-icon" role="img" aria-label="Toggle sidebar"></span>
-</button>
+                    <!-- Toggle Button - Grid Position 1 (replaces logo) -->
+                    <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle Sidebar">
+                        <span class="sidebar-toggle-icon" role="img" aria-label="Toggle sidebar"></span>
+                    </button>
+                    
+                    <!-- Company Name - Grid Position 2 (replaces logo text) -->
+                    <span class="sidebar-company-name">Oslira</span>
                 </div>
                 
                 <!-- Navigation -->
@@ -292,8 +293,9 @@ class SidebarManager {
                     </div>
                 </nav>
                 
-                <!-- Account Section -->
+                <!-- Account Section - Flush Design -->
                 <div class="sidebar-account-section">
+                    <!-- Dropdown (unchanged) -->
                     <div class="account-dropdown" id="account-dropdown">
                         <div class="account-dropdown-header">
                             <div class="account-dropdown-name">Hw Models</div>
@@ -318,6 +320,7 @@ class SidebarManager {
                         </div>
                     </div>
                     
+                    <!-- Trigger Button - Grid Layout -->
                     <button class="account-trigger" id="account-trigger-btn">
                         <div class="account-avatar">H</div>
                         <div class="account-info">
@@ -330,8 +333,9 @@ class SidebarManager {
                     </button>
                 </div>
             </div>
-        `;
-    }
+        </div>
+    `;
+}
 }
 
 // =============================================================================
