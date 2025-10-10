@@ -54,49 +54,69 @@ async _performInitialization() {
         
         this.validateDependencies();
         
-        // ✅ CRITICAL FIX: Initialize Auth AND wait for session
+        // ✅ CRITICAL FIX: Initialize Auth AND wait for session restoration
         console.log('🔐 [DashboardApp] Initializing authentication...');
         if (window.OsliraAuth && !window.OsliraAuth.initialized) {
             await window.OsliraAuth.initialize();
             console.log('✅ [DashboardApp] Auth initialized');
         }
         
-        // ✅ CRITICAL FIX: Wait for session to be restored from localStorage
+        // ✅ CRITICAL FIX: Wait for session to be fully restored from localStorage
         console.log('🔐 [DashboardApp] Waiting for session restoration...');
         let attempts = 0;
-        const maxAttempts = 50; // 5 seconds
+        const maxAttempts = 50; // 5 seconds total
         
         while (!window.OsliraAuth?.user && attempts < maxAttempts) {
             await new Promise(resolve => setTimeout(resolve, 100));
             attempts++;
             
-            // Check if we have a stored session but user isn't populated yet
+            // Check if we have a stored session that needs manual loading
             const storedSession = localStorage.getItem('oslira-auth');
             if (storedSession && window.OsliraAuth?.supabase) {
-                console.log('🔄 [DashboardApp] Found stored session, checking validity...');
-                const { data } = await window.OsliraAuth.supabase.auth.getSession();
-                if (data?.session?.user) {
-                    window.OsliraAuth.user = data.session.user;
-                    window.OsliraAuth.session = data.session;
-                    console.log('✅ [DashboardApp] Session restored from storage');
-                    break;
+                console.log(`🔄 [DashboardApp] Attempt ${attempts}: Checking stored session...`);
+                
+                try {
+                    const { data, error } = await window.OsliraAuth.supabase.auth.getSession();
+                    
+                    if (error) {
+                        console.warn('⚠️ [DashboardApp] Session recovery error:', error);
+                        // Clear bad session
+                        localStorage.removeItem('oslira-auth');
+                        break;
+                    }
+                    
+                    if (data?.session?.user) {
+                        window.OsliraAuth.user = data.session.user;
+                        window.OsliraAuth.session = data.session;
+                        console.log('✅ [DashboardApp] Session restored:', data.session.user.email);
+                        break;
+                    }
+                } catch (sessionError) {
+                    console.warn('⚠️ [DashboardApp] Session check error:', sessionError);
                 }
             }
         }
         
-        // Now check if user is authenticated
+        // Final auth check
         if (!window.OsliraAuth?.user) {
-            console.warn('⚠️ [DashboardApp] No authenticated user after wait, redirecting...');
+            console.warn(`⚠️ [DashboardApp] No authenticated user after ${attempts * 100}ms wait`);
+            console.log('🔄 [DashboardApp] Redirecting to auth page...');
             
-            // Save current URL for return after login
+            // Clear any corrupted session data
+            localStorage.removeItem('oslira-auth');
+            
+            // Redirect to auth with return URL
             const returnUrl = encodeURIComponent(window.location.href);
             const authUrl = `${window.OsliraEnv.getAuthUrl()}?return_to=${returnUrl}`;
             
             window.location.href = authUrl;
-            return;
+            return; // Stop initialization
         }
         
         console.log('✅ [DashboardApp] User authenticated:', window.OsliraAuth.user.email);
+        console.log(`⏱️ [DashboardApp] Auth verification took ${attempts * 100}ms`);
+        
+        // Continue with rest of initialization...
         
         // Step 2: Initialize sidebar
         console.log('🔧 [DashboardApp] Initializing sidebar...');
