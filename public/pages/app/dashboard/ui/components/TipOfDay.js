@@ -1,17 +1,29 @@
+//public/pages/dashboard/modules/ui/tip-of-day.js
+
+/**
+ * TIP OF DAY - Migrated to New System (No Container)
+ * Handles daily tip carousel with navigation
+ */
 class TipOfDay {
-    constructor(container) {
-        this.container = container;
+    constructor() {
+        // Use global window objects directly (no container)
+        this.eventBus = window.EventBus || window.OsliraEventBus;
+        this.stateManager = window.StateManager || window.OsliraStateManager;
+        this.osliraAuth = window.OsliraAuth;
+        
         this.currentIndex = 0;
         this.dailyTips = this.getThreeDailyTips();
+        
+        console.log('💡 [TipOfDay] Instance created (Migrated System)');
     }
 
     /**
      * Render carousel with navigation
      */
-renderTip() {
-    const tips = this.dailyTips;
-    
-    return `
+    renderTip() {
+        const tips = this.dailyTips;
+        
+        return `
 <!-- Tip of the Day Carousel - Compact & High Contrast -->
 <div class="px-6 pb-6">
     <div class="relative bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-gray-200/60 shadow-sm">
@@ -111,7 +123,8 @@ renderTip() {
     hyphens: auto;
 }
 </style>`;
-}
+    }
+
     /**
      * Get 3 random tips seeded by day (same 3 tips all day)
      */
@@ -164,6 +177,14 @@ renderTip() {
     nextTip() {
         this.currentIndex = (this.currentIndex + 1) % this.dailyTips.length;
         this.updateTipDisplay();
+        
+        // Emit event for analytics
+        if (this.eventBus) {
+            this.eventBus.emit('tip:navigated', { 
+                direction: 'next', 
+                index: this.currentIndex 
+            });
+        }
     }
 
     /**
@@ -172,6 +193,14 @@ renderTip() {
     prevTip() {
         this.currentIndex = (this.currentIndex - 1 + this.dailyTips.length) % this.dailyTips.length;
         this.updateTipDisplay();
+        
+        // Emit event for analytics
+        if (this.eventBus) {
+            this.eventBus.emit('tip:navigated', { 
+                direction: 'prev', 
+                index: this.currentIndex 
+            });
+        }
     }
 
     /**
@@ -181,6 +210,14 @@ renderTip() {
         if (index >= 0 && index < this.dailyTips.length) {
             this.currentIndex = index;
             this.updateTipDisplay();
+            
+            // Emit event for analytics
+            if (this.eventBus) {
+                this.eventBus.emit('tip:navigated', { 
+                    direction: 'direct', 
+                    index: this.currentIndex 
+                });
+            }
         }
     }
 
@@ -227,3 +264,5 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
     window.TipOfDay = TipOfDay;
 }
+
+console.log('💡 [TipOfDay] Migrated version loaded successfully');
