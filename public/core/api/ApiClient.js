@@ -476,6 +476,7 @@ class ApiClient {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraApiClient = ApiClient;
+window.ApiClientClass = ApiClient;  // Export class for reference
+window.OsliraApiClient = new ApiClient();  // Export singleton instance
 
-console.log('✅ [ApiClient] Class loaded and ready for initialization');
+console.log('✅ [ApiClient] Instance created and ready for initialization');
