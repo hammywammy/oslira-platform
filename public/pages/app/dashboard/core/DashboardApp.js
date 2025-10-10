@@ -54,7 +54,6 @@ if (window.OsliraApiClient && !window.OsliraApiClient.isInitialized) {
         httpClient: window.OsliraHttp || window.OsliraHttpClient,
         logger: window.OsliraLogger,
         authManager: window.OsliraAuth
-        baseURL: window.OsliraEnv.workerUrl  
     });
     console.log('✅ [DashboardApp] ApiClient initialized');
 }
