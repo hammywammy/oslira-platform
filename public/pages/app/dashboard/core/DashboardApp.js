@@ -58,8 +58,6 @@ class DashboardApp {
             
             // Validate dependencies
             this.validateDependencies();
-
-            this.injectDashboardStyles();
             
             // Initialize auth
             await this.initializeAuth();
@@ -116,27 +114,6 @@ class DashboardApp {
     // =========================================================================
     // INITIALIZATION STEPS
     // =========================================================================
-    // In DashboardApp.js, add this method after validateDependencies():
-
-injectDashboardStyles() {
-    console.log('🎨 [DashboardApp] Injecting dashboard styles...');
-    
-    if (window.DashboardStyles && typeof window.DashboardStyles.getInlineStyles === 'function') {
-        const existingStyles = document.getElementById('dashboard-styles-inline');
-        
-        if (!existingStyles) {
-            const styleTag = document.createElement('style');
-            styleTag.id = 'dashboard-styles-inline';
-            styleTag.innerHTML = window.DashboardStyles.getInlineStyles();
-            document.head.appendChild(styleTag);
-            console.log('✅ [DashboardApp] Dashboard styles injected');
-        } else {
-            console.log('ℹ️ [DashboardApp] Dashboard styles already exist');
-        }
-    } else {
-        console.error('❌ [DashboardApp] DashboardStyles not available!');
-    }
-}
     
     validateDependencies() {
         const required = [
