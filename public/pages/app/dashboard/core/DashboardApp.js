@@ -43,26 +43,56 @@ class DashboardApp {
         }
     }
     
-    /**
-     * Internal initialization - NO MORE CUSTOM DI CONTAINER
-     */
+// =============================================================================
+// DASHBOARD APP - Fixed Auth Check
+// Path: /public/pages/app/dashboard/core/DashboardApp.js
+// =============================================================================
+
 async _performInitialization() {
     try {
         console.log('🔧 [DashboardApp] Setting up dashboard...');
         
         this.validateDependencies();
         
-        // ✅ ADD THIS: Initialize Auth FIRST
+        // ✅ CRITICAL FIX: Initialize Auth AND wait for session
         console.log('🔐 [DashboardApp] Initializing authentication...');
         if (window.OsliraAuth && !window.OsliraAuth.initialized) {
             await window.OsliraAuth.initialize();
             console.log('✅ [DashboardApp] Auth initialized');
         }
         
+        // ✅ CRITICAL FIX: Wait for session to be restored from localStorage
+        console.log('🔐 [DashboardApp] Waiting for session restoration...');
+        let attempts = 0;
+        const maxAttempts = 50; // 5 seconds
+        
+        while (!window.OsliraAuth?.user && attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+            
+            // Check if we have a stored session but user isn't populated yet
+            const storedSession = localStorage.getItem('oslira-auth');
+            if (storedSession && window.OsliraAuth?.supabase) {
+                console.log('🔄 [DashboardApp] Found stored session, checking validity...');
+                const { data } = await window.OsliraAuth.supabase.auth.getSession();
+                if (data?.session?.user) {
+                    window.OsliraAuth.user = data.session.user;
+                    window.OsliraAuth.session = data.session;
+                    console.log('✅ [DashboardApp] Session restored from storage');
+                    break;
+                }
+            }
+        }
+        
         // Now check if user is authenticated
         if (!window.OsliraAuth?.user) {
-            console.warn('⚠️ [DashboardApp] No authenticated user, redirecting...');
-            window.location.href = window.OsliraEnv.getAuthUrl();
+            console.warn('⚠️ [DashboardApp] No authenticated user after wait, redirecting...');
+            
+            // Save current URL for return after login
+            const returnUrl = encodeURIComponent(window.location.href);
+            const authUrl = `${window.OsliraEnv.getAuthUrl()}?return_to=${returnUrl}`;
+            
+            window.location.href = authUrl;
             return;
         }
         
@@ -70,67 +100,67 @@ async _performInitialization() {
         
         // Step 2: Initialize sidebar
         console.log('🔧 [DashboardApp] Initializing sidebar...');
-            const sidebar = new window.SidebarManager();
-            await sidebar.render('#sidebar-container');
-            
-            // Step 3: Load business profiles
-            console.log('🏢 [DashboardApp] Loading businesses...');
-            const businessManager = new window.BusinessManager();
-            await businessManager.loadBusinesses();
-            
-            // Sync business to OsliraAuth
-            const currentBusiness = businessManager.getCurrentBusiness();
-            if (currentBusiness && window.OsliraAuth) {
-                window.OsliraAuth.business = currentBusiness;
-                console.log('✅ [DashboardApp] Business synced:', currentBusiness.business_name);
-            }
-            
-            // Step 4: Initialize managers
-            console.log('📊 [DashboardApp] Initializing managers...');
-            const leadManager = new window.LeadManager();
-            const modalManager = new window.ModalManager();
-            
-            // Step 5: Render dashboard UI
-            console.log('🎨 [DashboardApp] Rendering dashboard UI...');
-            await this.renderDashboardUI();
-            
-            // Step 6: Load lead data
-            console.log('📊 [DashboardApp] Loading lead data...');
-            await leadManager.loadDashboardData();
-            
-            // Step 7: Setup event handlers
-            console.log('📡 [DashboardApp] Setting up event handlers...');
-            if (window.DashboardEventSystem) {
-window.DashboardEventSystem.setupHandlers(
-    window.OsliraEventBus,
-    this
-);
-            }
-            
-            // Step 8: Expose public API
-            this.exposePublicAPI();
-            
-            // Complete
-            this.initialized = true;
-            const initTime = Date.now() - this.initStartTime;
-            
-            // Make page visible
-            document.body.style.visibility = 'visible';
-            
-            console.log(`✅ [DashboardApp] Initialized in ${initTime}ms`);
-            
-            // Emit completion event
-            window.EventBus.emit('DASHBOARD_INIT_COMPLETE', { initTime });
-            
-        } catch (error) {
-            console.error('❌ [DashboardApp] Initialization failed:', error);
-window.OsliraErrorHandler.handleError(error, { 
-                context: 'dashboard_init',
-                fatal: true 
-            });
-            throw error;
+        const sidebar = new window.SidebarManager();
+        await sidebar.render('#sidebar-container');
+        
+        // Step 3: Load business profiles
+        console.log('🏢 [DashboardApp] Loading businesses...');
+        const businessManager = new window.BusinessManager();
+        await businessManager.loadBusinesses();
+        
+        // Sync business to OsliraAuth
+        const currentBusiness = businessManager.getCurrentBusiness();
+        if (currentBusiness && window.OsliraAuth) {
+            window.OsliraAuth.business = currentBusiness;
+            console.log('✅ [DashboardApp] Business synced:', currentBusiness.business_name);
         }
+        
+        // Step 4: Initialize managers
+        console.log('📊 [DashboardApp] Initializing managers...');
+        const leadManager = new window.LeadManager();
+        const modalManager = new window.ModalManager();
+        
+        // Step 5: Render dashboard UI
+        console.log('🎨 [DashboardApp] Rendering dashboard UI...');
+        await this.renderDashboardUI();
+        
+        // Step 6: Load lead data
+        console.log('📊 [DashboardApp] Loading lead data...');
+        await leadManager.loadDashboardData();
+        
+        // Step 7: Setup event handlers
+        console.log('📡 [DashboardApp] Setting up event handlers...');
+        if (window.DashboardEventSystem) {
+            window.DashboardEventSystem.setupHandlers(
+                window.OsliraEventBus,
+                this
+            );
+        }
+        
+        // Step 8: Expose public API
+        this.exposePublicAPI();
+        
+        // Complete
+        this.initialized = true;
+        const initTime = Date.now() - this.initStartTime;
+        
+        // Make page visible
+        document.body.style.visibility = 'visible';
+        
+        console.log(`✅ [DashboardApp] Initialized in ${initTime}ms`);
+        
+        // Emit completion event
+        window.EventBus.emit('DASHBOARD_INIT_COMPLETE', { initTime });
+        
+    } catch (error) {
+        console.error('❌ [DashboardApp] Initialization failed:', error);
+        window.OsliraErrorHandler.handleError(error, { 
+            context: 'dashboard_init',
+            fatal: true 
+        });
+        throw error;
     }
+}
     
     /**
      * Validate all required dependencies exist
