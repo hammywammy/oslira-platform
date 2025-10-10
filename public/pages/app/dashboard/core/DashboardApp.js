@@ -87,10 +87,10 @@ class DashboardApp {
             // Step 7: Setup event handlers
             console.log('📡 [DashboardApp] Setting up event handlers...');
             if (window.DashboardEventSystem) {
-                window.DashboardEventSystem.setupHandlers(
-                    window.EventBus,
-                    this
-                );
+window.DashboardEventSystem.setupHandlers(
+    window.OsliraEventBus,
+    this
+);
             }
             
             // Step 8: Expose public API
@@ -110,7 +110,7 @@ class DashboardApp {
             
         } catch (error) {
             console.error('❌ [DashboardApp] Initialization failed:', error);
-            window.ErrorHandler.handleError(error, { 
+window.OsliraErrorHandler.handleError(error, { 
                 context: 'dashboard_init',
                 fatal: true 
             });
