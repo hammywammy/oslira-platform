@@ -362,3 +362,12 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
     window.DashboardStyles = DashboardStyles;
 }
+
+// 🎨 AUTO-INJECT STYLES WHEN SCRIPT LOADS
+if (typeof document !== 'undefined' && !document.getElementById('dashboard-styles-inline')) {
+    const styleTag = document.createElement('style');
+    styleTag.id = 'dashboard-styles-inline';
+    styleTag.innerHTML = DashboardStyles.getInlineStyles();
+    document.head.appendChild(styleTag);
+    console.log('✅ [DashboardStyles] Styles injected into page');
+}
