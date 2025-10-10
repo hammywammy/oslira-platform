@@ -233,18 +233,28 @@ getSidebarHTML() {
                             </svg>
                         </div>
                         <div class="nav-items">
-                            <a href="${window.OsliraEnv.getAppUrl('/dashboard')}" data-page="dashboard" class="nav-item">
-                                <span class="nav-icon">📊</span>
-                                <span class="nav-text">Dashboard</span>
-                            </a>
-                            <a href="${window.OsliraEnv.getAppUrl('/leads')}" data-page="leads" class="nav-item">
-                                <span class="nav-icon">🔍</span>
-                                <span class="nav-text">Lead Research</span>
-                            </a>
-                            <a href="${window.OsliraEnv.getAppUrl('/analytics')}" data-page="analytics" class="nav-item">
-                                <span class="nav-icon">📈</span>
-                                <span class="nav-text">Analytics</span>
-                            </a>
+<a href="${window.OsliraEnv.getAppUrl('/dashboard')}" 
+   data-page="dashboard" 
+   class="nav-item"
+   data-tooltip="Dashboard">
+    <span class="nav-icon">📊</span>
+    <span class="nav-text">Dashboard</span>
+</a>
+<a href="${window.OsliraEnv.getAppUrl('/leads')}" 
+   data-page="leads" 
+   class="nav-item"
+   data-tooltip="Lead Research">
+    <span class="nav-icon">🔍</span>
+    <span class="nav-text">Lead Research</span>
+</a>
+
+<a href="${window.OsliraEnv.getAppUrl('/analytics')}" 
+   data-page="analytics" 
+   class="nav-item"
+   data-tooltip="Analytics">
+    <span class="nav-icon">📈</span>
+    <span class="nav-text">Analytics</span>
+</a>
                         </div>
                     </div>
                     
@@ -258,36 +268,25 @@ getSidebarHTML() {
                         </div>
                         <div class="nav-items">
                             <a href="${window.OsliraEnv.getAppUrl('/campaigns')}" data-page="campaigns" class="nav-item">
+                               data-page="campaigns" 
+                               class="nav-item"
+                               data-tooltip="Campaigns">
                                 <span class="nav-icon">🎯</span>
                                 <span class="nav-text">Campaigns</span>
                             </a>
                             <a href="${window.OsliraEnv.getAppUrl('/messages')}" data-page="messages" class="nav-item">
+                               data-page="messages" 
+                               class="nav-item"
+                               data-tooltip="Messages">
                                 <span class="nav-icon">💬</span>
                                 <span class="nav-text">Messages</span>
                             </a>
                             <a href="${window.OsliraEnv.getAppUrl('/integrations')}" data-page="integrations" class="nav-item">
+                               data-page="integrations" 
+                               class="nav-item"
+                               data-tooltip="Integrations">
                                 <span class="nav-icon">🔌</span>
                                 <span class="nav-text">Integrations</span>
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <!-- Settings Section -->
-                    <div class="nav-section collapsible">
-                        <div class="nav-section-header-wrapper" data-section="settings">
-                            <h4 class="nav-section-header">Settings</h4>
-                            <svg class="section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M6 9l6 6 6-6"/>
-                            </svg>
-                        </div>
-                        <div class="nav-items">
-                            <a href="${window.OsliraEnv.getAppUrl('/subscription')}" data-page="subscription" class="nav-item">
-                                <span class="nav-icon">💳</span>
-                                <span class="nav-text">Subscription</span>
-                            </a>
-                            <a href="${window.OsliraEnv.getAppUrl('/settings')}" data-page="settings" class="nav-item">
-                                <span class="nav-icon">⚙️</span>
-                                <span class="nav-text">Settings</span>
                             </a>
                         </div>
                     </div>
