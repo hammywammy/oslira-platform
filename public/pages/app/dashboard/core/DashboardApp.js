@@ -284,73 +284,320 @@ await this.renderDashboardUI();
     }
 
 async initializeModals() {
-    console.log('🎨 [DashboardApp] Initializing and rendering modals...');
+    console.log('🎨 [DashboardApp] Initializing immutable modal system...');
     
     try {
-        // Render Research Modal
+        // =====================================================================
+        // STEP 1: RENDER RESEARCH MODAL
+        // =====================================================================
         if (window.ResearchModal) {
             const researchModalInstance = new window.ResearchModal();
             const researchModalContainer = document.getElementById('researchModal');
             
-            if (researchModalContainer && typeof researchModalInstance.renderModal === 'function') {
-                const researchModalHTML = researchModalInstance.renderModal();
-                researchModalContainer.outerHTML = researchModalHTML;
+            if (researchModalContainer) {
+                // Try both possible method names
+                const renderMethod = researchModalInstance.renderModal || 
+                                   researchModalInstance.renderResearchModal ||
+                                   researchModalInstance.render;
                 
-                if (typeof researchModalInstance.setupEventHandlers === 'function') {
-                    researchModalInstance.setupEventHandlers();
+                if (typeof renderMethod === 'function') {
+                    const researchModalHTML = renderMethod.call(researchModalInstance);
+                    
+                    // Replace the empty container with actual modal HTML
+                    researchModalContainer.outerHTML = researchModalHTML;
+                    
+                    // Setup event handlers if available
+                    const setupMethod = researchModalInstance.setupEventHandlers ||
+                                      researchModalInstance.setup ||
+                                      researchModalInstance.init;
+                    
+                    if (typeof setupMethod === 'function') {
+                        setupMethod.call(researchModalInstance);
+                    }
+                    
+                    console.log('✅ [DashboardApp] Research modal rendered and functional');
+                } else {
+                    console.warn('⚠️ [DashboardApp] ResearchModal has no render method');
                 }
-                
-                console.log('✅ [DashboardApp] Research modal rendered');
+            } else {
+                console.warn('⚠️ [DashboardApp] researchModal container not found in DOM');
             }
+        } else {
+            console.warn('⚠️ [DashboardApp] ResearchModal class not loaded');
         }
         
-        // Render Bulk Modal
+        // =====================================================================
+        // STEP 2: RENDER BULK MODAL
+        // =====================================================================
         if (window.BulkModal) {
             const bulkModalInstance = new window.BulkModal();
             const bulkModalContainer = document.getElementById('bulkModal');
             
-            if (bulkModalContainer && typeof bulkModalInstance.renderModal === 'function') {
-                const bulkModalHTML = bulkModalInstance.renderModal();
-                bulkModalContainer.outerHTML = bulkModalHTML;
+            if (bulkModalContainer) {
+                // Try ALL possible method names (handles naming inconsistencies)
+                const renderMethod = bulkModalInstance.renderBulkModal ||  // ← ACTUAL NAME
+                                   bulkModalInstance.renderModal ||
+                                   bulkModalInstance.render;
                 
-                if (typeof bulkModalInstance.setupEventHandlers === 'function') {
-                    bulkModalInstance.setupEventHandlers();
+                if (typeof renderMethod === 'function') {
+                    const bulkModalHTML = renderMethod.call(bulkModalInstance);
+                    
+                    // Replace the empty container with actual modal HTML
+                    bulkModalContainer.outerHTML = bulkModalHTML;
+                    
+                    // Setup event handlers if available
+                    const setupMethod = bulkModalInstance.setupEventHandlers ||
+                                      bulkModalInstance.setup ||
+                                      bulkModalInstance.init;
+                    
+                    if (typeof setupMethod === 'function') {
+                        setupMethod.call(bulkModalInstance);
+                    }
+                    
+                    console.log('✅ [DashboardApp] Bulk modal rendered and functional');
+                } else {
+                    console.error('❌ [DashboardApp] BulkModal has no render method');
+                    console.log('Available methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(bulkModalInstance)));
                 }
-                
-                console.log('✅ [DashboardApp] Bulk modal rendered');
+            } else {
+                console.warn('⚠️ [DashboardApp] bulkModal container not found in DOM');
             }
+        } else {
+            console.warn('⚠️ [DashboardApp] BulkModal class not loaded');
         }
         
-        // Render Filter Modal
+        // =====================================================================
+        // STEP 3: RENDER FILTER MODAL (if exists)
+        // =====================================================================
         if (window.FilterModal) {
             const filterModalInstance = new window.FilterModal();
             const modalContainersDiv = document.getElementById('modal-containers');
             
-            if (modalContainersDiv && typeof filterModalInstance.renderModal === 'function') {
-                const filterModalHTML = filterModalInstance.renderModal();
-                modalContainersDiv.insertAdjacentHTML('beforeend', filterModalHTML);
+            if (modalContainersDiv) {
+                const renderMethod = filterModalInstance.renderModal ||
+                                   filterModalInstance.renderFilterModal ||
+                                   filterModalInstance.render;
                 
-                if (typeof filterModalInstance.setupEventHandlers === 'function') {
-                    filterModalInstance.setupEventHandlers();
+                if (typeof renderMethod === 'function') {
+                    const filterModalHTML = renderMethod.call(filterModalInstance);
+                    modalContainersDiv.insertAdjacentHTML('beforeend', filterModalHTML);
+                    
+                    const setupMethod = filterModalInstance.setupEventHandlers ||
+                                      filterModalInstance.setup ||
+                                      filterModalInstance.init;
+                    
+                    if (typeof setupMethod === 'function') {
+                        setupMethod.call(filterModalInstance);
+                    }
+                    
+                    console.log('✅ [DashboardApp] Filter modal rendered');
                 }
-                
-                console.log('✅ [DashboardApp] Filter modal rendered');
             }
         }
         
-        // Initialize ModalManager
-        if (this.components.modalManager && typeof this.components.modalManager.init === 'function') {
-            await this.components.modalManager.init();
-            console.log('✅ [DashboardApp] ModalManager initialized');
+        // =====================================================================
+        // STEP 4: INITIALIZE MODAL MANAGER
+        // =====================================================================
+        if (this.components.modalManager) {
+            const initMethod = this.components.modalManager.init ||
+                             this.components.modalManager.initialize ||
+                             this.components.modalManager.setup;
+            
+            if (typeof initMethod === 'function') {
+                await initMethod.call(this.components.modalManager);
+                console.log('✅ [DashboardApp] ModalManager initialized');
+            }
         }
         
-        console.log('✅ [DashboardApp] All modals initialized and rendered');
+        // =====================================================================
+        // STEP 5: VERIFY MODALS ARE IN DOM
+        // =====================================================================
+        this.verifyModalsInDOM();
+        
+        // =====================================================================
+        // STEP 6: SETUP GLOBAL MODAL CONTROLS
+        // =====================================================================
+        this.setupGlobalModalControls();
+        
+        console.log('✅ [DashboardApp] Immutable modal system initialized');
         
     } catch (error) {
         console.error('❌ [DashboardApp] Modal initialization failed:', error);
+        console.error('Error details:', error.stack);
         throw error;
     }
 }
+
+/**
+ * Verify that modals are actually in the DOM with content
+ */
+verifyModalsInDOM() {
+    console.log('🔍 [DashboardApp] Verifying modals in DOM...');
+    
+    const modalChecks = {
+        researchModal: document.getElementById('researchModal'),
+        bulkModal: document.getElementById('bulkModal')
+    };
+    
+    for (const [modalName, modalElement] of Object.entries(modalChecks)) {
+        if (!modalElement) {
+            console.error(`❌ ${modalName} not found in DOM`);
+        } else if (modalElement.innerHTML.trim().length < 100) {
+            console.error(`❌ ${modalName} is empty (${modalElement.innerHTML.length} chars)`);
+        } else {
+            console.log(`✅ ${modalName} verified (${modalElement.innerHTML.length} chars)`);
+        }
+    }
+}
+
+    setupGlobalModalControls() {
+    console.log('🔧 [DashboardApp] Setting up global modal controls...');
+    
+    // =========================================================================
+    // RESEARCH MODAL CONTROLS
+    // =========================================================================
+    
+    window.openResearchModal = () => {
+        console.log('🔍 [Global] Opening research modal...');
+        const modal = document.getElementById('researchModal');
+        
+        if (!modal) {
+            console.error('❌ Research modal not found in DOM');
+            return;
+        }
+        
+        // Remove hidden class
+        modal.classList.remove('hidden');
+        
+        // Set display to flex
+        modal.style.display = 'flex';
+        
+        // Also show any nested wrapper
+        const wrapper = modal.querySelector('.fixed.inset-0');
+        if (wrapper) {
+            wrapper.classList.remove('hidden');
+            wrapper.style.display = 'flex';
+        }
+        
+        console.log('✅ Research modal opened');
+    };
+    
+    window.closeResearchModal = () => {
+        console.log('📕 [Global] Closing research modal...');
+        const modal = document.getElementById('researchModal');
+        
+        if (!modal) return;
+        
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        
+        const wrapper = modal.querySelector('.fixed.inset-0');
+        if (wrapper) {
+            wrapper.classList.add('hidden');
+            wrapper.style.display = 'none';
+        }
+        
+        console.log('✅ Research modal closed');
+    };
+    
+    // =========================================================================
+    // BULK MODAL CONTROLS
+    // =========================================================================
+    
+    window.openBulkModal = () => {
+        console.log('📊 [Global] Opening bulk modal...');
+        const modal = document.getElementById('bulkModal');
+        
+        if (!modal) {
+            console.error('❌ Bulk modal not found in DOM');
+            console.log('Available modals:', 
+                Array.from(document.querySelectorAll('[id*="modal"]')).map(el => el.id)
+            );
+            return;
+        }
+        
+        // Log current state
+        console.log('Modal element found:', {
+            id: modal.id,
+            classes: modal.className,
+            display: modal.style.display,
+            innerHTML: modal.innerHTML.length + ' chars'
+        });
+        
+        // Remove hidden class
+        modal.classList.remove('hidden');
+        
+        // Set display to flex (critical for visibility)
+        modal.style.display = 'flex';
+        
+        // Also show the inner wrapper that has the backdrop
+        const innerWrapper = modal.querySelector('.fixed.inset-0');
+        if (innerWrapper) {
+            innerWrapper.classList.remove('hidden');
+            innerWrapper.style.display = 'flex';
+        }
+        
+        // Force reflow
+        void modal.offsetHeight;
+        
+        console.log('✅ Bulk modal opened (display:', modal.style.display, ')');
+    };
+    
+    window.closeBulkModal = () => {
+        console.log('📕 [Global] Closing bulk modal...');
+        const modal = document.getElementById('bulkModal');
+        
+        if (!modal) return;
+        
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        
+        const innerWrapper = modal.querySelector('.fixed.inset-0');
+        if (innerWrapper) {
+            innerWrapper.classList.add('hidden');
+            innerWrapper.style.display = 'none';
+        }
+        
+        console.log('✅ Bulk modal closed');
+    };
+    
+    // =========================================================================
+    // EXPOSE VIA DASHBOARD OBJECT
+    // =========================================================================
+    
+    if (!window.dashboard.modals) {
+        window.dashboard.modals = {};
+    }
+    
+    window.dashboard.modals = {
+        openResearch: window.openResearchModal,
+        closeResearch: window.closeResearchModal,
+        openBulk: window.openBulkModal,
+        closeBulk: window.closeBulkModal,
+        
+        // Debug method
+        debug: () => {
+            return {
+                researchModal: {
+                    exists: !!document.getElementById('researchModal'),
+                    hasContent: document.getElementById('researchModal')?.innerHTML.length > 100,
+                    display: document.getElementById('researchModal')?.style.display,
+                    classes: document.getElementById('researchModal')?.className
+                },
+                bulkModal: {
+                    exists: !!document.getElementById('bulkModal'),
+                    hasContent: document.getElementById('bulkModal')?.innerHTML.length > 100,
+                    display: document.getElementById('bulkModal')?.style.display,
+                    classes: document.getElementById('bulkModal')?.className
+                }
+            };
+        }
+    };
+    
+    console.log('✅ [DashboardApp] Global modal controls ready');
+}
+
+
     
     // =========================================================================
     // UI RENDERING
