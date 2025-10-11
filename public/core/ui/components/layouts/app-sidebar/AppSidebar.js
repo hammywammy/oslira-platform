@@ -647,111 +647,95 @@ _loadCSS() {
     // =========================================================================
     
     getSidebarHTML() {
-        return `
-        <div class="sidebar">
-            <div class="sidebar-container">
-                <!-- Header -->
-                <div class="sidebar-header">
-                    <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle Sidebar">
-                        <span class="sidebar-toggle-icon" role="img" aria-label="Toggle sidebar"></span>
-                    </button>
-                    <span class="sidebar-company-name">Oslira</span>
-                </div>
-                
-                <!-- Navigation -->
-                <nav class="sidebar-nav">
-                    <!-- Main Section -->
-                    <div class="nav-section collapsible">
-                        <div class="nav-section-header-wrapper" data-section="main">
-                            <h4 class="nav-section-header">Main</h4>
-                            <svg class="section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M6 9l6 6 6-6"/>
-                            </svg>
-                        </div>
-                        <div class="nav-items">
-                            <a href="${this.envDetector.getAppUrl('/dashboard')}" data-page="dashboard" class="nav-item" data-tooltip="Dashboard">
-                                <span class="nav-icon">📊</span>
-                                <span class="nav-text">Dashboard</span>
-                            </a>
-                            <a href="${this.envDetector.getAppUrl('/leads')}" data-page="leads" class="nav-item" data-tooltip="Lead Research">
-                                <span class="nav-icon">🔍</span>
-                                <span class="nav-text">Lead Research</span>
-                            </a>
-                            <a href="${this.envDetector.getAppUrl('/analytics')}" data-page="analytics" class="nav-item" data-tooltip="Analytics">
-                                <span class="nav-icon">📈</span>
-                                <span class="nav-text">Analytics</span>
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <!-- Tools Section -->
-                    <div class="nav-section collapsible">
-                        <div class="nav-section-header-wrapper" data-section="tools">
-                            <h4 class="nav-section-header">Tools</h4>
-                            <svg class="section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M6 9l6 6 6-6"/>
-                            </svg>
-                        </div>
-                        <div class="nav-items">
-                            <a href="${this.envDetector.getAppUrl('/campaigns')}" data-page="campaigns" class="nav-item" data-tooltip="Campaigns">
-                                <span class="nav-icon">🎯</span>
-                                <span class="nav-text">Campaigns</span>
-                            </a>
-                            <a href="${this.envDetector.getAppUrl('/messages')}" data-page="messages" class="nav-item" data-tooltip="Messages">
-                                <span class="nav-icon">💬</span>
-                                <span class="nav-text">Messages</span>
-                            </a>
-                            <a href="${this.envDetector.getAppUrl('/integrations')}" data-page="integrations" class="nav-item" data-tooltip="Integrations">
-                                <span class="nav-icon">🔌</span>
-                                <span class="nav-text">Integrations</span>
-                            </a>
-                        </div>
-                    </div>
-                </nav>
-                
-                <!-- Account Section -->
-                <div class="sidebar-account-section">
-                    <div class="account-dropdown" id="account-dropdown">
-                        <div class="account-dropdown-header">
-                            <div class="account-dropdown-name">Loading...</div>
-                            <div class="account-dropdown-email">...</div>
-                        </div>
-                        
-                        <div class="account-dropdown-section">
-                            <div class="account-section-title">Business</div>
-                            <select class="dropdown-select-clean" id="business-selector">
-                                <option>Personal Account</option>
-                            </select>
-                        </div>
-                        
-                        <div class="account-dropdown-section">
-                            <div class="account-section-title">Credits</div>
-                            <div class="credits-display-clean">0 / 25</div>
-                        </div>
-                        
-                        <div class="account-dropdown-actions-clean">
-                            <a href="${this.envDetector.getAppUrl('/settings')}" class="dropdown-action-clean">Settings</a>
-                            <a href="https://oslira.com/help" target="_blank" rel="noopener noreferrer" class="dropdown-action-clean">Get Help</a>
-                            <a href="https://oslira.com/upgrade" target="_blank" rel="noopener noreferrer" class="dropdown-action-clean upgrade-action">Upgrade Plan</a>
-                            <button class="dropdown-action-clean logout-action">Logout</button>
-                        </div>
-                    </div>
-                    
-                    <button class="account-trigger" id="account-trigger-btn">
-                        <div class="account-avatar">U</div>
-                        <div class="account-info">
-                            <div class="account-name">User</div>
-                            <div class="account-plan">Free Plan</div>
-                        </div>
-                        <svg class="account-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    return `
+    <div class="sidebar">
+        <div class="sidebar__container">
+            <!-- Header -->
+            <div class="sidebar__header">
+                <button id="sidebar-toggle-btn" class="sidebar__toggle-btn" title="Toggle Sidebar">
+                    <span class="sidebar__toggle-icon" role="img" aria-label="Toggle sidebar"></span>
+                </button>
+                <span class="sidebar__company-name">Oslira</span>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="sidebar__nav">
+                <!-- Main Section -->
+                <div class="sidebar__nav-section collapsible">
+                    <div class="sidebar__nav-section-header-wrapper" data-section="main">
+                        <h4 class="sidebar__nav-section-header">Main</h4>
+                        <svg class="sidebar__section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M6 9l6 6 6-6"/>
                         </svg>
-                    </button>
+                    </div>
+                    <div class="sidebar__nav-items">
+                        <a href="/dashboard" class="sidebar__nav-item" data-nav="dashboard">
+                            <span class="sidebar__nav-icon">📊</span>
+                            <span class="sidebar__nav-text">Dashboard</span>
+                        </a>
+                    </div>
                 </div>
+                
+                <!-- Tools Section -->
+                <div class="sidebar__nav-section collapsible">
+                    <div class="sidebar__nav-section-header-wrapper" data-section="tools">
+                        <h4 class="sidebar__nav-section-header">Tools</h4>
+                        <svg class="sidebar__section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </div>
+                    <div class="sidebar__nav-items">
+                        <a href="/settings" class="sidebar__nav-item" data-nav="settings">
+                            <span class="sidebar__nav-icon">⚙️</span>
+                            <span class="sidebar__nav-text">Settings</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- Account Section -->
+            <div class="sidebar__account-section">
+                <div class="sidebar__account-dropdown" id="account-dropdown">
+                    <div class="sidebar__dropdown-header">
+                        <div class="sidebar__dropdown-name" id="dropdown-user-name">User</div>
+                        <div class="sidebar__dropdown-email" id="dropdown-user-email">user@example.com</div>
+                    </div>
+                    
+                    <div class="sidebar__dropdown-section">
+                        <div class="sidebar__section-title">Business</div>
+                        <select class="sidebar__dropdown-select" id="dropdown-business-selector">
+                            <option value="">Loading...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="sidebar__dropdown-section">
+                        <div class="sidebar__section-title">Credits</div>
+                        <div class="sidebar__credits-display" id="dropdown-credits">0</div>
+                    </div>
+                    
+                    <div class="sidebar__dropdown-actions">
+                        <a href="/settings" class="sidebar__dropdown-action">Settings</a>
+                        <a href="https://oslira.com/help" target="_blank" rel="noopener noreferrer" class="sidebar__dropdown-action">Get Help</a>
+                        <a href="https://oslira.com/upgrade" target="_blank" rel="noopener noreferrer" class="sidebar__dropdown-action sidebar__dropdown-action--upgrade">Upgrade Plan</a>
+                        <button class="sidebar__dropdown-action sidebar__dropdown-action--logout" id="logout-btn">Logout</button>
+                    </div>
+                </div>
+                
+                <button class="sidebar__account-trigger" id="account-trigger-btn">
+                    <div class="sidebar__account-avatar" id="account-avatar">U</div>
+                    <div class="sidebar__account-info">
+                        <div class="sidebar__account-name" id="account-name">User</div>
+                        <div class="sidebar__account-plan" id="account-plan">Free Plan</div>
+                    </div>
+                    <svg class="sidebar__account-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </button>
             </div>
         </div>
-        `;
-    }
+    </div>
+    `;
+}
 }
 
 // =============================================================================
