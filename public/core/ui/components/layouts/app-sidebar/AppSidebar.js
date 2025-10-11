@@ -72,6 +72,8 @@ class SidebarManager {
             
             // Step 1: Wait for critical dependencies
             await this._waitForDependencies();
+
+            this._loadCSS();
             
             // Step 2: Inject dependencies
             this._injectDependencies();
