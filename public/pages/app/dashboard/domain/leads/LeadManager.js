@@ -363,11 +363,20 @@ class LeadManager {
     // =========================================================================
     // WAIT HELPERS (Production Grade with AbortController)
     // =========================================================================
-    
 async waitForValidUser(timeout = 5000) {
+    console.log('🔐 [LeadManager] Waiting for authenticated user...');
+    
     return this.waitFor(
         () => {
             const user = this.osliraAuth?.user;
+            
+            // Log current state for debugging
+            if (!user) {
+                console.log('⏳ [LeadManager] User not yet available, retrying...');
+            } else if (!user.id) {
+                console.log('⚠️ [LeadManager] User object exists but missing ID');
+            }
+            
             // Return the full user object, not just the ID
             return (user && user.id) ? user : null;
         },
