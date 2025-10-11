@@ -1,7 +1,9 @@
 module.exports = {
   content: [
-    "./public/**/*.{html,js}",
-    "./src/**/*.css"  // Scan component CSS files for @apply usage
+    "./public/**/*.html",
+    "./public/**/*.js"
+    // REMOVED: "./src/**/*.css" - no longer scanning CSS files for @apply
+    // Page-specific CSS files will be written in pure CSS with BEM naming
   ],
   theme: {
     extend: {
@@ -248,7 +250,6 @@ module.exports = {
     }
   },
   plugins: [
-    // Add form plugin for better form styling
     require('@tailwindcss/forms')({
       strategy: 'class'
     })
