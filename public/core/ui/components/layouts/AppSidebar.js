@@ -369,27 +369,26 @@ class SidebarManager {
                 { enabled: true, ttl: this.config.dataRefreshInterval } // Cache config
             );
             
-            // Debug: Log full response
-            console.log('🔍 [SidebarManager] API Response:', response);
+            // CRITICAL FIX: ApiClient wraps the response, so actual data is at response.data.data
+            // response = {status: 200, headers: {...}, data: {success: true, data: [...]}}
+            const apiResponse = response.data; // This is the {success, data, error} object
             
-            // ApiClient returns parsed response body directly
-            // Backend returns: { success: true/false, data: [...], error?: string }
-            if (!response || response.success === false) {
-                const errorMsg = response?.error || 'Failed to fetch business profiles';
+            console.log('🔍 [SidebarManager] API Response:', apiResponse);
+            
+            if (!apiResponse || apiResponse.success === false) {
+                const errorMsg = apiResponse?.error || 'Failed to fetch business profiles';
                 console.error('❌ [SidebarManager] API Error:', errorMsg);
                 throw new Error(errorMsg);
             }
             
-            // Handle empty or missing data
-            if (!response.data) {
-                console.warn('⚠️ [SidebarManager] No business profiles found (empty response)');
+            // The actual business array is at apiResponse.data
+            if (!apiResponse.data || !Array.isArray(apiResponse.data)) {
+                console.warn('⚠️ [SidebarManager] No business profiles found');
                 this.businesses = [];
                 return;
             }
             
-            // CRITICAL FIX: response.data is already an array - don't wrap it again!
-            this.businesses = response.data;
-            
+            this.businesses = apiResponse.data;
             console.log('✅ [SidebarManager] Loaded', this.businesses.length, 'business profiles');
             
         } catch (error) {
@@ -406,17 +405,18 @@ class SidebarManager {
         try {
             console.log('💳 [SidebarManager] Loading subscription data...');
             
-            // Subscription data is enriched in user object by AuthManager
-            // No separate API call needed - it's already there
+            // CRITICAL: User object does NOT have subscription fields enriched
+            // Need to fetch from Supabase directly or get from a different source
             if (!this.user) {
                 throw new Error('User not available');
             }
             
-            // Extract subscription from user object
+            // Check if user has enriched subscription fields (might not exist)
             const planType = this.user.plan_type || 'free';
             const creditsRemaining = this.user.credits ?? 0;
             const subscriptionStatus = this.user.subscription_status || 'active';
             
+            // FALLBACK: If no subscription data, use defaults for free plan
             this.subscription = {
                 plan_type: planType,
                 credits_remaining: creditsRemaining,
@@ -426,7 +426,8 @@ class SidebarManager {
             
             console.log('✅ [SidebarManager] Subscription loaded:', {
                 plan: planType,
-                credits: creditsRemaining
+                credits: creditsRemaining,
+                source: (this.user.plan_type ? 'user object' : 'default fallback')
             });
             
         } catch (error) {
@@ -435,7 +436,7 @@ class SidebarManager {
             // Fallback to free plan
             this.subscription = {
                 plan_type: 'free',
-                credits_remaining: 25,
+                credits_remaining: 0,
                 status: 'active',
                 plan_credits: 25
             };
