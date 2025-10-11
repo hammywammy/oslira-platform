@@ -212,14 +212,13 @@ _loadCSS() {
     /**
      * Store critical DOM references
      */
-    _storeDOMReferences(targetElement) {
-        this.sidebarContainer = targetElement;
-        this.sidebar = targetElement.querySelector('.sidebar');
-        this.mainContent = document.querySelector('.main-content, [class*="content"], main');
-        
-        console.log('✅ [SidebarManager] DOM references stored');
-    }
-
+_storeDOMReferences(targetElement) {
+    this.sidebarContainer = targetElement;
+    this.sidebar = targetElement.querySelector('.sidebar'); // ✅ CACHE THIS
+    this.mainContent = document.querySelector('.main-content, [class*="content"], main');
+    
+    console.log('✅ [SidebarManager] DOM references stored');
+}
     // =========================================================================
     // UI INITIALIZATION
     // =========================================================================
@@ -240,15 +239,22 @@ _loadCSS() {
         console.log('✅ [SidebarManager] UI components initialized');
     }
 
-    _loadSavedState() {
-        const savedState = localStorage.getItem('sidebarCollapsed');
-        if (savedState === 'true') {
-            this.isCollapsed = true;
-            if (this.sidebarContainer) {
-                this.sidebarContainer.classList.add('collapsed');
-            }
+_loadSavedState() {
+    const savedState = localStorage.getItem('sidebarCollapsed');
+    if (savedState === 'true') {
+        this.isCollapsed = true;
+        
+        // Apply to both elements
+        const sidebar = this.sidebar || document.querySelector('.sidebar');
+        if (sidebar) {
+            sidebar.classList.add('sidebar--collapsed');
+        }
+        
+        if (this.sidebarContainer) {
+            this.sidebarContainer.classList.add('collapsed');
         }
     }
+}
 
     _initializeToggleButton() {
         const toggleBtn = document.getElementById('sidebar-toggle-btn');
@@ -596,23 +602,31 @@ _loadCSS() {
     // SIDEBAR TOGGLE (ENTERPRISE PATTERN)
     // =========================================================================
 
-    toggleSidebar() {
-        this.isCollapsed = !this.isCollapsed;
-        
-        // Toggle class on container (enterprise pattern)
-        if (this.sidebarContainer) {
-            this.sidebarContainer.classList.toggle('collapsed', this.isCollapsed);
-        }
-        
-        // Persist state
-        localStorage.setItem('sidebarCollapsed', this.isCollapsed.toString());
-        
-        // Emit event
-        const eventName = this.isCollapsed ? 'sidebar:collapsed' : 'sidebar:expanded';
-        this.eventBus?.emit(eventName);
-        
-        console.log('✅ [SidebarManager] Sidebar toggled:', this.isCollapsed ? 'collapsed' : 'expanded');
+toggleSidebar() {
+    this.isCollapsed = !this.isCollapsed;
+    
+    // FIX: Toggle on the SIDEBAR element itself, not container
+    const sidebar = this.sidebar || this.sidebarContainer?.querySelector('.sidebar');
+    
+    if (sidebar) {
+        // FIX: Use BEM modifier class name
+        sidebar.classList.toggle('sidebar--collapsed', this.isCollapsed);
     }
+    
+    // ALSO toggle on container for base.css width control
+    if (this.sidebarContainer) {
+        this.sidebarContainer.classList.toggle('collapsed', this.isCollapsed);
+    }
+    
+    // Persist state
+    localStorage.setItem('sidebarCollapsed', this.isCollapsed.toString());
+    
+    // Emit event
+    const eventName = this.isCollapsed ? 'sidebar:collapsed' : 'sidebar:expanded';
+    this.eventBus?.emit(eventName);
+    
+    console.log('✅ [SidebarManager] Sidebar toggled:', this.isCollapsed ? 'collapsed' : 'expanded');
+}
 
     // =========================================================================
     // PUBLIC API
