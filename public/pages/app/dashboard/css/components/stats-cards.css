@@ -1,11 +1,8 @@
-//public/pages/dashboard/modules/ui/dashboard-styles.js
+/* =============================================================================
+   STATS CARDS COMPONENT
+   Path: /public/pages/app/dashboard/css/components/stats-cards.css
+   ============================================================================= */
 
-class DashboardStyles {
-    static getInlineStyles() {
-        return `
-<style>
-
-/* Filter badge animation */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -352,22 +349,4 @@ button[disabled] {
     opacity: 0.6;
     cursor: not-allowed;
     pointer-events: none;
-}
-</style>`;
-    }
-}
-
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = DashboardStyles;
-} else {
-    window.DashboardStyles = DashboardStyles;
-}
-
-// 🎨 AUTO-INJECT STYLES WHEN SCRIPT LOADS
-if (typeof document !== 'undefined' && !document.getElementById('dashboard-styles-inline')) {
-    const styleTag = document.createElement('style');
-    styleTag.id = 'dashboard-styles-inline';
-    styleTag.innerHTML = DashboardStyles.getInlineStyles();
-    document.head.appendChild(styleTag);
-    console.log('✅ [DashboardStyles] Styles injected into page');
 }
