@@ -127,24 +127,20 @@ async loadSession() {
             throw new Error('Supabase client not initialized');
         }
         
-        // Get session from Supabase (checks localStorage automatically)
         const { data: { session }, error } = await this.supabase.auth.getSession();
         
         if (error) {
             console.error('❌ [AuthManager] Session load error:', error);
-            // Clear corrupted session
             localStorage.removeItem('oslira-auth');
             return null;
         }
         
         if (session) {
-            this.session = session;
-            this.user = session.user;
+            // ✅ FIX: Call _handleSessionChange to trigger enrichment flow
+            await this._handleSessionChange(session);
             
-            console.log('✅ [AuthManager] Session loaded');
-            console.log('👤 [AuthManager] User:', this.user.email);
+            console.log('✅ [AuthManager] Session loaded and enriched');
             
-            // Emit session loaded event
             this._emitEvent('session-loaded', { 
                 user: this.user,
                 session: this.session
@@ -157,7 +153,7 @@ async loadSession() {
         return null;
         
     } catch (error) {
-        console.error('❌ [AuthManager] Session load failed:', error);
+        console.error('❌ [AuthManager] Session load error:', error);
         return null;
     }
 }
