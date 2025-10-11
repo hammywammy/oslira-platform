@@ -113,11 +113,9 @@ async initialize() {
         }
     }
     
-// Add this method to AuthManager class after _initializeSupabase()
-
 /**
  * Load current session (MUST be called after initialize)
- * This explicitly restores the session from localStorage
+ * ✅ CRITICAL FIX: Session/user available immediately, enrichment in background
  */
 async loadSession() {
     try {
@@ -136,10 +134,13 @@ async loadSession() {
         }
         
         if (session) {
-            // ✅ FIX: Call _handleSessionChange to trigger enrichment flow
+            // ============================================================================
+            // CRITICAL FIX: _handleSessionChange now makes user available IMMEDIATELY
+            // and runs enrichment in background without blocking
+            // ============================================================================
             await this._handleSessionChange(session);
             
-            console.log('✅ [AuthManager] Session loaded and enriched');
+            console.log('✅ [AuthManager] Session loaded (enrichment running in background)');
             
             this._emitEvent('session-loaded', { 
                 user: this.user,
@@ -553,20 +554,69 @@ async _getSupabaseKey() {
     /**
      * Handle session change (sign in, token refresh, user update)
      */
-    async _handleSessionChange(session) {
-        this.session = session;
-        this.user = session?.user || null;
+   /**
+ * Handle session change (sign in, token refresh, user update)
+ * ✅ CRITICAL FIX: Make user available IMMEDIATELY, enrich in background
+ */
+async _handleSessionChange(session) {
+    // ============================================================================
+    // STEP 1: IMMEDIATE USER AVAILABILITY (Synchronous)
+    // ============================================================================
+    this.session = session;
+    this.user = session?.user || null;
+    
+    if (this.user) {
+        console.log('👤 [AuthManager] User authenticated:', this.user.email);
+        console.log('✅ [AuthManager] User object available immediately');
         
-        if (this.user) {
-            console.log('👤 [AuthManager] User authenticated:', this.user.email);
+        // ============================================================================
+        // STEP 2: EMIT USER-READY EVENT IMMEDIATELY
+        // This allows LeadManager to proceed WITHOUT waiting for enrichment
+        // ============================================================================
+        this._emitEvent('user-ready', {
+            user: this.user,
+            session: this.session,
+            timestamp: Date.now()
+        });
+        
+        // ============================================================================
+        // STEP 3: BACKGROUND ENRICHMENT (Non-blocking)
+        // Run enrichment WITHOUT awaiting - happens in background
+        // ============================================================================
+        this._enrichUserInBackground();
+    }
+}
+
+/**
+ * Enrich user in background (non-blocking)
+ * Runs profile + subscription enrichment asynchronously
+ */
+_enrichUserInBackground() {
+    // Run enrichment without awaiting - fire and forget
+    (async () => {
+        try {
+            console.log('🔄 [AuthManager] Starting background enrichment...');
             
-            // Enrich user with profile data
+            // Enrich user profile (signature_name, full_name)
             await this._enrichUserProfile();
             
-            // Load businesses in background (non-blocking)
+            // Load businesses in background
             this._loadBusinessesInBackground();
+            
+            console.log('✅ [AuthManager] Background enrichment complete');
+            
+            // Emit enrichment-complete event for components that need enriched data
+            this._emitEvent('user-enriched', {
+                user: this.user,
+                timestamp: Date.now()
+            });
+            
+        } catch (error) {
+            console.warn('⚠️ [AuthManager] Background enrichment failed:', error);
+            // Don't throw - enrichment failure shouldn't break app
         }
-    }
+    })();
+}
     
     /**
      * Enrich user with profile data from database
