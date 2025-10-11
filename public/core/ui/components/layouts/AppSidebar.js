@@ -387,10 +387,9 @@ class SidebarManager {
                 return;
             }
             
-            // Ensure data is array
-            const profiles = Array.isArray(response.data) ? response.data : [response.data];
+            // CRITICAL FIX: response.data is already an array - don't wrap it again!
+            this.businesses = response.data;
             
-            this.businesses = profiles;
             console.log('✅ [SidebarManager] Loaded', this.businesses.length, 'business profiles');
             
         } catch (error) {
