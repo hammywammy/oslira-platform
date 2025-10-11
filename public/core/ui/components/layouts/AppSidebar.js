@@ -57,6 +57,10 @@ class SidebarManager {
         }
 
         this.initializationPromise = this._performRender(container);
+        
+        // CRITICAL: Store this instance globally for console access
+        window.sidebarManager = this;
+        
         return this.initializationPromise;
     }
 
@@ -738,7 +742,10 @@ class SidebarManager {
 
 window.SidebarManager = SidebarManager;
 
-// DO NOT auto-create instance - let DashboardApp create it
-// This prevents duplicate instances
+// Pre-create a placeholder instance (will be replaced when render() is called)
+if (!window.sidebarManager) {
+    window.sidebarManager = new SidebarManager();
+    console.log('✅ [SidebarManager] Placeholder instance created');
+}
 
 console.log('✅ [SidebarManager] Module loaded and ready');
