@@ -105,7 +105,7 @@ async initializeSidebar() {
     console.log('✅ [SidebarManager] Sidebar initialized');
 }
 
-  async loadAuthData() {
+async loadAuthData() {
     try {
         console.log('🔐 [SidebarManager] Loading auth data...');
         
@@ -137,25 +137,28 @@ async initializeSidebar() {
 }
 
 // =========================================================================
-// ADD THIS METHOD - Load Business Profiles
+// FIXED METHOD - Load Business Profiles
 // =========================================================================
 
 async loadBusinessProfiles() {
     try {
-        // Use existing HttpClient (already configured with AWS endpoint)
-        if (!window.OsliraHttpClient) {
-            console.warn('⚠️ [SidebarManager] HttpClient not available');
+        // CRITICAL FIX: Use ApiClient (NOT HttpClient)
+        if (!window.OsliraApiClient) {
+            console.warn('⚠️ [SidebarManager] ApiClient not available yet');
+            this.businesses = [];
             return;
         }
         
-        const response = await window.OsliraHttpClient.get('/business-profiles', {
-            params: {
-                user_id: this.user.id
-            }
-        });
+        // CORRECT ENDPOINT: /business-profiles (matches backend handler)
+        const response = await window.OsliraApiClient.get(
+            '/business-profiles',
+            {}, // No params object needed - user_id extracted from JWT token
+            { enabled: true, ttl: 5 * 60 * 1000 } // Cache for 5 minutes
+        );
         
         if (response.success && response.data) {
             this.businesses = response.data;
+            console.log('✅ [SidebarManager] Loaded business profiles:', this.businesses.length);
         } else {
             console.warn('⚠️ [SidebarManager] No business profiles found');
             this.businesses = [];
@@ -168,149 +171,140 @@ async loadBusinessProfiles() {
 }
 
 // =========================================================================
-// ADD THIS METHOD - Load Subscription Data
+// FIXED METHOD - Load Subscription Data
 // =========================================================================
 
 async loadSubscriptionData() {
     try {
-        // Use existing HttpClient
-        if (!window.OsliraHttpClient) {
-            console.warn('⚠️ [SidebarManager] HttpClient not available');
+        // CRITICAL FIX: Use ApiClient (NOT HttpClient)
+        if (!window.OsliraApiClient) {
+            console.warn('⚠️ [SidebarManager] ApiClient not available yet');
+            this.subscription = null;
             return;
         }
         
-        const response = await window.OsliraHttpClient.get('/subscriptions', {
-            params: {
-                user_id: this.user.id
-            }
-        });
-        
-        if (response.success && response.data) {
-            this.subscription = response.data;
+        // Get subscription from auth manager (already loaded)
+        // OR fetch from API if you have a subscription endpoint
+        if (window.OsliraAuth?.subscription) {
+            this.subscription = window.OsliraAuth.subscription;
+            console.log('✅ [SidebarManager] Loaded subscription from auth');
         } else {
-            console.warn('⚠️ [SidebarManager] No subscription found');
-            this.subscription = {
-                plan_type: 'Free Plan',
-                credits_remaining: 25
-            };
+            // Alternative: If you have a /subscriptions endpoint
+            const response = await window.OsliraApiClient.get(
+                '/subscriptions',
+                {},
+                { enabled: true, ttl: 5 * 60 * 1000 }
+            );
+            
+            if (response.success && response.data) {
+                this.subscription = response.data;
+                console.log('✅ [SidebarManager] Loaded subscription from API');
+            }
         }
         
     } catch (error) {
         console.error('❌ [SidebarManager] Failed to load subscription:', error);
-        this.subscription = {
-            plan_type: 'Free Plan',
-            credits_remaining: 25
-        };
+        this.subscription = null;
     }
 }
 
 // =========================================================================
-// ADD THIS METHOD - Update UI
+// UPDATE UI WITH REAL DATA
 // =========================================================================
 
 updateUserUI() {
-    if (!this.user) return;
-    
-    // Update dropdown header - name
-    const nameEl = document.querySelector('.account-dropdown-name');
-    if (nameEl) {
-        const displayName = this.user.user_metadata?.full_name || 
-                           this.user.email?.split('@')[0] || 
-                           'User';
-        nameEl.textContent = displayName;
+    try {
+        // Update user name and email
+        const accountName = document.querySelector('.account-dropdown-name');
+        const accountEmail = document.querySelector('.account-dropdown-email');
+        const accountTriggerName = document.querySelector('.account-name');
+        
+        if (accountName && this.user) {
+            accountName.textContent = this.user.user_metadata?.full_name || this.user.email.split('@')[0];
+        }
+        
+        if (accountEmail && this.user) {
+            accountEmail.textContent = this.user.email;
+        }
+        
+        if (accountTriggerName && this.user) {
+            accountTriggerName.textContent = this.user.user_metadata?.full_name || this.user.email.split('@')[0];
+        }
+        
+        // Update account avatar (first letter of name)
+        const accountAvatar = document.querySelector('.account-avatar');
+        if (accountAvatar && this.user) {
+            const firstLetter = (this.user.user_metadata?.full_name || this.user.email)[0].toUpperCase();
+            accountAvatar.textContent = firstLetter;
+        }
+        
+        // Update business selector
+        this.updateBusinessSelector();
+        
+        // Update credits display
+        this.updateCreditsDisplay();
+        
+        // Update plan badge
+        const planBadge = document.querySelector('.account-plan');
+        if (planBadge && this.subscription) {
+            const planName = this.subscription.plan_type || 'free';
+            planBadge.textContent = planName.charAt(0).toUpperCase() + planName.slice(1) + ' Plan';
+        }
+        
+        console.log('✅ [SidebarManager] UI updated with user data');
+        
+    } catch (error) {
+        console.error('❌ [SidebarManager] Failed to update UI:', error);
     }
-    
-    // Update dropdown header - email
-    const emailEl = document.querySelector('.account-dropdown-email');
-    if (emailEl) {
-        emailEl.textContent = this.user.email || '';
-    }
-    
-    // Update trigger button - name
-    const triggerNameEl = document.querySelector('.account-name');
-    if (triggerNameEl) {
-        const firstName = this.user.user_metadata?.full_name?.split(' ')[0] || 
-                         this.user.email?.split('@')[0] || 
-                         'User';
-        triggerNameEl.textContent = firstName;
-    }
-    
-    // Update trigger button - avatar initial
-    const avatarEl = document.querySelector('.account-avatar');
-    if (avatarEl) {
-        const initial = (this.user.user_metadata?.full_name?.[0] || 
-                        this.user.email?.[0] || 
-                        'U').toUpperCase();
-        avatarEl.textContent = initial;
-    }
-    
-    // Update plan type
-    const planEl = document.querySelector('.account-plan');
-    if (planEl && this.subscription) {
-        planEl.textContent = this.subscription.plan_type || 'Free Plan';
-    }
-    
-    // Update business selector
-    this.updateBusinessSelector();
-    
-    // Update credits display
-    this.updateCreditsDisplay();
-    
-    console.log('✅ [SidebarManager] UI updated with user data');
 }
 
-// =========================================================================
-// ADD THIS METHOD - Update Business Selector
-// =========================================================================
-
 updateBusinessSelector() {
-    const selector = document.getElementById('business-selector');
-    if (!selector) return;
+    const businessSelector = document.getElementById('business-selector');
+    
+    if (!businessSelector) {
+        console.warn('⚠️ [SidebarManager] Business selector not found');
+        return;
+    }
     
     // Clear existing options
-    selector.innerHTML = '';
+    businessSelector.innerHTML = '';
     
-    // Add personal account
-    const personalOption = document.createElement('option');
-    personalOption.value = 'personal';
-    personalOption.textContent = 'Personal Account';
-    selector.appendChild(personalOption);
-    
-    // Add business profiles (using correct column name: business_name)
+    // Add businesses
     if (this.businesses && this.businesses.length > 0) {
         this.businesses.forEach(business => {
             const option = document.createElement('option');
-            option.value = business.id || business.business_id;
-            option.textContent = business.business_name || 'Unnamed Business';
-            selector.appendChild(option);
+            option.value = business.id;
+            option.textContent = business.business_name;
+            businessSelector.appendChild(option);
         });
+    } else {
+        // No businesses - show personal account
+        const option = document.createElement('option');
+        option.value = 'personal';
+        option.textContent = 'Personal Account';
+        businessSelector.appendChild(option);
     }
     
-    // Set current selection from localStorage
-    const currentBusiness = localStorage.getItem('currentBusiness') || 'personal';
-    selector.value = currentBusiness;
-    
-    console.log('✅ [SidebarManager] Business selector updated:', this.businesses.length, 'businesses');
+    console.log('✅ [SidebarManager] Business selector updated:', this.businesses?.length || 0, 'businesses');
 }
 
-// =========================================================================
-// ADD THIS METHOD - Update Credits Display
-// =========================================================================
-
 updateCreditsDisplay() {
-    const creditsEl = document.querySelector('.credits-display-clean');
-    if (!creditsEl) return;
+    const creditsDisplay = document.querySelector('.credits-display-clean');
     
-    if (this.subscription && this.subscription.credits_remaining !== undefined) {
-        // Calculate used credits (assuming total is 25 for free plan)
-        const total = this.subscription.credits_total || 25;
-        const remaining = this.subscription.credits_remaining || 0;
-        const used = total - remaining;
-        
-        creditsEl.textContent = `${used} / ${total}`;
-    } else {
-        creditsEl.textContent = '0 / 25';
+    if (!creditsDisplay) {
+        console.warn('⚠️ [SidebarManager] Credits display not found');
+        return;
     }
+    
+    // Get credits from subscription or auth
+    const creditsRemaining = this.subscription?.credits_remaining || 
+                            window.OsliraAuth?.subscription?.credits_remaining || 
+                            0;
+    const planCredits = this.subscription?.plan_credits || 
+                       window.OsliraAuth?.subscription?.plan_credits || 
+                       25;
+    
+    creditsDisplay.textContent = `${creditsRemaining} / ${planCredits}`;
     
     console.log('✅ [SidebarManager] Credits display updated');
 }
