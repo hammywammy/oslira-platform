@@ -66,48 +66,6 @@ class SidebarManager {
         return this.initializationPromise;
     }
 
-    async _performRender(container) {
-        try {
-            console.log('🎨 [SidebarManager] Starting render process...');
-            
-            // Step 1: Wait for critical dependencies
-            await this._waitForDependencies();
-
-            this._loadCSS();
-            
-            // Step 2: Inject dependencies
-            this._injectDependencies();
-            
-            // Step 3: Wait for container element
-            const targetElement = await this._waitForContainer(container);
-            
-            // Step 4: Inject sidebar HTML
-            this._injectHTML(targetElement);
-            
-            // Step 5: Store DOM references
-            this._storeDOMReferences(targetElement);
-            
-            // Step 6: Initialize UI components (synchronous)
-            this._initializeUIComponents();
-            
-            // Step 7: Load data (asynchronous, non-blocking)
-            this._loadDataAsync();
-            
-            // Step 8: Setup event listeners
-            this._setupEventListeners();
-            
-            this.isInitialized = true;
-            console.log('✅ [SidebarManager] Render complete');
-            
-            return this;
-            
-        } catch (error) {
-            console.error('❌ [SidebarManager] Render failed:', error);
-            this.initializationPromise = null;
-            throw error;
-        }
-    }
-
 _loadCSS() {
     if (document.getElementById('sidebar-styles')) {
         return; // Already loaded
@@ -120,6 +78,54 @@ _loadCSS() {
     document.head.appendChild(link);
     
     console.log('✅ [SidebarManager] CSS loaded');
+}
+
+// =============================================================================
+// THEN UPDATE YOUR _performRender() METHOD TO CALL IT
+// Replace your existing _performRender() with this:
+// =============================================================================
+
+async _performRender(container) {
+    try {
+        console.log('🎨 [SidebarManager] Starting render process...');
+        
+        // Step 1: Load CSS first
+        this._loadCSS();
+        
+        // Step 2: Wait for critical dependencies
+        await this._waitForDependencies();
+        
+        // Step 3: Inject dependencies
+        this._injectDependencies();
+        
+        // Step 4: Wait for container element
+        const targetElement = await this._waitForContainer(container);
+        
+        // Step 5: Inject sidebar HTML
+        this._injectHTML(targetElement);
+        
+        // Step 6: Store DOM references
+        this._storeDOMReferences(targetElement);
+        
+        // Step 7: Initialize UI components (synchronous)
+        this._initializeUIComponents();
+        
+        // Step 8: Load data (asynchronous, non-blocking)
+        this._loadDataAsync();
+        
+        // Step 9: Setup event listeners
+        this._setupEventListeners();
+        
+        this.isInitialized = true;
+        console.log('✅ [SidebarManager] Render complete');
+        
+        return this;
+        
+    } catch (error) {
+        console.error('❌ [SidebarManager] Render failed:', error);
+        this.initializationPromise = null;
+        throw error;
+    }
 }
 
     // =========================================================================
@@ -244,12 +250,13 @@ _loadSavedState() {
     if (savedState === 'true') {
         this.isCollapsed = true;
         
-        // Apply to both elements
+        // Apply BEM modifier to sidebar element
         const sidebar = this.sidebar || document.querySelector('.sidebar');
         if (sidebar) {
-            sidebar.classList.add('sidebar--collapsed');
+            sidebar.classList.add('sidebar--collapsed'); // ✅ BEM modifier
         }
         
+        // Also apply to container for base.css width control
         if (this.sidebarContainer) {
             this.sidebarContainer.classList.add('collapsed');
         }
@@ -265,50 +272,65 @@ _loadSavedState() {
         }
     }
 
-    _initializeActiveNavItem() {
-        const currentPath = window.location.pathname;
-        const navItems = document.querySelectorAll('.nav-item');
-        
-        navItems.forEach(item => {
-            const href = item.getAttribute('href');
-            if (href && currentPath.includes(href.split('/').pop())) {
-                item.classList.add('active');
-            }
-        });
-    }
+_initializeActiveNavItem() {
+    const currentPath = window.location.pathname;
+    const navItems = document.querySelectorAll('.sidebar__nav-item'); // ✅ BEM
+    
+    navItems.forEach(item => {
+        const href = item.getAttribute('href');
+        if (href && currentPath.includes(href.split('/').pop())) {
+            item.classList.add('sidebar__nav-item--active'); // ✅ BEM modifier
+        }
+    });
+}
 
-    _initializeCollapsibleSections() {
-        const sectionHeaders = document.querySelectorAll('.nav-section-header-wrapper');
-        
-        sectionHeaders.forEach(header => {
-            header.addEventListener('click', () => {
-                const section = header.closest('.nav-section');
-                section.classList.toggle('section-collapsed');
-            });
+_initializeCollapsibleSections() {
+    const sectionHeaders = document.querySelectorAll('.sidebar__nav-section-header-wrapper'); // ✅ BEM
+    
+    sectionHeaders.forEach(header => {
+        header.addEventListener('click', () => {
+            const section = header.closest('.sidebar__nav-section'); // ✅ BEM
+            section.classList.toggle('sidebar__nav-section--collapsed'); // ✅ BEM modifier
         });
-        
-        console.log('✅ [SidebarManager] Collapsible sections initialized');
-    }
+    });
+    
+    console.log('✅ [SidebarManager] Collapsible sections initialized');
+}
 
     _initializeAccountDropdown() {
-        const trigger = document.getElementById('account-trigger-btn');
-        const dropdown = document.getElementById('account-dropdown');
+    const trigger = document.getElementById('account-trigger-btn');
+    const dropdown = document.getElementById('account-dropdown');
+    
+    if (trigger && dropdown) {
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('sidebar__account-dropdown--open'); // ✅ BEM modifier
+        });
         
-        if (trigger && dropdown) {
-            trigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dropdown.classList.toggle('open');
-            });
-            
-            document.addEventListener('click', (e) => {
-                if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
-                    dropdown.classList.remove('open');
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('sidebar__account-dropdown--open'); // ✅ BEM modifier
+            }
+        });
+        
+        // Setup logout button
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                try {
+                    await this.authManager?.signOut();
+                    window.location.href = this.envDetector?.getAuthUrl() || '/auth';
+                } catch (error) {
+                    console.error('❌ [SidebarManager] Logout failed:', error);
                 }
             });
-            
-            console.log('✅ [SidebarManager] Account dropdown initialized');
         }
+        
+        console.log('✅ [SidebarManager] Account dropdown initialized');
     }
+}
+
 
     // =========================================================================
     // DATA LOADING (ASYNC, NON-BLOCKING)
@@ -499,30 +521,30 @@ _loadSavedState() {
         console.log('✅ [SidebarManager] UI updated');
     }
 
-    _updateUserInfo() {
-        if (!this.user) return;
-        
-        const displayName = this.user.user_metadata?.full_name || 
-                           this.user.email?.split('@')[0] || 
-                           'User';
-        
-        const firstName = displayName.split(' ')[0];
-        const initial = displayName[0]?.toUpperCase() || 'U';
-        
-        // Update dropdown header
-        const accountName = document.querySelector('.account-dropdown-name');
-        const accountEmail = document.querySelector('.account-dropdown-email');
-        
-        if (accountName) accountName.textContent = displayName;
-        if (accountEmail) accountEmail.textContent = this.user.email || '';
-        
-        // Update trigger button
-        const triggerName = document.querySelector('.account-name');
-        const avatar = document.querySelector('.account-avatar');
-        
-        if (triggerName) triggerName.textContent = firstName;
-        if (avatar) avatar.textContent = initial;
-    }
+_updateUserInfo() {
+    if (!this.user) return;
+    
+    const displayName = this.user.user_metadata?.full_name || 
+                       this.user.email?.split('@')[0] || 
+                       'User';
+    
+    const firstName = displayName.split(' ')[0];
+    const initial = displayName[0]?.toUpperCase() || 'U';
+    
+    // Update dropdown header (using helper classes that exist in template)
+    const accountName = document.querySelector('.account-dropdown-name');
+    const accountEmail = document.querySelector('.account-dropdown-email');
+    
+    if (accountName) accountName.textContent = displayName;
+    if (accountEmail) accountEmail.textContent = this.user.email || '';
+    
+    // Update trigger button (using helper classes that exist in template)
+    const triggerName = document.querySelector('.account-name');
+    const avatar = document.querySelector('.account-avatar');
+    
+    if (triggerName) triggerName.textContent = firstName;
+    if (avatar) avatar.textContent = initial;
+}
 
     _updateBusinessSelector() {
         const selector = document.getElementById('business-selector');
@@ -550,25 +572,25 @@ _loadSavedState() {
         }
     }
 
-    _updateCreditsDisplay() {
-        const display = document.querySelector('.credits-display-clean');
-        if (!display) return;
-        
-        const creditsRemaining = this.subscription?.credits_remaining ?? 0;
-        const planCredits = this.subscription?.plan_credits ?? 25;
-        
-        display.textContent = `${creditsRemaining} / ${planCredits}`;
-    }
+_updateCreditsDisplay() {
+    const display = document.querySelector('.credits-display-clean');
+    if (!display) return;
+    
+    const creditsRemaining = this.subscription?.credits_remaining ?? 0;
+    const planCredits = this.subscription?.plan_credits ?? 25;
+    
+    display.textContent = `${creditsRemaining} / ${planCredits}`;
+}
 
-    _updatePlanBadge() {
-        const badge = document.querySelector('.account-plan');
-        if (!badge || !this.subscription) return;
-        
-        const planName = this.subscription.plan_type || 'free';
-        const displayName = planName.charAt(0).toUpperCase() + planName.slice(1);
-        
-        badge.textContent = `${displayName} Plan`;
-    }
+_updatePlanBadge() {
+    const badge = document.querySelector('.account-plan');
+    if (!badge || !this.subscription) return;
+    
+    const planName = this.subscription.plan_type || 'free';
+    const displayName = planName.charAt(0).toUpperCase() + planName.slice(1);
+    
+    badge.textContent = `${displayName} Plan`;
+}
 
     // =========================================================================
     // EVENT SYSTEM
@@ -605,12 +627,11 @@ _loadSavedState() {
 toggleSidebar() {
     this.isCollapsed = !this.isCollapsed;
     
-    // FIX: Toggle on the SIDEBAR element itself, not container
+    // FIX: Toggle BEM modifier on SIDEBAR element itself
     const sidebar = this.sidebar || this.sidebarContainer?.querySelector('.sidebar');
     
     if (sidebar) {
-        // FIX: Use BEM modifier class name
-        sidebar.classList.toggle('sidebar--collapsed', this.isCollapsed);
+        sidebar.classList.toggle('sidebar--collapsed', this.isCollapsed); // ✅ BEM modifier
     }
     
     // ALSO toggle on container for base.css width control
@@ -660,7 +681,7 @@ toggleSidebar() {
     // HTML TEMPLATE
     // =========================================================================
     
-    getSidebarHTML() {
+   getSidebarHTML() {
     return `
     <div class="sidebar">
         <div class="sidebar__container">
@@ -683,9 +704,17 @@ toggleSidebar() {
                         </svg>
                     </div>
                     <div class="sidebar__nav-items">
-                        <a href="/dashboard" class="sidebar__nav-item" data-nav="dashboard">
+                        <a href="${this.envDetector?.getAppUrl('/dashboard') || '/dashboard'}" data-page="dashboard" class="sidebar__nav-item" data-tooltip="Dashboard">
                             <span class="sidebar__nav-icon">📊</span>
                             <span class="sidebar__nav-text">Dashboard</span>
+                        </a>
+                        <a href="${this.envDetector?.getAppUrl('/leads') || '/leads'}" data-page="leads" class="sidebar__nav-item" data-tooltip="Lead Research">
+                            <span class="sidebar__nav-icon">🔍</span>
+                            <span class="sidebar__nav-text">Lead Research</span>
+                        </a>
+                        <a href="${this.envDetector?.getAppUrl('/analytics') || '/analytics'}" data-page="analytics" class="sidebar__nav-item" data-tooltip="Analytics">
+                            <span class="sidebar__nav-icon">📈</span>
+                            <span class="sidebar__nav-text">Analytics</span>
                         </a>
                     </div>
                 </div>
@@ -699,9 +728,17 @@ toggleSidebar() {
                         </svg>
                     </div>
                     <div class="sidebar__nav-items">
-                        <a href="/settings" class="sidebar__nav-item" data-nav="settings">
-                            <span class="sidebar__nav-icon">⚙️</span>
-                            <span class="sidebar__nav-text">Settings</span>
+                        <a href="${this.envDetector?.getAppUrl('/campaigns') || '/campaigns'}" data-page="campaigns" class="sidebar__nav-item" data-tooltip="Campaigns">
+                            <span class="sidebar__nav-icon">🎯</span>
+                            <span class="sidebar__nav-text">Campaigns</span>
+                        </a>
+                        <a href="${this.envDetector?.getAppUrl('/messages') || '/messages'}" data-page="messages" class="sidebar__nav-item" data-tooltip="Messages">
+                            <span class="sidebar__nav-icon">💬</span>
+                            <span class="sidebar__nav-text">Messages</span>
+                        </a>
+                        <a href="${this.envDetector?.getAppUrl('/integrations') || '/integrations'}" data-page="integrations" class="sidebar__nav-item" data-tooltip="Integrations">
+                            <span class="sidebar__nav-icon">🔌</span>
+                            <span class="sidebar__nav-text">Integrations</span>
                         </a>
                     </div>
                 </div>
@@ -710,25 +747,25 @@ toggleSidebar() {
             <!-- Account Section -->
             <div class="sidebar__account-section">
                 <div class="sidebar__account-dropdown" id="account-dropdown">
-                    <div class="sidebar__dropdown-header">
-                        <div class="sidebar__dropdown-name" id="dropdown-user-name">User</div>
-                        <div class="sidebar__dropdown-email" id="dropdown-user-email">user@example.com</div>
+                    <div class="sidebar__account-dropdown-header">
+                        <div class="sidebar__account-dropdown-name account-dropdown-name">Loading...</div>
+                        <div class="sidebar__account-dropdown-email account-dropdown-email">...</div>
                     </div>
                     
-                    <div class="sidebar__dropdown-section">
-                        <div class="sidebar__section-title">Business</div>
-                        <select class="sidebar__dropdown-select" id="dropdown-business-selector">
-                            <option value="">Loading...</option>
+                    <div class="sidebar__account-dropdown-section">
+                        <div class="sidebar__dropdown-section-title">Business</div>
+                        <select class="sidebar__dropdown-select" id="business-selector">
+                            <option>Personal Account</option>
                         </select>
                     </div>
                     
-                    <div class="sidebar__dropdown-section">
-                        <div class="sidebar__section-title">Credits</div>
-                        <div class="sidebar__credits-display" id="dropdown-credits">0</div>
+                    <div class="sidebar__account-dropdown-section">
+                        <div class="sidebar__dropdown-section-title">Credits</div>
+                        <div class="sidebar__credits-display credits-display-clean">0 / 25</div>
                     </div>
                     
                     <div class="sidebar__dropdown-actions">
-                        <a href="/settings" class="sidebar__dropdown-action">Settings</a>
+                        <a href="${this.envDetector?.getAppUrl('/settings') || '/settings'}" class="sidebar__dropdown-action">Settings</a>
                         <a href="https://oslira.com/help" target="_blank" rel="noopener noreferrer" class="sidebar__dropdown-action">Get Help</a>
                         <a href="https://oslira.com/upgrade" target="_blank" rel="noopener noreferrer" class="sidebar__dropdown-action sidebar__dropdown-action--upgrade">Upgrade Plan</a>
                         <button class="sidebar__dropdown-action sidebar__dropdown-action--logout" id="logout-btn">Logout</button>
@@ -736,10 +773,10 @@ toggleSidebar() {
                 </div>
                 
                 <button class="sidebar__account-trigger" id="account-trigger-btn">
-                    <div class="sidebar__account-avatar" id="account-avatar">U</div>
+                    <div class="sidebar__account-avatar account-avatar" id="account-avatar">U</div>
                     <div class="sidebar__account-info">
-                        <div class="sidebar__account-name" id="account-name">User</div>
-                        <div class="sidebar__account-plan" id="account-plan">Free Plan</div>
+                        <div class="sidebar__account-name account-name">User</div>
+                        <div class="sidebar__account-plan account-plan">Free Plan</div>
                     </div>
                     <svg class="sidebar__account-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M6 9l6 6 6-6"/>
