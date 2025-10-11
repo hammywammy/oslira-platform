@@ -86,8 +86,7 @@ class BusinessManager {
             // Set active business if not already set
             await this.setActiveBusinessFromStorage(businesses || []);
             
-            // Update sidebar selector after loading
-            this.updateSidebarBusinessSelector();
+            // ✅ REMOVED: updateSidebarBusinessSelector() - handled by SidebarManager
 
             // Emit loaded event
             this.eventBus.emit(DASHBOARD_EVENTS.BUSINESS_LOADED, {
@@ -433,7 +432,7 @@ class BusinessManager {
     }
     
     // ===============================================================================
-    // UI HELPERS
+    // UI HELPERS - MODAL DROPDOWNS ONLY
     // ===============================================================================
     
     renderBusinessSelector(containerId, options = {}) {
@@ -478,65 +477,14 @@ class BusinessManager {
             badge.textContent = currentBusiness?.business_name || '';
         });
         
-        // Update sidebar selector
-        this.updateSidebarBusinessSelector();
+        // ✅ REMOVED: Sidebar update - handled by SidebarManager
+        // The SidebarManager listens to BUSINESS_CHANGED events and updates its own UI
+        console.log('ℹ️ [BusinessManager] Business indicators updated (sidebar handled by SidebarManager)');
     }
 
-    updateSidebarBusinessSelector() {
-        const businessSelect = document.getElementById('sidebar-business-select');
-        if (!businessSelect) {
-            // Retry after sidebar is rendered
-            setTimeout(() => {
-                const retrySelect = document.getElementById('sidebar-business-select');
-                if (retrySelect) {
-                    this.populateBusinessSelector(retrySelect);
-                } else {
-                    console.warn('⚠️ [BusinessManager] Sidebar business select element not found after retry');
-                }
-            }, 500);
-            return;
-        }
-        this.populateBusinessSelector(businessSelect);
-    }
-
-    populateBusinessSelector(businessSelect) {
-        const businesses = this.stateManager.getState('businesses') || [];
-        const currentBusiness = this.stateManager.getState('selectedBusiness');
-
-        if (businesses.length === 0) {
-            businessSelect.innerHTML = '<option value="">No business profiles available</option>';
-            businessSelect.disabled = true;
-            return;
-        }
-
-        // Build options HTML
-        const optionsHTML = businesses.map(business => 
-            `<option value="${business.id}" ${business.id === currentBusiness?.id ? 'selected' : ''}>
-                ${business.business_name || business.name || 'Unnamed Business'}
-            </option>`
-        ).join('');
-
-        businessSelect.innerHTML = optionsHTML;
-
-        // Set current business as selected
-        if (currentBusiness) {
-            businessSelect.value = currentBusiness.id;
-        }
-
-        businessSelect.disabled = false;
-
-        // Add change handler if not already added
-        if (!businessSelect.hasAttribute('data-handler-added')) {
-            businessSelect.addEventListener('change', (e) => {
-                if (e.target.value) {
-                    this.switchBusiness(e.target.value);
-                }
-            });
-            businessSelect.setAttribute('data-handler-added', 'true');
-        }
-
-        console.log('✅ [BusinessManager] Sidebar business selector updated');
-    }
+    // ✅ REMOVED: updateSidebarBusinessSelector() method
+    // ✅ REMOVED: populateBusinessSelector() method
+    // Sidebar UI is now fully managed by SidebarManager
     
     // ===============================================================================
     // EVENT HANDLERS
