@@ -744,45 +744,48 @@ toggleSidebar() {
                 </div>
             </nav>
             
-            <!-- Account Section -->
-            <div class="sidebar__account-section">
-                <div class="sidebar__account-dropdown" id="account-dropdown">
-                    <div class="sidebar__account-dropdown-header">
-                        <div class="sidebar__account-dropdown-name account-dropdown-name">Loading...</div>
-                        <div class="sidebar__account-dropdown-email account-dropdown-email">...</div>
-                    </div>
-                    
-                    <div class="sidebar__account-dropdown-section">
-                        <div class="sidebar__dropdown-section-title">Business</div>
-                        <select class="sidebar__dropdown-select" id="business-selector">
-                            <option>Personal Account</option>
-                        </select>
-                    </div>
-                    
-                    <div class="sidebar__account-dropdown-section">
-                        <div class="sidebar__dropdown-section-title">Credits</div>
-                        <div class="sidebar__credits-display credits-display-clean">0 / 25</div>
-                    </div>
-                    
-                    <div class="sidebar__dropdown-actions">
-                        <a href="${this.envDetector?.getAppUrl('/settings') || '/settings'}" class="sidebar__dropdown-action">Settings</a>
-                        <a href="https://oslira.com/help" target="_blank" rel="noopener noreferrer" class="sidebar__dropdown-action">Get Help</a>
-                        <a href="https://oslira.com/upgrade" target="_blank" rel="noopener noreferrer" class="sidebar__dropdown-action sidebar__dropdown-action--upgrade">Upgrade Plan</a>
-                        <button class="sidebar__dropdown-action sidebar__dropdown-action--logout" id="logout-btn">Logout</button>
-                    </div>
-                </div>
-                
-                <button class="sidebar__account-trigger" id="account-trigger-btn">
-                    <div class="sidebar__account-avatar account-avatar" id="account-avatar">U</div>
-                    <div class="sidebar__account-info">
-                        <div class="sidebar__account-name account-name">User</div>
-                        <div class="sidebar__account-plan account-plan">Free Plan</div>
-                    </div>
-                    <svg class="sidebar__account-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 9l6 6 6-6"/>
-                    </svg>
-                </button>
-            </div>
+<!-- Account Section -->
+<div class="sidebar__account-section">
+    <div class="sidebar__account-dropdown" id="account-dropdown">
+        <!-- ✅ FIXED: Use sidebar__dropdown-header (not sidebar__account-dropdown-header) -->
+        <div class="sidebar__dropdown-header">
+            <div class="sidebar__dropdown-name account-dropdown-name">Loading...</div>
+            <div class="sidebar__dropdown-email account-dropdown-email">...</div>
+        </div>
+        
+        <!-- ✅ FIXED: Use sidebar__dropdown-section (not sidebar__account-dropdown-section) -->
+        <div class="sidebar__dropdown-section">
+            <div class="sidebar__section-title">Business</div>
+            <select class="sidebar__dropdown-select" id="business-selector">
+                <option>Personal Account</option>
+            </select>
+        </div>
+        
+        <div class="sidebar__dropdown-section">
+            <div class="sidebar__section-title">Credits</div>
+            <div class="sidebar__credits-display credits-display-clean">0 / 25</div>
+        </div>
+        
+        <!-- ✅ FIXED: Use sidebar__dropdown-actions (not sidebar__account-dropdown-actions-clean) -->
+        <div class="sidebar__dropdown-actions">
+            <a href="${this.envDetector?.getAppUrl('/settings') || '/settings'}" class="sidebar__dropdown-action">Settings</a>
+            <a href="https://oslira.com/help" target="_blank" rel="noopener noreferrer" class="sidebar__dropdown-action">Get Help</a>
+            <a href="https://oslira.com/upgrade" target="_blank" rel="noopener noreferrer" class="sidebar__dropdown-action sidebar__dropdown-action--upgrade">Upgrade Plan</a>
+            <button class="sidebar__dropdown-action sidebar__dropdown-action--logout" id="logout-btn">Logout</button>
+        </div>
+    </div>
+    
+    <button class="sidebar__account-trigger" id="account-trigger-btn">
+        <div class="sidebar__account-avatar account-avatar" id="account-avatar">U</div>
+        <div class="sidebar__account-info">
+            <div class="sidebar__account-name account-name">User</div>
+            <div class="sidebar__account-plan account-plan">Free Plan</div>
+        </div>
+        <svg class="sidebar__account-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6"/>
+        </svg>
+    </button>
+</div>
         </div>
     </div>
     `;
