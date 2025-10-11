@@ -57,6 +57,8 @@ class SidebarManager {
         }
 
         this.initializationPromise = this._performRender(container);
+
+        this._loadCSS();
         
         // CRITICAL: Store this instance globally for console access
         window.sidebarManager = this;
@@ -103,6 +105,20 @@ class SidebarManager {
             throw error;
         }
     }
+
+_loadCSS() {
+    if (document.getElementById('sidebar-styles')) {
+        return; // Already loaded
+    }
+    
+    const link = document.createElement('link');
+    link.id = 'sidebar-styles';
+    link.rel = 'stylesheet';
+    link.href = '/core/ui/components/layouts/app-sidebar/AppSidebar.css';
+    document.head.appendChild(link);
+    
+    console.log('✅ [SidebarManager] CSS loaded');
+}
 
     // =========================================================================
     // DEPENDENCY MANAGEMENT
