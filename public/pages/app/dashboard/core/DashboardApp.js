@@ -91,18 +91,25 @@ if (window.OsliraApiClient && !window.OsliraApiClient.isInitialized) {
         // Complete
         this.finishInitialization();
         
-    } catch (error) {
-        console.error('❌ [DashboardApp] Initialization failed:', error);
-        
-        if (window.OsliraErrorHandler) {
-            window.OsliraErrorHandler.handleError(error, { 
-                context: 'dashboard_init',
-                fatal: true 
-            });
-        }
-        
-        throw error;
+} catch (error) {
+    console.error('❌ [DashboardApp] Initialization failed:', error);
+    
+    // ✅ CRITICAL FIX: Check if error is auth-related
+    if (error.message && error.message.includes('Authentication required')) {
+        console.log('🔐 [DashboardApp] Auth redirect in progress, suppressing error...');
+        // Don't log to Sentry - this is expected behavior
+        return;
     }
+    
+    if (window.OsliraErrorHandler) {
+        window.OsliraErrorHandler.handleError(error, { 
+            context: 'dashboard_init',
+            fatal: true 
+        });
+    }
+    
+    throw error;
+}
 }
     
     // =========================================================================
@@ -140,103 +147,142 @@ if (window.OsliraApiClient && !window.OsliraApiClient.isInitialized) {
         console.log('✅ [DashboardApp] Auth initialized');
     }
     
-    async restoreSession() {
-        // Check URL hash first
-        const restoredFromHash = await this._restoreSessionFromUrlHash();
+/**
+ * Restore session from URL hash or localStorage
+ * ✅ CRITICAL FIX: Redirect to login if no session found after timeout
+ */
+async restoreSession() {
+    console.log('🔐 [DashboardApp] Waiting for session restoration...');
+    
+    // ============================================================================
+    // STEP 1: Try to restore from URL hash first (cross-subdomain transfer)
+    // ============================================================================
+    const restoredFromHash = await this._restoreSessionFromUrlHash();
+    
+    if (restoredFromHash) {
+        console.log('✅ [DashboardApp] Session restored from URL hash');
+        return;
+    }
+    
+    // ============================================================================
+    // STEP 2: Wait for session from localStorage/Supabase
+    // ============================================================================
+    let attempts = 0;
+    const maxAttempts = 50; // 5 seconds (50 * 100ms)
+    
+    while (!window.OsliraAuth?.user && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
         
-        if (restoredFromHash) {
-            console.log('✅ [DashboardApp] Session restored from URL hash');
-            return;
-        }
-        
-        // Wait for localStorage session
-        console.log('🔐 [DashboardApp] Waiting for session restoration...');
-        
-        let attempts = 0;
-        const maxAttempts = 50;
-        
-        while (!window.OsliraAuth?.user && attempts < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-            
-            const storedSession = localStorage.getItem('oslira-auth');
-            if (storedSession && window.OsliraAuth?.supabase) {
-                try {
-                    const { data, error } = await window.OsliraAuth.supabase.auth.getSession();
-                    
-                    if (error) {
-                        console.warn('⚠️ [DashboardApp] Session recovery error');
-                        localStorage.removeItem('oslira-auth');
-                        break;
-                    }
-                    
-                    if (data?.session?.user) {
-                        window.OsliraAuth.user = data.session.user;
-                        window.OsliraAuth.session = data.session;
-                        console.log('✅ [DashboardApp] Session restored from localStorage');
-                        break;
-                    }
-                } catch (sessionError) {
-                    console.warn('⚠️ [DashboardApp] Session check error');
+        // Try to recover session from localStorage
+        const storedSession = localStorage.getItem('oslira-auth');
+        if (storedSession && window.OsliraAuth?.supabase) {
+            try {
+                const { data, error } = await window.OsliraAuth.supabase.auth.getSession();
+                
+                if (error) {
+                    console.warn('⚠️ [DashboardApp] Session recovery error:', error);
+                    localStorage.removeItem('oslira-auth');
+                    break;
                 }
+                
+                if (data?.session?.user) {
+                    window.OsliraAuth.user = data.session.user;
+                    window.OsliraAuth.session = data.session;
+                    console.log('✅ [DashboardApp] Session restored from localStorage');
+                    return; // ✅ Exit early on success
+                }
+            } catch (sessionError) {
+                console.warn('⚠️ [DashboardApp] Session check error:', sessionError);
             }
         }
     }
     
-    async _restoreSessionFromUrlHash() {
-        const hash = window.location.hash;
+    // ============================================================================
+    // STEP 3: CRITICAL FIX - No session after timeout = Redirect to login
+    // ============================================================================
+    if (!window.OsliraAuth?.user) {
+        console.warn('⚠️ [DashboardApp] No session found after timeout, redirecting to login...');
+        this.redirectToAuth();
         
-        if (!hash || !hash.includes('auth=')) {
-            return false;
-        }
-        
-        try {
-            const hashParams = new URLSearchParams(hash.substring(1));
-            const authToken = hashParams.get('auth');
-            
-            if (!authToken) return false;
-            
-            // Decode tokens
-            const base64 = authToken.replace(/-/g, '+').replace(/_/g, '/');
-            const padded = base64 + '==='.slice((base64.length + 3) % 4);
-            const tokens = JSON.parse(atob(padded));
-            
-            // Set session
-            const { data, error } = await window.OsliraAuth.supabase.auth.setSession({
-                access_token: tokens.access_token,
-                refresh_token: tokens.refresh_token
-            });
-            
-            if (error || !data.session) {
-                throw new Error('Failed to set session');
-            }
-            
-            // Update auth state
-            window.OsliraAuth.session = data.session;
-            window.OsliraAuth.user = data.session.user;
-            
-            // Clean URL
-            window.history.replaceState(null, '', window.location.pathname);
-            
-            console.log('✅ [DashboardApp] Session restored from URL hash');
-            return true;
-            
-        } catch (error) {
-            console.error('❌ [DashboardApp] Hash restoration failed:', error);
-            window.history.replaceState(null, '', window.location.pathname);
-            return false;
-        }
+        // Throw error to stop initialization
+        throw new Error('Authentication required - redirecting to login');
     }
     
-    redirectToAuth() {
-        console.warn('⚠️ [DashboardApp] No authenticated user, redirecting...');
-        localStorage.removeItem('oslira-auth');
-        
-        const returnUrl = encodeURIComponent(window.location.href);
-        const authUrl = `${window.OsliraEnv.getAuthUrl()}?return_to=${returnUrl}`;
-        
-        window.location.href = authUrl;
+    console.log('✅ [DashboardApp] Session restoration complete');
+}
+
+/**
+ * Restore session from URL hash (cross-subdomain transfer)
+ */
+async _restoreSessionFromUrlHash() {
+    const hash = window.location.hash;
+    
+    if (!hash || !hash.includes('auth=')) {
+        return false;
     }
+    
+    try {
+        console.log('🔐 [DashboardApp] Found auth token in URL hash, restoring...');
+        
+        const hashParams = new URLSearchParams(hash.substring(1));
+        const authToken = hashParams.get('auth');
+        
+        if (!authToken) return false;
+        
+        // Decode URL-safe base64
+        const base64 = authToken.replace(/-/g, '+').replace(/_/g, '/');
+        const padded = base64 + '==='.slice((base64.length + 3) % 4);
+        const tokens = JSON.parse(atob(padded));
+        
+        // Set session in Supabase
+        const { data, error } = await window.OsliraAuth.supabase.auth.setSession({
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token
+        });
+        
+        if (error || !data.session) {
+            console.error('❌ [DashboardApp] Failed to set session from URL:', error);
+            window.history.replaceState(null, '', window.location.pathname);
+            return false;
+        }
+        
+        // Update auth state immediately
+        window.OsliraAuth.session = data.session;
+        window.OsliraAuth.user = data.session.user;
+        
+        // Clean URL (remove hash)
+        window.history.replaceState(null, '', window.location.pathname);
+        
+        console.log('✅ [DashboardApp] Session restored from URL hash');
+        return true;
+        
+    } catch (error) {
+        console.error('❌ [DashboardApp] Hash restoration failed:', error);
+        window.history.replaceState(null, '', window.location.pathname);
+        return false;
+    }
+}
+
+/**
+ * Redirect to auth/login page
+ * ✅ CRITICAL: This stops infinite loops and provides clean UX
+ */
+redirectToAuth() {
+    console.warn('⚠️ [DashboardApp] No authenticated user, redirecting to login...');
+    
+    // Clear any stale auth data
+    localStorage.removeItem('oslira-auth');
+    
+    // Build return URL (so user comes back here after login)
+    const returnUrl = encodeURIComponent(window.location.href);
+    const authUrl = `${window.OsliraEnv.getAuthUrl()}?return_to=${returnUrl}`;
+    
+    console.log('🔀 [DashboardApp] Redirecting to:', authUrl);
+    
+    // Perform redirect
+    window.location.href = authUrl;
+}
     
     async initializeSidebar() {
         console.log('🔧 [DashboardApp] Initializing sidebar...');
