@@ -5,8 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI-Powered Lead Research Dashboard - Oslira</title>
     <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
+    
+    <!-- =================================================================
+         BASE & GLOBAL STYLES
+         ================================================================= -->
     <link rel="stylesheet" href="/assets/css/tailwind.css">
-
+    
+    <!-- =================================================================
+         CORE SHARED COMPONENTS
+         ================================================================= -->
+    <link rel="stylesheet" href="/core/ui/components/buttons/buttons.css">
+    <link rel="stylesheet" href="/core/ui/components/tooltip/Tooltip.css">
+    
+    <!-- =================================================================
+         DASHBOARD STYLES - NEW STRUCTURE
+         ================================================================= -->
+    <!-- Main Dashboard Styles (BEM) -->
+    <link rel="stylesheet" href="/pages/app/dashboard/dashboard.css">
+    
+    <!-- Dashboard Component Styles -->
+    <link rel="stylesheet" href="/pages/app/dashboard/css/components/header.css">
+    <link rel="stylesheet" href="/pages/app/dashboard/css/components/stats-cards.css">
+    <link rel="stylesheet" href="/pages/app/dashboard/css/components/analysis-queue.css">
+    
+    <!-- =================================================================
+         EXTERNAL SCRIPTS
+         ================================================================= -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- CRITICAL: Single script tag loads everything via Core system -->
@@ -17,7 +41,9 @@
 
 <body style="visibility: hidden;">
 
-<!-- Loading Screen (REQUIRED by Core Loader) -->
+<!-- =================================================================
+     LOADING SCREEN (REQUIRED by Core Loader)
+     ================================================================= -->
 <div id="app-loader" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; display: flex; align-items: center; justify-content: center; z-index: 9999;">
     <div style="text-align: center;">
         <img src="/assets/images/oslira-logo.png" alt="Oslira" style="width: 80px; margin-bottom: 20px;">
@@ -28,10 +54,14 @@
     </div>
 </div>
 
-<!-- CRITICAL: Sidebar Container - Direct child of body for flexbox -->
+<!-- =================================================================
+     SIDEBAR CONTAINER (Direct child of body for flexbox)
+     ================================================================= -->
 <div id="sidebar-container"></div>
 
-<!-- CRITICAL: Main Content - Direct child of body for flexbox -->
+<!-- =================================================================
+     MAIN CONTENT AREA
+     ================================================================= -->
 <div class="main-content">
     <!-- Gradient Background Wrapper -->
     <div class="min-h-screen dashboard-gradient-bg relative">
@@ -41,24 +71,43 @@
         <!-- Main Dashboard Content -->
         <main style="padding-top: 2rem; height: 100vh; overflow-y: auto; padding-bottom: 2rem;">
             
-            <!-- Header Section -->
+            <!-- =================================================================
+                 HEADER SECTION
+                 Rendered by: DashboardHeader.js
+                 Styles: /css/components/header.css
+                 ================================================================= -->
             <div id="dashboard-header">
                 <!-- Will be rendered by DashboardHeader.js -->
             </div>
             
-            <!-- Dashboard Content -->
+            <!-- =================================================================
+                 DASHBOARD CONTENT
+                 ================================================================= -->
             <div class="px-6">
                 
-                <!-- Stats Cards -->
+                <!-- =================================================================
+                     STATS CARDS SECTION
+                     Rendered by: StatsCards.js
+                     Styles: /css/components/stats-cards.css
+                     ================================================================= -->
                 <div id="priority-cards">
                     <!-- Will be rendered by StatsCards.js -->
                 </div>
                 
-                <!-- Performance Metrics -->
+                <!-- =================================================================
+                     PERFORMANCE METRICS
+                     Rendered by: StatsCards.js
+                     Styles: /css/components/stats-cards.css
+                     ================================================================= -->
                 <div id="performance-metrics">
                     <!-- Will be rendered by StatsCards.js -->
                 </div>
                 
+                <!-- =================================================================
+                     LEADS SECTION
+                     Rendered by: LeadRenderer.js
+                     Styles: dashboard.css (BEM)
+                     ================================================================= -->
                 <div id="leads-section" class="mb-8">
                     <!-- Leads Container for LeadRenderer -->
                     <div id="leads-container">
@@ -68,22 +117,34 @@
                     </div>
                 </div>
 
-                <!-- Filter Modal Container -->
+                <!-- =================================================================
+                     FILTER MODAL CONTAINER
+                     Rendered by: FilterModal.js
+                     ================================================================= -->
                 <div id="filter-modal-container">
                     <!-- Will be populated by FilterModal -->
                 </div>
 
-                <!-- Insights Panel -->
+                <!-- =================================================================
+                     INSIGHTS PANEL
+                     Rendered by: InsightsPanel.js
+                     ================================================================= -->
                 <div id="insights-panel">
                     <!-- Will be rendered by InsightsPanel.js -->
                 </div>
 
-                <!-- Tip of the Day -->
+                <!-- =================================================================
+                     TIP OF THE DAY
+                     Rendered by: TipOfDay.js
+                     ================================================================= -->
                 <div id="tip-of-day">
                     <!-- Will be rendered by TipOfDay.js -->
                 </div>
 
-                <!-- Bulk Actions Toolbar (hidden by default) -->
+                <!-- =================================================================
+                     BULK ACTIONS TOOLBAR
+                     Hidden by default, shown when leads are selected
+                     ================================================================= -->
                 <div id="bulk-actions-toolbar" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white rounded-xl px-6 py-3 z-40" style="box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 10px 30px -5px rgba(0, 0, 0, 0.15), 0 0 20px rgba(0, 0, 0, 0.03);">
                     <div class="flex items-center space-x-4">
                         <span id="selection-count" class="text-sm font-medium text-gray-700">0 selected</span>
@@ -143,7 +204,10 @@
     </div>
 </div>
 
-<!-- Modal Containers - These will be populated by ModalManager.js -->
+<!-- =================================================================
+     MODAL CONTAINERS
+     Populated by: ModalManager.js
+     ================================================================= -->
 <div id="modal-containers" style="position: fixed; z-index: 9998;">
     <!-- Research Modal -->
     <div id="researchModal" style="display: none;" class="hidden"></div>
@@ -158,9 +222,12 @@
     <div id="duplicateModal" style="display: none;" class="hidden"></div>
 </div>
 
-<!-- Global functions for onclick handlers -->
+<!-- =================================================================
+     GLOBAL ONCLICK HANDLER FUNCTIONS
+     These delegate to dashboard container after DashboardApp loads
+     ================================================================= -->
 <script>
-// These delegate to dashboard container after DashboardApp loads
+// Dropdown mode selection handler
 window.handleDropdownSelection = function(mode) {
     const headerManager = window.dashboard?.container?.get('dashboardHeader');
     if (headerManager && headerManager.handleModeChange) {
@@ -168,6 +235,7 @@ window.handleDropdownSelection = function(mode) {
     }
 };
 
+// Research submission handler
 window.submitResearch = function() {
     if (window.dashboard?.container?.get('researchHandlers')) {
         window.dashboard.container.get('researchHandlers').submitResearch();
@@ -176,18 +244,21 @@ window.submitResearch = function() {
     }
 };
 
+// Priority filter handler
 window.filterByPriority = function(priority) {
     if (window.dashboard?.container?.get('statsCards')) {
         window.dashboard.container.get('statsCards').filterByPriority(priority);
     }
 };
 
+// Clear all selections handler
 window.clearAllSelections = function() {
     if (window.dashboard?.container?.get('leadRenderer')) {
         window.dashboard.container.get('leadRenderer').clearAllSelections();
     }
 };
 
+// Open bulk modal handler
 window.openBulkModal = function() {
     const modalManager = window.dashboard?.container?.get('modalManager');
     if (modalManager) {
@@ -195,6 +266,7 @@ window.openBulkModal = function() {
     }
 };
 
+// Main button click handler (switches between single/bulk mode)
 window.handleMainButtonClick = function() {
     const headerManager = window.dashboard?.container?.get('dashboardHeader');
     if (!headerManager) return;
