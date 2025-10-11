@@ -1,6 +1,6 @@
 /* =============================================================================
    BASE.CSS - TRUE GLOBALS ONLY
-   Reset + Font declarations + Body base styles
+   Reset + Font declarations + Body base styles + Page Layout
    NO component-specific styles allowed here
    ============================================================================= */
 
@@ -34,6 +34,46 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+/* =============================================================================
+   PAGE LAYOUT - Sidebar + Main Content Flexbox
+   CRITICAL: This makes #sidebar-container and .main-content work together
+   ============================================================================= */
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar Container - Fixed width on left side */
+#sidebar-container {
+  flex-shrink: 0;
+  width: var(--sidebar-width, 256px);
+  height: 100vh;
+  position: relative;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* Collapsed sidebar state */
+#sidebar-container.collapsed {
+  width: var(--sidebar-collapsed-width, 64px);
+}
+
+/* Main Content - Takes remaining space */
+.main-content {
+  flex: 1;
+  min-width: 0; /* Prevents flex overflow */
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
 }
 
 /* =============================================================================
