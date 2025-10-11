@@ -365,19 +365,28 @@ class SidebarManager {
                 { enabled: true, ttl: this.config.dataRefreshInterval } // Cache config
             );
             
-            // Validate response
-            if (!response || !response.success) {
-                throw new Error(response?.error || 'Failed to fetch business profiles');
+            // Debug: Log full response
+            console.log('🔍 [SidebarManager] API Response:', response);
+            
+            // ApiClient returns parsed response body directly
+            // Backend returns: { success: true/false, data: [...], error?: string }
+            if (!response || response.success === false) {
+                const errorMsg = response?.error || 'Failed to fetch business profiles';
+                console.error('❌ [SidebarManager] API Error:', errorMsg);
+                throw new Error(errorMsg);
             }
             
-            // Handle empty data
-            if (!response.data || !Array.isArray(response.data)) {
-                console.warn('⚠️ [SidebarManager] No business profiles found');
+            // Handle empty or missing data
+            if (!response.data) {
+                console.warn('⚠️ [SidebarManager] No business profiles found (empty response)');
                 this.businesses = [];
                 return;
             }
             
-            this.businesses = response.data;
+            // Ensure data is array
+            const profiles = Array.isArray(response.data) ? response.data : [response.data];
+            
+            this.businesses = profiles;
             console.log('✅ [SidebarManager] Loaded', this.businesses.length, 'business profiles');
             
         } catch (error) {
