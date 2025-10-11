@@ -76,7 +76,7 @@ dashboard: {
         // ============================================================
         // PHASE 1: INFRASTRUCTURE (ADD TOOLTIP HERE)
         // ============================================================
-        '/core/ui/components/TooltipManager.js', 
+        '/core/ui/components/tooltip/TooltipManager.js',  
         
         // ============================================================
         // PHASE 2: DASHBOARD CORE APP
@@ -87,7 +87,6 @@ dashboard: {
         // PHASE 3: UI COMPONENTS (MUST BE BEFORE ANYTHING THAT USES THEM)
         // ============================================================
         '/pages/app/dashboard/ui/components/IconComponents.js',
-        '/pages/app/dashboard/ui/styles/DashboardStyles.js',
         '/pages/app/dashboard/ui/components/LeadsTable.js',
         
         // ============================================================
@@ -189,7 +188,7 @@ dashboard: {
         // ============================================================
         // PHASE 21: SHARED COMPONENTS (Sidebar)
         // ============================================================
-        '/core/ui/components/layouts/AppSidebar.js',
+        '/core/ui/components/layouts/app-sidebar/AppSidebar.js',
         
         // ============================================================
         // PHASE 22: EVENT SYSTEM (MUST BE LAST FOR MAIN FILES)
