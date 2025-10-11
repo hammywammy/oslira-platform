@@ -733,18 +733,12 @@ class SidebarManager {
 }
 
 // =============================================================================
-// GLOBAL INITIALIZATION
+// GLOBAL INITIALIZATION (SINGLETON PATTERN)
 // =============================================================================
 
 window.SidebarManager = SidebarManager;
-window.sidebarManager = new SidebarManager();
+
+// DO NOT auto-create instance - let DashboardApp create it
+// This prevents duplicate instances
 
 console.log('✅ [SidebarManager] Module loaded and ready');
-
-// Auto-render on DOMContentLoaded (legacy compatibility)
-document.addEventListener('DOMContentLoaded', () => {
-    const container = document.querySelector('#sidebar-container');
-    if (container) {
-        window.sidebarManager.render('#sidebar-container').catch(console.error);
-    }
-});
