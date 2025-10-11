@@ -18,9 +18,24 @@ class TooltipManager {
             offset: 8,           // 8px gap from target
             fadeSpeed: 150       // 150ms fade animation
         };
-        
+
+        this.loadCSS();
         this.init();
         console.log('✅ [TooltipManager] Initialized');
+    }
+
+    loadCSS() {
+        if (document.getElementById('tooltip-styles')) {
+            return; // Already loaded
+        }
+        
+        const link = document.createElement('link');
+        link.id = 'tooltip-styles';
+        link.rel = 'stylesheet';
+        link.href = '/core/ui/components/tooltip/Tooltip.css';
+        document.head.appendChild(link);
+        
+        console.log('✅ [TooltipManager] CSS loaded');
     }
 
     // =========================================================================
