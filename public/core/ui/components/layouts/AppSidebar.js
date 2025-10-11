@@ -10,6 +10,7 @@ class SidebarManager {
         this.user = null;
         this.businesses = [];
         this.sidebar = null;
+        this.subscription = null;
         this.sidebarContainer = null;
         this.mainContent = null;
         
@@ -96,32 +97,31 @@ async initializeSidebar() {
     this.initializeCollapsibleSections();
     this.initializeAccountDropdown();
     
-    // CRITICAL: Load auth data after initialization
-    await this.loadAuthData();  // ← ADD THIS LINE
+    // Load auth data (async, doesn't block UI)
+    this.loadAuthData().catch(err => {
+        console.error('❌ [SidebarManager] Auth data load failed:', err);
+    });
     
     console.log('✅ [SidebarManager] Sidebar initialized');
 }
 
-    async loadAuthData() {
+  async loadAuthData() {
     try {
         console.log('🔐 [SidebarManager] Loading auth data...');
         
-        // Wait for auth to be ready
-        if (!window.OsliraAuth) {
-            console.warn('⚠️ [SidebarManager] OsliraAuth not available yet');
-            return;
-        }
-        
-        // Get user data
-        this.user = window.OsliraAuth.user;
-        
-        if (!this.user) {
+        // Get user from existing OsliraAuth (already authenticated)
+        if (!window.OsliraAuth?.user) {
             console.warn('⚠️ [SidebarManager] No authenticated user');
             return;
         }
         
-        // Load businesses from Supabase
-        await this.loadBusinesses();
+        this.user = window.OsliraAuth.user;
+        
+        // Load business profiles and subscription data
+        await Promise.all([
+            this.loadBusinessProfiles(),
+            this.loadSubscriptionData()
+        ]);
         
         // Update UI with real data
         this.updateUserUI();
@@ -137,77 +137,117 @@ async initializeSidebar() {
 }
 
 // =========================================================================
-// ADD THIS METHOD AFTER loadAuthData()
+// ADD THIS METHOD - Load Business Profiles
 // =========================================================================
 
-async loadBusinesses() {
+async loadBusinessProfiles() {
     try {
-        // Get Supabase client
-        const supabase = window.supabase?.createClient(
-            'https://your-project.supabase.co',  // Replace with your URL
-            'your-anon-key'  // Replace with your key
-        );
-        
-        if (!supabase) {
-            console.warn('⚠️ [SidebarManager] Supabase not available');
+        // Use existing HttpClient (already configured with AWS endpoint)
+        if (!window.OsliraHttpClient) {
+            console.warn('⚠️ [SidebarManager] HttpClient not available');
             return;
         }
         
-        // Fetch user's businesses
-        const { data, error } = await supabase
-            .from('businesses')
-            .select('*')
-            .eq('owner_id', this.user.id);
+        const response = await window.OsliraHttpClient.get('/business-profiles', {
+            params: {
+                user_id: this.user.id
+            }
+        });
         
-        if (error) {
-            console.error('❌ [SidebarManager] Failed to load businesses:', error);
-            return;
+        if (response.success && response.data) {
+            this.businesses = response.data;
+        } else {
+            console.warn('⚠️ [SidebarManager] No business profiles found');
+            this.businesses = [];
         }
-        
-        this.businesses = data || [];
         
     } catch (error) {
-        console.error('❌ [SidebarManager] Business load error:', error);
+        console.error('❌ [SidebarManager] Failed to load business profiles:', error);
+        this.businesses = [];
     }
 }
 
 // =========================================================================
-// ADD THIS METHOD AFTER loadBusinesses()
+// ADD THIS METHOD - Load Subscription Data
+// =========================================================================
+
+async loadSubscriptionData() {
+    try {
+        // Use existing HttpClient
+        if (!window.OsliraHttpClient) {
+            console.warn('⚠️ [SidebarManager] HttpClient not available');
+            return;
+        }
+        
+        const response = await window.OsliraHttpClient.get('/subscriptions', {
+            params: {
+                user_id: this.user.id
+            }
+        });
+        
+        if (response.success && response.data) {
+            this.subscription = response.data;
+        } else {
+            console.warn('⚠️ [SidebarManager] No subscription found');
+            this.subscription = {
+                plan_type: 'Free Plan',
+                credits_remaining: 25
+            };
+        }
+        
+    } catch (error) {
+        console.error('❌ [SidebarManager] Failed to load subscription:', error);
+        this.subscription = {
+            plan_type: 'Free Plan',
+            credits_remaining: 25
+        };
+    }
+}
+
+// =========================================================================
+// ADD THIS METHOD - Update UI
 // =========================================================================
 
 updateUserUI() {
     if (!this.user) return;
     
-    // Update dropdown header
+    // Update dropdown header - name
     const nameEl = document.querySelector('.account-dropdown-name');
-    const emailEl = document.querySelector('.account-dropdown-email');
-    
     if (nameEl) {
-        nameEl.textContent = this.user.user_metadata?.full_name || 
-                            this.user.email?.split('@')[0] || 
-                            'User';
+        const displayName = this.user.user_metadata?.full_name || 
+                           this.user.email?.split('@')[0] || 
+                           'User';
+        nameEl.textContent = displayName;
     }
     
+    // Update dropdown header - email
+    const emailEl = document.querySelector('.account-dropdown-email');
     if (emailEl) {
         emailEl.textContent = this.user.email || '';
     }
     
-    // Update trigger button
+    // Update trigger button - name
     const triggerNameEl = document.querySelector('.account-name');
-    const avatarEl = document.querySelector('.account-avatar');
-    
     if (triggerNameEl) {
-        const displayName = this.user.user_metadata?.full_name?.split(' ')[0] || 
-                           this.user.email?.split('@')[0] || 
-                           'User';
-        triggerNameEl.textContent = displayName;
+        const firstName = this.user.user_metadata?.full_name?.split(' ')[0] || 
+                         this.user.email?.split('@')[0] || 
+                         'User';
+        triggerNameEl.textContent = firstName;
     }
     
+    // Update trigger button - avatar initial
+    const avatarEl = document.querySelector('.account-avatar');
     if (avatarEl) {
         const initial = (this.user.user_metadata?.full_name?.[0] || 
                         this.user.email?.[0] || 
                         'U').toUpperCase();
         avatarEl.textContent = initial;
+    }
+    
+    // Update plan type
+    const planEl = document.querySelector('.account-plan');
+    if (planEl && this.subscription) {
+        planEl.textContent = this.subscription.plan_type || 'Free Plan';
     }
     
     // Update business selector
@@ -220,7 +260,7 @@ updateUserUI() {
 }
 
 // =========================================================================
-// ADD THIS METHOD AFTER updateUserUI()
+// ADD THIS METHOD - Update Business Selector
 // =========================================================================
 
 updateBusinessSelector() {
@@ -236,57 +276,43 @@ updateBusinessSelector() {
     personalOption.textContent = 'Personal Account';
     selector.appendChild(personalOption);
     
-    // Add businesses
-    this.businesses.forEach(business => {
-        const option = document.createElement('option');
-        option.value = business.id;
-        option.textContent = business.name;
-        selector.appendChild(option);
-    });
+    // Add business profiles (using correct column name: business_name)
+    if (this.businesses && this.businesses.length > 0) {
+        this.businesses.forEach(business => {
+            const option = document.createElement('option');
+            option.value = business.id || business.business_id;
+            option.textContent = business.business_name || 'Unnamed Business';
+            selector.appendChild(option);
+        });
+    }
     
     // Set current selection from localStorage
     const currentBusiness = localStorage.getItem('currentBusiness') || 'personal';
     selector.value = currentBusiness;
+    
+    console.log('✅ [SidebarManager] Business selector updated:', this.businesses.length, 'businesses');
 }
 
 // =========================================================================
-// ADD THIS METHOD AFTER updateBusinessSelector()
+// ADD THIS METHOD - Update Credits Display
 // =========================================================================
 
-async updateCreditsDisplay() {
-    try {
-        // Get current business context
-        const currentBusiness = localStorage.getItem('currentBusiness') || 'personal';
+updateCreditsDisplay() {
+    const creditsEl = document.querySelector('.credits-display-clean');
+    if (!creditsEl) return;
+    
+    if (this.subscription && this.subscription.credits_remaining !== undefined) {
+        // Calculate used credits (assuming total is 25 for free plan)
+        const total = this.subscription.credits_total || 25;
+        const remaining = this.subscription.credits_remaining || 0;
+        const used = total - remaining;
         
-        // Fetch credits from your API or Supabase
-        // This is a placeholder - adjust to your actual credits table/API
-        const supabase = window.supabase?.createClient(
-            'https://your-project.supabase.co',
-            'your-anon-key'
-        );
-        
-        if (!supabase) return;
-        
-        const { data, error } = await supabase
-            .from('user_credits')  // Adjust table name
-            .select('credits_used, credits_total')
-            .eq('user_id', this.user.id)
-            .single();
-        
-        if (error || !data) {
-            console.warn('⚠️ [SidebarManager] Could not load credits');
-            return;
-        }
-        
-        // Update credits display
-        const creditsEl = document.querySelector('.credits-display-clean');
-        if (creditsEl) {
-            creditsEl.textContent = `${data.credits_used || 0} / ${data.credits_total || 25}`;
-        }
-        
-    } catch (error) {
-        console.error('❌ [SidebarManager] Credits update error:', error);
+        creditsEl.textContent = `${used} / ${total}`;
+    } else {
+        creditsEl.textContent = '0 / 25';
     }
+    
+    console.log('✅ [SidebarManager] Credits display updated');
 }
 
     initializeActiveNavItem() {
