@@ -1,0 +1,137 @@
+/* =============================================================================
+   STATUS PAGE - BEM Naming Convention
+   Path: /public/pages/www/status/status.css
+   ============================================================================= */
+
+.status {
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+.status__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.status__header {
+  text-align: center;
+  padding: 3rem 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 3rem;
+}
+
+.status__title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.status__subtitle {
+  font-size: 1.125rem;
+  color: #6b7280;
+}
+
+.status__overall {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  text-align: center;
+  margin-bottom: 3rem;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.2);
+}
+
+.status__overall-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.status__overall-text {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.status__overall-subtext {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.status__services {
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.status__service-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.status__service-card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.status__service-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.status__service-icon {
+  font-size: 1.5rem;
+}
+
+.status__service-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.status__service-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.status__service-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status__service-status--operational {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status__service-status--degraded {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status__service-status--down {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status__service-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status__service-status--
