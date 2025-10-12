@@ -62,7 +62,6 @@ class AnalysisQueue {
         };
 
         this.setupEnhancedContainer();
-        AnalysisQueueStyles.inject();
 
         console.log('🚀 [AnalysisQueue] Initialized');
     }
@@ -701,7 +700,7 @@ class AnalysisQueue {
     // CLEANUP
     // ===============================================================================
 
-    cleanup() {
+cleanup() {
         this.activeAnalyses.clear();
 
         const wrapper = document.getElementById('analysis-queue-wrapper');
@@ -709,7 +708,7 @@ class AnalysisQueue {
             wrapper.remove();
         }
 
-        AnalysisQueueStyles.cleanup();
+        // Styles handled by CSS file, no cleanup needed
         this.animator.cleanup();
 
         console.log('🧹 [AnalysisQueue] Cleanup completed');
