@@ -69,9 +69,9 @@ if (window.OsliraApiClient && !window.OsliraApiClient.isInitialized) {
         
         // Load businesses
         await this.loadBusinesses();
-        
+
         // Initialize managers
-        this.initializeManagers();
+await this.initializeManagers();
         
         // ✅ ADD THIS ONE LINE ✅
         await this.initializeModals();
@@ -306,19 +306,28 @@ redirectToAuth() {
         }
     }
     
-    initializeManagers() {
-        console.log('📊 [DashboardApp] Initializing managers...');
-        
-        // Create singleton instances
-        this.components.leadManager = new window.LeadManager();
-        this.components.modalManager = new window.ModalManager();
-        
-        // Store globally for easy access
-        window.leadManagerInstance = this.components.leadManager;
-        window.modalManagerInstance = this.components.modalManager;
-        
-        console.log('✅ [DashboardApp] Managers initialized');
+async initializeManagers() {
+    console.log('📊 [DashboardApp] Initializing managers...');
+    
+    // Create singleton instances
+    this.components.leadManager = new window.LeadManager();
+    this.components.modalManager = new window.ModalManager();
+    
+    // Initialize Analysis Queue
+    if (window.AnalysisQueue) {
+        console.log('📊 [DashboardApp] Initializing AnalysisQueue...');
+        this.components.analysisQueue = new window.AnalysisQueue();
+        await this.components.analysisQueue.init();
+        window.analysisQueueInstance = this.components.analysisQueue;
+        console.log('✅ [DashboardApp] AnalysisQueue initialized');
     }
+    
+    // Store globally for easy access
+    window.leadManagerInstance = this.components.leadManager;
+    window.modalManagerInstance = this.components.modalManager;
+    
+    console.log('✅ [DashboardApp] Managers initialized');
+}
 
 async initializeModals() {
     console.log('🎨 [DashboardApp] Rendering modals...');
