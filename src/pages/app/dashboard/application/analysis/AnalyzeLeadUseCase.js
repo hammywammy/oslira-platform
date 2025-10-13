@@ -218,5 +218,8 @@ class AnalyzeLeadUseCase {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
+
+// ES6 Module Export
+export default AnalyzeLeadUseCase;
 window.AnalyzeLeadUseCase = AnalyzeLeadUseCase;
 console.log('✅ [AnalyzeLeadUseCase] Loaded');
