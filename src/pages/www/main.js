@@ -3,69 +3,37 @@
 // Path: /src/pages/www/main.js
 // =============================================================================
 
-console.log('🏠 [Homepage] Starting ES6 module initialization...');
+console.log('🏠 [Homepage] Starting...');
 
 // =============================================================================
-// PHASE 1: IMPORT CORE BUNDLE
+// IMPORT CORE (This handles ALL your core services)
 // =============================================================================
-import coreBundle from '../../core/core-bundle.js';
-
-// Wait for core to be ready
-console.log('⏳ [Homepage] Waiting for core bundle...');
+import '../../core/core-bundle.js';
 
 // =============================================================================
-// PHASE 2: IMPORT PAGE-SPECIFIC MODULES
+// IMPORT PAGE-SPECIFIC SCRIPTS (Only what exists)
 // =============================================================================
-import HomeState from './HomeState.js';
-import HomeHandlers from './HomeHandlers.js';
-import HomeApp from './HomeApp.js';
+import './HomeHandlers.js';
+import './HomeApp.js';
 
 // =============================================================================
-// PHASE 3: INITIALIZE HOMEPAGE APPLICATION
+// INITIALIZE
 // =============================================================================
-async function initializeHomepage() {
+console.log('✅ [Homepage] All modules loaded');
+
+// Wait for DOM then initialize
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🚀 [Homepage] DOM ready, initializing app...');
+    
     try {
-        console.log('🚀 [Homepage] Initializing page application...');
+        // Initialize HomeApp (which will auto-init HomeHandlers)
+        if (window.HomeApp) {
+            const app = new window.HomeApp();
+            await app.initialize();
+        }
         
-        // Step 1: Initialize HomeState
-        const homeState = new HomeState();
-        await homeState.initialize();
-        window.HomeState = homeState; // Temporary backwards compat
-        
-        // Step 2: Initialize HomeHandlers  
-        const homeHandlers = new HomeHandlers();
-        await homeHandlers.initialize();
-        window.HomeHandlers = homeHandlers; // Temporary backwards compat
-        
-        // Step 3: Initialize HomeApp
-        const homeApp = new HomeApp();
-        await homeApp.initialize();
-        window.HomeApp = homeApp; // Temporary backwards compat
-        
-        console.log('✅ [Homepage] Application ready!');
-        
-        // Optional: Dispatch ready event
-        window.dispatchEvent(new CustomEvent('homepage:ready', {
-            detail: { homeState, homeHandlers, homeApp }
-        }));
-        
+        console.log('✅ [Homepage] Ready!');
     } catch (error) {
-        console.error('❌ [Homepage] Initialization failed:', error);
-        
-        // Show user-friendly error
-        document.body.innerHTML = `
-            <div style="padding: 2rem; text-align: center; font-family: system-ui;">
-                <h1 style="color: #dc2626;">⚠️ Unable to load page</h1>
-                <p style="color: #6b7280;">Please refresh the page or contact support if the issue persists.</p>
-                <pre style="background: #f3f4f6; padding: 1rem; border-radius: 0.5rem; text-align: left; overflow: auto;">
-${error.stack}
-                </pre>
-            </div>
-        `;
+        console.error('❌ [Homepage] Init failed:', error);
     }
-}
-
-// =============================================================================
-// PHASE 4: START INITIALIZATION
-// =============================================================================
-initializeHomepage();
+});
