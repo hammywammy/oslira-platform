@@ -676,6 +676,8 @@ class UserService {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
+// ES6 Module Export
+export default UserService;
 window.OsliraUserService = UserService;
 
 console.log('✅ [UserService] Class loaded and ready');
