@@ -1,7 +1,7 @@
 module.exports = {
   content: [
-    "./public/**/*.html",
-    "./public/**/*.js"
+    "./src/**/*.html",
+    "./src/**/*.js"
     // REMOVED: "./src/**/*.css" - no longer scanning CSS files for @apply
     // Page-specific CSS files will be written in pure CSS with BEM naming
   ],
