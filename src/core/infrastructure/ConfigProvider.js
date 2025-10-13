@@ -518,12 +518,10 @@ return true;
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraConfigProvider = ConfigProvider;
+// Export for ES6 modules
+export default ConfigProvider;
 
-// Create singleton instance (initialize later via container)
-window.OsliraConfig = new ConfigProvider();
-
-console.log('✅ [ConfigProvider] Class loaded, awaiting initialization');
-
-// Note: ConfigProvider registers itself AFTER initialization completes
-// Registration happens in Bootstrap.js after calling initialize()
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.ConfigProvider = ConfigProvider;
+}
