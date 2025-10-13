@@ -8,9 +8,9 @@
 # STAGING SUBDOMAIN: staging-app.oslira.com - Main Application (Staging)
 # =============================================================================
 
-# Primary dashboard route
-https://staging-app.oslira.com/                    /pages/app/dashboard/index.html      200
-https://staging-app.oslira.com/dashboard           /pages/app/dashboard/index.html      200
+https://app.oslira.com/                    /pages/dashboard/index.html          200
+https://app.oslira.com/dashboard           /pages/dashboard/index.html          200
+https://app.oslira.com/dashboard/*         /pages/dashboard/index.html          200
 
 # Admin routes
 https://staging-app.oslira.com/admin               /pages/app/admin/index.html          200
