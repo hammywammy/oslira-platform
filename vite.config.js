@@ -5,8 +5,8 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
-  root: '.', 
-  publicDir: 'public',
+  root: './src/pages/app/dashboard', // ✅ Set root to dashboard directory
+  publicDir: path.resolve(__dirname, './public'), // ✅ Absolute path to public dir
   
   build: {
     outDir: 'dist',
