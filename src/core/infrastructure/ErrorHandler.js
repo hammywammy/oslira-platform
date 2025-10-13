@@ -535,9 +535,10 @@ if (window.Oslira?.init) {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraErrorHandler = new ErrorHandler();
+// Export for ES6 modules
+export default ErrorHandler;
 
-// Auto-initialize (depends on Logger which auto-inits)
-setTimeout(() => {
-    window.OsliraErrorHandler.initialize().catch(console.error);
-}, 100);
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.ErrorHandler = ErrorHandler;
+}
