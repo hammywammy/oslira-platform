@@ -328,9 +328,10 @@ class EventTypes {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraEventTypes = EventTypes;
+// Export for ES6 modules
+export default EventTypes;
 
-// Create singleton instance
-window.Events = new EventTypes();
-
-console.log('✅ [EventTypes] Loaded with', window.Events.getAllEvents().length, 'event types');
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.EventTypes = EventTypes;
+}
