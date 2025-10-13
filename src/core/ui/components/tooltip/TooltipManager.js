@@ -274,5 +274,6 @@ show(target) {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-
+// ES6 Module Export
+export default TooltipManager;
 window.OsliraTooltip = new TooltipManager();
