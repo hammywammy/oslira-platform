@@ -598,9 +598,11 @@ class StatsCalculator {
     }
 }
 
-// Export for global use
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { StatsCalculator };
-} else {
+export default StatsCalculator;
+
+// Also expose on window for backwards compatibility
+if (typeof window !== 'undefined') {
     window.StatsCalculator = StatsCalculator;
 }
+
+console.log('✅ [StatsCalculator] Module loaded and ready');
