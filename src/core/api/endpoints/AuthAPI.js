@@ -522,9 +522,9 @@ class AuthAPI {
 // GLOBAL EXPORT
 // =============================================================================
 // Export for ES6 modules
-export default OsliraAuthAPI;
+export default AuthAPI;
 
 // Also keep window global for backwards compatibility
 if (typeof window !== 'undefined') {
-    window.OsliraAuthAPI = OsliraAuthAPI;
+    window.OsliraAuthAPI = AuthAPI;
 }
