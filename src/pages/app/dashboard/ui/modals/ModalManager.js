@@ -976,11 +976,10 @@ class ModalManager {
     }
 }
 
-// Export for global use
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { ModalManager };
-} else {
+// Export for ES6 modules
+export default ModalManager;
+
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
     window.ModalManager = ModalManager;
 }
-
-console.log('🚀 [ModalManager] Migrated version loaded successfully');
