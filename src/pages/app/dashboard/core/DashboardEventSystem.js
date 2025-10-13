@@ -548,6 +548,8 @@ class DashboardEventSystem {
     }
 }
 
+// ES6 Module Export
+export default DashboardApp;
 // Export
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { DashboardEventSystem };
