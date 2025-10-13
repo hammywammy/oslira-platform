@@ -489,6 +489,10 @@ class TokenRefresher {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraTokenRefresher = TokenRefresher;
+// Export for ES6 modules
+export default TokenRefresher;
 
-console.log('✅ [TokenRefresher] Class loaded and ready');
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.TokenRefresher = TokenRefresher;
+}
