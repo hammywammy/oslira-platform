@@ -209,7 +209,7 @@ class LeadService {
         try {
             const date = new Date(dateString);
             const now = new Date();
-            const diffMs = Math.max(0, now - date); // Prevent negative
+            const diffMs = Math.max(0, now - date);
             const diffMinutes = Math.floor(diffMs / (1000 * 60));
             const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
             const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -235,21 +235,26 @@ class LeadService {
             
             return { date: dateFormatted, time: timeFormatted };
         } catch (error) {
-            console.warn('⚠️ [LeadRenderer] Date formatting error:', error);
+            console.warn('⚠️ [LeadService] Date formatting error:', error);
             return { date: 'Invalid date', time: '' };
         }
     }
     
-    getFormattedDate(dateString) {
+    getFormattedDate(dateString, dateFormatCache) {
         if (!dateString) return { date: 'Unknown', time: '' };
         
-        // Check cache first
-        if (this.dateFormatCache.has(dateString)) {
-            return this.dateFormatCache.get(dateString);
+        // Check cache first (cache passed as parameter)
+        if (dateFormatCache && dateFormatCache.has(dateString)) {
+            return dateFormatCache.get(dateString);
         }
         
         const formatted = this.formatDateProfessional(dateString);
-        this.dateFormatCache.set(dateString, formatted);
+        
+        // Store in cache if provided
+        if (dateFormatCache) {
+            dateFormatCache.set(dateString, formatted);
+        }
+        
         return formatted;
     }
 }
