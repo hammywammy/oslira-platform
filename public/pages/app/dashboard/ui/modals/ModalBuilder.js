@@ -332,10 +332,77 @@ window.startDeepAnalysis = function(username) {
 };
 
 // Export
+// =============================================================================
+// GLOBAL EXPORT
+// =============================================================================
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ModalBuilder;
 } else {
     window.ModalBuilder = ModalBuilder;
 }
 
-console.log('🏗️ [ModalBuilder] Migrated version loaded successfully');
+// =============================================================================
+// GLOBAL HANDLERS (for onclick attributes)
+// =============================================================================
+
+/**
+ * Global handler for loading lead analysis data
+ * Called from onclick attributes in HTML
+ */
+window.loadLeadAnalysisData = async (leadId, container) => {
+    try {
+        console.log('📊 [Global] Loading analysis for:', leadId);
+        
+        // Get or create ModalBuilder instance
+        if (!window.modalBuilderInstance) {
+            window.modalBuilderInstance = new window.ModalBuilder();
+        }
+        
+        const modalBuilder = window.modalBuilderInstance;
+        
+        // Show loading state
+        container.innerHTML = `
+            <div class="flex items-center justify-center p-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            </div>
+        `;
+        container.style.opacity = '1';
+        
+        // Prepare lead data (uses LeadService internally)
+        const preparedData = await modalBuilder.prepareLeadData(leadId);
+        
+        // Build modal HTML
+        const modalHTML = modalBuilder.buildAnalysisModal(
+            preparedData.lead,
+            preparedData
+        );
+        
+        // Render
+        container.innerHTML = modalHTML;
+        container.style.opacity = '1';
+        
+        console.log('✅ [Global] Analysis loaded successfully');
+        
+    } catch (error) {
+        console.error('❌ [Global] Failed to load analysis:', error);
+        
+        // Show error state
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center p-12 text-center">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Error Loading Analysis</h3>
+                <p class="text-gray-600 mb-4">${error.message}</p>
+                <button onclick="window.loadLeadAnalysisData('${leadId}', this.closest('.modal-content'))" 
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                    Try Again
+                </button>
+            </div>
+        `;
+    }
+};
+
+console.log('🏗️ [ModalBuilder] Loaded with global handlers');
