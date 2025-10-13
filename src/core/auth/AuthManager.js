@@ -1346,11 +1346,10 @@ async navigateToApp(path = '/dashboard') {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
+// Export for ES6 modules
+export default AuthManager;
 
-// Create singleton instance (DO NOT initialize yet)
-window.OsliraAuth = new AuthManager();
-
-console.log('✅ [AuthManager] Class loaded, awaiting initialization');
-
-// NOTE: AuthManager follows Pattern B (Manual-Init)
-// Registration happens inside the initialize() method
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.AuthManager = AuthManager;
+}
