@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Oslira</title>
+    <meta name="description" content="Get in touch with Oslira - Choose the right team for your inquiry">
+    <meta name="keywords" content="contact Oslira, support, sales, legal, security, bug report">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Contact Us - Oslira">
+    <meta property="og:description" content="Get in touch with Oslira - Choose the right team for your inquiry">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://oslira.com/footer/contact">
+    
+    <link rel="preload" href="/assets/images/oslira-logo.png" as="image">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
+    
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="/assets/css/tailwind.css">
+
+    <!-- Script loader initialization -->
+    <script src="/core/script-loader.js"></script>
+</head>
+<body>
+    <!-- Header Container -->
+    <div id="header-container"></div>
+
+    <!-- Hero Section -->
+    <section class="contact-hero">
+        <div class="contact-container">
+            <h1 class="contact-hero-title">How Can We Help You?</h1>
+            <p class="contact-hero-subtitle">Choose the team that best fits your needs and we'll get back to you as soon as possible</p>
+        </div>
+    </section>
+
+    <!-- Contact Options Grid -->
+    <section class="contact-section">
+        <div class="contact-container">
+            <div class="contact-cards-grid">
+                
+                <!-- Contact Legal Card -->
+                <div class="contact-card">
+                    <span class="contact-card-icon">⚖️</span>
+                    <h2 class="contact-card-title">Contact Legal</h2>
+                    <p class="contact-card-description">Privacy concerns, GDPR requests, compliance questions, and legal inquiries</p>
+                    <a href="/footer/contact/legal" class="contact-card-button">
+                        Contact Legal Team
+                        <span class="contact-card-button-arrow">→</span>
+                    </a>
+                    <span class="contact-response-badge">⏱️ Response within 48 hours</span>
+                </div>
+
+                <!-- Contact Security Card -->
+                <div class="contact-card">
+                    <span class="contact-card-icon">🔒</span>
+                    <h2 class="contact-card-title">Contact Security</h2>
+                    <p class="contact-card-description">Report vulnerabilities, security inquiries, penetration testing coordination</p>
+                    <a href="/footer/contact/security" class="contact-card-button">
+                        Contact Security Team
+                        <span class="contact-card-button-arrow">→</span>
+                    </a>
+                    <span class="contact-response-badge">🚨 Critical: 1 hour response</span>
+                </div>
+
+                <!-- Contact Support Card -->
+                <div class="contact-card">
+                    <span class="contact-card-icon">🎧</span>
+                    <h2 class="contact-card-title">Contact Support</h2>
+                    <p class="contact-card-description">Account help, billing questions, technical assistance, and general support</p>
+                    <a href="/footer/contact/support" class="contact-card-button">
+                        Contact Support Team
+                        <span class="contact-card-button-arrow">→</span>
+                    </a>
+                    <span class="contact-response-badge">⏱️ Response within 24 hours</span>
+                </div>
+
+                <!-- Report Bug Card -->
+                <div class="contact-card">
+                    <span class="contact-card-icon">🐛</span>
+                    <h2 class="contact-card-title">Report a Bug</h2>
+                    <p class="contact-card-description">Found something broken? Help us improve Oslira by reporting issues</p>
+                    <a href="/footer/contact/bug-report" class="contact-card-button">
+                        Report Bug
+                        <span class="contact-card-button-arrow">→</span>
+                    </a>
+                    <span class="contact-response-badge">🔧 Acknowledged within 12 hours</span>
+                </div>
+
+                <!-- Contact Sales Card -->
+                <div class="contact-card">
+                    <span class="contact-card-icon">💼</span>
+                    <h2 class="contact-card-title">Contact Sales</h2>
+                    <p class="contact-card-description">Enterprise plans, volume pricing, partnerships, and custom solutions</p>
+                    <a href="/footer/contact/sales" class="contact-card-button">
+                        Contact Sales Team
+                        <span class="contact-card-button-arrow">→</span>
+                    </a>
+                    <span class="contact-response-badge">⏱️ Response within 4 hours</span>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Manager Initialization -->
+    <script>
+        let footerInitialized = false;
+        
+        window.addEventListener('oslira:scripts:loaded', async () => {
+            // Initialize header first
+            try {
+                await initializeHeader();
+            } catch (error) {
+                console.error('❌ [Contact] Header initialization failed:', error);
+            }
+
+            if (footerInitialized) {
+                console.log('🔄 [Contact] Footer already initialized, skipping...');
+                return;
+            }
+            
+            console.log('🚀 [Contact] Scripts loaded event received, initializing footer...');
+            try {
+                footerInitialized = true;
+                await initializeFooter();
+            } catch (error) {
+                console.error('❌ [Contact] Footer initialization failed:', error);
+                footerInitialized = false;
+            }
+        });
+
+        async function initializeHeader() {
+            try {
+                if (document.querySelector('.home-nav')) {
+                    console.log('🔄 [Contact] Header already exists, skipping initialization...');
+                    return;
+                }
+                
+                console.log('🧭 [Contact] Starting header initialization...');
+                
+                let container = document.getElementById('header-container');
+                if (!container) {
+                    console.log('🔧 [Contact] Creating header-container element');
+                    container = document.createElement('div');
+                    container.id = 'header-container';
+                    document.body.insertBefore(container, document.body.firstChild);
+                }
+                
+                console.log('🔍 [Contact] Waiting for HeaderManager...');
+                for (let i = 0; i < 50; i++) {
+                    if (window.HeaderManager) {
+                        console.log('✅ [Contact] HeaderManager found');
+                        break;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                if (!window.HeaderManager) {
+                    throw new Error('HeaderManager not available after waiting');
+                }
+                
+                console.log('🧭 [Contact] Creating HeaderManager instance...');
+                const headerManager = new window.HeaderManager();
+                
+                console.log('🧭 [Contact] Rendering header...');
+                headerManager.render('header-container', {
+                    type: 'footer-pages'
+                });
+                
+                console.log('✅ [Contact] Header initialization complete');
+            } catch (error) {
+                console.error('❌ [Contact] Header initialization failed:', error);
+            }
+        }
+        
+        async function initializeFooter() {
+            try {
+                if (document.querySelector('.new-footer-main')) {
+                    console.log('🔄 [Contact] Footer already exists, skipping initialization...');
+                    return;
+                }
+                
+                console.log('🦶 [Contact] Starting footer initialization...');
+                
+                let container = document.getElementById('footer-container');
+                if (!container) {
+                    console.log('🔧 [Contact] Creating footer-container element');
+                    container = document.createElement('div');
+                    container.id = 'footer-container';
+                    document.body.appendChild(container);
+                }
+                
+                console.log('🔍 [Contact] Waiting for FooterManager...');
+                for (let i = 0; i < 50; i++) {
+                    if (window.FooterManager) {
+                        console.log('✅ [Contact] FooterManager found');
+                        break;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                if (!window.FooterManager) {
+                    throw new Error('FooterManager not available after waiting');
+                }
+                
+                console.log('🦶 [Contact] Creating FooterManager instance...');
+                const footerManager = new window.FooterManager();
+                
+                console.log('🦶 [Contact] Rendering footer...');
+                footerManager.render('footer-container');
+                
+                console.log('✅ [Contact] Footer initialization complete');
+            } catch (error) {
+                console.error('❌ [Contact] Footer initialization failed:', error);
+            }
+        }
+    </script>
+
+    <!-- Footer Container -->
+    <div id="footer-container"></div>
+</body>
+</html>

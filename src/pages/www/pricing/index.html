@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - Oslira</title>
+        <link rel="stylesheet" href="/assets/css/tailwind.css">
+    
+    <!-- Script loader initialization -->
+    <script src="/core/script-loader.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #F5F9FF;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(45, 108, 223, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2D6CDF;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #6B7280;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #2D6CDF;
+        }
+
+        .nav-links a.active {
+            color: #2D6CDF;
+        }
+
+        .cta-button {
+            background: linear-gradient(135deg, #2D6CDF, #8A6DF1);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 4rem 0;
+            background: linear-gradient(135deg, #F5F9FF 0%, #E8F3FF 100%);
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #121417;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #2D6CDF, #8A6DF1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #6B7280;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .pricing-section {
+            padding: 4rem 0;
+            background: white;
+            margin: 2rem 0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(45, 108, 223, 0.1);
+        }
+
+        .pricing-intro {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .pricing-intro h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #121417;
+            margin-bottom: 1rem;
+        }
+
+        .pricing-intro p {
+            font-size: 1.1rem;
+            color: #6B7280;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .pricing-card {
+            background: #F5F9FF;
+            border-radius: 16px;
+            padding: 2.5rem;
+            text-align: center;
+            border: 2px solid #E5E7EB;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(45, 108, 223, 0.15);
+            border-color: #2D6CDF;
+        }
+
+        .pricing-card.popular {
+            border-color: #2D6CDF;
+            background: linear-gradient(135deg, #F5F9FF, #E8F3FF);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #2D6CDF, #8A6DF1);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #121417;
+            margin-bottom: 1rem;
+        }
+
+        .plan-price {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #2D6CDF;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-credits {
+            color: #6B7280;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-per-credit {
+            color: #8A6DF1;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .savings-badge {
+            background: #10B981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #4A5568;
+        }
+
+        .feature-check {
+            color: #10B981;
+            font-weight: bold;
+        }
+
+        .plan-button {
+            background: #2D6CDF;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .plan-button:hover {
+            background: #1E4A8C;
+            transform: translateY(-2px);
+        }
+
+        .plan-button.processing {
+            background: #6B7280;
+            cursor: not-allowed;
+        }
+
+        .value-proposition {
+            background: linear-gradient(135deg, #2D6CDF, #8A6DF1);
+            color: white;
+            padding: 4rem 0;
+            margin: 3rem 0;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .value-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .value-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 3rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .value-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .value-feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .value-feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .value-feature-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .value-feature-description {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .comparison-section {
+            background: white;
+            padding: 4rem 0;
+            margin: 2rem 0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(45, 108, 223, 0.1);
+        }
+
+        .comparison-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #121417;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+
+        .comparison-table th {
+            background: #F5F9FF;
+            padding: 1rem;
+            font-weight: 700;
+            color: #121417;
+            border: 1px solid #E5E7EB;
+        }
+
+        .comparison-table td {
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid #E5E7EB;
+            color: #4A5568;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #F9FAFB;
+        }
+
+        .check-mark {
+            color: #10B981;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .cross-mark {
+            color: #EF4444;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .faq-section {
+            background: white;
+            padding: 4rem 0;
+            margin: 2rem 0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(45, 108, 223, 0.1);
+        }
+
+        .faq-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #121417;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .faq-item {
+            margin-bottom: 1.5rem;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            background: #F5F9FF;
+            padding: 1.5rem;
+            font-weight: 600;
+            color: #121417;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .faq-answer {
+            padding: 1.5rem;
+            color: #4A5568;
+            line-height: 1.6;
+        }
+
+        .contact-section {
+            background: white;
+            padding: 4rem 0;
+            margin: 2rem 0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(45, 108, 223, 0.1);
+            text-align: center;
+        }
+
+        .contact-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #121417;
+            margin-bottom: 1rem;
+        }
+
+        .contact-description {
+            font-size: 1.1rem;
+            color: #6B7280;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .contact-cta {
+            background: linear-gradient(135deg, #2D6CDF, #8A6DF1);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            transition: transform 0.2s;
+            margin-right: 1rem;
+        }
+
+        .contact-cta:hover {
+            transform: translateY(-2px);
+        }
+
+        .contact-cta.secondary {
+            background: transparent;
+            color: #2D6CDF;
+            border: 2px solid #2D6CDF;
+        }
+
+        .contact-cta.secondary:hover {
+            background: #2D6CDF;
+            color: white;
+        }
+
+        /* Footer */
+        .footer {
+            background: #121417;
+            color: white;
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #2D6CDF;
+        }
+
+        .footer-section a {
+            color: #9CA3AF;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #374151;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            text-align: center;
+            color: #9CA3AF;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .pricing-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .value-features {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-table {
+                font-size: 0.9rem;
+            }
+
+            .contact-cta {
+                display: block;
+                margin: 0.5rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="header-container"></div>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Choose Your Plan</h1>
+            <p class="hero-subtitle">Monthly subscriptions with included credits and the flexibility to purchase additional credits as needed. Scale your AI analysis capabilities with predictable pricing.</p>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section">
+        <div class="container">
+            <div class="pricing-intro">
+                <h2>Transparent Credit-Based Pricing</h2>
+                <p>Our credit system ensures you only pay for what you use. Each deep analysis consumes one credit, with bulk packages offering significant savings for growing teams.</p>
+            </div>
+
+            <div class="pricing-cards">
+                <div class="pricing-card">
+                    <div class="plan-name">Starter</div>
+                    <div class="plan-price">$29<span style="font-size: 1rem; color: #6B7280;">/month</span></div>
+                    <div class="plan-credits">40 credits included monthly</div>
+                    <div class="price-per-credit">+ $0.98 per additional credit</div>
+                    <div class="savings-badge" style="visibility: hidden;">Save $0</div>
+                    <ul class="feature-list">
+                        <li><span class="feature-check">✓</span> 40 credits every month</li>
+                        <li><span class="feature-check">✓</span> Basic analytics dashboard</li>
+                        <li><span class="feature-check">✓</span> Email support</li>
+                        <li><span class="feature-check">✓</span> CSV export</li>
+                        <li><span class="feature-check">✓</span> Standard processing speed</li>
+                        <li><span class="feature-check">✓</span> Buy additional credits anytime</li>
+                    </ul>
+                    <a href="/auth.html" class="plan-button processing">🔄 Processing...</a>
+                </div>
+
+                <div class="pricing-card popular">
+                    <div class="popular-badge">MOST POPULAR</div>
+                    <div class="plan-name">Growth</div>
+                    <div class="plan-price">$85<span style="font-size: 1rem; color: #6B7280;">/month</span></div>
+                    <div class="plan-credits">100 credits included monthly</div>
+                    <div class="price-per-credit">+ $0.85 per additional credit</div>
+                    <div class="savings-badge">Save $13/month vs Starter rate</div>
+                    <ul class="feature-list">
+                        <li><span class="feature-check">✓</span> 100 credits every month</li>
+                        <li><span class="feature-check">✓</span> All Starter features</li>
+                        <li><span class="feature-check">✓</span> Priority email support</li>
+                        <li><span class="feature-check">✓</span> Advanced analytics</li>
+                        <li><span class="feature-check">✓</span> API access</li>
+                        <li><span class="feature-check">✓</span> Bulk processing (up to 100)</li>
+                        <li><span class="feature-check">✓</span> Premium processing speed</li>
+                        <li><span class="feature-check">✓</span> Lower rate on additional credits</li>
+                    </ul>
+                    <a href="/auth.html" class="plan-button processing">🔄 Processing...</a>
+                </div>
+
+                <div class="pricing-card">
+                    <div class="plan-name">Professional</div>
+                    <div class="plan-price">$297<span style="font-size: 1rem; color: #6B7280;">/month</span></div>
+                    <div class="plan-credits">500 credits included monthly</div>
+                    <div class="price-per-credit">+ $0.59 per additional credit</div>
+                    <div class="savings-badge">Save $195/month vs Starter rate</div>
+                    <ul class="feature-list">
+                        <li><span class="feature-check">✓</span> 500 credits every month</li>
+                        <li><span class="feature-check">✓</span> All Growth features</li>
+                        <li><span class="feature-check">✓</span> Live chat support</li>
+                        <li><span class="feature-check">✓</span> Custom integrations</li>
+                        <li><span class="feature-check">✓</span> White-label options</li>
+                        <li><span class="feature-check">✓</span> Advanced reporting suite</li>
+                        <li><span class="feature-check">✓</span> Bulk processing (up to 500)</li>
+                        <li><span class="feature-check">✓</span> Priority processing queue</li>
+                        <li><span class="feature-check">✓</span> Lowest rate on additional credits</li>
+                    </ul>
+                    <a href="/auth.html" class="plan-button">Get Started</a>
+                </div>
+
+                <div class="pricing-card">
+                    <div class="plan-name">Enterprise</div>
+                    <div class="plan-price">$997<span style="font-size: 1rem; color: #6B7280;">/month</span></div>
+                    <div class="plan-credits">2,000 credits included monthly</div>
+                    <div class="price-per-credit">+ $0.50 per additional credit</div>
+                    <div class="savings-badge">Save $960/month vs Starter rate</div>
+                    <ul class="feature-list">
+                        <li><span class="feature-check">✓</span> 2,000 credits every month</li>
+                        <li><span class="feature-check">✓</span> All Professional features</li>
+                        <li><span class="feature-check">✓</span> 24/7 phone & chat support</li>
+                        <li><span class="feature-check">✓</span> Dedicated account manager</li>
+                        <li><span class="feature-check">✓</span> Custom AI model training</li>
+                        <li><span class="feature-check">✓</span> SLA guarantees (99.9% uptime)</li>
+                        <li><span class="feature-check">✓</span> Unlimited bulk processing</li>
+                        <li><span class="feature-check">✓</span> Instant processing priority</li>
+                        <li><span class="feature-check">✓</span> On-premise deployment option</li>
+                        <li><span class="feature-check">✓</span> Best rate on additional credits</li>
+                    </ul>
+                    <a href="/auth.html" class="plan-button">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Value Proposition -->
+    <section class="value-proposition">
+        <div class="container">
+            <h2 class="value-title">Why Choose Our Subscription Model?</h2>
+            <p class="value-subtitle">Monthly subscriptions provide consistent access to features and included credits, with the flexibility to purchase additional credits as your needs grow.</p>
+            <div class="value-features">
+                <div class="value-feature">
+                    <div class="value-feature-icon">🔄</div>
+                    <h3 class="value-feature-title">Predictable Billing</h3>
+                    <p class="value-feature-description">Monthly plans with included credits make budgeting easy and predictable.</p>
+                </div>
+                <div class="value-feature">
+                    <div class="value-feature-icon">⚡</div>
+                    <h3 class="value-feature-title">Always-On Features</h3>
+                    <p class="value-feature-description">Premium features like API access and support remain active as long as you're subscribed.</p>
+                </div>
+                <div class="value-feature">
+                    <div class="value-feature-icon">📈</div>
+                    <h3 class="value-feature-title">Flexible Scaling</h3>
+                    <p class="value-feature-description">Buy additional credits anytime at your plan's discounted rate when you need more capacity.</p>
+                </div>
+                <div class="value-feature">
+                    <div class="value-feature-icon">🎯</div>
+                    <h3 class="value-feature-title">Better Value</h3>
+                    <p class="value-feature-description">Higher tiers offer better per-credit rates and more included features for growing teams.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Comparison -->
+    <section class="comparison-section">
+        <div class="container">
+            <h2 class="comparison-title">Feature Comparison</h2>
+            <div style="overflow-x: auto;">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Starter</th>
+                            <th>Growth</th>
+                            <th>Professional</th>
+                            <th>Enterprise</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Monthly Credits Included</strong></td>
+                            <td>40</td>
+                            <td>100</td>
+                            <td>500</td>
+                            <td>2,000</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Additional Credit Rate</strong></td>
+                            <td>$0.98</td>
+                            <td>$0.85</td>
+                            <td>$0.59</td>
+                            <td>$0.50</td>
+                        </tr>
+                        <tr>
+                            <td><strong>API Access</strong></td>
+                            <td><span class="cross-mark">✗</span></td>
+                            <td><span class="check-mark">✓</span></td>
+                            <td><span class="check-mark">✓</span></td>
+                            <td><span class="check-mark">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Bulk Processing</strong></td>
+                            <td><span class="cross-mark">✗</span></td>
+                            <td>Up to 100</td>
+                            <td>Up to 500</td>
+                            <td>Unlimited</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Processing Speed</strong></td>
+                            <td>Standard</td>
+                            <td>Premium</td>
+                            <td>Priority</td>
+                            <td>Instant</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Support Level</strong></td>
+                            <td>Email</td>
+                            <td>Priority Email</td>
+                            <td>Live Chat</td>
+                            <td>24/7 Phone & Chat</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Custom Integrations</strong></td>
+                            <td><span class="cross-mark">✗</span></td>
+                            <td><span class="cross-mark">✗</span></td>
+                            <td><span class="check-mark">✓</span></td>
+                            <td><span class="check-mark">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>White-label Options</strong></td>
+                            <td><span class="cross-mark">✗</span></td>
+                            <td><span class="cross-mark">✗</span></td>
+                            <td><span class="check-mark">✓</span></td>
+                            <td><span class="check-mark">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Dedicated Account Manager</strong></td>
+                            <td><span class="cross-mark">✗</span></td>
+                            <td><span class="cross-mark">✗</span></td>
+                            <td><span class="cross-mark">✗</span></td>
+                            <td><span class="check-mark">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>SLA Guarantees</strong></td>
+                            <td><span class="cross-mark">✗</span></td>
+                            <td><span class="cross-mark">✗</span></td>
+                            <td><span class="cross-mark">✗</span></td>
+                            <td>99.9% uptime</td>
+                        </tr>
+                        <tr>
+                            <td><strong>On-premise Deployment</strong></td>
+                            <td><span class="cross-mark">✗</span></td>
+                            <td><span class="cross-mark">✗</span></td>
+                            <td><span class="cross-mark">✗</span></td>
+                            <td><span class="check-mark">✓</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+        <div class="container">
+            <h2 class="faq-title">Frequently Asked Questions</h2>
+            <div class="faq-item">
+                <div class="faq-question">
+                    How does the subscription + credits model work?
+                    <span>+</span>
+                </div>
+                <div class="faq-answer">
+                    Each monthly subscription includes a set number of credits that refresh every month. You can purchase additional credits at your plan's discounted rate anytime. Features like API access, support, and processing speeds remain active as long as your subscription is current.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    What happens to unused credits at the end of the month?
+                    <span>+</span>
+                </div>
+                <div class="faq-answer">
+                    Unused monthly credits roll over for up to 3 months, giving you flexibility for varying usage patterns. After 3 months, unused credits expire to keep the system fair and sustainable.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    Can I upgrade or downgrade my subscription?
+                    <span>+</span>
+                </div>
+                <div class="faq-answer">
+                    Yes, you can change your subscription tier anytime. Upgrades take effect immediately with prorated billing. Downgrades take effect at your next billing cycle to ensure you get full value from your current plan.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    What happens if I cancel my subscription?
+                    <span>+</span>
+                </div>
+                <div class="faq-answer">
+                    You'll retain access to all features until the end of your current billing period. Any remaining credits will be available for 90 days after cancellation, giving you time to use them or resubscribe.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    What's included in a "deep analysis"?
+                    <span>+</span>
+                </div>
+                <div class="faq-answer">
+                    A deep analysis includes comprehensive AI-powered insights, data processing, visualization generation, and detailed reporting. Each analysis provides actionable intelligence from your data.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    Is there a free trial available?
+                    <span>+</span>
+                </div>
+                <div class="faq-answer">
+                    Yes, we offer a 14-day free trial of any plan with full access to features and included credits. No credit card required to start your trial.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    What payment methods do you accept?
+                    <span>+</span>
+                </div>
+                <div class="faq-answer">
+                    We accept all major credit cards, PayPal, and enterprise invoicing for larger packages. All transactions are secured with enterprise-grade encryption.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <div class="container">
+            <h2 class="contact-title">Need a Custom Solution?</h2>
+            <p class="contact-description">Looking for volume discounts, custom integrations, or enterprise features? Our team is here to help you find the perfect solution for your organization.</p>
+            <a href="/contact.html" class="contact-cta">Contact Sales</a>
+            <a href="/help.html" class="contact-cta secondary">View Documentation</a>
+        </div>
+    </section>
+<!-- Footer Manager Initialization -->
+    <script>
+        let footerInitialized = false;
+        
+window.addEventListener('oslira:scripts:loaded', async () => {
+    // Initialize header first
+    try {
+        await initializeHeader();
+    } catch (error) {
+        console.error('❌ [PageName] Header initialization failed:', error);
+    }
+            if (footerInitialized) {
+                console.log('🔄 [Pricing] Footer already initialized, skipping...');
+                return;
+            }
+            
+            console.log('🚀 [Pricing] Scripts loaded event received, initializing footer...');
+            try {
+                footerInitialized = true;
+                await initializeFooter();
+            } catch (error) {
+                console.error('❌ [Pricing] Footer initialization failed:', error);
+                footerInitialized = false;
+            }
+        });
+
+        async function initializeHeader() {
+    try {
+        if (document.querySelector('.home-nav')) {
+            console.log('🔄 [PageName] Header already exists, skipping initialization...');
+            return;
+        }
+        
+        console.log('🧭 [PageName] Starting header initialization...');
+        
+        let container = document.getElementById('header-container');
+        if (!container) {
+            console.log('🔧 [PageName] Creating header-container element');
+            container = document.createElement('div');
+            container.id = 'header-container';
+            document.body.insertBefore(container, document.body.firstChild);
+        }
+        
+        // Wait for HeaderManager to be available
+        console.log('🔍 [PageName] Waiting for HeaderManager...');
+        for (let i = 0; i < 50; i++) {
+            if (window.HeaderManager) {
+                console.log('✅ [PageName] HeaderManager found');
+                break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        if (!window.HeaderManager) {
+            throw new Error('HeaderManager not available after waiting');
+        }
+        
+        // Initialize header for footer pages
+        console.log('🧭 [PageName] Creating HeaderManager instance...');
+        const headerManager = new window.HeaderManager();
+        
+        console.log('🧭 [PageName] Rendering header...');
+        headerManager.render('header-container', {
+            type: 'footer-pages'
+        });
+        
+        console.log('✅ [PageName] Header initialization complete');
+    } catch (error) {
+        console.error('❌ [PageName] Header initialization failed:', error);
+    }
+}
+        async function initializeFooter() {
+            try {
+                // Check if footer already exists
+                if (document.querySelector('.new-footer-main')) {
+                    console.log('🔄 [Pricing] Footer already exists, skipping initialization...');
+                    return;
+                }
+                
+                console.log('🦶 [Pricing] Starting footer initialization...');
+                
+                // Check if container exists
+                let container = document.getElementById('footer-container');
+                if (!container) {
+                    console.log('🔧 [Pricing] Creating footer-container element');
+                    container = document.createElement('div');
+                    container.id = 'footer-container';
+                    document.body.appendChild(container);
+                }
+                
+                // Wait for FooterManager to be available
+                console.log('🔍 [Pricing] Waiting for FooterManager...');
+                for (let i = 0; i < 50; i++) {
+                    if (window.FooterManager) {
+                        console.log('✅ [Pricing] FooterManager found');
+                        break;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                if (!window.FooterManager) {
+                    throw new Error('FooterManager not available after waiting');
+                }
+                
+                // Initialize footer
+                console.log('🦶 [Pricing] Creating FooterManager instance...');
+                const footerManager = new window.FooterManager();
+                
+                console.log('🦶 [Pricing] Rendering footer...');
+                footerManager.render('footer-container');
+                
+                console.log('✅ [Pricing] Footer initialization complete');
+            } catch (error) {
+                console.error('❌ [Pricing] Footer initialization failed:', error);
+            }
+        }
+    </script>
+    <!-- Footer Container -->
+<div id="footer-container"></div>
+</body>
+</html>

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- 
+═══════════════════════════════════════════════════════════════════
+HOME PAGE - OSLIRA BOOTSTRAP ARCHITECTURE
+Path: /public/pages/www/index.html
+Version: 2.1 - BEM Migration Complete + FULL SECTIONS
+═══════════════════════════════════════════════════════════════════
+-->
+
+<!-- Skip to main content (accessibility) -->
+<a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oslira - Turn Hours of Instagram Prospecting into Minutes</title>
+    <meta name="description" content="Paste an Instagram link and Oslira grades the profile, gives you a clear debrief, crafts personalized outreach, and suggests your next leads. Get 25 free credits — no card required.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
+    <link rel="shortcut icon" type="image/png" href="/assets/images/oslira-logo.png">
+
+    <!-- 1. Tailwind CSS (utilities) -->
+    <link rel="stylesheet" href="/assets/css/tailwind.css">
+    
+    <!-- 2. HOME PAGE BEM STYLES -->
+    <link rel="stylesheet" href="/pages/www/home.css">
+
+    <!-- 3. External Dependencies (must load before app initialization) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+
+    <!-- 4. Critical inline styles -->
+    <style>
+        /* Accessibility: Skip to main content link */
+        .skip-to-main {
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        .skip-to-main:focus {
+            position: fixed;
+            left: 1rem;
+            top: 1rem;
+            width: auto;
+            height: auto;
+            z-index: 9999;
+            background: #2563eb;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            text-decoration: none;
+        }
+        
+        /* Prevent FOUC */
+        body { 
+            visibility: visible; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Hero demo float animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .hero-demo-preview {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+    
+    <!-- 5. Bootstrap System -->
+    <script src="/core/init/Loader.js" data-page="home"></script>
+</head>
+
+<body class="home">
+
+    <!-- ═══════════════════════════════════════════════════════════
+         NAVIGATION - BEM CLASSES
+         ═══════════════════════════════════════════════════════════ -->
+    <nav class="home__nav">
+        <div class="home__nav-container">
+            <a href="/" class="home__logo">
+                <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" class="home__logo-image">
+                <span>Oslira</span>
+            </a>
+            
+            <div class="home__nav-menu">
+                <a href="/about" class="home__nav-link">About</a>
+                <a href="/pricing" class="home__nav-link">Pricing</a>
+                <a href="/security" class="home__nav-link">Security</a>
+                <a href="/help" class="home__nav-link">Help</a>
+                <a href="https://app.oslira.com" class="home__nav-link home__nav-link--login">Login</a>
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="Toggle menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200">
+            <div class="px-6 py-4 space-y-3">
+                <a href="/about" class="block text-gray-600 hover:text-blue-600 py-2">About</a>
+                <a href="/pricing" class="block text-gray-600 hover:text-blue-600 py-2">Pricing</a>
+                <a href="/security" class="block text-gray-600 hover:text-blue-600 py-2">Security</a>
+                <a href="/help" class="block text-gray-600 hover:text-blue-600 py-2">Help</a>
+                <a href="#" data-nav="auth" class="block text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-semibold py-3 px-4 rounded-lg text-center">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Urgency Banner -->
+    <div class="home__urgency-banner">
+        <div class="max-w-6xl mx-auto px-6 py-3 text-center">
+            <p class="text-sm text-blue-900">
+                🔔 <strong>Limited Beta Offer:</strong> 25 free credits for copywriters who join by Dec 30th
+                <button class="home__urgency-close ml-4 text-blue-700 hover:text-blue-900">×</button>
+            </p>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         MAIN CONTENT
+         ═══════════════════════════════════════════════════════════ -->
+    <main id="main-content">
+        
+        <!-- Hero Section -->
+        <section class="home__hero">
+            <div class="home__hero-container">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    
+                    <!-- Left Column: Copy & CTA -->
+                    <div class="text-left md:text-left">
+                        <h1 class="home__hero-title">
+                            Turn Hours of Instagram 
+                            <span class="home__hero-title-gradient">Prospecting into Minutes</span>
+                        </h1>
+                        
+                        <p class="home__hero-subtitle">
+                            Paste an Instagram link and Oslira grades the profile, gives you a clear debrief, crafts personalized outreach, and suggests your next leads. Get 25 free credits — no card required.
+                        </p>
+
+                        <!-- Demo Container -->
+                        <div class="home__hero-demo-container">
+                            <p class="home__demo-intro-text">Try the AI analysis below:</p>
+                            
+                            <!-- Demo Input (IDs match HomeApp.js) -->
+                            <div class="home__demo-input-container">
+                                <input 
+                                    type="text" 
+                                    id="demo-handle-input"
+                                    placeholder="@instagram_handle"
+                                    class="home__demo-input"
+                                    aria-label="Instagram handle"
+                                >
+                                <button id="demo-analyze-btn" class="home__demo-analyze-btn" type="button">
+                                    <span class="demo-btn-text">Quick Analysis</span>
+                                    <span class="demo-btn-loading hidden">
+                                        <svg class="animate-spin h-4 w-4 mr-2 inline-block" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Analyzing...
+                                    </span>
+                                </button>
+                            </div>
+                            
+                            <!-- Demo Results Container (populated by HomeApp) -->
+                            <div id="demo-results" class="home__demo-results hidden" style="margin-top: 1.5rem;">
+                                <!-- HomeApp will inject results here dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Primary CTA -->
+                        <div class="home__hero-cta-container">
+                            <button class="home__cta-button home__cta-button--primary primary-cta-main">
+                                Get 25 Free Credits Now
+                            </button>
+                            <p class="home__cta-subtext">
+                                No credit card needed • 2-minute setup
+                            </p>
+                        </div>
+
+                        <!-- Social Proof Numbers -->
+                        <div class="home__hero-stats">
+                            <div class="home__hero-stat">
+                                <div class="home__hero-stat-number">1,200+</div>
+                                <div class="home__hero-stat-label">Copywriters using Oslira</div>
+                            </div>
+                            <div class="home__hero-stat">
+                                <div class="home__hero-stat-number">43%</div>
+                                <div class="home__hero-stat-label">Average response rate</div>
+                            </div>
+                            <div class="home__hero-stat">
+                                <div class="home__hero-stat-number">5 hrs</div>
+                                <div class="home__hero-stat-label">Saved per week</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Visual Demo -->
+                    <div class="home__hero-visual">
+                        <div class="home__hero-demo-preview hero-demo-preview">
+                            <div class="home__demo-browser-frame">
+                                <div class="home__demo-browser-header">
+                                    <div class="home__demo-browser-dots">
+                                        <span></span><span></span><span></span>
+                                    </div>
+                                    <div class="home__demo-browser-url">oslira.com/dashboard</div>
+                                </div>
+                                <div class="home__demo-browser-content">
+                                    <div class="home__demo-dashboard-preview">
+                                        <h3>AI Lead Analysis</h3>
+                                        <div class="home__demo-lead-card">
+                                            <div class="home__demo-lead-info">
+                                                <div class="home__demo-lead-avatar">JD</div>
+                                                <div>
+                                                    <h4>@jane_designer</h4>
+                                                    <p>UI/UX Designer • 8.2K followers</p>
+                                                </div>
+                                                <span class="home__demo-match-score">92% match</span>
+                                            </div>
+                                            <div class="home__demo-insights">
+                                                <span class="home__demo-tag">Needs copy help</span>
+                                                <span class="home__demo-tag">High engagement</span>
+                                                <span class="home__demo-tag">Business owner</span>
+                                            </div>
+                                            <div class="home__demo-outreach">
+                                                <p>"Hi Jane! Your portfolio caught my eye - especially the fintech project..."</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section id="benefits" class="home__benefits">
+            <div class="home__section-container">
+                <h2 class="home__section-title">Why Copywriters Choose Oslira</h2>
+                <p class="home__section-subtitle">
+                    Stop wasting time on manual research. Let AI do the heavy lifting.
+                </p>
+
+                <div class="home__benefits-grid">
+                    <!-- Benefit 1 -->
+                    <div class="home__benefit-card">
+                        <div class="home__benefit-icon">⚡</div>
+                        <h3 class="home__benefit-title">10x Faster Prospecting</h3>
+                        <p class="home__benefit-description">
+                            Analyze 50+ Instagram profiles in the time it used to take for 5. Oslira instantly evaluates engagement, content quality, and business fit.
+                        </p>
+                    </div>
+
+                    <!-- Benefit 2 -->
+                    <div class="home__benefit-card">
+                        <div class="home__benefit-icon">🎯</div>
+                        <h3 class="home__benefit-title">Smart Lead Scoring</h3>
+                        <p class="home__benefit-description">
+                            AI grades each profile and highlights decision-makers who actually need your services. No more guessing who's a good fit.
+                        </p>
+                    </div>
+
+                    <!-- Benefit 3 -->
+                    <div class="home__benefit-card">
+                        <div class="home__benefit-icon">✍️</div>
+                        <h3 class="home__benefit-title">Personalized Outreach</h3>
+                        <p class="home__benefit-description">
+                            Get tailored message templates for each lead. Oslira crafts opening lines based on their recent posts and business needs.
+                        </p>
+                    </div>
+
+                    <!-- Benefit 4 -->
+                    <div class="home__benefit-card">
+                        <div class="home__benefit-icon">🔄</div>
+                        <h3 class="home__benefit-title">Automated Follow-Ups</h3>
+                        <p class="home__benefit-description">
+                            Never lose a warm lead again. Oslira tracks your outreach and reminds you when to follow up for maximum conversion.
+                        </p>
+                    </div>
+
+                    <!-- Benefit 5 -->
+                    <div class="home__benefit-card">
+                        <div class="home__benefit-icon">📊</div>
+                        <h3 class="home__benefit-title">Track What Works</h3>
+                        <p class="home__benefit-description">
+                            See which profiles convert best and refine your targeting. Built-in analytics show you exactly where to focus your efforts.
+                        </p>
+                    </div>
+
+                    <!-- Benefit 6 -->
+                    <div class="home__benefit-card">
+                        <div class="home__benefit-icon">🚀</div>
+                        <h3 class="home__benefit-title">Scale Without Burnout</h3>
+                        <p class="home__benefit-description">
+                            Handle 3x more clients without sacrificing quality. Oslira handles the tedious research so you can focus on high-value work.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="home__how-it-works">
+            <div class="home__section-container">
+                <h2 class="home__section-title">How Oslira Works</h2>
+                <p class="home__section-subtitle">
+                    Three simple steps to transform your prospecting process
+                </p>
+
+                <div class="home__steps-grid">
+                    <!-- Step 1 -->
+                    <div class="home__step-card">
+                        <div class="home__step-number">1</div>
+                        <h3 class="home__step-title">Paste Instagram Link</h3>
+                        <p class="home__step-description">
+                            Drop any Instagram profile URL into Oslira. Our AI instantly analyzes their content, engagement patterns, and business indicators.
+                        </p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="home__step-card">
+                        <div class="home__step-number">2</div>
+                        <h3 class="home__step-title">Get Smart Recommendations</h3>
+                        <p class="home__step-description">
+                            Oslira scores the lead, highlights key insights, and suggests similar high-potential prospects. See exactly who needs your services most.
+                        </p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="home__step-card">
+                        <div class="home__step-number">3</div>
+                        <h3 class="home__step-title">Send Personalized Outreach</h3>
+                        <p class="home__step-description">
+                            Use AI-generated message templates tailored to each lead. Copy, customize, and send - all in under 2 minutes per prospect.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Social Proof Section -->
+        <section id="social-proof" class="home__social-proof">
+            <div class="home__section-container">
+                <h2 class="home__section-title">Success Stories</h2>
+                <p class="home__section-subtitle">
+                    Real results from copywriters using Oslira
+                </p>
+
+                <div class="home__testimonials-grid">
+                    <!-- Testimonial 1 -->
+                    <div class="home__testimonial-card">
+                        <div class="home__testimonial-stars">⭐⭐⭐⭐⭐</div>
+                        <p class="home__testimonial-text">
+                            "Oslira cut my prospecting time from 10 hours to under 2 hours per week. I'm landing 3x more clients with half the effort."
+                        </p>
+                        <div class="home__testimonial-author">
+                            <div class="home__author-avatar">MJ</div>
+                            <div>
+                                <div class="home__author-name">Marcus Johnson</div>
+                                <div class="home__author-title">Freelance Copywriter</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Testimonial 2 -->
+                    <div class="home__testimonial-card">
+                        <div class="home__testimonial-stars">⭐⭐⭐⭐⭐</div>
+                        <p class="home__testimonial-text">
+                            "The AI-generated outreach templates are shockingly good. My response rate jumped from 12% to 43% in the first month."
+                        </p>
+                        <div class="home__testimonial-author">
+                            <div class="home__author-avatar">SP</div>
+                            <div>
+                                <div class="home__author-name">Sarah Park</div>
+                                <div class="home__author-title">B2B Copy Specialist</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Testimonial 3 -->
+                    <div class="home__testimonial-card">
+                        <div class="home__testimonial-stars">⭐⭐⭐⭐⭐</div>
+                        <p class="home__testimonial-text">
+                            "Finally, a tool that actually understands my niche. Oslira finds perfect-fit leads I would've missed manually."
+                        </p>
+                        <div class="home__testimonial-author">
+                            <div class="home__author-avatar">KL</div>
+                            <div>
+                                <div class="home__author-name">Kevin Lee</div>
+                                <div class="home__author-title">SaaS Copywriter</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final CTA Section -->
+        <section class="home__final-cta">
+            <div class="home__section-container">
+                <div class="home__cta-card">
+                    <h2 class="home__cta-title">Ready to 10x Your Prospecting?</h2>
+                    <p class="home__cta-description">
+                        Join 1,200+ copywriters who are landing more clients with less effort. Start with 25 free credits — no card required.
+                    </p>
+                    <button class="home__cta-button home__cta-button--primary cta-button-large">
+                        Get Started Free
+                    </button>
+                    <p class="home__cta-subtext" style="color: rgba(255,255,255,0.9); margin-top: 1rem;">
+                        ✓ 25 free profile analyses • ✓ No credit card needed • ✓ Cancel anytime
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mobile Sticky CTA -->
+        <div class="home__mobile-sticky-cta">
+            <button class="home__mobile-cta-btn">
+                <span>Get 25 Free Credits</span>
+                <span>→</span>
+            </button>
+        </div>
+
+        <!-- Social Proof Notifications Container -->
+        <div id="social-proof-notifications" class="social-proof-notifications">
+            <!-- Populated by HomeApp -->
+        </div>
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FOOTER
+         ═══════════════════════════════════════════════════════════ -->
+    <footer class="home__footer">
+        <div class="home__footer-container">
+            <!-- Top Section -->
+            <div class="home__footer-top">
+                <!-- Company Info -->
+                <div>
+                    <div class="home__footer-logo">
+                        <img src="/assets/images/oslira-logo.png" alt="Oslira Logo">
+                        <span>Oslira</span>
+                    </div>
+                    <p class="home__footer-tagline">Turn hours of Instagram prospecting into minutes</p>
+                </div>
+                
+                <!-- Links Grid -->
+                <div class="home__footer-links">
+                    <div>
+                        <h3 class="home__footer-heading">Product</h3>
+                        <ul class="home__footer-list">
+                            <li><a href="/pricing">Pricing</a></li>
+                            <li><a href="/about">About</a></li>
+                            <li><a href="/security">Security</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="home__footer-heading">Support</h3>
+                        <ul class="home__footer-list">
+                            <li><a href="/help">Help Center</a></li>
+                            <li><a href="/contact-hub">Contact</a></li>
+                            <li><a href="/status">Status</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="home__footer-heading">Legal</h3>
+                        <ul class="home__footer-list">
+                            <li><a href="/terms">Terms</a></li>
+                            <li><a href="/privacy">Privacy</a></li>
+                            <li><a href="/refund">Refund Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bottom Section -->
+            <div class="home__footer-bottom">
+                <p>&copy; 2025 Oslira. All rights reserved.</p>
+                <div class="home__footer-social">
+                    <a href="#" aria-label="Twitter">𝕏</a>
+                    <a href="#" aria-label="LinkedIn">in</a>
+                    <a href="#" aria-label="GitHub">GitHub</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         MINIMAL INLINE JAVASCRIPT
+         ═══════════════════════════════════════════════════════════ -->
+    <script>
+        // Urgency banner close handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeBtn = document.querySelector('.home__urgency-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    const banner = this.closest('.home__urgency-banner');
+                    if (banner) {
+                        banner.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>

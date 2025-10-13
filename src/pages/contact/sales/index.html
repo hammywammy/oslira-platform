@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Sales - Oslira</title>
+    <meta name="description" content="Contact Oslira's sales team for enterprise plans and custom solutions">
+    <meta name="robots" content="index, follow">
+    
+    <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/assets/css/tailwind.css">
+    <script src="/core/script-loader.js"></script>
+    
+    <style>
+        .email-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.125rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin: 0.5rem;
+        }
+        
+        .email-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px -5px rgba(124, 58, 237, 0.4);
+        }
+        
+        .email-button-primary {
+            font-size: 1.25rem;
+            padding: 1.25rem 2.5rem;
+        }
+        
+        .template-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .template-card:hover {
+            border-color: #7c3aed;
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+            transform: translateX(4px);
+        }
+        
+        .benefit-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .benefit-card:hover {
+            border-color: #7c3aed;
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-radius: 1rem;
+        }
+        
+        .checklist-item {
+            display: flex;
+            align-items: start;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .checklist-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-highlight {
+            background: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 2rem 0;
+        }
+    </style>
+</head>
+<body style="background-color: #f8fafc; min-height: 100vh;">
+    <div id="header-container"></div>
+
+    <!-- Hero Section -->
+    <section class="contact-hero" style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);">
+        <div class="contact-container">
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <span style="font-size: 4rem;">💼</span>
+            </div>
+            <h1 class="contact-hero-title">Sales & Enterprise Inquiries</h1>
+            <p class="contact-hero-subtitle">Discover how Oslira can transform your business with custom solutions and enterprise features</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="contact-section">
+        <div class="contact-container" style="max-width: 56rem;">
+            
+            <!-- Primary Contact -->
+            <div style="text-align: center; margin: 3rem 0;">
+                <h2 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin-bottom: 1rem;">Let's Talk Business</h2>
+                <p style="color: #6b7280; margin-bottom: 2rem; font-size: 1.125rem;">Reach out to discuss enterprise plans, volume pricing, and partnerships</p>
+                <a href="mailto:sales@oslira.com" class="email-button email-button-primary">
+                    <span>📧</span>
+                    sales@oslira.com
+                </a>
+                <div style="margin-top: 1.5rem;">
+                    <span style="display: inline-block; background: #ddd6fe; color: #5b21b6; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600;">⏱️ Response within 4 business hours</span>
+                </div>
+            </div>
+
+            <!-- Additional Contact -->
+            <div style="background: white; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 1.5rem;">Partnership Opportunities</h3>
+                <div style="display: grid; gap: 1rem;">
+                    <a href="mailto:partnerships@oslira.com" class="email-button" style="justify-self: start;">
+                        <span>🤝</span>
+                        Partnerships: partnerships@oslira.com
+                    </a>
+                </div>
+            </div>
+
+            <!-- Enterprise Benefits -->
+            <div style="margin: 3rem 0;">
+                <h3 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin-bottom: 1.5rem; text-align: center;">Why Choose Enterprise?</h3>
+                
+                <div style="display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                    <div class="benefit-card">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">⚡</div>
+                        <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem;">Custom Solutions</h4>
+                        <p style="color: #6b7280;">Tailored features and integrations built specifically for your business needs</p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">👥</div>
+                        <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem;">Dedicated Support</h4>
+                        <p style="color: #6b7280;">24/7 priority support with a dedicated account manager for your team</p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔒</div>
+                        <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem;">Enhanced Security</h4>
+                        <p style="color: #6b7280;">Enterprise-grade security, compliance certifications, and custom SLAs</p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">📊</div>
+                        <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem;">Advanced Analytics</h4>
+                        <p style="color: #6b7280;">Deep insights, custom reporting, and data export capabilities</p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔗</div>
+                        <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem;">API Access</h4>
+                        <p style="color: #6b7280;">Full API access with higher rate limits and custom endpoints</p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">💰</div>
+                        <h4 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem;">Volume Pricing</h4>
+                        <p style="color: #6b7280;">Significant discounts for high-volume usage and annual commitments</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Templates -->
+            <div style="margin: 3rem 0;">
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 1rem;">Pre-Formatted Email Templates</h3>
+                <p style="color: #6b7280; margin-bottom: 1.5rem;">Click a template to get started with a pre-filled subject line</p>
+                
+                <a href="mailto:sales@oslira.com?subject=Enterprise%20Plan%20Inquiry" class="template-card" style="display: block; text-decoration: none;">
+                    <div style="font-size: 1.125rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem;">Enterprise Plan Inquiry</div>
+                    <div style="color: #6b7280; font-size: 0.875rem;">Subject: Enterprise Plan Inquiry</div>
+                </a>
+
+                <a href="mailto:sales@oslira.com?subject=Volume%20Pricing%20Request" class="template-card" style="display: block; text-decoration: none;">
+                    <div style="font-size: 1.125rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem;">Volume Pricing Request</div>
+                    <div style="color: #6b7280; font-size: 0.875rem;">Subject: Volume Pricing Request</div>
+                </a>
+
+                <a href="mailto:sales@oslira.com?subject=Custom%20Integration%20Discussion" class="template-card" style="display: block; text-decoration: none;">
+                    <div style="font-size: 1.125rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem;">Custom Integration Discussion</div>
+                    <div style="color: #6b7280; font-size: 0.875rem;">Subject: Custom Integration Discussion</div>
+                </a>
+
+                <a href="mailto:partnerships@oslira.com?subject=Partnership%20Opportunity" class="template-card" style="display: block; text-decoration: none;">
+                    <div style="font-size: 1.125rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem;">Partnership Opportunity</div>
+                    <div style="color: #6b7280; font-size: 0.875rem;">Subject: Partnership Opportunity</div>
+                </a>
+
+                <a href="mailto:sales@oslira.com?subject=Schedule%20Product%20Demo" class="template-card" style="display: block; text-decoration: none;">
+                    <div style="font-size: 1.125rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem;">Schedule a Demo</div>
+                    <div style="color: #6b7280; font-size: 0.875rem;">Subject: Schedule Product Demo</div>
+                </a>
+            </div>
+
+            <!-- What to Include -->
+            <div style="background: white; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 1.5rem;">What to Include in Your Inquiry</h3>
+                
+                <div class="checklist-item">
+                    <span style="color: #7c3aed; font-size: 1.25rem;">✓</span>
+                    <div>
+                        <strong style="color: #111827;">Company Size</strong>
+                        <p style="color: #6b7280; margin: 0.25rem 0 0 0; font-size: 0.875rem;">Number of employees and expected users</p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <span style="color: #7c3aed; font-size: 1.25rem;">✓</span>
+                    <div>
+                        <strong style="color: #111827;">Use Case</strong>
+                        <p style="color: #6b7280; margin: 0.25rem 0 0 0; font-size: 0.875rem;">How you plan to use Oslira and specific requirements</p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <span style="color: #7c3aed; font-size: 1.25rem;">✓</span>
+                    <div>
+                        <strong style="color: #111827;">Timeline</strong>
+                        <p style="color: #6b7280; margin: 0.25rem 0 0 0; font-size: 0.875rem;">When you need to get started</p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <span style="color: #7c3aed; font-size: 1.25rem;">✓</span>
+                    <div>
+                        <strong style="color: #111827;">Budget Range (Optional)</strong>
+                        <p style="color: #6b7280; margin: 0.25rem 0 0 0; font-size: 0.875rem;">Helps us recommend the right solution</p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <span style="color: #7c3aed; font-size: 1.25rem;">✓</span>
+                    <div>
+                        <strong style="color: #111827;">Integration Needs</strong>
+                        <p style="color: #6b7280; margin: 0.25rem 0 0 0; font-size: 0.875rem;">Existing tools and systems you use</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div style="margin: 3rem 0;">
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 1.5rem; text-align: center;">Trusted by Industry Leaders</h3>
+                
+                <div style="display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="stat-card">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #7c3aed; margin-bottom: 0.5rem;">500+</div>
+                        <div style="color: #6b7280; font-weight: 600;">Enterprise Clients</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #7c3aed; margin-bottom: 0.5rem;">99.9%</div>
+                        <div style="color: #6b7280; font-weight: 600;">Uptime SLA</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #7c3aed; margin-bottom: 0.5rem;">24/7</div>
+                        <div style="color: #6b7280; font-weight: 600;">Priority Support</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Helpful Resources -->
+            <div class="info-highlight">
+                <h3 style="font-size: 1.25rem; font-weight: 600; color: #111827; margin-bottom: 1rem;">📚 Helpful Resources</h3>
+                <ul style="color: #374151; line-height: 1.8; margin: 0; padding-left: 1.5rem;">
+                    <li><a href="/footer/pricing" style="color: #7c3aed; text-decoration: none; font-weight: 600;">Enterprise Features & Pricing</a></li>
+                    <li><a href="/footer/case-studies" style="color: #7c3aed; text-decoration: none; font-weight: 600;">Customer Success Stories</a></li>
+                    <li><a href="/footer/security" style="color: #7c3aed; text-decoration: none; font-weight: 600;">Security & Compliance</a></li>
+                    <li><a href="/footer/docs" style="color: #7c3aed; text-decoration: none; font-weight: 600;">API Documentation</a></li>
+                </ul>
+            </div>
+
+            <!-- Alternative Contact Methods -->
+            <div style="background: white; border-radius: 1rem; padding: 2rem; margin: 2rem 0; text-align: center;">
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 1rem;">Prefer to Talk?</h3>
+                <p style="color: #6b7280; margin-bottom: 1.5rem;">Schedule a call with our sales team to discuss your needs in detail</p>
+                <a href="mailto:sales@oslira.com?subject=Schedule%20Sales%20Call" class="email-button">
+                    <span>📅</span>
+                    Schedule a Call
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <script>
+        let footerInitialized = false;
+        
+        window.addEventListener('oslira:scripts:loaded', async () => {
+            try {
+                await initializeHeader();
+            } catch (error) {
+                console.error('❌ [ContactSales] Header initialization failed:', error);
+            }
+
+            if (footerInitialized) return;
+            
+            try {
+                footerInitialized = true;
+                await initializeFooter();
+            } catch (error) {
+                console.error('❌ [ContactSales] Footer initialization failed:', error);
+                footerInitialized = false;
+            }
+        });
+
+        async function initializeHeader() {
+            if (document.querySelector('.home-nav')) return;
+            
+            let container = document.getElementById('header-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'header-container';
+                document.body.insertBefore(container, document.body.firstChild);
+            }
+            
+            for (let i = 0; i < 50; i++) {
+                if (window.HeaderManager) break;
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            if (!window.HeaderManager) throw new Error('HeaderManager not available');
+            
+            const headerManager = new window.HeaderManager();
+            headerManager.render('header-container', { type: 'footer-pages' });
+        }
+        
+        async function initializeFooter() {
+            if (document.querySelector('.new-footer-main')) return;
+            
+            let container = document.getElementById('footer-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'footer-container';
+                document.body.appendChild(container);
+            }
+            
+            for (let i = 0; i < 50; i++) {
+                if (window.FooterManager) break;
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            if (!window.FooterManager) throw new Error('FooterManager not available');
+            
+            const footerManager = new window.FooterManager();
+            footerManager.render('footer-container');
+        }
+    </script>
+
+    <div id="footer-container"></div>
+</body>
+</html>

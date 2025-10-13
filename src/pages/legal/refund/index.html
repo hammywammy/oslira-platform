@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refund Policy - Oslira</title>
+        <link rel="stylesheet" href="/assets/css/tailwind.css">
+    
+    <!-- Script loader initialization -->
+    <script src="/core/script-loader.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #F5F9FF;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(45, 108, 223, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2D6CDF;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #6B7280;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #2D6CDF;
+        }
+
+        .cta-button {
+            background: linear-gradient(135deg, #2D6CDF, #8A6DF1);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            background: white;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(45, 108, 223, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #121417;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #2D6CDF, #8A6DF1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .effective-date {
+            font-size: 1rem;
+            color: #6B7280;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: #F5F9FF;
+            border-radius: 8px;
+            border-left: 4px solid #2D6CDF;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #121417;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2D6CDF;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        p {
+            font-size: 1rem;
+            color: #4A5568;
+            margin-bottom: 1rem;
+            line-height: 1.7;
+        }
+
+        ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            color: #4A5568;
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #E0F2FE, #BAE6FD);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #0284C7;
+            margin: 2rem 0;
+        }
+
+        .info-box h3 {
+            color: #0369A1;
+            margin-top: 0;
+        }
+
+        .info-box p {
+            color: #0369A1;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #F59E0B;
+            margin: 2rem 0;
+        }
+
+        .warning-box h3 {
+            color: #92400E;
+            margin-top: 0;
+        }
+
+        .warning-box p {
+            color: #92400E;
+        }
+
+        .contact-section {
+            background: #F5F9FF;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-top: 3rem;
+            text-align: center;
+        }
+
+        .contact-section h3 {
+            color: #121417;
+            margin-bottom: 1rem;
+        }
+
+        .contact-section a {
+            color: #2D6CDF;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .contact-section a:hover {
+            text-decoration: underline;
+        }
+
+        .policy-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(45, 108, 223, 0.1);
+        }
+
+        .policy-table th {
+            background: #F5F9FF;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #121417;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        .policy-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #F5F9FF;
+            color: #4A5568;
+        }
+
+        .policy-table tr:hover {
+            background: #F9FAFB;
+        }
+
+        .exception-box {
+            background: linear-gradient(135deg, #F3E8FF, #E0E7FF);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #8A6DF1;
+            margin: 2rem 0;
+        }
+
+        .exception-box h3 {
+            color: #5B21B6;
+            margin-top: 0;
+        }
+
+        .exception-box p {
+            color: #5B21B6;
+        }
+
+        /* Footer */
+        .footer {
+            background: #121417;
+            color: white;
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #2D6CDF;
+        }
+
+        .footer-section a {
+            color: #9CA3AF;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #374151;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            text-align: center;
+            color: #9CA3AF;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .container {
+                margin: 1rem;
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .policy-table {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="header-container"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1>Refund Policy</h1>
+        <div class="effective-date">
+            <strong>Effective Date:</strong> January 12, 2025<br>
+            <strong>Last Updated:</strong> January 12, 2025
+        </div>
+
+        <div class="info-box">
+            <h3>💡 Understanding Our Refund Policy</h3>
+            <p>Our refund policy is designed to be fair and transparent while protecting the integrity of our credit-based service model. Please read this policy carefully before making any purchases.</p>
+        </div>
+
+        <h2>1. General Refund Policy</h2>
+
+        <h3>1.1 Subscription Refunds</h3>
+        <p>Monthly subscriptions may be eligible for pro-rated refunds under specific circumstances:</p>
+
+        <table class="policy-table">
+            <thead>
+                <tr>
+                    <th>Scenario</th>
+                    <th>Refund Eligibility</th>
+                    <th>Processing Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Billing error or duplicate charge</td>
+                    <td>Full refund available</td>
+                    <td>3-5 business days</td>
+                </tr>
+                <tr>
+                    <td>Service unavailable for 24+ hours</td>
+                    <td>Pro-rated credit or refund</td>
+                    <td>5-7 business days</td>
+                </tr>
+                <tr>
+                    <td>Cancellation within 48 hours of purchase</td>
+                    <td>Full refund (unused credits only)</td>
+                    <td>3-5 business days</td>
+                </tr>
+                <tr>
+                    <td>Standard cancellation</td>
+                    <td>No refund, service continues until period end</td>
+                    <td>N/A</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>1.2 Additional Credit Purchases</h3>
+        <p>Additional credits purchased beyond your subscription allowance are generally non-refundable due to their digital nature and instant availability. However, exceptions may apply in cases of:</p>
+        <ul>
+            <li>Billing errors or unauthorized charges</li>
+            <li>Technical failures preventing credit usage</li>
+            <li>Documented service quality issues</li>
+        </ul>
+
+        <h2>2. Refund Eligibility Criteria</h2>
+
+        <div class="exception-box">
+            <h3>✅ Eligible for Refund Consideration</h3>
+            <p>The following situations may qualify for refunds on a case-by-case basis:</p>
+        </div>
+
+        <h3>2.1 Technical Issues</h3>
+        <ul>
+            <li>Platform downtime exceeding 24 hours</li>
+            <li>Critical bugs preventing service usage</li>
+            <li>Data loss due to system failures</li>
+            <li>AI analysis failures due to platform errors</li>
+        </ul>
+
+        <h3>2.2 Billing Errors</h3>
+        <ul>
+            <li>Duplicate charges or processing errors</li>
+            <li>Unauthorized charges or account access</li>
+            <li>Incorrect subscription tier billing</li>
+            <li>Failed payment reversals</li>
+        </ul>
+
+        <h3>2.3 Service Quality Issues</h3>
+        <ul>
+            <li>Demonstrable AI analysis quality problems</li>
+            <li>Persistent platform performance issues</li>
+            <li>Features not working as advertised</li>
+        </ul>
+
+        <h2>3. Non-Refundable Items</h2>
+
+        <div class="warning-box">
+            <h3>❌ Not Eligible for Refunds</h3>
+            <p>The following purchases are final and non-refundable under normal circumstances:</p>
+        </div>
+
+        <h3>3.1 Used Credits</h3>
+        <p>Credits that have been consumed for lead analysis cannot be refunded, as they represent completed AI processing and delivered insights.</p>
+
+        <h3>3.2 Subscription Services After 48 Hours</h3>
+        <p>Subscription charges older than 48 hours are generally non-refundable, though service will continue until the end of the paid period.</p>
+
+        <h3>3.3 Promotional Credits</h3>
+        <p>Free credits, bonus credits, or promotional offerings cannot be refunded or converted to cash value.</p>
+
+        <h3>3.4 Third-Party Service Failures</h3>
+        <p>Refunds are not available for issues caused by third-party platform changes (e.g., Instagram policy updates) that may affect our service capabilities.</p>
+
+        <h2>4. Refund Request Process</h2>
+
+        <h3>4.1 How to Request a Refund</h3>
+        <p>To request a refund:</p>
+        <ol>
+            <li>Contact our support team at <strong>billing@oslira.com</strong></li>
+            <li>Include your account email and transaction details</li>
+            <li>Provide a detailed explanation of the issue</li>
+            <li>Submit supporting documentation if applicable</li>
+        </ol>
+
+        <h3>4.2 Review Process</h3>
+        <p>Our team will review refund requests within 3-5 business days. We may request additional information or attempt to resolve the issue through alternative means before processing a refund.</p>
+
+        <h3>4.3 Refund Methods</h3>
+        <p>Approved refunds will be processed using the original payment method within 5-10 business days. In some cases, we may offer account credits as an alternative solution.</p>
+
+        <h2>5. Chargeback and Dispute Policy</h2>
+
+        <div class="warning-box">
+            <h3>⚠️ Chargeback Warning</h3>
+            <p>Initiating a chargeback without first contacting our support team may result in immediate account suspension and forfeiture of all credits and data.</p>
+        </div>
+
+        <h3>5.1 Before Filing a Chargeback</h3>
+        <p>Please contact our support team first. Most billing issues can be resolved quickly without involving your bank or credit card company.</p>
+
+        <h3>5.2 Consequences of Unauthorized Chargebacks</h3>
+        <ul>
+            <li>Immediate suspension of platform access</li>
+            <li>Forfeiture of all unused credits</li>
+            <li>Loss of account data and analysis history</li>
+            <li>Potential permanent account termination</li>
+        </ul>
+
+        <h2>6. European Union Consumer Rights</h2>
+
+        <div class="info-box">
+            <h3>🇪🇺 EU Consumer Protection</h3>
+            <p>EU consumers have additional rights under European consumer protection laws, including a 14-day cooling-off period for certain digital services.</p>
+        </div>
+
+        <p>For EU customers, the right of withdrawal may apply to subscription services within 14 days of purchase, provided the service has not been fully performed with your consent.</p>
+
+        <h2>7. Cancellation vs. Refunds</h2>
+
+        <h3>7.1 How Cancellation Works</h3>
+        <ul>
+            <li>You can cancel your subscription at any time</li>
+            <li>Service continues until the end of your current billing period</li>
+            <li>No additional charges will occur after cancellation</li>
+            <li>Unused credits remain available until account closure</li>
+        </ul>
+
+        <h3>7.2 When Refunds Apply to Cancellations</h3>
+        <p>Refunds are only provided for cancellations in exceptional circumstances as outlined in this policy.</p>
+
+        <h2>8. Contact Information</h2>
+
+        <div class="contact-section">
+            <h3>Need Help with Billing or Refunds?</h3>
+            <p>
+                <strong>Billing Support:</strong> <a href="mailto:billing@oslira.com">billing@oslira.com</a><br>
+                <strong>General Support:</strong> <a href="mailto:support@oslira.com">support@oslira.com</a><br>
+                <strong>Response Time:</strong> Within 24 hours on business days
+            </p>
+            <p style="margin-top: 1rem; font-size: 0.9rem; color: #6B7280;">
+                We're committed to resolving billing issues fairly and quickly. Please contact us before taking any other action.
+            </p>
+        </div>
+    </div>
+<!-- Footer Manager Initialization -->
+    <script>
+        let footerInitialized = false;
+        
+window.addEventListener('oslira:scripts:loaded', async () => {
+    // Initialize header first
+    try {
+        await initializeHeader();
+    } catch (error) {
+        console.error('❌ [PageName] Header initialization failed:', error);
+    }
+            if (footerInitialized) {
+                console.log('🔄 [Refund] Footer already initialized, skipping...');
+                return;
+            }
+            
+            console.log('🚀 [Refund] Scripts loaded event received, initializing footer...');
+            try {
+                footerInitialized = true;
+                await initializeFooter();
+            } catch (error) {
+                console.error('❌ [Refund] Footer initialization failed:', error);
+                footerInitialized = false;
+            }
+        });
+
+        async function initializeHeader() {
+    try {
+        if (document.querySelector('.home-nav')) {
+            console.log('🔄 [PageName] Header already exists, skipping initialization...');
+            return;
+        }
+        
+        console.log('🧭 [PageName] Starting header initialization...');
+        
+        let container = document.getElementById('header-container');
+        if (!container) {
+            console.log('🔧 [PageName] Creating header-container element');
+            container = document.createElement('div');
+            container.id = 'header-container';
+            document.body.insertBefore(container, document.body.firstChild);
+        }
+        
+        // Wait for HeaderManager to be available
+        console.log('🔍 [PageName] Waiting for HeaderManager...');
+        for (let i = 0; i < 50; i++) {
+            if (window.HeaderManager) {
+                console.log('✅ [PageName] HeaderManager found');
+                break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        if (!window.HeaderManager) {
+            throw new Error('HeaderManager not available after waiting');
+        }
+        
+        // Initialize header for footer pages
+        console.log('🧭 [PageName] Creating HeaderManager instance...');
+        const headerManager = new window.HeaderManager();
+        
+        console.log('🧭 [PageName] Rendering header...');
+        headerManager.render('header-container', {
+            type: 'footer-pages'
+        });
+        
+        console.log('✅ [PageName] Header initialization complete');
+    } catch (error) {
+        console.error('❌ [PageName] Header initialization failed:', error);
+    }
+}
+        
+        async function initializeFooter() {
+            try {
+                // Check if footer already exists
+                if (document.querySelector('.new-footer-main')) {
+                    console.log('🔄 [Refund] Footer already exists, skipping initialization...');
+                    return;
+                }
+                
+                console.log('🦶 [Refund] Starting footer initialization...');
+                
+                // Check if container exists
+                let container = document.getElementById('footer-container');
+                if (!container) {
+                    console.log('🔧 [Refund] Creating footer-container element');
+                    container = document.createElement('div');
+                    container.id = 'footer-container';
+                    document.body.appendChild(container);
+                }
+                
+                // Wait for FooterManager to be available
+                console.log('🔍 [Refund] Waiting for FooterManager...');
+                for (let i = 0; i < 50; i++) {
+                    if (window.FooterManager) {
+                        console.log('✅ [Refund] FooterManager found');
+                        break;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                if (!window.FooterManager) {
+                    throw new Error('FooterManager not available after waiting');
+                }
+                
+                // Initialize footer
+                console.log('🦶 [Refund] Creating FooterManager instance...');
+                const footerManager = new window.FooterManager();
+                
+                console.log('🦶 [Refund] Rendering footer...');
+                footerManager.render('footer-container');
+                
+                console.log('✅ [Refund] Footer initialization complete');
+            } catch (error) {
+                console.error('❌ [Refund] Footer initialization failed:', error);
+            }
+        }
+    </script>
+    <!-- Footer Container -->
+    <div id="footer-container"></div>
+</body>
+</html>
