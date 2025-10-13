@@ -1,19 +1,219 @@
-//public/pages/dashboard/modules/modals/research-modal.js
+// =============================================================================
+// RESEARCH MODAL - UI Event Handler
+// Path: /public/pages/app/dashboard/ui/modals/configs/ResearchModal.js
+// Dependencies: AnalyzeLeadUseCase
+// =============================================================================
 
 /**
- * RESEARCH MODAL - Migrated to New System (No Container)
- * Handles research modal for single lead analysis
+ * @class ResearchModal
+ * @description Handles research modal UI interactions ONLY
+ * 
+ * Responsibilities:
+ * - Open/close modal
+ * - Capture form input
+ * - Show loading states
+ * - Display validation errors
+ * - Call AnalyzeLeadUseCase for business logic
  */
 class ResearchModal {
     constructor() {
-        // Use global window objects directly (no container)
-        this.eventBus = window.EventBus || window.OsliraEventBus;
-        this.stateManager = window.StateManager || window.OsliraStateManager;
-        this.osliraAuth = window.OsliraAuth;
-        
-        console.log('🔍 [ResearchModal] Instance created (Migrated System)');
+        this.analyzeLeadUseCase = new window.AnalyzeLeadUseCase();
+        this.setupGlobalHandlers();
+        console.log('🎨 [ResearchModal] Initialized');
     }
-
+    
+    // =========================================================================
+    // GLOBAL HANDLERS (for onclick attributes)
+    // =========================================================================
+    
+    setupGlobalHandlers() {
+        window.submitResearch = () => this.submit();
+        window.openResearchModal = () => this.open();
+        window.closeResearchModal = () => this.close();
+    }
+    
+    // =========================================================================
+    // MODAL CONTROL
+    // =========================================================================
+    
+    open() {
+        const modal = document.getElementById('researchModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            
+            // Focus username input
+            const usernameInput = modal.querySelector('input[type="text"]');
+            if (usernameInput) {
+                setTimeout(() => usernameInput.focus(), 100);
+            }
+        }
+    }
+    
+    close() {
+        const modal = document.getElementById('researchModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            this.resetForm();
+        }
+    }
+    
+    resetForm() {
+        const modal = document.getElementById('researchModal');
+        if (!modal) return;
+        
+        // Clear username
+        const usernameInput = modal.querySelector('input[type="text"]');
+        if (usernameInput) {
+            usernameInput.value = '';
+            this.clearUsernameError(usernameInput);
+        }
+        
+        // Reset to light analysis
+        const lightRadio = modal.querySelector('input[name="analysis"][value="light"]');
+        if (lightRadio) {
+            lightRadio.checked = true;
+        }
+    }
+    
+    // =========================================================================
+    // FORM SUBMISSION
+    // =========================================================================
+    
+    async submit() {
+        try {
+            // 1. CAPTURE FORM DATA
+            const modal = document.getElementById('researchModal');
+            const usernameInput = modal?.querySelector('input[type="text"]');
+            const analysisRadio = modal?.querySelector('input[name="analysis"]:checked');
+            
+            const username = usernameInput?.value?.trim();
+            const analysisType = analysisRadio?.value || 'light';
+            
+            // 2. BASIC CHECK
+            if (!username) {
+                this.showUsernameError(usernameInput, 'Please enter a username');
+                return;
+            }
+            
+            this.clearUsernameError(usernameInput);
+            
+            // 3. SHOW LOADING
+            this.setLoading(true);
+            
+            // 4. EXECUTE USE CASE
+            const result = await this.analyzeLeadUseCase.execute(username, analysisType);
+            
+            // 5. HANDLE RESULT
+            if (result.success) {
+                this.close();
+                this.showSuccess(`Analysis started for @${username}`);
+            } else {
+                // Show appropriate error
+                if (result.type === 'validation') {
+                    this.showUsernameError(usernameInput, result.error);
+                } else {
+                    this.showError(result.error);
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ [ResearchModal] Unexpected error:', error);
+            this.showError('Analysis failed. Please try again.');
+        } finally {
+            this.setLoading(false);
+        }
+    }
+    
+    // =========================================================================
+    // UI STATE MANAGEMENT
+    // =========================================================================
+    
+    setLoading(isLoading) {
+        const modal = document.getElementById('researchModal');
+        const submitButton = modal?.querySelector('button[onclick*="submitResearch"]');
+        
+        if (!submitButton) return;
+        
+        if (isLoading) {
+            submitButton.dataset.originalText = submitButton.textContent;
+            submitButton.textContent = 'Processing...';
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            submitButton.textContent = submitButton.dataset.originalText || 'Start Research';
+            submitButton.disabled = false;
+            submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
+    
+    // =========================================================================
+    // ERROR DISPLAY
+    // =========================================================================
+    
+    showUsernameError(usernameInput, message) {
+        if (!usernameInput) return;
+        
+        const container = usernameInput.parentElement;
+        let errorDiv = container.querySelector('.username-validation-error');
+        
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.className = 'username-validation-error text-red-600 text-sm mt-1 flex items-center';
+            errorDiv.innerHTML = `
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span></span>
+            `;
+            container.appendChild(errorDiv);
+        }
+        
+        errorDiv.querySelector('span').textContent = message;
+        
+        // Add error styling to input
+        usernameInput.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
+        usernameInput.classList.remove('border-gray-300');
+    }
+    
+    clearUsernameError(usernameInput) {
+        if (!usernameInput) return;
+        
+        const container = usernameInput.parentElement;
+        const errorDiv = container.querySelector('.username-validation-error');
+        
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+        
+        // Remove error styling
+        usernameInput.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
+        usernameInput.classList.add('border-gray-300');
+    }
+    
+    showError(message) {
+        console.error('❌ [ResearchModal]', message);
+        
+        if (window.OsliraApp?.showMessage) {
+            window.OsliraApp.showMessage(message, 'error');
+        } else if (window.Notifications?.error) {
+            window.Notifications.error(message);
+        } else {
+            alert(message);
+        }
+    }
+    
+    showSuccess(message) {
+        if (window.OsliraApp?.showMessage) {
+            window.OsliraApp.showMessage(message, 'success');
+        } else if (window.Notifications?.success) {
+            window.Notifications.success(message);
+        }
+    }
+    
+    // =========================================================================
+    // MODAL HTML (Keep existing design)
+    // =========================================================================
+    
     renderModal() {
         return `
 <!-- Research New Lead Modal -->
@@ -78,76 +278,10 @@ class ResearchModal {
     </div>
 </div>`;
     }
-
-    setupEventHandlers() {
-        const self = this;
-        
-        window.openResearchModal = () => {
-            const modal = document.getElementById('researchModal');
-            if (modal) {
-                modal.classList.remove('hidden');
-                
-                // Emit event
-                if (self.eventBus) {
-                    self.eventBus.emit('research:modal-opened');
-                }
-            }
-        };
-
-        window.closeResearchModal = () => {
-            const modal = document.getElementById('researchModal');
-            if (modal) {
-                modal.classList.add('hidden');
-                
-                // Emit event
-                if (self.eventBus) {
-                    self.eventBus.emit('research:modal-closed');
-                }
-            }
-        };
-
-        window.submitResearch = () => {
-            const modal = document.getElementById('researchModal');
-            const form = modal?.querySelector('form') || modal;
-            
-            // Get form data
-            const platform = form.querySelector('select').value;
-            const username = form.querySelector('input[type="text"]').value;
-            const analysisType = form.querySelector('input[name="analysis"]:checked').value;
-            
-            console.log('🚀 [ResearchModal] Submitting research:', { platform, username, analysisType });
-            
-            // Delegate to global AnalysisFunctions
-            if (window.AnalysisFunctions && window.AnalysisFunctions.submitSingleAnalysis) {
-                window.AnalysisFunctions.submitSingleAnalysis({
-                    platform,
-                    username,
-                    analysisType
-                });
-            } else {
-                console.error('❌ [ResearchModal] AnalysisFunctions not available');
-            }
-            
-            // Emit event
-            if (self.eventBus) {
-                self.eventBus.emit('research:submitted', {
-                    platform,
-                    username,
-                    analysisType
-                });
-            }
-            
-            window.closeResearchModal();
-        };
-        
-        console.log('✅ [ResearchModal] Event handlers attached');
-    }
 }
 
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = ResearchModal;
-} else {
-    window.ResearchModal = ResearchModal;
-}
-
-console.log('🔍 [ResearchModal] Migrated version loaded successfully');
+// =============================================================================
+// GLOBAL EXPORT
+// =============================================================================
+window.ResearchModal = ResearchModal;
+console.log('✅ [ResearchModal] Loaded');
