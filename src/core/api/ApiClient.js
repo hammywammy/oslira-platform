@@ -479,3 +479,8 @@ const requestPromise = this.httpClient.request(fullURL, {
 }
 
 
+
+// =============================================================================
+// ES6 MODULE EXPORT
+// =============================================================================
+export default ApiClient;
