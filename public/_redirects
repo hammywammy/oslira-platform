@@ -210,7 +210,7 @@ https://staging.oslira.com/*                               /pages/www/:splat    
 # =============================================================================
 
 # Homepage
-https://oslira.com/                                        src/pages/www/index.html                200
+https://oslira.com/                                        /index.html                200
 
 # Public marketing pages
 https://oslira.com/pricing                                 /pages/www/pricing/index.html        200
