@@ -506,6 +506,9 @@ class RealtimeManager {
     }
 }
 
+// ES6 Module Export
+export default RealtimeManager;
+
 // Export for global use
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { RealtimeManager };
