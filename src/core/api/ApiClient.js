@@ -481,7 +481,10 @@ const requestPromise = this.httpClient.request(fullURL, {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.ApiClientClass = ApiClient;  // Export class for reference
-window.OsliraApiClient = new ApiClient();  // Export singleton instance
+// Export for ES6 modules
+export default ApiClient;
 
-console.log('✅ [ApiClient] Instance created and ready for initialization');
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.ApiClient = ApiClient;
+}
