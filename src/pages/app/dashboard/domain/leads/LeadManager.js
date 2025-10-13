@@ -909,6 +909,10 @@ class LeadManager {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.LeadManager = LeadManager;
+// Export for ES6 modules
+export default LeadManager;
 
-console.log('✅ [LeadManager] Class loaded and ready');
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.LeadManager = LeadManager;
+}
