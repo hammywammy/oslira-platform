@@ -1,38 +1,31 @@
 <!DOCTYPE html>
-<html lang="en"> 
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI-Powered Lead Research Dashboard - Oslira</title>
     <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
     
-<link rel="stylesheet" href="/assets/css/base.css">
+    <!-- 1. BASE STYLES -->
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/tailwind.css">
     
-    <!-- 2. CORE COMPONENTS (Shared across pages) -->
+    <!-- 2. CORE UI COMPONENTS (Shared) -->
     <link rel="stylesheet" href="/core/ui/components/buttons/buttons.css">
+    <link rel="stylesheet" href="/core/ui/components/layouts/app-sidebar/AppSidebar.css">
     
-    <!-- =================================================================
-         DASHBOARD STYLES - NEW STRUCTURE
-         ================================================================= -->
-    <!-- Main Dashboard Styles (BEM) -->
+    <!-- 3. DASHBOARD-SPECIFIC STYLES -->
     <link rel="stylesheet" href="/pages/app/dashboard/css/dashboard.css">
-    
-    <!-- Dashboard Component Styles -->
     <link rel="stylesheet" href="/pages/app/dashboard/css/components/header.css">
     <link rel="stylesheet" href="/pages/app/dashboard/css/components/stats-cards.css">
     <link rel="stylesheet" href="/pages/app/dashboard/css/components/analysis-queue.css">
-
-    <link rel="stylesheet" href="/assets/css/tailwind.css">
     
-    <!-- =================================================================
-         EXTERNAL SCRIPTS
-         ================================================================= -->
+    <!-- 4. EXTERNAL LIBRARIES (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- CRITICAL: Single script tag loads everything via Core system -->
-    <script src="/core/init/Loader.js" data-page="dashboard"></script>
-    
     <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- 5. VITE ENTRY POINT (replaces Loader.js) -->
+    <script type="module" src="./main.js"></script>
 </head>
 
 <body style="visibility: hidden;">
