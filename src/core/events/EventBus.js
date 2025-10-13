@@ -564,21 +564,10 @@ class EventBus {
 // =============================================================================
 // GLOBAL EXPORT (Safe Singleton Pattern)
 // =============================================================================
+// Export for ES6 modules
+export default OsliraEventBus;
 
-if (!window.OsliraEventBus) {
-    const instance = new EventBus();
-    
-    window.OsliraEventBus = instance;
-    
-    // Auto-initialize
-    instance.initialize();
-    
-    console.log('✅ [EventBus] Loaded and initialized');
-    
-    if (window.Oslira?.init) {
-        window.Oslira.init.register('EventBus', instance);
-        console.log('📋 [EventBus] Registered with Coordinator');
-    }
-} else {
-    console.log('⚠️ [EventBus] Already loaded, skipping re-initialization');
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.OsliraEventBus = OsliraEventBus;
 }
