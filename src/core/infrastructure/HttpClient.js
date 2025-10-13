@@ -625,12 +625,15 @@ class HttpNetworkError extends Error {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraHttpClient = HttpClient;
+
+
+// Export for ES6 modules
+export default HttpClient;
+
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.OsliraHttpClient = HttpClient;
 window.HttpError = HttpError;
 window.HttpTimeoutError = HttpTimeoutError;
 window.HttpNetworkError = HttpNetworkError;
-
-// Create singleton instance (initialize later via container)
-window.OsliraHttp = new HttpClient();
-
-console.log('✅ [HttpClient] Class loaded, awaiting initialization');
+}
