@@ -565,9 +565,9 @@ class BusinessManager {
     }
 }
 
-// Export for global use
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { BusinessManager };
-} else {
+export default BusinessManager;
+
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
     window.BusinessManager = BusinessManager;
 }
