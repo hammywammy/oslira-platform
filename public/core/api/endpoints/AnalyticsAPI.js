@@ -621,4 +621,6 @@ class AnalyticsAPI {
 // =============================================================================
 window.OsliraAnalyticsAPI = AnalyticsAPI;
 
+export default AnalyticsAPI;
+
 console.log('✅ [AnalyticsAPI] Class loaded and ready for initialization');
