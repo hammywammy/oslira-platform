@@ -693,4 +693,5 @@ class Monitoring {
 // =============================================================================
 window.OsliraMonitoring = new Monitoring();
 
+export default Monitoring;
 console.log('✅ [Monitoring] Class loaded, awaiting initialization');
