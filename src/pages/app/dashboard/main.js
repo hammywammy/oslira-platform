@@ -53,20 +53,39 @@ import DashboardEventSystem from './core/DashboardEventSystem.js';
 // =============================================================================
 // EXPOSE ON WINDOW FOR BACKWARDS COMPATIBILITY
 // =============================================================================
-// Expose core modules
-Object.assign(window, Core);
 
-// Expose dashboard modules
+// Expose dashboard modules globally (for onclick handlers, etc.)
 window.DashboardApp = DashboardApp;
 window.LeadService = LeadService;
+window.LeadValidation = LeadValidation;
 window.LeadManager = LeadManager;
 window.ModalManager = ModalManager;
+window.ModalBuilder = ModalBuilder;
 window.BusinessManager = BusinessManager;
 window.StatsCards = StatsCards;
+window.StatsCalculator = StatsCalculator;
 window.DashboardHeader = DashboardHeader;
-// ... add others as needed
+window.LeadsTable = LeadsTable;
+window.LeadsTableRenderer = LeadsTableRenderer;
+window.InsightsPanel = InsightsPanel;
+window.TipOfDay = TipOfDay;
+window.DailyTips = DailyTips;
+window.FilterModal = FilterModal;
+window.AnalysisQueue = AnalysisQueue;
+window.AnalysisQueueRenderer = AnalysisQueueRenderer;
+window.AnalysisQueueAnimator = AnalysisQueueAnimator;
+window.AnalysisFunctions = AnalysisFunctions;
+window.AnalyzeLeadUseCase = AnalyzeLeadUseCase;
+window.LeadDisplayUseCase = LeadDisplayUseCase;
+window.ResearchModal = ResearchModal;
+window.AnalysisConfig = AnalysisConfig;
+window.BulkModal = BulkModal;
+window.BulkUpload = BulkUpload;
+window.TabSystem = TabSystem;
+window.RealtimeManager = RealtimeManager;
+window.DashboardEventSystem = DashboardEventSystem;
 
-console.log('✅ [Dashboard] All modules loaded');
+console.log('✅ [Dashboard] All modules exposed on window');
 
 // =============================================================================
 // INITIALIZATION
