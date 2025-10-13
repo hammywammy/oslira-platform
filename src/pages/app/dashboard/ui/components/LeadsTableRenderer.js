@@ -377,5 +377,8 @@ class LeadsTableRenderer {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
+
+// ES6 Module Export
+export default LeadsTableRenderer;
 window.LeadsTableRenderer = LeadsTableRenderer;
 console.log('✅ [LeadsTableRenderer] Loaded');
