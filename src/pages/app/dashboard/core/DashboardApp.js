@@ -1004,4 +1004,9 @@ window.addEventListener('oslira:scripts:loaded', async () => {
     }
 });
 
-window.DashboardApp = DashboardApp;
+export default DashboardApp;
+
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.DashboardApp = DashboardApp;
+}
