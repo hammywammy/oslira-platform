@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - Oslira</title>
+        <link rel="stylesheet" href="/assets/css/tailwind.css">
+    
+    <!-- Script loader initialization -->
+    <script src="/core/script-loader.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #F5F9FF;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(45, 108, 223, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2D6CDF;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #6B7280;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #2D6CDF;
+        }
+
+        .cta-button {
+            background: linear-gradient(135deg, #2D6CDF, #8A6DF1);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            background: white;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(45, 108, 223, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #121417;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #2D6CDF, #8A6DF1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .effective-date {
+            font-size: 1rem;
+            color: #6B7280;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: #F5F9FF;
+            border-radius: 8px;
+            border-left: 4px solid #2D6CDF;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #121417;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2D6CDF;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        p {
+            font-size: 1rem;
+            color: #4A5568;
+            margin-bottom: 1rem;
+            line-height: 1.7;
+        }
+
+        ul, ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            color: #4A5568;
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #E0F2FE, #BAE6FD);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #0284C7;
+            margin: 2rem 0;
+        }
+
+        .info-box h3 {
+            color: #0369A1;
+            margin-top: 0;
+        }
+
+        .info-box p {
+            color: #0369A1;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #F59E0B;
+            margin: 2rem 0;
+        }
+
+        .warning-box h3 {
+            color: #92400E;
+            margin-top: 0;
+        }
+
+        .warning-box p {
+            color: #92400E;
+        }
+
+        .contact-section {
+            background: #F5F9FF;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-top: 3rem;
+            text-align: center;
+        }
+
+        .contact-section h3 {
+            color: #121417;
+            margin-bottom: 1rem;
+        }
+
+        .contact-section a {
+            color: #2D6CDF;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .contact-section a:hover {
+            text-decoration: underline;
+        }
+
+        .terms-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(45, 108, 223, 0.1);
+        }
+
+        .terms-table th {
+            background: #F5F9FF;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #121417;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        .terms-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #F5F9FF;
+            color: #4A5568;
+        }
+
+        .terms-table tr:hover {
+            background: #F9FAFB;
+        }
+
+        .prohibited-section {
+            background: linear-gradient(135deg, #FEE2E2, #FECACA);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #EF4444;
+            margin: 2rem 0;
+        }
+
+        .prohibited-section h3 {
+            color: #B91C1C;
+            margin-top: 0;
+        }
+
+        .prohibited-section p, .prohibited-section li {
+            color: #B91C1C;
+        }
+
+        /* Footer */
+        .footer {
+            background: #121417;
+            color: white;
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #2D6CDF;
+        }
+
+        .footer-section a {
+            color: #9CA3AF;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #374151;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            text-align: center;
+            color: #9CA3AF;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .container {
+                margin: 1rem;
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .terms-table {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="header-container"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1>Terms of Service</h1>
+        <div class="effective-date">
+            <strong>Effective Date:</strong> January 12, 2025<br>
+            <strong>Last Updated:</strong> January 12, 2025
+        </div>
+
+        <div class="info-box">
+            <h3>📋 Agreement Overview</h3>
+            <p>These Terms of Service govern your use of Oslira's AI-powered lead generation and outreach platform. By creating an account or using our services, you agree to be bound by these terms.</p>
+        </div>
+
+        <h2>1. Acceptance and Modifications</h2>
+
+        <h3>1.1 Agreement to Terms</h3>
+        <p>By accessing, browsing, or using the Oslira platform, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service and our Privacy Policy.</p>
+
+        <h3>1.2 Eligibility</h3>
+        <p>You must be at least 18 years old and have the legal capacity to enter into agreements to use our services. By using Oslira, you represent and warrant that you meet these requirements.</p>
+
+        <h3>1.3 Modifications to Terms</h3>
+        <p>We reserve the right to modify these terms at any time. Material changes will be communicated via email or platform notification at least 30 days in advance. Continued use after changes constitutes acceptance.</p>
+
+        <h2>2. Service Description</h2>
+
+        <h3>2.1 Platform Features</h3>
+        <p>Oslira provides the following services:</p>
+        <ul>
+            <li>AI-powered lead research and profile analysis</li>
+            <li>Lead scoring and qualification algorithms</li>
+            <li>Personalized outreach message generation</li>
+            <li>Lead management and CRM functionality</li>
+            <li>Analytics and performance tracking</li>
+            <li>Integration tools and API access (premium plans)</li>
+        </ul>
+
+        <h3>2.2 Service Availability</h3>
+        <p>We strive to maintain 99.9% uptime but do not guarantee uninterrupted service. Scheduled maintenance will be announced in advance when possible.</p>
+
+        <h3>2.3 Third-Party Data Sources</h3>
+        <p>Our AI analyzes publicly available information from social media platforms. We do not access private or restricted content and are not responsible for changes in third-party platform policies.</p>
+
+        <h2>3. Account Registration and Security</h2>
+
+        <h3>3.1 Account Creation</h3>
+        <p>You must provide accurate and complete information when creating your account. You are responsible for maintaining the confidentiality of your login credentials.</p>
+
+        <h3>3.2 Account Security</h3>
+        <ul>
+            <li>Use strong, unique passwords</li>
+            <li>Enable two-factor authentication when available</li>
+            <li>Do not share account access with unauthorized parties</li>
+            <li>Notify us immediately of any suspected unauthorized access</li>
+        </ul>
+
+        <h3>3.3 Account Responsibility</h3>
+        <p>You are responsible for all activities that occur under your account, whether authorized by you or not.</p>
+
+        <h2>4. Subscription Plans and Billing</h2>
+
+        <h3>4.1 Subscription Model</h3>
+        <p>Oslira operates on a subscription + credits model:</p>
+
+        <table class="terms-table">
+            <thead>
+                <tr>
+                    <th>Plan Type</th>
+                    <th>Monthly Cost</th>
+                    <th>Included Credits</th>
+                    <th>Additional Credit Rate</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Starter</td>
+                    <td>$29/month</td>
+                    <td>40 credits</td>
+                    <td>$0.98 per credit</td>
+                </tr>
+                <tr>
+                    <td>Growth</td>
+                    <td>$85/month</td>
+                    <td>100 credits</td>
+                    <td>$0.85 per credit</td>
+                </tr>
+                <tr>
+                    <td>Professional</td>
+                    <td>$297/month</td>
+                    <td>500 credits</td>
+                    <td>$0.59 per credit</td>
+                </tr>
+                <tr>
+                    <td>Enterprise</td>
+                    <td>$997/month</td>
+                    <td>2,000 credits</td>
+                    <td>$0.50 per credit</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>4.2 Billing and Payments</h3>
+        <ul>
+            <li>All payments are processed securely through Stripe</li>
+            <li>Subscriptions renew automatically unless cancelled</li>
+            <li>Credits roll over for up to 3 months before expiring</li>
+            <li>Additional credits can be purchased at any time</li>
+        </ul>
+
+        <h3>4.3 Price Changes</h3>
+        <p>We may change subscription prices with 30 days' notice. Existing subscribers will be grandfathered at their current rate for the remainder of their annual commitment, if applicable.</p>
+
+        <h2>5. Acceptable Use Policy</h2>
+
+        <div class="prohibited-section">
+            <h3>🚫 Prohibited Activities</h3>
+            <p>The following activities are strictly prohibited and may result in immediate account termination:</p>
+        </div>
+
+        <h3>5.1 Technical Misuse</h3>
+        <ul>
+            <li>Attempting to reverse engineer, decompile, or hack the platform</li>
+            <li>Using automated scripts, bots, or scrapers without authorization</li>
+            <li>Attempting to gain unauthorized access to other users' accounts</li>
+            <li>Overloading our systems or attempting denial-of-service attacks</li>
+            <li>Circumventing rate limits or usage restrictions</li>
+        </ul>
+
+        <h3>5.2 Content and Communication Misuse</h3>
+        <ul>
+            <li>Using the platform for spamming or unsolicited bulk messaging</li>
+            <li>Generating or distributing illegal, harmful, or offensive content</li>
+            <li>Impersonating other individuals or organizations</li>
+            <li>Violating third-party platform terms of service in your outreach</li>
+            <li>Harassment, discrimination, or abusive behavior</li>
+        </ul>
+
+        <h3>5.3 Commercial Misuse</h3>
+        <ul>
+            <li>Reselling or redistributing our services without authorization</li>
+            <li>Using the platform for illegal business activities</li>
+            <li>Sharing account access for commercial advantage</li>
+            <li>Credit fraud, manipulation, or unauthorized transfers</li>
+        </ul>
+
+        <h2>6. Intellectual Property Rights</h2>
+
+        <h3>6.1 Oslira's IP</h3>
+        <p>All platform technology, AI algorithms, designs, and content are proprietary to Oslira and protected by copyright, trademark, and other intellectual property laws.</p>
+
+        <h3>6.2 User-Generated Content</h3>
+        <p>You retain ownership of content you create using our platform. By using our services, you grant us a license to use, store, and process your content to provide our services.</p>
+
+        <h3>6.3 AI-Generated Content</h3>
+        <p>You may use AI-generated outreach messages and insights for your business purposes. However, you are responsible for ensuring all communications comply with applicable laws and platform policies.</p>
+
+        <h2>7. Data Usage and Privacy</h2>
+
+        <h3>7.1 Data Collection</h3>
+        <p>We collect and process data as described in our Privacy Policy. By using our services, you consent to our data practices.</p>
+
+        <h3>7.2 Public Data Analysis</h3>
+        <p>Our AI analyzes publicly available social media information. We do not access private profiles or content requiring special permissions.</p>
+
+        <h3>7.3 Data Security</h3>
+        <p>We implement industry-standard security measures to protect your data, but cannot guarantee absolute security against all threats.</p>
+
+        <h2>8. Disclaimers and Limitations</h2>
+
+        <div class="warning-box">
+            <h3>⚠️ Important Disclaimers</h3>
+            <p>Please understand the limitations of our AI-powered services and your responsibilities when using them.</p>
+        </div>
+
+        <h3>8.1 No Business Guarantees</h3>
+        <p>Oslira makes no guarantees regarding:</p>
+        <ul>
+            <li>Business results, revenue, or return on investment</li>
+            <li>Lead conversion rates or response rates</li>
+            <li>Accuracy of AI-generated content or insights</li>
+            <li>Compatibility with all business models or industries</li>
+        </ul>
+
+        <h3>8.2 AI Content Disclaimer</h3>
+        <p>AI-generated recommendations are suggestions only and should not be considered professional advice. Users are responsible for reviewing and adapting all AI-generated content before use.</p>
+
+        <h3>8.3 Third-Party Platform Risks</h3>
+        <p>We are not responsible for actions taken by third-party platforms (Instagram, LinkedIn, etc.) in response to your outreach activities, including account restrictions or suspensions.</p>
+
+        <h2>9. Limitation of Liability</h2>
+
+        <p>To the maximum extent permitted by law, Oslira's liability is limited to the amount you paid for services in the 12 months preceding any claim. We are not liable for indirect, incidental, consequential, or punitive damages.</p>
+
+        <h2>10. Termination</h2>
+
+        <h3>10.1 Termination by You</h3>
+        <p>You may cancel your subscription at any time. Service will continue until the end of your current billing period.</p>
+
+        <h3>10.2 Termination by Oslira</h3>
+        <p>We may suspend or terminate accounts for:</p>
+        <ul>
+            <li>Violation of these Terms of Service</li>
+            <li>Fraudulent or abusive behavior</li>
+            <li>Non-payment of fees</li>
+            <li>Legal or regulatory requirements</li>
+        </ul>
+
+        <h3>10.3 Effect of Termination</h3>
+        <p>Upon termination, your access to the platform will end, and we may delete your data after a reasonable retention period.</p>
+
+        <h2>11. Governing Law and Disputes</h2>
+
+        <h3>11.1 Governing Law</h3>
+        <p>These terms are governed by the laws of [Jurisdiction], without regard to conflict of law principles.</p>
+
+        <h3>11.2 Dispute Resolution</h3>
+        <p>We encourage users to contact our support team to resolve disputes informally. For formal disputes, binding arbitration may be required as outlined in our complete terms.</p>
+
+        <h2>12. Severability and Integration</h2>
+
+        <p>If any provision of these terms is found invalid, the remaining provisions remain in effect. These terms, together with our Privacy Policy and other referenced policies, constitute the complete agreement between you and Oslira.</p>
+
+        <div class="contact-section">
+            <h3>Questions About These Terms?</h3>
+            <p>
+                <strong>Legal Team:</strong> <a href="mailto:legal@oslira.com">legal@oslira.com</a><br>
+                <strong>General Support:</strong> <a href="mailto:support@oslira.com">support@oslira.com</a><br>
+                <strong>Business Hours:</strong> Monday-Friday, 9 AM - 6 PM EST
+            </p>
+        </div>
+    </div>
+
+<!-- Footer Manager Initialization -->
+    <script>
+        let footerInitialized = false;
+        
+window.addEventListener('oslira:scripts:loaded', async () => {
+    // Initialize header first
+    try {
+        await initializeHeader();
+    } catch (error) {
+        console.error('❌ [PageName] Header initialization failed:', error);
+    }
+            if (footerInitialized) {
+                console.log('🔄 [Terms] Footer already initialized, skipping...');
+                return;
+            }
+            
+            console.log('🚀 [Terms] Scripts loaded event received, initializing footer...');
+            try {
+                footerInitialized = true;
+                await initializeFooter();
+            } catch (error) {
+                console.error('❌ [Terms] Footer initialization failed:', error);
+                footerInitialized = false;
+            }
+        });
+
+        async function initializeHeader() {
+    try {
+        if (document.querySelector('.home-nav')) {
+            console.log('🔄 [PageName] Header already exists, skipping initialization...');
+            return;
+        }
+        
+        console.log('🧭 [PageName] Starting header initialization...');
+        
+        let container = document.getElementById('header-container');
+        if (!container) {
+            console.log('🔧 [PageName] Creating header-container element');
+            container = document.createElement('div');
+            container.id = 'header-container';
+            document.body.insertBefore(container, document.body.firstChild);
+        }
+        
+        // Wait for HeaderManager to be available
+        console.log('🔍 [PageName] Waiting for HeaderManager...');
+        for (let i = 0; i < 50; i++) {
+            if (window.HeaderManager) {
+                console.log('✅ [PageName] HeaderManager found');
+                break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        if (!window.HeaderManager) {
+            throw new Error('HeaderManager not available after waiting');
+        }
+        
+        // Initialize header for footer pages
+        console.log('🧭 [PageName] Creating HeaderManager instance...');
+        const headerManager = new window.HeaderManager();
+        
+        console.log('🧭 [PageName] Rendering header...');
+        headerManager.render('header-container', {
+            type: 'footer-pages'
+        });
+        
+        console.log('✅ [PageName] Header initialization complete');
+    } catch (error) {
+        console.error('❌ [PageName] Header initialization failed:', error);
+    }
+}
+        
+        async function initializeFooter() {
+            try {
+                // Check if footer already exists
+                if (document.querySelector('.new-footer-main')) {
+                    console.log('🔄 [Terms] Footer already exists, skipping initialization...');
+                    return;
+                }
+                
+                console.log('🦶 [Terms] Starting footer initialization...');
+                
+                // Check if container exists
+                let container = document.getElementById('footer-container');
+                if (!container) {
+                    console.log('🔧 [Terms] Creating footer-container element');
+                    container = document.createElement('div');
+                    container.id = 'footer-container';
+                    document.body.appendChild(container);
+                }
+                
+                // Wait for FooterManager to be available
+                console.log('🔍 [Terms] Waiting for FooterManager...');
+                for (let i = 0; i < 50; i++) {
+                    if (window.FooterManager) {
+                        console.log('✅ [Terms] FooterManager found');
+                        break;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                if (!window.FooterManager) {
+                    throw new Error('FooterManager not available after waiting');
+                }
+                
+                // Initialize footer
+                console.log('🦶 [Terms] Creating FooterManager instance...');
+                const footerManager = new window.FooterManager();
+                
+                console.log('🦶 [Terms] Rendering footer...');
+                footerManager.render('footer-container');
+                
+                console.log('✅ [Terms] Footer initialization complete');
+            } catch (error) {
+                console.error('❌ [Terms] Footer initialization failed:', error);
+            }
+        }
+    </script>
+    <!-- Footer Container -->
+    <div id="footer-container"></div>
+</body>
+</html>

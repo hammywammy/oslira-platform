@@ -1,0 +1,158 @@
+/* =============================================================================
+   SETTINGS PAGE - CLEAN PROFESSIONAL DESIGN
+   Shared styles for all settings pages
+   ============================================================================= */
+
+.settings-page .main-content {
+  margin-left: 256px;
+  min-height: 100vh;
+  background: transparent;
+  transition: margin-left 0.3s ease;
+  padding: 0;
+}
+
+.settings-page .main-content.sidebar-collapsed {
+  margin-left: 64px;
+}
+
+/* Settings Container */
+.settings-wrapper {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+/* Header */
+.settings-header {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 1.5rem;
+}
+
+.settings-header h1 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+/* Tab Navigation */
+.settings-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 3rem;
+  border-bottom: 2px solid #e5e7eb;
+  overflow-x: auto;
+}
+
+.settings-tab {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.settings-tab:hover {
+  color: #374151;
+  background: #f9fafb;
+}
+
+.settings-tab.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+/* Page Content */
+.settings-page-content {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 2rem;
+}
+
+.settings-page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.settings-page-subtitle {
+  font-size: 0.9375rem;
+  color: #6b7280;
+  margin: 0 0 2rem 0;
+}
+
+/* Content Placeholder */
+.settings-content-placeholder {
+  padding: 4rem 2rem;
+  text-align: center;
+  color: #9ca3af;
+  border: 2px dashed #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.settings-content-placeholder p {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 64px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .settings-wrapper {
+    padding: 2rem 1rem;
+  }
+  
+  .settings-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .settings-tabs {
+    gap: 0.25rem;
+  }
+  
+  .settings-tab {
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .settings-page-content {
+    padding: 1.5rem;
+  }
+  
+  .settings-page-title {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-wrapper {
+    padding: 1.5rem 0.75rem;
+  }
+  
+  .settings-page-content {
+    padding: 1rem;
+  }
+  
+  .settings-content-placeholder {
+    padding: 3rem 1rem;
+  }
+}
