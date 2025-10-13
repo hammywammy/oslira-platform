@@ -172,11 +172,13 @@ const requestPromise = this.httpClient.request(fullURL, {
                 this.inFlightRequests.set(cacheKey, requestPromise);
             }
             
-            // Execute request
-            const response = await requestPromise;
+            const httpResponse = await requestPromise;
             
             // Clean up in-flight tracking
             this.inFlightRequests.delete(cacheKey);
+            
+            // Extract API response from HttpClient wrapper
+            const response = httpResponse.data || httpResponse;
             
             // 6. Handle rate limiting headers
             this.updateRateLimitInfo(response);
@@ -190,7 +192,7 @@ const requestPromise = this.httpClient.request(fullURL, {
             this.logger.info('[ApiClient] Request successful', {
                 endpoint,
                 method,
-                status: response.status || 200
+                status: httpResponse.status || response.status || 200
             });
             
             return response;
