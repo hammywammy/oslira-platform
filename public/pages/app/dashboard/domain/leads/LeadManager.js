@@ -109,7 +109,7 @@ class LeadManager {
     // MAIN DATA LOADING (Production Grade)
     // =========================================================================
     
-    async loadDashboardData() {
+   async loadDashboardData() {
     // Prevent concurrent loads
     if (this.isLoading) {
         console.log('⚠️ [LeadManager] Load already in progress');
@@ -125,12 +125,30 @@ class LeadManager {
         this.eventBus.emit('dashboard:loading:start', 'leads');
         this.stateManager.setState('isLoading', true);
         
-        // Get current business
-        const business = this.stateManager.getState('currentBusiness');
+        // ✅ WAIT FOR BUSINESS TO BE SET (with timeout)
+        let business = this.stateManager.getState('currentBusiness');
         
         if (!business?.id) {
-            throw new Error('No business selected');
+            console.log('⏳ [LeadManager] Waiting for business selection...');
+            
+            // Wait up to 3 seconds for business to be set
+            const maxAttempts = 30;
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                business = this.stateManager.getState('currentBusiness');
+                
+                if (business?.id) {
+                    console.log(`✅ [LeadManager] Business ready after ${attempt * 100}ms`);
+                    break;
+                }
+            }
+            
+            if (!business?.id) {
+                throw new Error('No business selected after waiting 3 seconds');
+            }
         }
+        
+        console.log('📊 [LeadManager] Using business:', business.id);
         
         // ✅ USE BACKEND ENDPOINT (not direct Supabase)
         const leads = await this.leadsAPI.fetchDashboardLeads(business.id);
