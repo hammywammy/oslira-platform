@@ -516,18 +516,10 @@ constructor() {
 // =============================================================================
 // GLOBAL EXPORT & AUTO-INITIALIZATION
 // =============================================================================
+// Export for ES6 modules
+export default EnvDetector;
 
-// Create singleton instance
-const envDetector = new EnvDetector();
-
-// Export class and instance
-window.OsliraEnvDetector = EnvDetector;
-window.OsliraEnv = envDetector;
-
-console.log('✅ [EnvDetector] Loaded and initialized');
-
-// Register with Coordinator
-if (window.Oslira?.init) {
-    window.Oslira.init.register('EnvDetector', window.OsliraEnv);
-    console.log('📋 [EnvDetector] Registered with Coordinator');
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.EnvDetector = EnvDetector;
 }
