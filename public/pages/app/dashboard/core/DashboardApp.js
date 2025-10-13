@@ -57,6 +57,15 @@ if (window.OsliraApiClient && !window.OsliraApiClient.isInitialized) {
     });
     console.log('✅ [DashboardApp] ApiClient initialized');
 }
+
+// ✅ ADD THIS: Initialize LeadsAPI
+if (window.OsliraLeadsAPI && !window.OsliraLeadsAPI.isInitialized) {
+    console.log('🎯 [DashboardApp] Initializing LeadsAPI...');
+    await window.OsliraLeadsAPI.initialize({
+        apiClient: window.OsliraApiClient
+    });
+    console.log('✅ [DashboardApp] LeadsAPI initialized');
+}
         
         // Initialize auth
         await this.initializeAuth();
