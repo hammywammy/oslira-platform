@@ -317,6 +317,9 @@ class AnalysisQueueAnimator {
     }
 }
 
+// ES6 Module Export
+export default AnalysisQueueAnimator;
+
 // Export
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = AnalysisQueueAnimator;
