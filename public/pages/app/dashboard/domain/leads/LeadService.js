@@ -257,6 +257,50 @@ class LeadService {
         
         return formatted;
     }
+
+    // =========================================================================
+// LEAD DATA TRANSFORMATION
+// =========================================================================
+
+transformLeadForDisplay(leadData) {
+    const { lead, analysisData } = leadData;
+    
+    return {
+        lead: {
+            ...lead,
+            followerCount: lead.follower_count || lead.followers_count || 0,
+            postCount: lead.post_count || lead.posts_count || 0,
+            followingCount: lead.following_count || 0
+        },
+        scores: this.extractScores(analysisData, lead),
+        summaryData: this.generateSummaryData(lead, analysisData)
+    };
+}
+
+extractScores(analysisData, lead) {
+    return {
+        overall: analysisData?.overall_score || lead?.score || 0,
+        engagement: analysisData?.engagement_score || 0,
+        nicheFit: analysisData?.niche_fit_score || 0,
+        total: analysisData?.overall_score || lead?.score || 0
+    };
+}
+
+generateSummaryData(lead, analysisData) {
+    const followerCount = lead.follower_count || lead.followers_count || 0;
+    const postCount = lead.post_count || lead.posts_count || 0;
+    const isVerified = lead.is_verified_account || lead.is_verified || false;
+    const isBusiness = lead.is_business_account || false;
+    
+    return {
+        followerCount,
+        postCount,
+        isVerified,
+        isBusiness,
+        analysisType: analysisData?.analysis_type || lead.analysis_type || 'light',
+        summaryText: analysisData?.summary_text || lead.quick_summary || ''
+    };
+}
 }
 
 // =============================================================================
