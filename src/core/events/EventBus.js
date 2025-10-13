@@ -569,5 +569,5 @@ export default OsliraEventBus;
 
 // Also keep window global for backwards compatibility
 if (typeof window !== 'undefined') {
-    window.OsliraEventBus = OsliraEventBus;
+    window.OsliraEventBus = EventBus;
 }
