@@ -347,11 +347,10 @@ class DevConsole {
 // =============================================================================
 // GLOBAL EXPORTS
 // =============================================================================
+// Export for ES6 modules
+export default DevConsole;
 
-window.DevConsole = new DevConsole();
-
-// Quick commands
-window.diagnose = () => window.DevConsole.diagnose();
-window.fix = () => window.DevConsole.fix();
-
-console.log('%c✅ DevConsole loaded - Run: diagnose()', 'color: #3b82f6; font-weight: bold');
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.DevConsole = DevConsole;
+}
