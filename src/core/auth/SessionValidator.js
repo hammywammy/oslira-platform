@@ -328,6 +328,10 @@ class SessionValidator {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraSessionValidator = SessionValidator;
+// Export for ES6 modules
+export default SessionValidator;
 
-console.log('✅ [SessionValidator] Class loaded and ready');
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.SessionValidator = SessionValidator;
+}
