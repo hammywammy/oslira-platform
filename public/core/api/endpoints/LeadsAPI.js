@@ -714,8 +714,16 @@ async fetchDashboardLeads(businessId, limit = 50) {
 }
 
 // =============================================================================
-// GLOBAL EXPORT
+// GLOBAL EXPORT - CREATE SINGLETON INSTANCE
 // =============================================================================
-window.OsliraLeadsAPI = LeadsAPI;
 
-console.log('✅ [LeadsAPI] Class loaded and ready for initialization');
+// Export the class
+window.LeadsAPI = LeadsAPI;
+
+// Create singleton instance (like other core services)
+if (!window.OsliraLeadsAPI) {
+    window.OsliraLeadsAPI = new LeadsAPI();
+    console.log('✅ [LeadsAPI] Singleton instance created and ready for initialization');
+} else {
+    console.log('⚠️ [LeadsAPI] Instance already exists, skipping re-initialization');
+}
