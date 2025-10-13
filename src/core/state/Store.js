@@ -544,6 +544,8 @@ class Store {
 // =============================================================================
 // GLOBAL EXPORT (Safe Singleton Pattern)
 // =============================================================================
+// ES6 Module Export
+export default Store;
 
 if (!window.OsliraStore) {
     // Create instance without dependencies (lazy resolution)
