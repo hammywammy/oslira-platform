@@ -559,6 +559,10 @@ class ServiceRegistry {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraServiceRegistry = new ServiceRegistry();
+// Export for ES6 modules
+export default ServiceRegistry;
 
-console.log('✅ [ServiceRegistry] Loaded with', window.OsliraServiceRegistry.getStats().totalServices, 'services');
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.ServiceRegistry = ServiceRegistry;
+}
