@@ -577,11 +577,10 @@ updateStatsFromLeads(leads) {
     }
 }
 
-// Make StatsCards globally accessible for onclick handlers
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = StatsCards;
-} else {
+// Export for ES6 modules
+export default StatsCards;
+
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
     window.StatsCards = StatsCards;
 }
-
-console.log('📊 [StatsCards] Migrated version loaded successfully');
