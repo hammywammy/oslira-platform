@@ -249,7 +249,8 @@ class AdminSidebarManager {
 // =============================================================================
 // GLOBAL INITIALIZATION (same pattern as dashboard sidebar)
 // =============================================================================
-
+// ES6 Module Export
+export default SidebarManager;
 // Export for global use
 window.AdminSidebarManager = AdminSidebarManager;
 
