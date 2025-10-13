@@ -263,6 +263,9 @@ ${!analysis.isMinimized ? `
     }
 }
 
+// ES6 Module Export
+export default AnalysisQueueRenderer;
+
 // Export
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = AnalysisQueueRenderer;
