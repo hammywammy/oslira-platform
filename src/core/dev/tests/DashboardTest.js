@@ -165,6 +165,10 @@ class DashboardTest {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.DashboardTest = DashboardTest;
+// Export for ES6 modules
+export default DashboardTest;
 
-console.log('✅ [DashboardTest] Loaded');
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.DashboardTest = DashboardTest;
+}
