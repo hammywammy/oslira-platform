@@ -697,6 +697,8 @@ batchUpdate(updates, silent = false) {
 // =============================================================================
 // GLOBAL EXPORT (Safe Singleton Pattern)
 // =============================================================================
+// ES6 Module Export
+export default StateManager;
 
 if (!window.OsliraStateManager) {
     // Create singleton instance without dependencies (lazy resolution)
