@@ -82,3 +82,31 @@ import './dev/DevConsole.js';
 import './dev/tests/DashboardTest.js';
 
 console.log('✅ [Core Bundle] All modules loaded');
+
+// =============================================================================
+// EXPORT CORE BUNDLE (for modules that need to import it)
+// =============================================================================
+export default {
+    EventBus: window.OsliraEventBus,
+    StateManager: window.OsliraStateManager,
+    Store: window.OsliraStore,
+    Logger: window.OsliraLogger,
+    ErrorHandler: window.OsliraErrorHandler,
+    HttpClient: window.OsliraHttpClient,
+    ApiClient: window.OsliraApiClient,
+    Auth: window.OsliraAuth
+};
+
+// Also expose on window for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.Core = {
+        EventBus: window.OsliraEventBus,
+        StateManager: window.OsliraStateManager,
+        Store: window.OsliraStore,
+        Logger: window.OsliraLogger,
+        ErrorHandler: window.OsliraErrorHandler,
+        HttpClient: window.OsliraHttpClient,
+        ApiClient: window.OsliraApiClient,
+        Auth: window.OsliraAuth
+    };
+}
