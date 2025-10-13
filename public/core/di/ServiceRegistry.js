@@ -251,17 +251,6 @@ class ServiceRegistry {
         // =================================================================
         
         this.register({
-            name: 'LeadService',
-            class: 'OsliraLeadService',
-            instance: 'OsliraLeadService',
-            dependencies: ['LeadsAPI', 'StateManager', 'EventBus', 'Logger'],
-            singleton: true,
-            autoInit: true,
-            phase: 7,
-            description: 'Lead business logic'
-        });
-        
-        this.register({
             name: 'AnalyticsService',
             class: 'OsliraAnalyticsService',
             instance: 'OsliraAnalyticsService',
