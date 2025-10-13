@@ -565,7 +565,7 @@ class EventBus {
 // GLOBAL EXPORT (Safe Singleton Pattern)
 // =============================================================================
 // Export for ES6 modules
-export default OsliraEventBus;
+export default EventBus;
 
 // Also keep window global for backwards compatibility
 if (typeof window !== 'undefined') {
