@@ -8,7 +8,7 @@
     "dev:vite": "vite",
     "build": "npm run build:tailwind && npm run build:vite",
     "build:vite": "vite build",
-    "build:tailwind": "npx tailwindcss -i public/assets/css/tailwind-input.css -o public/assets/css/tailwind.css --minify",
+   "build:tailwind": "npx tailwindcss -i src/assets/css/tailwind-input.css -o src/assets/css/tailwind.css --minify",
     "preview": "vite preview",
     "deploy": "netlify deploy --prod"
   },
