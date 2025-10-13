@@ -1,28 +1,9 @@
 import { defineConfig } from 'vite'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { existsSync, readdirSync } from 'fs'
+import { glob } from 'glob'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-// ✅ DEBUG: Log what files actually exist
-console.log('==========================================')
-console.log('VITE CONFIG DEBUG INFO')
-console.log('==========================================')
-console.log('__dirname:', __dirname)
-console.log('Project root:', path.resolve(__dirname))
-console.log('HTML path:', path.resolve(__dirname, 'src/pages/app/dashboard/index.html'))
-console.log('HTML exists?:', existsSync(path.resolve(__dirname, 'src/pages/app/dashboard/index.html')))
-console.log('main.js path:', path.resolve(__dirname, 'src/pages/app/dashboard/main.js'))
-console.log('main.js exists?:', existsSync(path.resolve(__dirname, 'src/pages/app/dashboard/main.js')))
-
-// List all files in dashboard directory
-const dashboardDir = path.resolve(__dirname, 'src/pages/app/dashboard')
-if (existsSync(dashboardDir)) {
-  console.log('Files in dashboard directory:')
-  console.log(readdirSync(dashboardDir))
-}
-console.log('==========================================')
 
 export default defineConfig({
   root: '.', 
@@ -34,7 +15,15 @@ export default defineConfig({
     
     rollupOptions: {
       input: {
-        dashboard: path.resolve(__dirname, 'src/pages/app/dashboard/index.html')
+        // Homepage
+        home: path.resolve(__dirname, 'src/pages/www/index.html'),
+        
+        // Dashboard (already configured)
+        dashboard: path.resolve(__dirname, 'src/pages/app/dashboard/index.html'),
+        
+        // Add more pages as needed:
+        // about: path.resolve(__dirname, 'src/pages/www/about/index.html'),
+        // pricing: path.resolve(__dirname, 'src/pages/www/pricing/index.html'),
       },
       
       output: {
@@ -56,17 +45,24 @@ export default defineConfig({
         },
         
         manualChunks(id) {
+          // Vendor chunks
           if (id.includes('node_modules')) {
             if (id.includes('@supabase')) return 'vendor-supabase'
             return 'vendor'
           }
           
+          // Core bundle (shared across all pages)
           if (id.includes('/src/core/')) {
             return 'core'
           }
           
+          // Page-specific chunks
           if (id.includes('/src/pages/app/dashboard/')) {
             return 'dashboard'
+          }
+          
+          if (id.includes('/src/pages/www/')) {
+            return 'www'
           }
         }
       }
@@ -76,7 +72,7 @@ export default defineConfig({
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: false,
+        drop_console: false, // Keep console in production for now
         drop_debugger: true
       }
     },
@@ -109,6 +105,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@core': path.resolve(__dirname, './src/core'),
       '@dashboard': path.resolve(__dirname, './src/pages/app/dashboard'),
+      '@www': path.resolve(__dirname, './src/pages/www'),
       '@components': path.resolve(__dirname, './src/core/ui/components'),
       '@utils': path.resolve(__dirname, './src/core/utils')
     },
@@ -119,6 +116,5 @@ export default defineConfig({
     include: ['@supabase/supabase-js']
   },
   
-  // ✅ ADD: More verbose logging
   logLevel: 'info'
 })
