@@ -64,6 +64,11 @@ auth: {
 },
 
 
+// =============================================================================
+// MODULE REGISTRY - UPDATED FOR 5-FILE REFACTORING
+// Path: /public/core/init/ModuleRegistry.js
+// =============================================================================
+
 dashboard: {
     appClass: 'DashboardApp',
     scripts: [
@@ -74,9 +79,9 @@ dashboard: {
         '/core/di/Container.js',
         
         // ============================================================
-        // PHASE 1: INFRASTRUCTURE (ADD TOOLTIP HERE)
+        // PHASE 1: INFRASTRUCTURE
         // ============================================================
-        '/core/ui/components/tooltip/TooltipManager.js',  
+        '/core/ui/components/tooltip/TooltipManager.js',
         
         // ============================================================
         // PHASE 2: DASHBOARD CORE APP
@@ -84,56 +89,63 @@ dashboard: {
         '/pages/app/dashboard/core/DashboardApp.js',
         
         // ============================================================
-        // PHASE 3: UI COMPONENTS (MUST BE BEFORE ANYTHING THAT USES THEM)
+        // PHASE 3: NEW - DOMAIN SERVICES (BUSINESS LOGIC)
+        // ============================================================
+        '/pages/app/dashboard/domain/leads/LeadService.js',  // ✅ ADD THIS
+        '/pages/app/dashboard/domain/leads/LeadValidation.js',  // ✅ ADD THIS
+        
+        // ============================================================
+        // PHASE 4: UI COMPONENTS (MUST BE BEFORE ANYTHING THAT USES THEM)
         // ============================================================
         '/pages/app/dashboard/ui/components/IconComponents.js',
         '/pages/app/dashboard/ui/components/LeadsTable.js',
+        '/pages/app/dashboard/ui/components/LeadsTableRenderer.js',  // ✅ ADD THIS (NEW RENDERER)
         
         // ============================================================
-        // PHASE 4: INFRASTRUCTURE
+        // PHASE 5: INFRASTRUCTURE
         // ============================================================
         '/pages/app/dashboard/infrastructure/RealtimeManager.js',
         
         // ============================================================
-        // PHASE 5: DOMAIN - RENDERING
+        // PHASE 6: DOMAIN - RENDERING 
         // ============================================================
-        '/pages/app/dashboard/domain/leads/LeadRenderer.js',
         '/pages/app/dashboard/ui/components/InsightsPanel.js',
         
         // ============================================================
-        // PHASE 6: DOMAIN - ANALYSIS
+        // PHASE 7: NEW - APPLICATION LAYER (USE CASES)
+        // ============================================================
+        '/pages/app/dashboard/application/leads/LeadDisplayUseCase.js',  // ✅ ADD THIS
+        '/pages/app/dashboard/application/analysis/AnalyzeLeadUseCase.js',  // ✅ ADD THIS
+        
+        // ============================================================
+        // PHASE 8: DOMAIN - ANALYSIS
         // ============================================================
         '/pages/app/dashboard/domain/analysis/AnalysisFunctions.js',
         
         // ============================================================
-        // PHASE 7: UI MODALS - PERSONALITY COMPONENTS
+        // PHASE 9: UI MODALS - PERSONALITY COMPONENTS
         // ============================================================
         '/pages/app/dashboard/ui/modals/components/ModalComponentsPersonality.js',
         
         // ============================================================
-        // PHASE 8: MODALS - CONFIGURATIONS
+        // PHASE 10: MODALS - CONFIGURATIONS
         // ============================================================
-        '/pages/app/dashboard/ui/modals/configs/ResearchModal.js',
+        '/pages/app/dashboard/ui/modals/configs/ResearchModal.js',  // ✅ ALREADY EXISTS - UPDATED
         '/pages/app/dashboard/ui/modals/configs/AnalysisConfig.js',
         
         // ============================================================
-        // PHASE 9: UI MODALS - XRAY COMPONENTS
+        // PHASE 11: UI MODALS - XRAY COMPONENTS
         // ============================================================
         '/pages/app/dashboard/ui/modals/components/ModalComponentsXray.js',
         
         // ============================================================
-        // PHASE 10: DOMAIN - STATS
+        // PHASE 12: DOMAIN - STATS
         // ============================================================
         '/pages/app/dashboard/domain/stats/StatsCalculator.js',
         
-        // ============================================================
-        // PHASE 11: HANDLERS
-        // ============================================================
-        '/pages/app/dashboard/handlers/ResearchHandlers.js',
-        '/pages/app/dashboard/handlers/LeadAnalysisHandlers.js',
         
         // ============================================================
-        // PHASE 12: ANALYSIS SYSTEM - QUEUE
+        // PHASE 14: ANALYSIS SYSTEM - QUEUE
         // ============================================================
         '/pages/app/dashboard/domain/analysis/AnalysisQueueRenderer.js',
         '/pages/app/dashboard/ui/components/TipOfDay.js',
@@ -143,55 +155,55 @@ dashboard: {
         '/pages/app/dashboard/domain/analysis/AnalysisQueueAnimator.js',
         
         // ============================================================
-        // PHASE 13: UI MODALS - DEEP COMPONENTS
+        // PHASE 15: UI MODALS - DEEP COMPONENTS
         // ============================================================
         '/pages/app/dashboard/ui/modals/components/ModalComponentsDeep.js',
         
         // ============================================================
-        // PHASE 14: DOMAIN - LEADS
+        // PHASE 16: DOMAIN - LEADS (UPDATED)
         // ============================================================
-        '/pages/app/dashboard/domain/leads/LeadManager.js',
+        '/pages/app/dashboard/domain/leads/LeadManager.js',  // ✅ MODIFIED - Now uses LeadsAPI
         
         // ============================================================
-        // PHASE 15: UI MODALS - TAB SYSTEM
+        // PHASE 17: UI MODALS - TAB SYSTEM
         // ============================================================
         '/pages/app/dashboard/ui/modals/TabSystem.js',
         
         // ============================================================
-        // PHASE 16: UI MODALS - MODAL MANAGER
+        // PHASE 18: UI MODALS - MODAL MANAGER
         // ============================================================
         '/pages/app/dashboard/ui/modals/ModalManager.js',
         '/pages/app/dashboard/ui/modals/ModalBuilder.js',
         
         // ============================================================
-        // PHASE 17: UI COMPONENTS - STATS & BULK
+        // PHASE 19: UI COMPONENTS - STATS & BULK
         // ============================================================
         '/pages/app/dashboard/ui/components/StatsCards.js',
         '/pages/app/dashboard/domain/bulk/BulkUpload.js',
         '/pages/app/dashboard/ui/modals/configs/BulkModal.js',
         
         // ============================================================
-        // PHASE 18: UI MODALS - CORE COMPONENTS
+        // PHASE 20: UI MODALS - CORE COMPONENTS
         // ============================================================
         '/pages/app/dashboard/ui/modals/components/ModalComponentsCore.js',
         
         // ============================================================
-        // PHASE 19: UI COMPONENTS - HEADER
+        // PHASE 21: UI COMPONENTS - HEADER
         // ============================================================
         '/pages/app/dashboard/ui/components/DashboardHeader.js',
         
         // ============================================================
-        // PHASE 20: DOMAIN - BUSINESS
+        // PHASE 22: DOMAIN - BUSINESS
         // ============================================================
         '/pages/app/dashboard/domain/business/BusinessManager.js',
         
         // ============================================================
-        // PHASE 21: SHARED COMPONENTS (Sidebar)
+        // PHASE 23: SHARED COMPONENTS (Sidebar)
         // ============================================================
         '/core/ui/components/layouts/app-sidebar/AppSidebar.js',
         
         // ============================================================
-        // PHASE 22: EVENT SYSTEM (MUST BE LAST FOR MAIN FILES)
+        // PHASE 24: EVENT SYSTEM (MUST BE LAST FOR MAIN FILES)
         // ============================================================
         '/pages/app/dashboard/core/DashboardEventSystem.js', 
 
@@ -199,7 +211,7 @@ dashboard: {
         // ============================================================
         // PHASE 99: DEVCONSOLE (Load last)
         // ============================================================
-        '/core/dev/tests/DashboardTest.js',   // Dashboard tests
+        '/core/dev/tests/DashboardTest.js',
         '/core/dev/DevConsole.js'
     ],
     requiresAuth: true,
