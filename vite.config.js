@@ -15,15 +15,8 @@ export default defineConfig({
     
     rollupOptions: {
       input: {
-        // Homepage
+        // Homepage ONLY
         home: path.resolve(__dirname, 'src/pages/www/index.html'),
-        
-        // Dashboard (already configured)
-        dashboard: path.resolve(__dirname, 'src/pages/app/dashboard/index.html'),
-        
-        // Add more pages as needed:
-        // about: path.resolve(__dirname, 'src/pages/www/about/index.html'),
-        // pricing: path.resolve(__dirname, 'src/pages/www/pricing/index.html'),
       },
       
       output: {
@@ -51,16 +44,12 @@ export default defineConfig({
             return 'vendor'
           }
           
-          // Core bundle (shared across all pages)
+          // Core bundle (shared)
           if (id.includes('/src/core/')) {
             return 'core'
           }
           
-          // Page-specific chunks
-          if (id.includes('/src/pages/app/dashboard/')) {
-            return 'dashboard'
-          }
-          
+          // Homepage chunks
           if (id.includes('/src/pages/www/')) {
             return 'www'
           }
@@ -104,7 +93,6 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@core': path.resolve(__dirname, './src/core'),
-      '@dashboard': path.resolve(__dirname, './src/pages/app/dashboard'),
       '@www': path.resolve(__dirname, './src/pages/www'),
       '@components': path.resolve(__dirname, './src/core/ui/components'),
       '@utils': path.resolve(__dirname, './src/core/utils')
