@@ -3,7 +3,8 @@ import { defineConfig } from 'vite'
 import path from 'path'
 
 export default defineConfig({
-  root: 'src',
+  root: 'src',  // Vite starts here
+  publicDir: '../public',  // Points to your public folder
   
   build: {
     outDir: '../dist',
@@ -64,7 +65,7 @@ export default defineConfig({
   
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './public'),
+      '@': path.resolve(__dirname, './public'),  // @ = public/
       '@core': path.resolve(__dirname, './public/core'),
       '@dashboard': path.resolve(__dirname, './public/pages/app/dashboard')
     }
