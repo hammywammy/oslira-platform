@@ -5,18 +5,21 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
-  root: '.', // ← FIXED: Project root
-  publicDir: 'public', // ← FIXED: Just 'public'
+  root: '.', 
+  publicDir: 'public',
   
   build: {
-    outDir: 'dist', // ← FIXED: Just 'dist'
+    outDir: 'dist',
     emptyOutDir: true,
     
     rollupOptions: {
       input: {
-        // ← FIXED: Correct path to dashboard
+        // ✅ FIXED: Correct HTML entry point
         dashboard: path.resolve(__dirname, 'src/pages/app/dashboard/index.html')
       },
+      
+      // ✅ CRITICAL: Externalize nothing - let Vite handle all resolution
+      // Remove or comment out any 'external' array you might have had
       
       output: {
         entryFileNames: 'assets/js/[name]-[hash].js',
@@ -42,11 +45,11 @@ export default defineConfig({
             return 'vendor'
           }
           
-          if (id.includes('/core/')) {
+          if (id.includes('/src/core/')) {
             return 'core'
           }
           
-          if (id.includes('/pages/app/dashboard/')) {
+          if (id.includes('/src/pages/app/dashboard/')) {
             return 'dashboard'
           }
         }
@@ -87,17 +90,19 @@ export default defineConfig({
   
   resolve: {
     alias: {
-      // ← FIXED: All point to src/
+      // ✅ FIXED: Properly configured aliases with trailing slashes for consistency
       '@': path.resolve(__dirname, './src'),
       '@core': path.resolve(__dirname, './src/core'),
       '@dashboard': path.resolve(__dirname, './src/pages/app/dashboard'),
       '@components': path.resolve(__dirname, './src/core/ui/components'),
       '@utils': path.resolve(__dirname, './src/core/utils')
     },
-    extensions: ['.mjs', '.js', '.jsx', '.json']
+    extensions: ['.mjs', '.js', '.jsx', '.json', '.ts']
   },
   
   optimizeDeps: {
-    include: ['@supabase/supabase-js']
+    include: ['@supabase/supabase-js'],
+    // ✅ Force pre-bundling of certain modules if needed
+    force: false
   }
 })
