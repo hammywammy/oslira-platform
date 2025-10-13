@@ -20,6 +20,31 @@ class ModalBuilder {
         console.log('🏗️ [ModalBuilder] Instance created (Migrated System)');
     }
 
+        async prepareLeadData(leadId) {
+        try {
+            console.log('📊 [ModalBuilder] Loading lead:', leadId);
+            
+            const leadManager = window.LeadManager;
+            if (!leadManager) {
+                throw new Error('LeadManager not available');
+            }
+            
+            const leadData = await leadManager.viewLead(leadId);
+            if (!leadData) {
+                throw new Error('Lead not found');
+            }
+            
+            // Transform using LeadService
+            const transformedData = this.leadService.transformLeadForDisplay(leadData);
+            
+            return transformedData;
+            
+        } catch (error) {
+            console.error('❌ [ModalBuilder] Failed to prepare lead data:', error);
+            throw error;
+        }
+    }
+
     // ===============================================================================
     // MAIN BUILD METHOD
     // ===============================================================================
