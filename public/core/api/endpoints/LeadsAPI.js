@@ -581,6 +581,38 @@ class LeadsAPI {
             throw error;
         }
     }
+
+    /**
+ * Fetch leads for dashboard (with nested runs)
+ * Uses backend endpoint that calls getDashboardLeads()
+ * @param {string} businessId - Business ID
+ * @param {number} limit - Max results
+ * @returns {Promise<Array>} Leads with runs
+ */
+async fetchDashboardLeads(businessId, limit = 50) {
+    if (!businessId) {
+        throw new Error('Business ID is required');
+    }
+    
+    try {
+        const response = await this.apiClient.get(
+            `/v1/leads/dashboard?business_id=${businessId}&limit=${limit}`,
+            {},
+            { enabled: true, ttl: 2 * 60 * 1000 } // Cache 2 minutes
+        );
+        
+        if (!response.success) {
+            throw new Error(response.error || 'Failed to fetch dashboard leads');
+        }
+        
+        console.log(`✅ [LeadsAPI] Fetched ${response.data?.length || 0} dashboard leads`);
+        return response.data || [];
+        
+    } catch (error) {
+        console.error('❌ [LeadsAPI] Fetch dashboard leads failed:', error);
+        throw error;
+    }
+}
     
     // =========================================================================
     // LEAD TAGS & NOTES
