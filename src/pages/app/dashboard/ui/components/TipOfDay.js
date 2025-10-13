@@ -258,6 +258,9 @@ class TipOfDay {
     }
 }
 
+// ES6 Module Export
+export default TipOfDay;
+
 // Export
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = TipOfDay;
