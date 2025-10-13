@@ -582,13 +582,11 @@ class Logger {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraLogger = new Logger();
 
-// Auto-initialize (no async dependencies)
-window.OsliraLogger.initialize().catch(console.error);
+// Export for ES6 modules
+export default Logger;
 
-console.log('✅ [Logger] Loaded and initialized');
-if (window.Oslira?.init) {
-    window.Oslira.init.register('Logger', window.OsliraLogger);
-    console.log('📋 [Logger] Registered with Coordinator');
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.DashboardApp = Logger;
 }
