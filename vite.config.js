@@ -6,8 +6,8 @@ import { glob } from 'glob'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
-  root: '.', 
-  publicDir: 'public',
+  root: 'src/pages/www',  // CRITICAL: Set root to where your index.html is
+  publicDir: path.resolve(__dirname, 'public/assets'),
   
   // Enable top-level await support
   build: {
@@ -17,7 +17,8 @@ export default defineConfig({
     
     rollupOptions: {
       input: {
-        // Homepage ONLY
+        // DON'T use full path - Vite will preserve directory structure
+        // Use path.resolve to get absolute path, but the KEY determines output location
         home: path.resolve(__dirname, 'src/pages/www/index.html'),
       },
       
