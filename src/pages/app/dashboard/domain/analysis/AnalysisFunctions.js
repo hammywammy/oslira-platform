@@ -906,6 +906,9 @@ class AnalysisFunctions {
     }
 }
 
+// ES6 Module Export
+export default AnalysisFunctions;
+
 // Export for module system
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = AnalysisFunctions;
