@@ -64,5 +64,7 @@ class LeadValidation {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
+// ES6 Module Export
+export default LeadValidation;
 window.LeadValidation = LeadValidation;
 console.log('✅ [LeadValidation] Loaded');
