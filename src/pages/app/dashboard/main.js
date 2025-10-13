@@ -16,11 +16,7 @@ import './css/components/header.css';
 import './css/components/stats-cards.css';
 import './css/components/analysis-queue.css';
 
-// =============================================================================
-// IMPORT CORE MODULES
-// =============================================================================
-import * as Core from '@/core/index.js';
-
+import '@/core/core-bundle.js'; 
 // =============================================================================
 // IMPORT DASHBOARD MODULES
 // =============================================================================
