@@ -205,7 +205,6 @@
                 '/core/state/Selectors.js',
                 '/core/services/UserService.js',
                 '/core/services/BusinessService.js',
-                '/core/services/LeadService.js',
                 '/core/services/AnalyticsService.js'
             ]
         });
