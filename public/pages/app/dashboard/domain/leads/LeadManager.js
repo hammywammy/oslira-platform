@@ -110,114 +110,63 @@ class LeadManager {
     // =========================================================================
     
     async loadDashboardData() {
-        // Race condition prevention
-        if (this.isLoading) {
-            console.log('⚠️ [LeadManager] Load already in progress, waiting...');
-            return this.waitForCurrentLoad();
-        }
-        
-        const loadStartTime = performance.now();
-        this.isLoading = true;
-        this.loadingAbortController = new AbortController();
-        
-        try {
-            console.log('🔄 [LeadManager] Loading dashboard data...');
-            
-            // Update UI state
-            this.stateManager.batchUpdate({
-                'isLoading': true,
-                'loadingMessage': 'Loading leads...'
-            });
-            this.eventBus.emit('dashboard:loading:start', 'leads');
-            
-            // Wait for prerequisites with timeouts
-            const [user, businessId, supabaseClient] = await Promise.all([
-                this.waitForValidUser(5000),
-                this.waitForValidBusiness(3000),
-                this.waitForSupabaseClient(3000)
-            ]);
-            
-            // Validate prerequisites
-            if (!user) throw new Error('Authentication timeout - user not available');
-            if (!businessId) throw new Error('Business selection timeout');
-            if (!supabaseClient) throw new Error('Database connection timeout');
-            
-            console.log('📊 [LeadManager] Prerequisites met, loading leads...');
-            
-            // Load leads from database
-            const leads = await this.fetchLeadsFromDatabase(user.id, businessId, supabaseClient);
-            
-            // Process and enrich lead data
-            const enrichedLeads = this.processLeadData(leads);
-            
-            // Preserve existing selection during refresh
-            const validSelection = this.preserveSelection(enrichedLeads);
-            
-            // Update application state (atomic update)
-            this.updateStateWithLeads(enrichedLeads, validSelection);
-            
-            // Update cache
-            this.updateCache(enrichedLeads);
-            
-            // Track performance
-            this.trackPerformance(loadStartTime);
-            
-            // Emit success events
-            this.eventBus.emit('leads:loaded', enrichedLeads);
-            this.eventBus.emit('dashboard:data:loaded', { leads: enrichedLeads });
-            
-            console.log(`✅ [LeadManager] Loaded ${enrichedLeads.length} leads successfully`);
-            return enrichedLeads;
-            
-        } catch (error) {
-            // Determine if error is recoverable
-            const isRecoverable = this.handleLoadError(error);
-            
-            if (!isRecoverable) {
-                throw error;
-            }
-            
-            return [];
-            
-        } finally {
-            // Always cleanup state
-            this.stateManager.setState('isLoading', false);
-            this.eventBus.emit('dashboard:loading:end', 'leads');
-            this.isLoading = false;
-            this.loadingAbortController = null;
-        }
+    // Prevent concurrent loads
+    if (this.isLoading) {
+        console.log('⚠️ [LeadManager] Load already in progress');
+        return this.waitForCurrentLoad();
     }
+    
+    this.isLoading = true;
+    this.loadingAbortController = new AbortController();
+    
+    try {
+        console.log('📊 [LeadManager] Loading dashboard data...');
+        
+        this.eventBus.emit('dashboard:loading:start', 'leads');
+        this.stateManager.setState('isLoading', true);
+        
+        // Get current business
+        const business = this.stateManager.getState('currentBusiness');
+        
+        if (!business?.id) {
+            throw new Error('No business selected');
+        }
+        
+        // ✅ USE BACKEND ENDPOINT (not direct Supabase)
+        const leads = await this.leadsAPI.fetchDashboardLeads(business.id);
+        
+        // Process and store leads
+        const processedLeads = this.processLeadData(leads);
+        
+        this.stateManager.batchUpdate({
+            'leads': processedLeads,
+            'allLeads': processedLeads,
+            'filteredLeads': processedLeads
+        });
+        
+        this.lastRefresh = Date.now();
+        
+        console.log(`✅ [LeadManager] Loaded ${processedLeads.length} leads via backend`);
+        this.eventBus.emit('dashboard:data:loaded', { count: processedLeads.length });
+        
+        return processedLeads;
+        
+    } catch (error) {
+        console.error('❌ [LeadManager] Load failed:', error);
+        this.eventBus.emit('dashboard:data:error', { error: error.message });
+        throw error;
+        
+    } finally {
+        this.stateManager.setState('isLoading', false);
+        this.eventBus.emit('dashboard:loading:end', 'leads');
+        this.isLoading = false;
+        this.loadingAbortController = null;
+    }
+}
     
     // =========================================================================
     // DATA FETCHING (Separated for testability)
     // =========================================================================
-    
-    async fetchLeadsFromDatabase(userId, businessId, supabaseClient) {
-        const { data: leads, error: leadsError } = await supabaseClient
-            .from('leads')
-            .select(`
-                lead_id, username, display_name, profile_picture_url, bio_text,
-                platform_type, follower_count, following_count, post_count,
-                is_verified_account, profile_url, user_id, business_id,
-                first_discovered_at, last_updated_at,
-                runs!runs_lead_id_fkey(
-                    run_id, analysis_type, overall_score, niche_fit_score, 
-                    engagement_score, summary_text, confidence_level, created_at
-                )
-            `)
-            .eq('user_id', userId)
-            .eq('business_id', businessId)
-            .order('last_updated_at', { ascending: false })
-            .order('created_at', { foreignTable: 'runs', ascending: false });
-        
-        if (leadsError) {
-            console.error('❌ [LeadManager] Database query failed:', leadsError);
-            throw leadsError;
-        }
-        
-        console.log(`📊 [LeadManager] Fetched ${leads?.length || 0} leads from database`);
-        return leads || [];
-    }
     
     processLeadData(leads) {
         if (!leads || leads.length === 0) {
@@ -778,14 +727,6 @@ async waitForValidUser(timeout = 5000) {
     handleBusinessChange(businessData) {
         console.log('🏢 [LeadManager] Business changed, reloading leads');
         this.loadDashboardData();
-    }
-    
-    // =========================================================================
-    // SUPABASE CLIENT GETTER
-    // =========================================================================
-    
-    get supabase() {
-        return this.osliraAuth?.supabase || null;
     }
     
     // =========================================================================
