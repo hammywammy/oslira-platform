@@ -475,6 +475,9 @@ class LeadDisplayUseCase {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
+
+// ES6 Module Export
+export default LeadDisplayUseCase;
 window.LeadDisplayUseCase = LeadDisplayUseCase;
 
 // ✅ BACKWARD COMPATIBILITY: Keep old name working
