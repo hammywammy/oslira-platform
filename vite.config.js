@@ -20,18 +20,6 @@ export default defineConfig({
       input: {
         // Point to actual file locations in public/
         dashboard: path.resolve(__dirname, 'public/pages/app/dashboard/index.html'),
-        leads: path.resolve(__dirname, 'public/pages/app/leads/index.html'),
-        analytics: path.resolve(__dirname, 'public/pages/app/analytics/index.html'),
-        campaigns: path.resolve(__dirname, 'public/pages/app/campaigns/index.html'),
-        messages: path.resolve(__dirname, 'public/pages/app/messages/index.html'),
-        integrations: path.resolve(__dirname, 'public/pages/app/integrations/index.html'),
-        settings: path.resolve(__dirname, 'public/pages/app/settings/index.html'),
-        auth: path.resolve(__dirname, 'public/pages/auth/index.html'),
-        
-        // Add any marketing/public pages
-        home: path.resolve(__dirname, 'public/index.html'),
-        about: path.resolve(__dirname, 'public/pages/about/index.html'),
-        pricing: path.resolve(__dirname, 'public/pages/pricing/index.html'),
       },
       
       output: {
