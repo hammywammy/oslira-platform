@@ -1,22 +1,39 @@
 import { defineConfig } from 'vite'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { existsSync, readdirSync } from 'fs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// ✅ DEBUG: Log what files actually exist
+console.log('==========================================')
+console.log('VITE CONFIG DEBUG INFO')
+console.log('==========================================')
+console.log('__dirname:', __dirname)
+console.log('Project root:', path.resolve(__dirname))
+console.log('HTML path:', path.resolve(__dirname, 'src/pages/app/dashboard/index.html'))
+console.log('HTML exists?:', existsSync(path.resolve(__dirname, 'src/pages/app/dashboard/index.html')))
+console.log('main.js path:', path.resolve(__dirname, 'src/pages/app/dashboard/main.js'))
+console.log('main.js exists?:', existsSync(path.resolve(__dirname, 'src/pages/app/dashboard/main.js')))
+
+// List all files in dashboard directory
+const dashboardDir = path.resolve(__dirname, 'src/pages/app/dashboard')
+if (existsSync(dashboardDir)) {
+  console.log('Files in dashboard directory:')
+  console.log(readdirSync(dashboardDir))
+}
+console.log('==========================================')
+
 export default defineConfig({
-  root: '.', // Project root for development
-  publicDir: 'public', // Public assets directory
+  root: '.', 
+  publicDir: 'public',
   
   build: {
-    // ✅ CRITICAL FIX: Use absolute path to project root dist directory
-    // This ensures Netlify finds the build output at /dist instead of /src/pages/app/dashboard/dist
     outDir: path.resolve(__dirname, './dist'),
     emptyOutDir: true,
     
     rollupOptions: {
       input: {
-        // Entry point: dashboard HTML file
         dashboard: path.resolve(__dirname, 'src/pages/app/dashboard/index.html')
       },
       
@@ -89,7 +106,6 @@ export default defineConfig({
   
   resolve: {
     alias: {
-      // Path aliases for module resolution
       '@': path.resolve(__dirname, './src'),
       '@core': path.resolve(__dirname, './src/core'),
       '@dashboard': path.resolve(__dirname, './src/pages/app/dashboard'),
@@ -101,5 +117,8 @@ export default defineConfig({
   
   optimizeDeps: {
     include: ['@supabase/supabase-js']
-  }
+  },
+  
+  // ✅ ADD: More verbose logging
+  logLevel: 'info'
 })
