@@ -581,6 +581,8 @@ class Selectors {
 // =============================================================================
 // GLOBAL EXPORT (Safe Singleton Pattern)
 // =============================================================================
+// ES6 Module Export
+export default Selectors;
 
 if (!window.OsliraSelectors) {
     const store = window.OsliraStore;
