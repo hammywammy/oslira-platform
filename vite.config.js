@@ -1,4 +1,3 @@
-// vite.config.js
 import { defineConfig } from 'vite'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -6,58 +5,45 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
-  root: 'src',
-  publicDir: '../public',
+  root: '.', // ← FIXED: Project root
+  publicDir: 'public', // ← FIXED: Just 'public'
   
   build: {
-    outDir: '../dist',
+    outDir: 'dist', // ← FIXED: Just 'dist'
     emptyOutDir: true,
     
     rollupOptions: {
       input: {
-        dashboard: path.resolve(__dirname, 'src/pages/dashboard/index.html')
+        // ← FIXED: Correct path to dashboard
+        dashboard: path.resolve(__dirname, 'src/pages/app/dashboard/index.html')
       },
       
       output: {
         entryFileNames: 'assets/js/[name]-[hash].js',
         chunkFileNames: 'assets/js/[name]-[hash].js',
         assetFileNames: (assetInfo) => {
-          const info = assetInfo.name.split('.')
-          const ext = info[info.length - 1]
+          const ext = assetInfo.name.split('.').pop()
           
-          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
-            return `assets/images/[name]-[hash][extname]`
+          if (/png|jpe?g|svg|gif|webp|ico/i.test(ext)) {
+            return 'assets/images/[name]-[hash][extname]'
           }
-          if (/woff|woff2|eot|ttf|otf/i.test(ext)) {
-            return `assets/fonts/[name]-[hash][extname]`
+          if (/woff2?|eot|ttf|otf/i.test(ext)) {
+            return 'assets/fonts/[name]-[hash][extname]'
           }
           if (/css/i.test(ext)) {
-            return `assets/css/[name]-[hash][extname]`
+            return 'assets/css/[name]-[hash][extname]'
           }
-          return `assets/[name]-[hash][extname]`
+          return 'assets/[name]-[hash][extname]'
         },
         
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('@supabase')) {
-              return 'vendor-supabase'
-            }
+            if (id.includes('@supabase')) return 'vendor-supabase'
             return 'vendor'
           }
           
-          if (id.includes('/core/infrastructure/') ||
-              id.includes('/core/events/') ||
-              id.includes('/core/state/') ||
-              id.includes('/core/api/') ||
-              id.includes('/core/auth/') ||
-              id.includes('/core/services/') ||
-              id.includes('/core/utils/') ||
-              id.includes('/core/di/')) {
-            return 'core-infra'
-          }
-          
-          if (id.includes('/core/ui/')) {
-            return 'core-ui'
+          if (id.includes('/core/')) {
+            return 'core'
           }
           
           if (id.includes('/pages/app/dashboard/')) {
@@ -101,11 +87,12 @@ export default defineConfig({
   
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './public'),
-      '@core': path.resolve(__dirname, './public/core'),
-      '@dashboard': path.resolve(__dirname, './public/pages/app/dashboard'),
-      '@components': path.resolve(__dirname, './public/core/ui/components'),
-      '@utils': path.resolve(__dirname, './public/core/utils')
+      // ← FIXED: All point to src/
+      '@': path.resolve(__dirname, './src'),
+      '@core': path.resolve(__dirname, './src/core'),
+      '@dashboard': path.resolve(__dirname, './src/pages/app/dashboard'),
+      '@components': path.resolve(__dirname, './src/core/ui/components'),
+      '@utils': path.resolve(__dirname, './src/core/utils')
     },
     extensions: ['.mjs', '.js', '.jsx', '.json']
   },
