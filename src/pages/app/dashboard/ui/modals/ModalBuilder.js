@@ -406,3 +406,6 @@ window.loadLeadAnalysisData = async (leadId, container) => {
 };
 
 console.log('🏗️ [ModalBuilder] Loaded with global handlers');
+
+// ES6 Module Export
+export default ModalManager;
