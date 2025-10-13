@@ -185,14 +185,15 @@
             ]
         });
         
-        // Phase 3: API Layer
-        phases.push({
-            name: 'API Layer',
-            critical: true,
-            scripts: [
-                '/core/api/ApiClient.js'
-            ]
-        });
+// Phase 3: API Layer
+phases.push({
+    name: 'API Layer',
+    critical: true,
+    scripts: [
+        '/core/api/ApiClient.js',
+        '/core/api/endpoints/LeadsAPI.js'  // ✅ ADD THIS
+    ]
+});
         
         // Phase 4: Auth & Services
         phases.push({
