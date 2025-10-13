@@ -534,5 +534,5 @@ class BusinessService {
 // GLOBAL EXPORT
 // =============================================================================
 window.OsliraBusinessService = BusinessService;
-
+export default BusinessService;
 console.log('✅ [BusinessService] Class loaded and ready');
