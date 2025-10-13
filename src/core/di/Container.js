@@ -605,9 +605,9 @@ async initialize() {
 // GLOBAL EXPORT (Safe Singleton Pattern)
 // =============================================================================
 // Export for ES6 modules
-export default OsliraContainer;
+export default Container;
 
 // Also keep window global for backwards compatibility
 if (typeof window !== 'undefined') {
-    window.OsliraContainer = OsliraContainer;
+    window.OsliraContainer = Container;
 }
