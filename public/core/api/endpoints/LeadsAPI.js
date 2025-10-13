@@ -582,9 +582,8 @@ class LeadsAPI {
         }
     }
 
-    /**
+ /**
  * Fetch leads for dashboard (with nested runs)
- * Uses backend endpoint that calls getDashboardLeads()
  * @param {string} businessId - Business ID
  * @param {number} limit - Max results
  * @returns {Promise<Array>} Leads with runs
@@ -595,21 +594,49 @@ async fetchDashboardLeads(businessId, limit = 50) {
     }
     
     try {
+        console.log(`🔍 [LeadsAPI] Fetching dashboard leads for business: ${businessId}`);
+        
         const response = await this.apiClient.get(
             `/v1/leads/dashboard?business_id=${businessId}&limit=${limit}`,
             {},
-            { enabled: true, ttl: 2 * 60 * 1000 } // Cache 2 minutes
+            { enabled: true, ttl: 2 * 60 * 1000 }
         );
         
-        if (!response.success) {
-            throw new Error(response.error || 'Failed to fetch dashboard leads');
+        console.log('📦 [LeadsAPI] Response received:', {
+            hasResponse: !!response,
+            hasSuccess: response?.success,
+            hasData: !!response?.data,
+            dataType: Array.isArray(response?.data) ? 'array' : typeof response?.data,
+            dataLength: response?.data?.length
+        });
+        
+        // ✅ CRITICAL FIX: Handle the response properly
+        // The backend returns { success: true, data: [...], requestId: "..." }
+        if (response && response.success === true) {
+            const leads = response.data || [];
+            console.log(`✅ [LeadsAPI] Fetched ${leads.length} dashboard leads`);
+            return leads;
         }
         
-        console.log(`✅ [LeadsAPI] Fetched ${response.data?.length || 0} dashboard leads`);
-        return response.data || [];
+        // Handle explicit failure response
+        if (response && response.success === false) {
+            const errorMsg = response.error || 'Failed to fetch dashboard leads';
+            console.error('❌ [LeadsAPI] API returned error:', errorMsg);
+            throw new Error(errorMsg);
+        }
+        
+        // Handle unexpected response format
+        console.error('❌ [LeadsAPI] Unexpected response format:', response);
+        throw new Error('Unexpected response format from API');
         
     } catch (error) {
         console.error('❌ [LeadsAPI] Fetch dashboard leads failed:', error);
+        console.error('❌ [LeadsAPI] Error details:', {
+            message: error.message,
+            stack: error.stack,
+            businessId,
+            limit
+        });
         throw error;
     }
 }
