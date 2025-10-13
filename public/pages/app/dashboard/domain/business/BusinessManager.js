@@ -4,6 +4,10 @@
  * OSLIRA BUSINESS MANAGER MODULE
  * Handles business profile loading, switching, and modal management
  * Extracted from dashboard.js - maintains exact functionality
+ * 
+ * ✅ FIXED: State keys standardized to canonical structure
+ * - 'businesses' → 'business.all'
+ * - 'selectedBusiness' → 'business.selected'
  */
 class BusinessManager {
     constructor() {
@@ -56,7 +60,8 @@ class BusinessManager {
             const cached = this.businessCache.get(user.id);
             if (cached && Date.now() - cached.timestamp < 5 * 60 * 1000) { // 5 minutes
                 console.log('📋 [BusinessManager] Using cached business data');
-                this.stateManager.setState('businesses', cached.businesses);
+                // ✅ FIX: Use canonical state key
+                this.stateManager.setState('business.all', cached.businesses);
                 return cached.businesses;
             }
             
@@ -80,8 +85,8 @@ class BusinessManager {
                 timestamp: Date.now()
             });
             
-            // Update state
-            this.stateManager.setState('businesses', businesses || []);
+            // ✅ FIX: Use canonical state key
+            this.stateManager.setState('business.all', businesses || []);
             
             // Set active business if not already set
             await this.setActiveBusinessFromStorage(businesses || []);
@@ -99,7 +104,8 @@ class BusinessManager {
             
         } catch (error) {
             console.error('❌ [BusinessManager] Error loading businesses:', error);
-            this.stateManager.setState('businesses', []);
+            // ✅ FIX: Use canonical state key
+            this.stateManager.setState('business.all', []);
             this.eventBus.emit(DASHBOARD_EVENTS.ERROR, {
                 source: 'business',
                 error: error.message
@@ -124,7 +130,8 @@ class BusinessManager {
         }
         
         if (selectedBusiness) {
-            this.stateManager.setState('selectedBusiness', selectedBusiness);
+            // ✅ FIX: Use canonical state key
+            this.stateManager.setState('business.selected', selectedBusiness);
             
             if (window.OsliraAuth) {
                 window.OsliraAuth.business = selectedBusiness;
@@ -148,15 +155,16 @@ class BusinessManager {
         try {
             console.log('🔄 [BusinessManager] Switching to business:', businessId);
             
-            const businesses = this.stateManager.getState('businesses');
+            // ✅ FIX: Use canonical state key
+            const businesses = this.stateManager.getState('business.all');
             const business = businesses.find(b => b.id === businessId);
             
             if (!business) {
                 throw new Error('Business not found');
             }
             
-            // Update state
-            this.stateManager.setState('selectedBusiness', business);
+            // ✅ FIX: Use canonical state key
+            this.stateManager.setState('business.selected', business);
 
             // Persist selection
             localStorage.setItem('selectedBusinessId', businessId);
@@ -170,7 +178,8 @@ class BusinessManager {
             this.eventBus.emit(DASHBOARD_EVENTS.BUSINESS_CHANGED, {
                 business,
                 businessId,
-                previousBusinessId: this.stateManager.getState('selectedBusiness')?.id
+                // ✅ FIX: Use canonical state key
+                previousBusinessId: this.stateManager.getState('business.selected')?.id
             });
             
             console.log('✅ [BusinessManager] Business switched to:', business.business_name);
@@ -206,8 +215,8 @@ class BusinessManager {
             businessSelect.innerHTML = '<option value="">Loading businesses...</option>';
             businessSelect.disabled = true;
             
-            // Load businesses if not already loaded
-            let businesses = this.stateManager.getState('businesses');
+            // ✅ FIX: Use canonical state key
+            let businesses = this.stateManager.getState('business.all');
             if (!businesses || businesses.length === 0) {
                 businesses = await this.loadBusinesses();
             }
@@ -227,8 +236,8 @@ class BusinessManager {
             
             businessSelect.innerHTML = optionsHTML;
             
-            // Auto-select current business
-            const currentBusiness = this.stateManager.getState('selectedBusiness');
+            // ✅ FIX: Use canonical state key
+            const currentBusiness = this.stateManager.getState('business.selected');
             if (currentBusiness) {
                 businessSelect.value = currentBusiness.id;
             }
@@ -260,8 +269,8 @@ class BusinessManager {
             bulkBusinessSelect.innerHTML = '<option value="">Loading...</option>';
             bulkBusinessSelect.disabled = true;
             
-            // Load businesses
-            let businesses = this.stateManager.getState('businesses');
+            // ✅ FIX: Use canonical state key
+            let businesses = this.stateManager.getState('business.all');
             if (!businesses || businesses.length === 0) {
                 businesses = await this.loadBusinesses();
             }
@@ -278,8 +287,8 @@ class BusinessManager {
             
             bulkBusinessSelect.innerHTML = optionsHTML;
             
-            // Auto-select current business
-            const currentBusiness = this.stateManager.getState('selectedBusiness');
+            // ✅ FIX: Use canonical state key
+            const currentBusiness = this.stateManager.getState('business.selected');
             if (currentBusiness) {
                 bulkBusinessSelect.value = currentBusiness.id;
             }
@@ -304,16 +313,19 @@ class BusinessManager {
     // ===============================================================================
     
     getCurrentBusiness() {
-        return this.stateManager.getState('selectedBusiness');
+        // ✅ FIX: Use canonical state key
+        return this.stateManager.getState('business.selected');
     }
     
     getBusinessById(businessId) {
-        const businesses = this.stateManager.getState('businesses');
-        return businesses.find(b => b.id === businessId);
+        // ✅ FIX: Use canonical state key
+        const businesses = this.stateManager.getState('business.all');
+        return businesses?.find(b => b.id === businessId);
     }
     
     getAllBusinesses() {
-        return this.stateManager.getState('businesses') || [];
+        // ✅ FIX: Use canonical state key
+        return this.stateManager.getState('business.all') || [];
     }
     
     setDefaultBusinessProfile() {
@@ -368,8 +380,9 @@ class BusinessManager {
     }
     
     validateBusinessSetup() {
-        const businesses = this.stateManager.getState('businesses');
-        const selectedBusiness = this.stateManager.getState('selectedBusiness');
+        // ✅ FIX: Use canonical state keys
+        const businesses = this.stateManager.getState('business.all');
+        const selectedBusiness = this.stateManager.getState('business.selected');
         
         const validation = {
             hasBusinesses: businesses && businesses.length > 0,
@@ -439,8 +452,9 @@ class BusinessManager {
         const container = document.getElementById(containerId);
         if (!container) return;
         
-        const businesses = this.stateManager.getState('businesses') || [];
-        const currentBusiness = this.stateManager.getState('selectedBusiness');
+        // ✅ FIX: Use canonical state keys
+        const businesses = this.stateManager.getState('business.all') || [];
+        const currentBusiness = this.stateManager.getState('business.selected');
         
         const selectHTML = `
             <select id="${options.selectId || 'business-selector'}" 
@@ -464,7 +478,8 @@ class BusinessManager {
     updateBusinessIndicators() {
         // Update any business name displays
         const indicators = document.querySelectorAll('.current-business-name');
-        const currentBusiness = this.stateManager.getState('selectedBusiness');
+        // ✅ FIX: Use canonical state key
+        const currentBusiness = this.stateManager.getState('business.selected');
         
         indicators.forEach(indicator => {
             indicator.textContent = currentBusiness?.business_name || 'No Business Selected';
@@ -505,9 +520,10 @@ class BusinessManager {
     // ===============================================================================
     
     clearBusinessData() {
+        // ✅ FIX: Use canonical state keys
         this.stateManager.batchUpdate({
-            'businesses': [],
-            'selectedBusiness': null
+            'business.all': [],
+            'business.selected': null
         });
         
         this.businessCache.clear();
@@ -529,8 +545,9 @@ class BusinessManager {
     }
     
     getBusinessStats() {
-        const businesses = this.stateManager.getState('businesses') || [];
-        const currentBusiness = this.stateManager.getState('selectedBusiness');
+        // ✅ FIX: Use canonical state keys
+        const businesses = this.stateManager.getState('business.all') || [];
+        const currentBusiness = this.stateManager.getState('business.selected');
         
         return {
             total: businesses.length,
