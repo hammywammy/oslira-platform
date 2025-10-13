@@ -604,6 +604,10 @@ class BusinessAPI {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraBusinessAPI = BusinessAPI;
+// Export for ES6 modules
+export default BusinessAPI;
 
-console.log('✅ [BusinessAPI] Class loaded and ready for initialization');
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.BusinessAPI = BusinessAPI;
+}
