@@ -303,8 +303,10 @@ generateSummaryData(lead, analysisData) {
 }
 }
 
-// =============================================================================
-// GLOBAL EXPORT
-// =============================================================================
-window.LeadService = LeadService;
-console.log('✅ [LeadService] Loaded');
+// Export for ES6 modules
+export default LeadService;
+
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.LeadService = LeadService;
+}
