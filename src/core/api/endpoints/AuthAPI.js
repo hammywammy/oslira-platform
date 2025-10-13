@@ -521,6 +521,10 @@ class AuthAPI {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
-window.OsliraAuthAPI = AuthAPI;
+// Export for ES6 modules
+export default OsliraAuthAPI;
 
-console.log('✅ [AuthAPI] Class loaded and ready for initialization');
+// Also keep window global for backwards compatibility
+if (typeof window !== 'undefined') {
+    window.OsliraAuthAPI = OsliraAuthAPI;
+}
