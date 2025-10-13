@@ -654,6 +654,8 @@ class FormValidator {
 // =============================================================================
 // GLOBAL EXPORT
 // =============================================================================
+// ES6 Module Export
+export default FormValidator;
 window.OsliraFormValidator = FormValidator;
 
 console.log('✅ [FormValidator] Class loaded and ready');
