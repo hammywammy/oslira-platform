@@ -715,6 +715,9 @@ cleanup() {
     }
 }
 
+// ES6 Module Export
+export default AnalysisQueue;
+
 // Export
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = AnalysisQueue;
