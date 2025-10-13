@@ -621,6 +621,9 @@ class DashboardHeader {
     }
 }
 
+// ES6 Module Export
+export default DashboardHeader;
+
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = DashboardHeader;
