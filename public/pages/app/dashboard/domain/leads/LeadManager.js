@@ -1,7 +1,12 @@
 // =============================================================================
-// LEAD MANAGER - Production Grade
+// LEAD MANAGER - Production Grade (STATE KEY FIXED)
 // Path: /public/pages/app/dashboard/domain/leads/LeadManager.js
 // Dependencies: Core system via window.Oslira*
+//
+// ✅ CRITICAL FIX: Changed 'currentBusiness' → 'business.selected'
+// ✅ Increased timeout: 3s → 5s  
+// ✅ Added event-driven fallback with business:changed listener
+// ✅ Improved error diagnostics with state debugging
 // =============================================================================
 
 /**
@@ -46,6 +51,18 @@ class LeadManager {
         };
         
         console.log('🚀 [LeadManager] Initialized (Production Mode)');
+    }
+    
+    // =========================================================================
+    // LAZY GETTERS
+    // =========================================================================
+    
+    get supabase() {
+        return this.osliraAuth?.supabase || window.OsliraAuth?.supabase;
+    }
+    
+    get leadsAPI() {
+        return window.OsliraLeadsAPI;
     }
     
     // =========================================================================
@@ -106,81 +123,123 @@ class LeadManager {
     }
     
     // =========================================================================
-    // MAIN DATA LOADING (Production Grade)
+    // MAIN DATA LOADING (Production Grade) - ✅ FIXED
     // =========================================================================
     
-   async loadDashboardData() {
-    // Prevent concurrent loads
-    if (this.isLoading) {
-        console.log('⚠️ [LeadManager] Load already in progress');
-        return this.waitForCurrentLoad();
-    }
-    
-    this.isLoading = true;
-    this.loadingAbortController = new AbortController();
-    
-    try {
-        console.log('📊 [LeadManager] Loading dashboard data...');
+    async loadDashboardData() {
+        // Prevent concurrent loads
+        if (this.isLoading) {
+            console.log('⚠️ [LeadManager] Load already in progress');
+            return this.waitForCurrentLoad();
+        }
         
-        this.eventBus.emit('dashboard:loading:start', 'leads');
-        this.stateManager.setState('isLoading', true);
+        this.isLoading = true;
+        this.loadingAbortController = new AbortController();
         
-        // ✅ WAIT FOR BUSINESS TO BE SET (with timeout)
-        let business = this.stateManager.getState('currentBusiness');
-        
-        if (!business?.id) {
-            console.log('⏳ [LeadManager] Waiting for business selection...');
+        try {
+            console.log('📊 [LeadManager] Loading dashboard data...');
             
-            // Wait up to 3 seconds for business to be set
-            const maxAttempts = 30;
-            for (let attempt = 0; attempt < maxAttempts; attempt++) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-                business = this.stateManager.getState('currentBusiness');
+            this.eventBus.emit('dashboard:loading:start', 'leads');
+            this.stateManager.setState('isLoading', true);
+            
+            // ✅ FIX: Use canonical state key 'business.selected' instead of 'currentBusiness'
+            let business = this.stateManager.getState('business.selected');
+            
+            if (!business?.id) {
+                console.log('⏳ [LeadManager] Waiting for business selection...');
                 
-                if (business?.id) {
-                    console.log(`✅ [LeadManager] Business ready after ${attempt * 100}ms`);
-                    break;
+                // ✅ IMPROVEMENT: Event-driven fallback alongside polling
+                const businessPromise = new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        reject(new Error('Business selection timeout'));
+                    }, 5000); // Increased from 3s to 5s
+                    
+                    // Listen for business:changed event as fallback
+                    const handler = (data) => {
+                        if (data.business?.id) {
+                            clearTimeout(timeout);
+                            this.eventBus.off('business:changed', handler);
+                            resolve(data.business);
+                        }
+                    };
+                    
+                    this.eventBus.on('business:changed', handler);
+                });
+                
+                // Wait up to 5 seconds with both polling AND event listening
+                const maxAttempts = 50; // 5 seconds at 100ms intervals
+                for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    // ✅ FIX: Use canonical state key
+                    business = this.stateManager.getState('business.selected');
+                    
+                    if (business?.id) {
+                        console.log(`✅ [LeadManager] Business ready after ${attempt * 100}ms`);
+                        break;
+                    }
+                    
+                    // Check if business promise resolved
+                    try {
+                        business = await Promise.race([
+                            businessPromise,
+                            new Promise(resolve => setTimeout(() => resolve(null), 0))
+                        ]);
+                        if (business?.id) break;
+                    } catch (e) {
+                        // Continue polling
+                    }
+                }
+                
+                if (!business?.id) {
+                    // ✅ IMPROVED ERROR: Add comprehensive state debugging
+                    const debugState = {
+                        'business.all': this.stateManager.getState('business.all'),
+                        'business.selected': this.stateManager.getState('business.selected'),
+                        'authBusiness': window.OsliraAuth?.business,
+                        'localStorage': localStorage.getItem('selectedBusinessId'),
+                        'eventBusListeners': this.eventBus._events?.['business:changed']?.length || 0
+                    };
+                    
+                    console.error('❌ [LeadManager] Business state debug:', debugState);
+                    
+                    throw new Error('No business selected after waiting 5 seconds. Check BusinessManager initialization and state keys.');
                 }
             }
             
-            if (!business?.id) {
-                throw new Error('No business selected after waiting 3 seconds');
-            }
+            console.log('📊 [LeadManager] Using business:', business.id, business.business_name);
+            
+            // ✅ USE BACKEND ENDPOINT (not direct Supabase)
+            const leads = await this.leadsAPI.fetchDashboardLeads(business.id);
+            
+            // Process and store leads
+            const processedLeads = this.processLeadData(leads);
+            
+            this.stateManager.batchUpdate({
+                'leads': processedLeads,
+                'allLeads': processedLeads,
+                'filteredLeads': processedLeads
+            });
+            
+            this.lastRefresh = Date.now();
+            
+            console.log(`✅ [LeadManager] Loaded ${processedLeads.length} leads via backend`);
+            this.eventBus.emit('dashboard:data:loaded', { count: processedLeads.length });
+            
+            return processedLeads;
+            
+        } catch (error) {
+            console.error('❌ [LeadManager] Load failed:', error);
+            this.eventBus.emit('dashboard:data:error', { error: error.message });
+            throw error;
+            
+        } finally {
+            this.stateManager.setState('isLoading', false);
+            this.eventBus.emit('dashboard:loading:end', 'leads');
+            this.isLoading = false;
+            this.loadingAbortController = null;
         }
-        
-        console.log('📊 [LeadManager] Using business:', business.id);
-        
-        // ✅ USE BACKEND ENDPOINT (not direct Supabase)
-        const leads = await this.leadsAPI.fetchDashboardLeads(business.id);
-        
-        // Process and store leads
-        const processedLeads = this.processLeadData(leads);
-        
-        this.stateManager.batchUpdate({
-            'leads': processedLeads,
-            'allLeads': processedLeads,
-            'filteredLeads': processedLeads
-        });
-        
-        this.lastRefresh = Date.now();
-        
-        console.log(`✅ [LeadManager] Loaded ${processedLeads.length} leads via backend`);
-        this.eventBus.emit('dashboard:data:loaded', { count: processedLeads.length });
-        
-        return processedLeads;
-        
-    } catch (error) {
-        console.error('❌ [LeadManager] Load failed:', error);
-        this.eventBus.emit('dashboard:data:error', { error: error.message });
-        throw error;
-        
-    } finally {
-        this.stateManager.setState('isLoading', false);
-        this.eventBus.emit('dashboard:loading:end', 'leads');
-        this.isLoading = false;
-        this.loadingAbortController = null;
     }
-}
     
     // =========================================================================
     // DATA FETCHING (Separated for testability)
@@ -330,32 +389,34 @@ class LeadManager {
     // =========================================================================
     // WAIT HELPERS (Production Grade with AbortController)
     // =========================================================================
-async waitForValidUser(timeout = 5000) {
-    console.log('🔐 [LeadManager] Waiting for authenticated user...');
     
-    return this.waitFor(
-        () => {
-            const user = this.osliraAuth?.user;
-            
-            // Log current state for debugging
-            if (!user) {
-                console.log('⏳ [LeadManager] User not yet available, retrying...');
-            } else if (!user.id) {
-                console.log('⚠️ [LeadManager] User object exists but missing ID');
-            }
-            
-            // Return the full user object, not just the ID
-            return (user && user.id) ? user : null;
-        },
-        timeout,
-        'User authentication'
-    );
-}
-    
-    async waitForValidBusiness(timeout = 3000) {
+    async waitForValidUser(timeout = 5000) {
+        console.log('🔐 [LeadManager] Waiting for authenticated user...');
+        
         return this.waitFor(
             () => {
-                const selectedBusiness = this.stateManager.getState('selectedBusiness');
+                const user = this.osliraAuth?.user;
+                
+                // Log current state for debugging
+                if (!user) {
+                    console.log('⏳ [LeadManager] User not yet available, retrying...');
+                } else if (!user.id) {
+                    console.log('⚠️ [LeadManager] User object exists but missing ID');
+                }
+                
+                // Return the full user object, not just the ID
+                return (user && user.id) ? user : null;
+            },
+            timeout,
+            'User authentication'
+        );
+    }
+    
+    async waitForValidBusiness(timeout = 5000) {
+        // ✅ FIX: Use canonical state key
+        return this.waitFor(
+            () => {
+                const selectedBusiness = this.stateManager.getState('business.selected');
                 return selectedBusiness?.id || localStorage.getItem('selectedBusinessId');
             },
             timeout,
