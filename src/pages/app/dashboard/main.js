@@ -1,113 +1,80 @@
 // =============================================================================
-// DASHBOARD ENTRY POINT (Vite)
-// Path: /public/pages/app/dashboard/main.js
-// Replaces: /core/init/Loader.js
+// DASHBOARD ENTRY POINT (Vite + ES6 Modules)
 // =============================================================================
 
 console.log('🚀 [Dashboard] Starting...');
 
 // =============================================================================
-// LOAD SHARED CORE BUNDLE (Phases 0-8)
+// IMPORT CSS (Vite processes these)
 // =============================================================================
-import '@/core/core-bundle.js';
+import '../../../assets/css/base.css';
+import '../../../assets/css/tailwind.css';
+import '../../../core/ui/components/buttons/buttons.css';
+import '../../../core/ui/components/layouts/app-sidebar/AppSidebar.css';
+import './css/dashboard.css';
+import './css/components/header.css';
+import './css/components/stats-cards.css';
+import './css/components/analysis-queue.css';
 
 // =============================================================================
-// DASHBOARD-SPECIFIC MODULES (from ModuleRegistry)
+// IMPORT CORE MODULES
 // =============================================================================
+import * as Core from '@/core/index.js';
 
-// Phase 0: Dependency Injection System
-import '@/core/di/ServiceRegistry.js';
-import '@/core/di/Container.js';
+// =============================================================================
+// IMPORT DASHBOARD MODULES
+// =============================================================================
+import DashboardApp from './core/DashboardApp.js';
+import LeadService from './domain/leads/LeadService.js';
+import LeadValidation from './domain/leads/LeadValidation.js';
+import LeadsTable from './ui/components/LeadsTable.js';
+import LeadsTableRenderer from './ui/components/LeadsTableRenderer.js';
+import RealtimeManager from './infrastructure/RealtimeManager.js';
+import InsightsPanel from './ui/components/InsightsPanel.js';
+import LeadDisplayUseCase from './application/leads/LeadDisplayUseCase.js';
+import AnalyzeLeadUseCase from './application/analysis/AnalyzeLeadUseCase.js';
+import AnalysisFunctions from './domain/analysis/AnalysisFunctions.js';
+import ResearchModal from './ui/modals/configs/ResearchModal.js';
+import AnalysisConfig from './ui/modals/configs/AnalysisConfig.js';
+import StatsCalculator from './domain/stats/StatsCalculator.js';
+import AnalysisQueueRenderer from './domain/analysis/AnalysisQueueRenderer.js';
+import TipOfDay from './ui/components/TipOfDay.js';
+import DailyTips from './shared/DailyTips.js';
+import FilterModal from './ui/modals/FilterModal.js';
+import AnalysisQueue from './domain/analysis/AnalysisQueue.js';
+import AnalysisQueueAnimator from './domain/analysis/AnalysisQueueAnimator.js';
+import LeadManager from './domain/leads/LeadManager.js';
+import TabSystem from './ui/modals/TabSystem.js';
+import ModalManager from './ui/modals/ModalManager.js';
+import ModalBuilder from './ui/modals/ModalBuilder.js';
+import StatsCards from './ui/components/StatsCards.js';
+import BulkUpload from './domain/bulk/BulkUpload.js';
+import BulkModal from './ui/modals/configs/BulkModal.js';
+import DashboardHeader from './ui/components/DashboardHeader.js';
+import BusinessManager from './domain/business/BusinessManager.js';
+import DashboardEventSystem from './core/DashboardEventSystem.js';
 
-// Phase 1: Infrastructure
-import '@/core/ui/components/tooltip/TooltipManager.js';
+// =============================================================================
+// EXPOSE ON WINDOW FOR BACKWARDS COMPATIBILITY
+// =============================================================================
+// Expose core modules
+Object.assign(window, Core);
 
-// Phase 2: Dashboard Core App
-import '@/pages/app/dashboard/core/DashboardApp.js';
-
-// Phase 3: Domain Services
-import '@/pages/app/dashboard/domain/leads/LeadService.js';
-import '@/pages/app/dashboard/domain/leads/LeadValidation.js';
-
-// Phase 4: UI Components
-import '@/pages/app/dashboard/ui/components/IconComponents.js';
-import '@/pages/app/dashboard/ui/components/LeadsTable.js';
-import '@/pages/app/dashboard/ui/components/LeadsTableRenderer.js';
-
-// Phase 5: Infrastructure
-import '@/pages/app/dashboard/infrastructure/RealtimeManager.js';
-
-// Phase 6: Domain - Rendering
-import '@/pages/app/dashboard/ui/components/InsightsPanel.js';
-
-// Phase 7: Application Layer
-import '@/pages/app/dashboard/application/leads/LeadDisplayUseCase.js';
-import '@/pages/app/dashboard/application/analysis/AnalyzeLeadUseCase.js';
-
-// Phase 8: Domain - Analysis
-import '@/pages/app/dashboard/domain/analysis/AnalysisFunctions.js';
-
-// Phase 9: UI Modals - Personality Components
-import '@/pages/app/dashboard/ui/modals/components/ModalComponentsPersonality.js';
-
-// Phase 10: Modals - Configurations
-import '@/pages/app/dashboard/ui/modals/configs/ResearchModal.js';
-import '@/pages/app/dashboard/ui/modals/configs/AnalysisConfig.js';
-
-// Phase 11: UI Modals - Xray Components
-import '@/pages/app/dashboard/ui/modals/components/ModalComponentsXray.js';
-
-// Phase 12: Domain - Stats
-import '@/pages/app/dashboard/domain/stats/StatsCalculator.js';
-
-// Phase 14: Analysis System - Queue
-import '@/pages/app/dashboard/domain/analysis/AnalysisQueueRenderer.js';
-import '@/pages/app/dashboard/ui/components/TipOfDay.js';
-import '@/pages/app/dashboard/shared/DailyTips.js';
-import '@/pages/app/dashboard/ui/modals/FilterModal.js';
-import '@/pages/app/dashboard/domain/analysis/AnalysisQueue.js';
-import '@/pages/app/dashboard/domain/analysis/AnalysisQueueAnimator.js';
-
-// Phase 15: UI Modals - Deep Components
-import '@/pages/app/dashboard/ui/modals/components/ModalComponentsDeep.js';
-
-// Phase 16: Domain - Leads
-import '@/pages/app/dashboard/domain/leads/LeadManager.js';
-
-// Phase 17: UI Modals - Tab System
-import '@/pages/app/dashboard/ui/modals/TabSystem.js';
-
-// Phase 18: UI Modals - Modal Manager
-import '@/pages/app/dashboard/ui/modals/ModalManager.js';
-import '@/pages/app/dashboard/ui/modals/ModalBuilder.js';
-
-// Phase 19: UI Components - Stats & Bulk
-import '@/pages/app/dashboard/ui/components/StatsCards.js';
-import '@/pages/app/dashboard/domain/bulk/BulkUpload.js';
-import '@/pages/app/dashboard/ui/modals/configs/BulkModal.js';
-
-// Phase 20: UI Modals - Core Components
-import '@/pages/app/dashboard/ui/modals/components/ModalComponentsCore.js';
-
-// Phase 21: UI Components - Header
-import '@/pages/app/dashboard/ui/components/DashboardHeader.js';
-
-// Phase 22: Domain - Business
-import '@/pages/app/dashboard/domain/business/BusinessManager.js';
-
-// Phase 24: Event System
-import '@/pages/app/dashboard/core/DashboardEventSystem.js';
-
-// Phase 99: DevConsole (Load last)
-import '@/core/dev/tests/DashboardTest.js';
-import '@/core/dev/DevConsole.js';
+// Expose dashboard modules
+window.DashboardApp = DashboardApp;
+window.LeadService = LeadService;
+window.LeadManager = LeadManager;
+window.ModalManager = ModalManager;
+window.BusinessManager = BusinessManager;
+window.StatsCards = StatsCards;
+window.DashboardHeader = DashboardHeader;
+// ... add others as needed
 
 console.log('✅ [Dashboard] All modules loaded');
 
 // =============================================================================
 // INITIALIZATION
 // =============================================================================
-
 async function initializeDashboard() {
     const startTime = performance.now();
     
@@ -124,12 +91,8 @@ async function initializeDashboard() {
         console.log('📄 [Dashboard] DOM ready');
         
         // Initialize DashboardApp
-        if (!window.DashboardApp) {
-            throw new Error('DashboardApp not found on window');
-        }
-        
-        const app = new window.DashboardApp();
-        await app.init();  // ✅ FIXED: Changed from initialize() to init()
+        const app = new DashboardApp();
+        await app.init();
         
         const loadTime = performance.now() - startTime;
         console.log(`✅ [Dashboard] Initialized in ${loadTime.toFixed(2)}ms`);
@@ -141,14 +104,6 @@ async function initializeDashboard() {
         
     } catch (error) {
         console.error('❌ [Dashboard] Initialization failed:', error);
-        
-        // Show error UI
-        if (window.OsliraErrorHandler) {
-            window.OsliraErrorHandler.handleError(error, {
-                context: 'dashboard_init',
-                fatal: true
-            });
-        }
         
         // Show user-friendly error
         document.body.innerHTML = `
