@@ -813,6 +813,9 @@ class LeadsTable {
     }
 }
 
+// ES6 Module Export
+export default LeadsTable;
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = LeadsTable;
 } else {
