@@ -9,7 +9,9 @@ export default defineConfig({
   root: '.', 
   publicDir: 'public',
   
+  // Enable top-level await support
   build: {
+    target: 'esnext', // Support modern JS features including top-level await
     outDir: path.resolve(__dirname, './dist'),
     emptyOutDir: true,
     
@@ -67,6 +69,14 @@ export default defineConfig({
     },
     sourcemap: true,
     cssCodeSplit: true
+  },
+  
+  // ESBuild configuration for top-level await
+  esbuild: {
+    target: 'esnext',
+    supported: {
+      'top-level-await': true
+    }
   },
   
   server: {
