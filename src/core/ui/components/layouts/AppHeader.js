@@ -217,6 +217,8 @@ class HeaderManager {
     }
 }
 
+// ES6 Module Export
+export default HeaderManager;
 // Export
 window.HeaderManager = HeaderManager;
 
