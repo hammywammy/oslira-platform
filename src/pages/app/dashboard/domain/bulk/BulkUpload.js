@@ -245,4 +245,7 @@ if (typeof window !== 'undefined') {
     });
 }
 
+// ES6 Module Export
+export default BulkUpload;
+
 console.log('📄 [BulkUpload] Module loaded');
