@@ -11,6 +11,8 @@ Version: 2.1 - BEM Migration Complete + FULL SECTIONS
 <!-- Skip to main content (accessibility) -->
 <a href="#main-content" class="skip-to-main">Skip to main content</a>
 
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -73,8 +75,11 @@ Version: 2.1 - BEM Migration Complete + FULL SECTIONS
         }
     </style>
     
-    <!-- 5. Bootstrap System -->
-    <script src="/core/init/Loader.js" data-page="home"></script>
+    <!-- ============================================================== 
+         🚀 NEW: VITE ES6 MODULE ENTRY POINT
+         Replaces: <script src="/core/init/Loader.js" data-page="home"></script>
+         ============================================================== -->
+    <script type="module" src="/src/pages/www/main.js"></script>
 </head>
 
 <body class="home">
