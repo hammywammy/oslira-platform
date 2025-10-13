@@ -501,5 +501,7 @@ class OsliraUIManager {
     }
 }
 
+// ES6 Module Export
+export default UIOrchestrator;
 // Export for global use
 window.OsliraUI = OsliraUIManager;
