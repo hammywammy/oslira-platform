@@ -5,21 +5,20 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
-  root: './src/pages/app/dashboard', // ✅ Set root to dashboard directory
-  publicDir: path.resolve(__dirname, './public'), // ✅ Absolute path to public dir
+  root: '.', // Project root for development
+  publicDir: 'public', // Public assets directory
   
   build: {
-    outDir: 'dist',
+    // ✅ CRITICAL FIX: Use absolute path to project root dist directory
+    // This ensures Netlify finds the build output at /dist instead of /src/pages/app/dashboard/dist
+    outDir: path.resolve(__dirname, './dist'),
     emptyOutDir: true,
     
     rollupOptions: {
       input: {
-        // ✅ FIXED: Correct HTML entry point
+        // Entry point: dashboard HTML file
         dashboard: path.resolve(__dirname, 'src/pages/app/dashboard/index.html')
       },
-      
-      // ✅ CRITICAL: Externalize nothing - let Vite handle all resolution
-      // Remove or comment out any 'external' array you might have had
       
       output: {
         entryFileNames: 'assets/js/[name]-[hash].js',
@@ -90,19 +89,17 @@ export default defineConfig({
   
   resolve: {
     alias: {
-      // ✅ FIXED: Properly configured aliases with trailing slashes for consistency
+      // Path aliases for module resolution
       '@': path.resolve(__dirname, './src'),
       '@core': path.resolve(__dirname, './src/core'),
       '@dashboard': path.resolve(__dirname, './src/pages/app/dashboard'),
       '@components': path.resolve(__dirname, './src/core/ui/components'),
       '@utils': path.resolve(__dirname, './src/core/utils')
     },
-    extensions: ['.mjs', '.js', '.jsx', '.json', '.ts']
+    extensions: ['.mjs', '.js', '.jsx', '.json']
   },
   
   optimizeDeps: {
-    include: ['@supabase/supabase-js'],
-    // ✅ Force pre-bundling of certain modules if needed
-    force: false
+    include: ['@supabase/supabase-js']
   }
 })
