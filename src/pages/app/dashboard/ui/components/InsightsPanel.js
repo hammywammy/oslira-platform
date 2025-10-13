@@ -115,6 +115,9 @@ class InsightsPanel {
     }
 }
 
+// ES6 Module Export
+export default InsightsPanel;
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = InsightsPanel;
 } else {
