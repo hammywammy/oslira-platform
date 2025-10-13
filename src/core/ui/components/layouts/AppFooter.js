@@ -159,6 +159,8 @@ class FooterManager {
     }
 }
 
+// ES6 Module Export
+export default FooterManager;
 // Export
 window.FooterManager = FooterManager;
 
