@@ -563,5 +563,5 @@ class AnalyticsService {
 // GLOBAL EXPORT
 // =============================================================================
 window.OsliraAnalyticsService = AnalyticsService;
-
+export default AnalyticsService;
 console.log('✅ [AnalyticsService] Class loaded and ready');
