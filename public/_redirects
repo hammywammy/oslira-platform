@@ -1,4 +1,4 @@
-/dashboard           /dashboard.html    200
-/onboarding          /onboarding.html   200
-/                    /index.html        200
-/*                   /index.html        200
+/dashboard     /dashboard     200
+/onboarding    /onboarding    200
+/              /index.html    200
+/*             /index.html    200
