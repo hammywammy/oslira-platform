@@ -50,6 +50,15 @@ class AuthManager {
      * MUST be called after EnvDetector and Supabase CDN load
      */
 async initialize() {
+
+ if (window.location.pathname.includes('/dashboard') || 
+        window.location.pathname.includes('/onboarding')) {
+        this.isLoaded = true;
+        this.session = { user: { email: 'demo@oslira.com', id: 'demo-123' } };
+        this.user = this.session.user;
+        console.log('✅ [AuthManager] DEMO MODE - Auth bypassed');
+        return true;
+    }
         // Prevent duplicate initialization
         if (this.isLoading) {
             console.log('⏳ [AuthManager] Already initializing, waiting...');
@@ -1342,6 +1351,7 @@ async navigateToApp(path = '/dashboard') {
         };
     }
 }
+
 
 
 
