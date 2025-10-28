@@ -5,9 +5,9 @@
     "build": "vite build && npm run copy-files",
     "copy-files": "npm run copy-css && npm run copy-html",
     "copy-css": "mkdir -p dist/assets/css dist/assets/images dist/pages/www dist/pages/app/dashboard/css/components dist/pages/app/onboarding dist/core/ui/components/buttons dist/core/ui/components/layouts/app-sidebar && cp -r src/assets/css/* dist/assets/css/ 2>/dev/null || true && cp -r src/assets/images/* dist/assets/images/ 2>/dev/null || true && cp src/pages/www/home.css dist/pages/www/home.css 2>/dev/null || true && cp src/pages/app/onboarding/onboarding.css dist/pages/app/onboarding/onboarding.css 2>/dev/null || true && cp src/pages/app/dashboard/css/dashboard.css dist/pages/app/dashboard/css/dashboard.css 2>/dev/null || true && cp -r src/pages/app/dashboard/css/components/* dist/pages/app/dashboard/css/components/ 2>/dev/null || true && cp src/core/ui/components/buttons/buttons.css dist/core/ui/components/buttons/buttons.css 2>/dev/null || true && cp src/core/ui/components/layouts/app-sidebar/AppSidebar.css dist/core/ui/components/layouts/app-sidebar/AppSidebar.css 2>/dev/null || true",
-    "copy-html": "cp dist/src/pages/www/index.html dist/index.html && cp dist/src/pages/app/dashboard/index.html dist/dashboard.html && cp dist/src/pages/app/onboarding/index.html dist/onboarding.html"
+    "copy-html": "cp dist/src/pages/www/index.html dist/index.html && cp dist/src/pages/app/dashboard/index.html dist/dashboard.html && cp dist/src/pages/app/onboarding/index.html dist/onboarding.html && cp public/404.html dist/404.html"
   },
   "devDependencies": {
     "vite": "^5.4.20"
   }
-} 
+}
