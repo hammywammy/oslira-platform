@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script>
+        // Redirect to appropriate page based on path
+        const path = window.location.pathname;
+        if (path.startsWith('/dashboard')) {
+            window.location.replace('/dashboard.html');
+        } else if (path.startsWith('/onboarding')) {
+            window.location.replace('/onboarding.html');
+        } else {
+            window.location.replace('/index.html');
+        }
+    </script>
+</head>
+<body>
+    <p>Redirecting...</p>
+</body>
+</html>
