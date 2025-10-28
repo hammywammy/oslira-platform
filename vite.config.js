@@ -7,6 +7,7 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
+    target: 'esnext',
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'src/pages/www/index.html'),
