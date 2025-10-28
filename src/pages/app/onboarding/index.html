@@ -3,47 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Onboarding - Oslira</title>
-    <style>
-        body { margin: 0; font-family: system-ui; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .container { max-width: 600px; background: white; border-radius: 12px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-        h1 { color: #333; margin: 0 0 10px 0; }
-        .subtitle { color: #666; margin-bottom: 30px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 5px; font-weight: 500; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
-        button { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; }
-        button:hover { opacity: 0.9; }
-    </style>
+    <title>Account Setup - Oslira</title>
+    
+    <link rel="icon" type="image/png" href="/assets/images/oslira-logo.png">
+    <link rel="stylesheet" href="/assets/css/tailwind.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
-    <div class="container">
-        <h1>Welcome to Oslira</h1>
-        <p class="subtitle">Let's set up your account</p>
-        
-        <form>
-            <div class="form-group">
-                <label>Your Name</label>
-                <input type="text" placeholder="John Doe">
+
+<body style="visibility: hidden;">
+    
+    <!-- LOADING SCREEN -->
+    <div id="app-loader" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="text-align: center;">
+            <img src="/assets/images/oslira-logo.png" alt="Oslira" style="width: 80px; margin-bottom: 20px; background: white; border-radius: 12px; padding: 8px;">
+            <div style="color: white; font-size: 18px; font-weight: 600; margin-bottom: 10px;">Setting up your account</div>
+            <div style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 20px;">This will only take a moment...</div>
+            <div style="width: 200px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden; margin: 0 auto;">
+                <div id="load-progress" style="width: 0%; height: 100%; background: white; transition: width 0.3s;"></div>
             </div>
-            
-            <div class="form-group">
-                <label>Company Name</label>
-                <input type="text" placeholder="Your Company">
-            </div>
-            
-            <div class="form-group">
-                <label>Industry</label>
-                <select>
-                    <option>Technology</option>
-                    <option>Healthcare</option>
-                    <option>Finance</option>
-                    <option>Marketing</option>
-                </select>
-            </div>
-            
-            <button type="button" onclick="window.location.href='/dashboard'">Complete Setup</button>
-        </form>
+        </div>
     </div>
+
+    <!-- Animated background elements -->
+    <div class="onboarding-bg">
+        <div class="onboarding-bg-orb onboarding-bg-orb-1"></div>
+        <div class="onboarding-bg-orb onboarding-bg-orb-2"></div>
+        <div class="onboarding-bg-orb onboarding-bg-orb-3"></div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="onboarding-loading hidden">
+        <div class="onboarding-loading-content">
+            <div class="onboarding-loading-spinner">
+                <div class="onboarding-loading-ring"></div>
+                <div class="onboarding-loading-ring-reverse"></div>
+            </div>
+            <h2 class="onboarding-title">Setting up your account</h2>
+            <p class="text-white/70">This will only take a moment...</p>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="onboarding-error hidden">
+        <div class="max-w-md mx-auto text-center p-8">
+            <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-exclamation-triangle text-red-400 text-2xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-4">Something went wrong</h2>
+            <p id="error-message" class="text-white/70 mb-6">Failed to load the setup form.</p>
+            <button onclick="window.location.reload()" class="onboarding-btn-primary">
+                <span class="onboarding-btn-content">Try again</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Onboarding Container -->
+    <div id="onboarding-form" class="onboarding-container">
+        <div class="onboarding-wrapper" style="max-width: 800px; margin: 0 auto; padding: 2rem;">
+            
+            <!-- Header -->
+            <div class="onboarding-header" style="text-align: center; margin-bottom: 3rem;">
+                <div class="onboarding-logo" style="display: inline-block; margin-bottom: 1.5rem;">
+                    <img src="/assets/images/oslira-logo.png" alt="Oslira Logo" style="height: 48px; width: 48px; background: white; border-radius: 12px; padding: 8px;">
+                </div>
+                <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; color: #111827;">Welcome to Oslira</h1>
+                <p style="font-size: 1.125rem; color: #374151; margin-bottom: 0.5rem;">Let's create your AI-powered lead generation profile in just a few steps</p>
+                <p style="font-size: 0.875rem; color: #2563eb; font-weight: 500;">Answer accurately - this determines lead quality</p>
+            </div>
+
+            <!-- Progress Bar -->
+            <div style="margin-bottom: 3rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem; color: #4b5563; margin-bottom: 0.75rem;">
+                    <span>Step <span id="progress-step">1</span> of <span id="total-steps">8</span></span>
+                    <span id="progress-percent">12.5%</span>
+                </div>
+                <div style="height: 12px; background: #e5e7eb; border-radius: 9999px; overflow: hidden;">
+                   <div id="progress-fill" style="height: 100%; background: linear-gradient(to right, #3b82f6, #a855f7); border-radius: 9999px; width: 12.5%; transition: width 0.5s ease;"></div>
+                </div>
+            </div>
+
+            <!-- Step 1: What should we call you? -->
+            <div id="step-1" style="display: block;">
+                <div style="background: white; border: 1px solid #e5e7eb; border-radius: 24px; padding: 2rem; box-shadow: 0 8px 15px rgba(45, 108, 223, 0.15);">
+                    <div style="text-align: center; margin-bottom: 2.5rem;">
+                        <div style="width: 64px; height: 64px; border-radius: 16px; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; background: linear-gradient(to right, #60a5fa, #a78bfa); box-shadow: 0 8px 15px rgba(45, 108, 223, 0.15);">
+                            <i class="fas fa-user-circle" style="color: white; font-size: 24px;"></i>
+                        </div>
+                        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; color: #111827;">What should we call you?</h2>
+                        <p style="color: #1f2937; font-size: 1.125rem;">We'll use this name in your outreach messages</p>
+                    </div>
+
+                    <div style="margin-bottom: 2.5rem;">
+                        <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.75rem;">Your Name *</label>
+                        <div style="position: relative;">
+                            <input type="text" id="signature-name" name="signature-name" required 
+                                   style="width: 100%; padding: 0.75rem 1rem 0.75rem 3rem; background: white; border: 1px solid #d1d5db; border-radius: 12px; color: #111827; font-size: 1rem;" 
+                                   placeholder="John Doe">
+                            <div style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #9ca3af;">
+                                <i class="fas fa-signature"></i>
+                            </div>
+                        </div>
+                        <p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">
+                            <i class="fas fa-lightbulb" style="color: #fbbf24; margin-right: 0.5rem;"></i>
+                            This will appear in your outreach signatures (e.g., "Best regards, John")
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Tell us about your business -->
+            <div id="step-2" style="display: none;">
+                <div style="background: white; border: 1px solid #e5e7eb; border-radius: 24px; padding: 2rem; box-shadow: 0 8px 15px rgba(45, 108, 223, 0.15);">
+                    <div style="text-align: center; margin-bottom: 2.5rem;">
+                        <div style="width: 64px; height: 64px; border-radius: 16px; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; background: linear-gradient(to right, #60a5fa, #a78bfa); box-shadow: 0 8px 15px rgba(45, 108, 223, 0.15);">
+                            <i class="fas fa-building" style="color: white; font-size: 24px;"></i>
+                        </div>
+                        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; color: #111827;">Tell us about your business</h2>
+                        <p style="color: #1f2937; font-size: 1.125rem;">This helps us customize our AI algorithms</p>
+                    </div>
+
+                    <div style="margin-bottom: 2rem;">
+                        <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.75rem;">Company Name *</label>
+                        <input type="text" id="company-name" style="width: 100%; padding: 0.75rem 1rem; background: white; border: 1px solid #d1d5db; border-radius: 12px; color: #111827; font-size: 1rem;" placeholder="Enter your company name">
+                    </div>
+
+                    <div style="margin-bottom: 2rem;">
+                        <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.75rem;">Industry *</label>
+                        <select id="industry" style="width: 100%; padding: 0.75rem 1rem; background: white; border: 1px solid #d1d5db; border-radius: 12px; color: #111827; font-size: 1rem;">
+                            <option value="">Select your industry</option>
+                            <option value="technology">Technology</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="finance">Finance</option>
+                            <option value="real-estate">Real Estate</option>
+                            <option value="retail">Retail</option>
+                            <option value="manufacturing">Manufacturing</option>
+                            <option value="consulting">Consulting</option>
+                            <option value="marketing">Marketing</option>
+                            <option value="education">Education</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 2rem;">
+                        <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.75rem;">Company Size *</label>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="company-size" value="1-10" style="position: absolute; opacity: 0;">
+                                <div style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 1rem; text-align: center; transition: all 0.2s;">
+                                    <div style="width: 40px; height: 40px; border-radius: 8px; margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; background: linear-gradient(to right, #10b981, #059669);">
+                                        <i class="fas fa-seedling" style="color: white;"></i>
+                                    </div>
+                                    <h4 style="font-weight: 600; margin-bottom: 0.25rem;">1-10</h4>
+                                    <p style="font-size: 0.875rem; color: #6b7280;">Small team</p>
+                                </div>
+                            </label>
+
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="company-size" value="11-50" style="position: absolute; opacity: 0;">
+                                <div style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 1rem; text-align: center; transition: all 0.2s;">
+                                    <div style="width: 40px; height: 40px; border-radius: 8px; margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; background: linear-gradient(to right, #3b82f6, #06b6d4);">
+                                        <i class="fas fa-users" style="color: white;"></i>
+                                    </div>
+                                    <h4 style="font-weight: 600; margin-bottom: 0.25rem;">11-50</h4>
+                                    <p style="font-size: 0.875rem; color: #6b7280;">Growing company</p>
+                                </div>
+                            </label>
+
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="company-size" value="51+" style="position: absolute; opacity: 0;">
+                                <div style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 1rem; text-align: center; transition: all 0.2s;">
+                                    <div style="width: 40px; height: 40px; border-radius: 8px; margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; background: linear-gradient(to right, #a855f7, #ec4899);">
+                                        <i class="fas fa-building" style="color: white;"></i>
+                                    </div>
+                                    <h4 style="font-weight: 600; margin-bottom: 0.25rem;">51+</h4>
+                                    <p style="font-size: 0.875rem; color: #6b7280;">Enterprise</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.75rem;">Website URL</label>
+                        <input type="url" id="website" style="width: 100%; padding: 0.75rem 1rem; background: white; border: 1px solid #d1d5db; border-radius: 12px; color: #111827; font-size: 1rem;" placeholder="https://yourcompany.com">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Steps 3-8 would continue here with similar structure -->
+            <!-- For brevity, showing navigation buttons -->
+
+            <!-- Navigation -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem;">
+                <button type="button" id="back-btn" style="display: none; padding: 0.75rem 1.5rem; background: white; border: 1px solid #d1d5db; border-radius: 12px; color: #374151; font-weight: 500; cursor: pointer;">
+                    <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i>
+                    Back
+                </button>
+                <div style="margin-left: auto; display: flex; gap: 0.75rem;">
+                    <button type="button" id="skip-btn" style="padding: 0.75rem 1.5rem; background: transparent; border: none; color: #6b7280; font-weight: 500; cursor: pointer;">
+                        Skip for now
+                    </button>
+                    <button type="button" id="next-btn" style="padding: 0.75rem 2rem; background: linear-gradient(to right, #3b82f6, #a855f7); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer;">
+                        <span id="next-text">Continue</span>
+                        <i class="fas fa-arrow-right" style="margin-left: 0.75rem;"></i>
+                    </button>
+                    <button type="button" id="finish-btn" style="display: none; padding: 0.75rem 2rem; background: linear-gradient(to right, #10b981, #059669); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-rocket" style="margin-right: 0.75rem;"></i>
+                        Launch Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loader = document.getElementById('app-loader');
+    if (loader) loader.style.display = 'none';
+    document.body.style.visibility = 'visible';
+    
+    // Show onboarding form
+    const form = document.getElementById('onboarding-form');
+    if (form) form.style.display = 'block';
+});
+</script>
+
 </body>
 </html>
