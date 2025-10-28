@@ -5,9 +5,8 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    target: 'esnext',
     rollupOptions: {
-      input: './src/pages/www/index.html'
+      input: './index.html'
     }
   }
 });
