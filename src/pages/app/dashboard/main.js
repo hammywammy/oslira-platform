@@ -9,7 +9,7 @@ console.log('🚀 [Dashboard] Starting...');
 // =============================================================================
 // LOAD SHARED CORE BUNDLE (Phases 0-8)
 // =============================================================================
-import '@/core/core-bundle.js';
+//import '@/core/core-bundle.js';
 
 // =============================================================================
 // DASHBOARD-SPECIFIC MODULES (from ModuleRegistry)
