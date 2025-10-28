@@ -2,7 +2,8 @@
   "name": "oslira-platform",
   "version": "1.0.0",
   "scripts": {
-    "build": "vite build"
+    "build": "vite build && npm run copy-html",
+    "copy-html": "cp dist/src/pages/www/index.html dist/index.html && cp dist/src/pages/app/dashboard/index.html dist/dashboard.html && cp dist/src/pages/app/onboarding/index.html dist/onboarding.html"
   },
   "devDependencies": {
     "vite": "^5.4.20"
