@@ -16,5 +16,10 @@ export default defineConfig({
         onboarding: resolve(__dirname, 'src/pages/app/onboarding/index.html'),
       }
     }
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src')
+    }
   }
 });
