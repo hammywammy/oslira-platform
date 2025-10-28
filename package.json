@@ -2,8 +2,8 @@
   "name": "oslira-platform",
   "version": "1.0.0",
   "scripts": {
-    "build": "vite build && npm run copy-html",
-    "copy-html": "cp dist/src/pages/www/index.html dist/index.html && cp dist/src/pages/app/dashboard/index.html dist/dashboard.html && cp dist/src/pages/app/onboarding/index.html dist/onboarding.html"
+    "build": "vite build && npm run copy-files",
+    "copy-files": "mkdir -p dist/assets/css dist/assets/images dist/pages/www dist/pages/app/dashboard/css/components dist/pages/app/onboarding dist/core/ui/components/buttons dist/core/ui/components/layouts/app-sidebar && cp src/assets/css/*.css dist/assets/css/ 2>/dev/null || true && cp src/assets/images/* dist/assets/images/ 2>/dev/null || true && cp src/pages/www/home.css dist/pages/www/ 2>/dev/null || true && cp src/pages/app/onboarding/onboarding.css dist/pages/app/onboarding/ 2>/dev/null || true && cp src/pages/app/dashboard/css/dashboard.css dist/pages/app/dashboard/css/ 2>/dev/null || true && cp src/pages/app/dashboard/css/components/*.css dist/pages/app/dashboard/css/components/ 2>/dev/null || true && cp src/core/ui/components/buttons/buttons.css dist/core/ui/components/buttons/ 2>/dev/null || true && cp src/core/ui/components/layouts/app-sidebar/AppSidebar.css dist/core/ui/components/layouts/app-sidebar/ 2>/dev/null || true && cp dist/src/pages/www/index.html dist/index.html && cp dist/src/pages/app/dashboard/index.html dist/dashboard.html && cp dist/src/pages/app/onboarding/index.html dist/onboarding.html"
   },
   "devDependencies": {
     "vite": "^5.4.20"
