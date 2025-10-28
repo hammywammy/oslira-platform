@@ -1,5 +1,11 @@
-"scripts": {
-  "build": "vite build",
-  "build:tailwind": "npx tailwindcss -i src/assets/css/tailwind-input.css -o src/assets/css/tailwind.css --minify",
-  "build:vite": "vite build"
+{
+  "name": "oslira-platform",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "^5.4.20",
+    "tailwindcss": "^3.4.0"
+  }
 }
